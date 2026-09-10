@@ -1,0 +1,1095 @@
+/* ========================================================
+   OBESIGHT - MODERN HEALTHCARE DESIGN SYSTEM & ANIMATIONS
+   ======================================================== */
+
+:root {
+  /* Brand Palette from Figma */
+  --color-splash-green: #529A7B;
+  --color-primary: #00874A;
+  --color-primary-dark: #006838;
+  --color-primary-hover: #059c57;
+  --color-primary-light: #E8F5E9;
+  --color-primary-subtle: #F0FDF4;
+  
+  /* Neutrals & Surfaces */
+  --color-bg-app: #F8FAF9;
+  --color-surface: #FFFFFF;
+  --color-surface-translucent: rgba(255, 255, 255, 0.85);
+  --color-text-main: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-border: #E2E8F0;
+  --color-border-focus: #00874A;
+
+  /* Accent & Status */
+  --color-google-hover: #F8FAFC;
+  --color-danger: #EF4444;
+  --color-success: #10B981;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 36px -6px rgba(0, 135, 74, 0.14);
+  --shadow-mockup: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0,0,0,0.06);
+
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+  --radius-phone: 44px;
+
+  /* Motion Easings */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-family);
+  background-color: #0d1512;
+  color: var(--color-text-main);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========================================================
+   TOP REVIEW TOOLBAR (Interactive controls for user/dev)
+   ======================================================== */
+.preview-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  background: rgba(13, 21, 18, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 9999;
+}
+
+.toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.toolbar-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.toolbar-title strong {
+  color: #529A7B;
+  font-weight: 700;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-tool {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-tool:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-tool:active {
+  transform: translateY(0);
+}
+
+.tool-icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* ========================================================
+   VIEWPORT WRAPPER & PHONE MOCKUP
+   ======================================================== */
+.viewport-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  padding-top: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1b3329 0%, #0d1512 85%);
+  transition: all 0.3s ease;
+  overflow: auto;
+}
+
+/* PHONE MOCKUP (402 x 874 as in Figma screenshots) */
+.phone-mockup {
+  position: relative;
+  width: 402px;
+  height: 874px;
+  background: #000;
+  border-radius: var(--radius-phone);
+  box-shadow: var(--shadow-mockup);
+  border: 11px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform-origin: center center;
+  transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease, border 0.35s ease;
+}
+
+/* Fullscreen Mode override */
+.viewport-wrapper.fullscreen-mode {
+  padding-top: 54px;
+  background: var(--color-bg-app);
+}
+
+.viewport-wrapper.fullscreen-mode .phone-mockup {
+  width: 100%;
+  height: calc(100vh - 54px);
+  max-width: 500px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Phone Notch / Dynamic Island */
+.phone-notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 26px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+}
+
+.camera-lens {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #111827;
+  border: 1px solid #1f2937;
+}
+
+.speaker-grill {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: #1f2937;
+}
+
+/* Phone Status Bar */
+.phone-status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  padding: 0 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 90;
+  pointer-events: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  transition: color 0.4s ease;
+}
+
+.phone-status-bar.dark-text {
+  color: #1e293b;
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.status-battery {
+  width: 22px;
+  height: 12px;
+}
+
+/* Screen Canvas */
+.screen-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Phone Home Indicator Bar */
+.phone-home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  z-index: 95;
+  pointer-events: none;
+}
+
+/* ========================================================
+   1. SPLASH SCREEN LAYER & STAGED ANIMATIONS
+   ======================================================== */
+.splash-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Initial Green Background layer (Figma #529A7B) */
+.splash-green-bg {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-splash-green);
+  z-index: 1;
+}
+
+/* Expanding White Ellipse */
+.splash-white-ellipse {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 2;
+  opacity: 1;
+  transform-origin: center center;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+}
+
+/* Stage 2: Ellipse Zoom In / Expand */
+.splash-screen.stage-ellipse .splash-white-ellipse {
+  animation: ellipseZoomIn 1.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes ellipseZoomIn {
+  0% {
+    transform: translate(-50%, -50%) scale(0.1);
+    opacity: 0.9;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(22);
+    opacity: 1;
+  }
+}
+
+/* Splash Branding Container (holds Logo and Text) */
+.splash-brand-container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 120px;
+}
+
+/* Splash Logo Wrapper */
+.splash-logo-wrapper {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, opacity;
+}
+
+.splash-logo-img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 50%;
+  filter: drop-shadow(0 8px 18px rgba(0, 135, 74, 0.18));
+}
+
+/* Stage 1 initial small logo on green background (Image 1 in Figma) */
+.splash-screen.stage-init .splash-logo-wrapper {
+  opacity: 0.95;
+  transform: translate(-50%, -50%) scale(0.55);
+}
+
+/* Stage 3: Logo Fade-In 2 Seconds (Matching Figma specs) */
+.splash-screen.stage-logo-fadein .splash-logo-wrapper {
+  animation: logoFadeInCenter 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes logoFadeInCenter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.75);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: drop-shadow(0 10px 22px rgba(0, 135, 74, 0.2));
+  }
+}
+
+/* Stage 4: Logo Shifts to the Left */
+.splash-screen.stage-logo-shift .splash-logo-wrapper {
+  animation: logoShiftToLeft 0.85s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+}
+
+@keyframes logoShiftToLeft {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 1;
+    /* Shifts left: center was 50%, shift left by 72px so text fits on right */
+    transform: translate(calc(-50% - 68px), -50%) scale(0.92);
+  }
+}
+
+/* Splash Text Wrapper */
+.splash-text-wrapper {
+  position: absolute;
+  left: calc(50% - 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.splash-brand-text {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+  display: inline-block;
+}
+
+/* Stage 5: Text Reveals next to Logo */
+.splash-screen.stage-text-reveal .splash-text-wrapper {
+  animation: textSlideReveal 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes textSlideReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* Skip Splash Button */
+.btn-skip-splash {
+  position: absolute;
+  bottom: 30px;
+  right: 24px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  z-index: 20;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.splash-screen.stage-logo-fadein .btn-skip-splash,
+.splash-screen.stage-logo-shift .btn-skip-splash,
+.splash-screen.stage-text-reveal .btn-skip-splash {
+  opacity: 0.8;
+}
+
+.btn-skip-splash:hover {
+  opacity: 1;
+  background: rgba(0, 135, 74, 0.1);
+  color: var(--color-primary);
+}
+
+/* ========================================================
+   2. AUTHENTICATION & LOGIN SCREEN
+   ======================================================== */
+.auth-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background-color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-smooth);
+}
+
+.auth-screen.hidden {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+}
+
+.auth-screen.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.auth-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 56px 24px 34px 24px;
+  display: flex;
+  flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom Slim Scrollbar */
+.auth-scroll-area::-webkit-scrollbar {
+  width: 4px;
+}
+.auth-scroll-area::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+/* Header */
+.auth-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.auth-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 6px 8px;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-pill);
+  margin-bottom: 14px;
+  border: 1px solid rgba(0, 135, 74, 0.15);
+}
+
+.auth-badge-logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.auth-badge-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.3px;
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-text-main);
+  letter-spacing: -0.6px;
+  margin-bottom: 6px;
+}
+
+.auth-subtitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  max-width: 310px;
+  margin: 0 auto;
+}
+
+/* Tabs: Masuk / Daftar Baru */
+.auth-tabs {
+  position: relative;
+  display: flex;
+  background: #F1F5F9;
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.tab-btn {
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  border: none;
+  padding: 10px 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.25s ease;
+  text-align: center;
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.tab-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: #FFFFFF;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s var(--ease-spring);
+  z-index: 1;
+}
+
+.auth-tabs.tab-register-active .tab-indicator {
+  transform: translateX(100%);
+}
+
+/* Auth Card */
+.auth-card {
+  display: flex;
+  flex-direction: column;
+}
+
+/* GOOGLE LOGIN BUTTON (User's explicit requirement) */
+.btn-google {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1F2937;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.btn-google:hover {
+  background: var(--color-google-hover);
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.btn-google:active {
+  transform: translateY(0);
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E2E8F0;
+}
+
+.auth-divider span {
+  padding: 0 12px;
+}
+
+/* Form Styles */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.form-group.hidden {
+  display: none;
+}
+
+.form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.link-forgot {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.link-forgot:hover {
+  text-decoration: underline;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.form-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 42px 0 42px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-main);
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  background: #FFFFFF;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 135, 74, 0.12);
+}
+
+.form-input:focus + .input-icon,
+.input-wrapper:focus-within .input-icon {
+  color: var(--color-primary);
+}
+
+.btn-toggle-password {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-toggle-password:hover {
+  color: var(--color-text-main);
+}
+
+.eye-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Submit Button */
+.btn-submit {
+  margin-top: 6px;
+  width: 100%;
+  height: 50px;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.25s ease;
+}
+
+.btn-submit:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1.5px);
+  box-shadow: 0 20px 40px -8px rgba(0, 135, 74, 0.28);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
+.btn-arrow {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.btn-submit:hover .btn-arrow {
+  transform: translateX(3px);
+}
+
+/* Footer */
+.auth-footer {
+  margin-top: 26px;
+  text-align: center;
+}
+
+.auth-footer p {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.auth-footer a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ========================================================
+   SIMULATED GOOGLE ACCOUNT CHOOSER MODAL
+   ======================================================== */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 150;
+  display: flex;
+  align-items: flex-end;
+  transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.google-modal-card {
+  width: 100%;
+  background: #FFFFFF;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  padding: 22px 20px 28px 20px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(0);
+  transition: transform 0.35s var(--ease-spring);
+}
+
+.modal-backdrop.hidden .google-modal-card {
+  transform: translateY(100%);
+}
+
+.google-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.google-modal-logo {
+  width: 28px;
+  height: 28px;
+}
+
+.google-modal-titles {
+  flex: 1;
+}
+
+.google-modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.google-modal-sub {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.btn-close-modal {
+  background: #F1F5F9;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.google-account-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.google-account-item:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  transform: translateX(2px);
+}
+
+.google-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-purple {
+  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+}
+
+.avatar-green {
+  background: linear-gradient(135deg, #10B981, #059669);
+}
+
+.google-acc-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.acc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.acc-email {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.google-modal-footer {
+  text-align: center;
+}
+
+.btn-cancel-modal {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 16px;
+}
+
+/* ========================================================
+   TOAST NOTIFICATION
+   ======================================================== */
+.toast-notification {
+  position: absolute;
+  top: 54px;
+  left: 18px;
+  right: 18px;
+  background: #064E3B;
+  color: #FFFFFF;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 180;
+  transition: all 0.4s var(--ease-spring);
+}
+
+.toast-notification.hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+.toast-icon-box {
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-icon-box svg {
+  width: 16px;
+  height: 16px;
+  stroke: #A7F3D0;
+}
+
+.toast-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.toast-msg {
+  font-size: 11px;
+  color: #D1FAE5;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .preview-toolbar {
+    padding: 0 12px;
+  }
+  .toolbar-title {
+    display: none;
+  }
+  .viewport-wrapper {
+    padding-top: 54px;
+  }
+  .phone-mockup {
+    width: 100vw;
+    height: calc(100vh - 54px);
+    border: none;
+    border-radius: 0;
+  }
+  .phone-notch {
+    display: none;
+  }
+}

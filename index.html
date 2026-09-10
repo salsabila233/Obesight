@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ObeSight - Solusi Cerdas Pengendalian Obesitas</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="theme-light">
+  <!-- Interactive Top Control Bar for Review & Demo -->
+  <header class="preview-toolbar" id="preview-toolbar">
+    <div class="toolbar-brand">
+      <img src="./assets/logo.png" alt="ObeSight Icon" class="toolbar-icon" />
+      <span class="toolbar-title">ObeSight <strong>Figma Preview</strong></span>
+    </div>
+    <div class="toolbar-actions">
+      <button type="button" class="btn-tool" id="btn-replay" title="Putar Ulang Animasi Splash Screen">
+        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        <span>Putar Ulang Splash</span>
+      </button>
+
+      <button type="button" class="btn-tool" id="btn-toggle-frame" title="Ganti Mode Tampilan Bingkai / Layar Penuh">
+        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+          <line x1="12" y1="18" x2="12.01" y2="18" />
+        </svg>
+        <span id="frame-toggle-label">Mode Layar Penuh</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport Wrapper (Can toggle between phone mockup frame and full responsive view) -->
+  <main class="viewport-wrapper frame-mode" id="viewport-wrapper">
+    <!-- Phone Mockup Frame -->
+    <div class="phone-mockup" id="phone-mockup">
+      
+      <!-- Phone Speaker / Dynamic Island Notch -->
+      <div class="phone-notch">
+        <span class="camera-lens"></span>
+        <span class="speaker-grill"></span>
+      </div>
+
+      <!-- Phone Status Bar -->
+      <div class="phone-status-bar" id="phone-status-bar">
+        <span class="status-time">09:41</span>
+        <div class="status-icons">
+          <svg class="status-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+          </svg>
+          <svg class="status-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4zm0 3.5c3.55 0 6.81 1.34 9.3 3.55L12 19.34 2.7 11.05C5.19 8.84 8.45 7.5 12 7.5z"/>
+          </svg>
+          <svg class="status-battery" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="2" y="6" width="18" height="12" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
+            <rect x="4" y="8" width="13" height="8" rx="1" ry="1"/>
+            <path d="M22 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Phone Screen Screen Inner Canvas -->
+      <div class="screen-canvas" id="screen-canvas">
+        
+        <!-- ============================================== -->
+        <!-- 1. SPLASH SCREEN LAYER                         -->
+        <!-- ============================================== -->
+        <section class="splash-screen stage-init" id="splash-screen" aria-label="Splash Screen ObeSight">
+          <!-- Green Canvas Background (Matches Figma #529A7B) -->
+          <div class="splash-green-bg" id="splash-green-bg"></div>
+
+          <!-- Expanding White Ellipse -->
+          <div class="splash-white-ellipse" id="splash-white-ellipse"></div>
+
+          <!-- Splash Branding Container -->
+          <div class="splash-brand-container" id="splash-brand-container">
+            <!-- Animated ObeSight Circular Logo -->
+            <div class="splash-logo-wrapper" id="splash-logo-wrapper">
+              <img src="./assets/logo.png" alt="ObeSight Logo" class="splash-logo-img" id="splash-logo-img" />
+            </div>
+
+            <!-- Brand Typography: ObeSight -->
+            <div class="splash-text-wrapper" id="splash-text-wrapper">
+              <span class="splash-brand-text">ObeSight</span>
+            </div>
+          </div>
+
+          <!-- Skip Splash Button (Optional subtle control) -->
+          <button type="button" class="btn-skip-splash" id="btn-skip-splash" title="Lewati Animasi">
+            Lewati &rarr;
+          </button>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- 2. AUTHENTICATION & LOGIN SCREEN               -->
+        <!-- ============================================== -->
+        <section class="auth-screen hidden" id="auth-screen" aria-label="Layar Masuk ObeSight">
+          
+          <div class="auth-scroll-area">
+            <!-- Top Header with ObeSight Lockup -->
+            <div class="auth-header">
+              <div class="auth-brand-badge">
+                <img src="./assets/logo.png" alt="ObeSight" class="auth-badge-logo" />
+                <span class="auth-badge-text">ObeSight</span>
+              </div>
+              <h1 class="auth-title">Selamat Datang Kembali</h1>
+              <p class="auth-subtitle">Kelola dan pantau pola hidup sehat Anda dengan panduan akurat ObeSight.</p>
+            </div>
+
+            <!-- Auth Mode Switcher (Masuk / Daftar) -->
+            <div class="auth-tabs" role="tablist">
+              <button type="button" class="tab-btn active" id="tab-login" role="tab" aria-selected="true">
+                Masuk
+              </button>
+              <button type="button" class="tab-btn" id="tab-register" role="tab" aria-selected="false">
+                Daftar Baru
+              </button>
+              <div class="tab-indicator" id="tab-indicator"></div>
+            </div>
+
+            <!-- Main Auth Card -->
+            <div class="auth-card">
+              
+              <!-- GOOGLE SIGN IN BUTTON (Prominently featured per user prompt) -->
+              <button type="button" class="btn-google" id="btn-google-auth">
+                <img src="./assets/google_icon.svg" alt="Google" class="google-icon" />
+                <span id="google-btn-text">Lanjutkan dengan Google</span>
+              </button>
+
+              <!-- Divider -->
+              <div class="auth-divider">
+                <span>atau dengan email</span>
+              </div>
+
+              <!-- Auth Form -->
+              <form class="auth-form" id="auth-form" onsubmit="return false;">
+                
+                <!-- Full Name Field (Displayed only in Daftar mode) -->
+                <div class="form-group register-only hidden" id="field-name-group">
+                  <label for="input-name" class="form-label">Nama Lengkap</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <input type="text" id="input-name" class="form-input" placeholder="Masukkan nama Anda" autocomplete="name" />
+                  </div>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                  <label for="input-email" class="form-label">Alamat Email</label>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <input type="email" id="input-email" class="form-input" placeholder="nama@email.com" autocomplete="email" required />
+                  </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                  <div class="form-label-row">
+                    <label for="input-password" class="form-label">Kata Sandi</label>
+                    <a href="#forgot" class="link-forgot" id="link-forgot">Lupa Sandi?</a>
+                  </div>
+                  <div class="input-wrapper">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input type="password" id="input-password" class="form-input" placeholder="Minimal 8 karakter" autocomplete="current-password" required />
+                    <button type="button" class="btn-toggle-password" id="btn-toggle-pwd" title="Tampilkan sandi">
+                      <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-submit" id="btn-submit">
+                  <span class="btn-submit-text" id="submit-btn-text">Masuk ke ObeSight</span>
+                  <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </button>
+
+              </form>
+
+            </div>
+
+            <!-- Footer terms & privacy -->
+            <footer class="auth-footer">
+              <p>Dengan melanjutkan, Anda menyetujui <a href="#terms">Syarat & Ketentuan</a> serta <a href="#privacy">Kebijakan Privasi</a> ObeSight.</p>
+            </footer>
+
+          </div>
+
+        </section>
+
+        <!-- Simulated Interactive Google Account Chooser Modal -->
+        <div class="modal-backdrop hidden" id="google-modal-backdrop">
+          <div class="google-modal-card" id="google-modal-card">
+            <div class="google-modal-header">
+              <img src="./assets/google_icon.svg" alt="Google" class="google-modal-logo" />
+              <div class="google-modal-titles">
+                <div class="google-modal-title">Masuk dengan Google</div>
+                <div class="google-modal-sub">untuk melanjutkan ke ObeSight</div>
+              </div>
+              <button type="button" class="btn-close-modal" id="btn-close-google-modal">&times;</button>
+            </div>
+
+            <div class="google-account-list">
+              <!-- Demo Account 1 -->
+              <button type="button" class="google-account-item" data-name="Salsabila" data-email="salsabila@gmail.com">
+                <div class="google-avatar avatar-purple">S</div>
+                <div class="google-acc-info">
+                  <span class="acc-name">Salsabila</span>
+                  <span class="acc-email">salsabila@gmail.com</span>
+                </div>
+              </button>
+
+              <!-- Demo Account 2 -->
+              <button type="button" class="google-account-item" data-name="User ObeSight" data-email="obesight.user@gmail.com">
+                <div class="google-avatar avatar-green">O</div>
+                <div class="google-acc-info">
+                  <span class="acc-name">User ObeSight</span>
+                  <span class="acc-email">obesight.user@gmail.com</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="google-modal-footer">
+              <button type="button" class="btn-cancel-modal" id="btn-cancel-google">Batal</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success Toast Notification -->
+        <div class="toast-notification hidden" id="toast-notification">
+          <div class="toast-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="toast-content">
+            <h4 class="toast-title" id="toast-title">Berhasil Masuk!</h4>
+            <p class="toast-msg" id="toast-msg">Selamat datang di aplikasi ObeSight.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Phone Home Indicator Bar -->
+      <div class="phone-home-indicator"></div>
+    </div>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
