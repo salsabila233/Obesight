@@ -10,7 +10,7 @@
   --color-primary-hover: #059c57;
   --color-primary-light: #E8F5E9;
   --color-primary-subtle: #F0FDF4;
-  
+
   /* Neutrals & Surfaces */
   --color-bg-app: #F8FAF9;
   --color-surface: #FFFFFF;
@@ -30,7 +30,7 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 16px 36px -6px rgba(0, 135, 74, 0.14);
-  --shadow-mockup: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0,0,0,0.06);
+  --shadow-mockup: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.06);
 
   /* Typography: Strict Poppins */
   --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -48,14 +48,25 @@
 }
 
 /* Reset & Base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+/* Disable native Edge/IE password reveal & clear buttons to prevent duplicate eye icons */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html,
+body {
   width: 100%;
   height: 100%;
   font-family: var(--font-family);
@@ -343,9 +354,11 @@ html, body {
     transform: translate(-50%, -50%) scale(0.1);
     opacity: 0.9;
   }
+
   40% {
     opacity: 1;
   }
+
   100% {
     transform: translate(-50%, -50%) scale(22);
     opacity: 1;
@@ -403,9 +416,11 @@ html, body {
     transform: translate(-50%, -50%) scale(0.75);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
   }
+
   50% {
     opacity: 0.8;
   }
+
   100% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
@@ -423,6 +438,7 @@ html, body {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+
   100% {
     opacity: 1;
     /* Shifts left: center was 50%, shift left by 72px so text fits on right */
@@ -459,6 +475,7 @@ html, body {
     opacity: 0;
     transform: translateY(-50%) translateX(16px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
@@ -534,6 +551,7 @@ html, body {
 .auth-scroll-area::-webkit-scrollbar {
   width: 4px;
 }
+
 .auth-scroll-area::-webkit-scrollbar-thumb {
   background: #e2e8f0;
   border-radius: 4px;
@@ -778,7 +796,7 @@ html, body {
   box-shadow: 0 0 0 3px rgba(0, 135, 74, 0.12);
 }
 
-.form-input:focus + .input-icon,
+.form-input:focus+.input-icon,
 .input-wrapper:focus-within .input-icon {
   color: var(--color-primary);
 }
@@ -1082,18 +1100,22 @@ html, body {
   .preview-toolbar {
     padding: 0 12px;
   }
+
   .toolbar-title {
     display: none;
   }
+
   .viewport-wrapper {
     padding-top: 54px;
   }
+
   .phone-mockup {
     width: 100vw;
     height: calc(100vh - 54px);
     border: none;
     border-radius: 0;
   }
+
   .phone-notch {
     display: none;
   }
@@ -1146,6 +1168,7 @@ html, body {
   0% {
     transform: translateY(-5px) scale(0.99);
   }
+
   100% {
     transform: translateY(5px) scale(1.01);
   }
@@ -1177,8 +1200,17 @@ html, body {
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 .welcome-heading {
@@ -1303,9 +1335,21 @@ html, body {
 }
 
 @keyframes shakeError {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .submit-btn-row {
@@ -1400,7 +1444,185 @@ html, body {
   text-decoration: underline;
 }
 
-/* Dashboards */
+/* ========================================================
+   REGISTER SCREEN (FIGMA BUAT AKUN OBESIGHT)
+   ======================================================== */
+.register-screen {
+  background-color: #F8FAFC;
+}
+
+.register-scroll-area {
+  padding: 48px 24px 34px 24px;
+}
+
+.register-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #264E3C;
+  text-align: center;
+  margin-top: 14px;
+  margin-bottom: 22px;
+  letter-spacing: -0.3px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Password Rules Checklist */
+.password-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #6B7280;
+  line-height: 1.35;
+  transition: all 0.2s ease;
+}
+
+.rule-item.valid {
+  color: #166534;
+  font-weight: 500;
+}
+
+.rule-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.rule-icon .icon-circle {
+  display: block;
+  stroke: #9CA3AF;
+  transition: all 0.2s ease;
+}
+
+.rule-icon .icon-checked {
+  display: block;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Terms and Conditions Checkbox */
+.terms-row {
+  margin-top: 8px;
+  margin-bottom: 18px;
+}
+
+.custom-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.terms-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.custom-checkbox-box {
+  width: 20px;
+  height: 20px;
+  border: 1.8px solid #9CA3AF;
+  border-radius: 5px;
+  background: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.custom-checkbox-box .checkbox-check-icon {
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.2s ease;
+}
+
+/* Disable native Edge/IE password reveal & clear buttons to prevent duplicate eye icons */
+.field-input::-ms-reveal,
+.field-input::-ms-clear,
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* When checkbox is checked - solid green box with white checkmark */
+.terms-checkbox-input:checked+.custom-checkbox-box {
+  border-color: #4F9B77;
+  background-color: #4F9B77;
+}
+
+.terms-checkbox-input:checked+.custom-checkbox-box .checkbox-check-icon {
+  opacity: 1;
+  transform: scale(1);
+  stroke: #FFFFFF;
+}
+
+.terms-label-text {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* Register Button */
+.btn-daftar {
+  width: 240px;
+  height: 46px;
+  background: #4F9B77;
+  color: #FFFFFF;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(79, 155, 119, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-daftar:hover {
+  background: #3E8262;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(79, 155, 119, 0.35);
+}
+
+.btn-daftar:active {
+  transform: translateY(0);
+}
+
+.link-kembali-masuk {
+  cursor: pointer;
+}
+
 .dashboard-screen {
   background: #F4F8F8;
   height: 100%;
@@ -1485,16 +1707,26 @@ html, body {
   margin-bottom: 8px;
 }
 
-.pill-user { background: rgba(255, 255, 255, 0.2); color: #FFFFFF; }
-.pill-admin { background: rgba(220, 38, 38, 0.25); color: #FCA5A5; border: 1px solid #DC2626; }
+.pill-user {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
 
-.user-greeting, .admin-greeting {
+.pill-admin {
+  background: rgba(220, 38, 38, 0.25);
+  color: #FCA5A5;
+  border: 1px solid #DC2626;
+}
+
+.user-greeting,
+.admin-greeting {
   font-size: 18px;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
-.user-subgreeting, .admin-subgreeting {
+.user-subgreeting,
+.admin-subgreeting {
   font-size: 11.5px;
   opacity: 0.9;
 }
@@ -1579,7 +1811,7 @@ html, body {
   width: 220px;
   background: #FFFFFF;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(0,0,0,0.06);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.06);
   padding: 12px;
   z-index: 100;
   animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1987,6 +2219,7 @@ html, body {
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -2079,8 +2312,13 @@ html, body {
 }
 
 @keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .app-modal-card {
@@ -2096,8 +2334,13 @@ html, body {
 }
 
 @keyframes sheetSlideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 .modal-card-topbar {
@@ -2459,9 +2702,20 @@ html, body {
   flex-shrink: 0;
 }
 
-.icon-green-bg { background: #DCFCE7; color: #16A34A; }
-.icon-blue-bg { background: #E0F2FE; color: #0284C7; }
-.icon-red-bg { background: #FEE2E2; color: #DC2626; }
+.icon-green-bg {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.icon-blue-bg {
+  background: #E0F2FE;
+  color: #0284C7;
+}
+
+.icon-red-bg {
+  background: #FEE2E2;
+  color: #DC2626;
+}
 
 .settings-item-text {
   flex: 1;
@@ -2491,7 +2745,12 @@ html, body {
   border-radius: 4px;
 }
 
-.badge-user { background: #E6F4EA; color: #137333; }
-.badge-admin { background: #FCE8E6; color: #C5221F; }
+.badge-user {
+  background: #E6F4EA;
+  color: #137333;
+}
 
-
+.badge-admin {
+  background: #FCE8E6;
+  color: #C5221F;
+}

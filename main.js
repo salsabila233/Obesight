@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navigation & Screens
   const splashScreen = document.getElementById('splash-screen');
   const authScreen = document.getElementById('auth-screen');
+  const registerScreen = document.getElementById('register-screen');
   const userDash = document.getElementById('user-dashboard-screen');
   const adminDash = document.getElementById('admin-dashboard-screen');
   const statusBar = document.getElementById('phone-status-bar');
@@ -30,6 +31,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnTogglePwd = document.getElementById('btn-toggle-pwd');
   const iconEyeClosed = document.querySelector('.icon-eye-closed');
   const iconEyeOpen = document.querySelector('.icon-eye-open');
+
+  // Register Form Elements
+  const linkDaftar = document.getElementById('link-daftar');
+  const linkKembaliMasuk = document.getElementById('link-kembali-masuk');
+  const registerForm = document.getElementById('register-form');
+  const regName = document.getElementById('reg-name');
+  const regEmail = document.getElementById('reg-email');
+  const regPassword = document.getElementById('reg-password');
+  const regConfirmPassword = document.getElementById('reg-confirm-password');
+  const regTermsCheckbox = document.getElementById('reg-terms-checkbox');
+  const btnToggleRegPwd = document.getElementById('btn-toggle-reg-pwd');
+  const btnToggleRegConfirmPwd = document.getElementById('btn-toggle-reg-confirm-pwd');
+  const errRegName = document.getElementById('err-reg-name');
+  const errRegEmail = document.getElementById('err-reg-email');
+  const errRegPassword = document.getElementById('err-reg-password');
+  const errRegConfirmPassword = document.getElementById('err-reg-confirm-password');
+  const errRegTerms = document.getElementById('err-reg-terms');
+  const regErrorBanner = document.getElementById('reg-error-banner');
+  const regErrorMsg = document.getElementById('reg-error-msg');
+  const ruleLength = document.getElementById('rule-length');
+  const ruleDigit = document.getElementById('rule-digit');
+  const ruleCase = document.getElementById('rule-case');
 
   // Google Modal & Toast
   const btnGoogleAuth = document.getElementById('btn-google-auth');
@@ -69,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     splashScreen.className = 'splash-screen stage-init';
     splashScreen.style.display = 'flex';
     authScreen.classList.add('hidden');
+    if (registerScreen) registerScreen.classList.add('hidden');
     if (userDash) userDash.classList.add('hidden');
     if (adminDash) adminDash.classList.add('hidden');
     statusBar.classList.remove('dark-text');
@@ -107,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       splashScreen.style.display = 'none';
       authScreen.classList.remove('hidden');
+      if (registerScreen) registerScreen.classList.add('hidden');
       if (userDash) userDash.classList.add('hidden');
       if (adminDash) adminDash.classList.add('hidden');
     }, 400);
@@ -210,8 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bioName) bioName.value = currentUser.name;
   }
 
-  function navigateToDashboard(role, name) {
+  function navigateToDashboard(role, name, customToastTitle, customToastMsg) {
     authScreen.classList.add('hidden');
+    if (registerScreen) registerScreen.classList.add('hidden');
     if (role === 'admin') {
       adminDash.classList.remove('hidden');
       userDash.classList.add('hidden');
@@ -224,7 +250,18 @@ document.addEventListener('DOMContentLoaded', () => {
       // Reset to Home Tab
       switchHomeTab('home');
     }
-    showToast('Berhasil Masuk!', `Selamat datang di Beranda ${role === 'admin' ? 'Administrator' : 'Pengguna'}.`);
+    const tTitle = customToastTitle || 'Berhasil Masuk!';
+    const tMsg = customToastMsg || `Selamat datang di Beranda ${role === 'admin' ? 'Administrator' : 'Pengguna'}.`;
+    showToast(tTitle, tMsg);
+  }
+
+  // Saved / registered users repository (persists across page reloads in localStorage)
+  let registeredUsers = [];
+  try {
+    const saved = localStorage.getItem('obesight_registered_users');
+    if (saved) registeredUsers = JSON.parse(saved);
+  } catch (err) {
+    console.error('Error loading registered users', err);
   }
 
   // Form Submit / Login Logic
@@ -255,12 +292,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Normal user check
+      // Default normal user check
       if (
         (cleanId === 'zahraafitriana@gmail.com' || cleanId === 'zahraafitriana' || cleanId === 'zahrafitrie@gmail.com' || cleanId === 'zahra') &&
         (password === 'Zahra1234' || password === 'zahra1234' || password === 'zohf1234')
       ) {
         navigateToDashboard('user', 'Zahra Fitriana');
+        return;
+      }
+
+      // Check dynamically registered users
+      const matchRegistered = registeredUsers.find(u => 
+        (u.email.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId) && u.password === password
+      );
+      if (matchRegistered) {
+        navigateToDashboard('user', matchRegistered.name);
         return;
       }
 
@@ -281,12 +327,220 @@ document.addEventListener('DOMContentLoaded', () => {
   function performLogout() {
     userDash.classList.add('hidden');
     if (adminDash) adminDash.classList.add('hidden');
+    if (registerScreen) registerScreen.classList.add('hidden');
     authScreen.classList.remove('hidden');
     if (inputPassword) inputPassword.value = '';
     const profileDropdown = document.getElementById('profile-dropdown');
     if (profileDropdown) profileDropdown.classList.add('hidden');
     clearErrors();
+    clearRegErrors();
     showToast('Sesi Berakhir', 'Anda telah keluar dari akun.');
+  }
+
+  // ========================================================
+  // REGISTER SCREEN CONTROLLER & VALIDATIONS
+  // ========================================================
+
+  function clearRegErrors() {
+    if (errRegName) errRegName.classList.add('hidden');
+    if (errRegEmail) errRegEmail.classList.add('hidden');
+    if (errRegPassword) errRegPassword.classList.add('hidden');
+    if (errRegConfirmPassword) errRegConfirmPassword.classList.add('hidden');
+    if (errRegTerms) errRegTerms.classList.add('hidden');
+    if (regErrorBanner) regErrorBanner.classList.add('hidden');
+  }
+
+  function setRuleItemState(ruleEl, isValid) {
+    if (!ruleEl) return;
+    ruleEl.classList.toggle('valid', isValid);
+    const circle = ruleEl.querySelector('.icon-circle');
+    const checked = ruleEl.querySelector('.icon-checked');
+    if (circle && checked) {
+      if (isValid) {
+        circle.classList.add('hidden');
+        checked.classList.remove('hidden');
+      } else {
+        circle.classList.remove('hidden');
+        checked.classList.add('hidden');
+      }
+    }
+  }
+
+  function checkPasswordCriteria(pwd) {
+    const isLenValid = pwd.length >= 8 && pwd.length <= 16;
+    const isDigitValid = /\d/.test(pwd);
+    const isCaseValid = /[a-z]/.test(pwd) && /[A-Z]/.test(pwd);
+
+    setRuleItemState(ruleLength, isLenValid);
+    setRuleItemState(ruleDigit, isDigitValid);
+    setRuleItemState(ruleCase, isCaseValid);
+
+    return isLenValid && isDigitValid && isCaseValid;
+  }
+
+  function isValidEmailFormat(email) {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+  }
+
+  // Password Visibility Toggle for Register Screen
+  function setupPasswordToggle(btn, input) {
+    if (!btn || !input) return;
+    const eyeClosed = btn.querySelector('.icon-eye-closed');
+    const eyeOpen = btn.querySelector('.icon-eye-open');
+
+    btn.addEventListener('click', () => {
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      if (eyeClosed && eyeOpen) {
+        if (isPassword) {
+          eyeClosed.classList.add('hidden');
+          eyeOpen.classList.remove('hidden');
+        } else {
+          eyeClosed.classList.remove('hidden');
+          eyeOpen.classList.add('hidden');
+        }
+      }
+    });
+  }
+
+  setupPasswordToggle(btnToggleRegPwd, regPassword);
+  setupPasswordToggle(btnToggleRegConfirmPwd, regConfirmPassword);
+
+  // Live Input & Validation Listeners
+  if (regPassword) {
+    regPassword.addEventListener('input', () => {
+      checkPasswordCriteria(regPassword.value);
+      if (errRegPassword) errRegPassword.classList.add('hidden');
+      if (regErrorBanner) regErrorBanner.classList.add('hidden');
+    });
+  }
+
+  if (regConfirmPassword) {
+    regConfirmPassword.addEventListener('input', () => {
+      if (errRegConfirmPassword) errRegConfirmPassword.classList.add('hidden');
+      if (regErrorBanner) regErrorBanner.classList.add('hidden');
+    });
+  }
+
+  if (regName) {
+    regName.addEventListener('input', () => {
+      if (errRegName) errRegName.classList.add('hidden');
+      if (regErrorBanner) regErrorBanner.classList.add('hidden');
+    });
+  }
+
+  if (regEmail) {
+    regEmail.addEventListener('input', () => {
+      if (errRegEmail) errRegEmail.classList.add('hidden');
+      if (regErrorBanner) regErrorBanner.classList.add('hidden');
+    });
+  }
+
+  if (regTermsCheckbox) {
+    regTermsCheckbox.addEventListener('change', () => {
+      if (errRegTerms) errRegTerms.classList.add('hidden');
+      if (regErrorBanner) regErrorBanner.classList.add('hidden');
+    });
+  }
+
+  // Navigation: Login -> Register
+  if (linkDaftar) {
+    linkDaftar.addEventListener('click', (e) => {
+      e.preventDefault();
+      authScreen.classList.add('hidden');
+      registerScreen.classList.remove('hidden');
+      clearRegErrors();
+      if (regPassword) checkPasswordCriteria(regPassword.value);
+    });
+  }
+
+  // Navigation: Register -> Login
+  if (linkKembaliMasuk) {
+    linkKembaliMasuk.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerScreen.classList.add('hidden');
+      authScreen.classList.remove('hidden');
+      clearErrors();
+    });
+  }
+
+  // Register Form Submit Logic
+  if (registerForm) {
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearRegErrors();
+
+      const nameVal = regName ? regName.value.trim() : '';
+      const emailVal = regEmail ? regEmail.value.trim() : '';
+      const pwdVal = regPassword ? regPassword.value : '';
+      const confirmPwdVal = regConfirmPassword ? regConfirmPassword.value : '';
+      const termsAccepted = regTermsCheckbox ? regTermsCheckbox.checked : false;
+
+      let hasError = false;
+
+      // 1. Nama validation
+      if (!nameVal) {
+        if (errRegName) errRegName.classList.remove('hidden');
+        hasError = true;
+      }
+
+      // 2. Email format validation
+      if (!emailVal || !isValidEmailFormat(emailVal)) {
+        if (errRegEmail) {
+          errRegEmail.textContent = !emailVal ? 'Email wajib diisi' : 'Format email tidak valid (contoh: nama@email.com)';
+          errRegEmail.classList.remove('hidden');
+        }
+        hasError = true;
+      }
+
+      // 3. Password criteria validation
+      const pwdValid = checkPasswordCriteria(pwdVal);
+      if (!pwdValid) {
+        if (errRegPassword) errRegPassword.classList.remove('hidden');
+        hasError = true;
+      }
+
+      // 4. Confirm password match
+      if (!confirmPwdVal || confirmPwdVal !== pwdVal) {
+        if (errRegConfirmPassword) {
+          errRegConfirmPassword.textContent = !confirmPwdVal ? 'Konfirmasi kata sandi wajib diisi' : 'Konfirmasi kata sandi tidak cocok';
+          errRegConfirmPassword.classList.remove('hidden');
+        }
+        hasError = true;
+      }
+
+      // 5. Terms & conditions checkbox
+      if (!termsAccepted) {
+        if (errRegTerms) errRegTerms.classList.remove('hidden');
+        hasError = true;
+      }
+
+      if (hasError) {
+        if (regErrorBanner) {
+          regErrorBanner.classList.remove('hidden');
+          regErrorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
+      // Save user to repository
+      registeredUsers.push({
+        name: nameVal,
+        email: emailVal,
+        password: pwdVal
+      });
+
+      try {
+        localStorage.setItem('obesight_registered_users', JSON.stringify(registeredUsers));
+      } catch (err) {}
+
+      // Reset form & criteria
+      registerForm.reset();
+      checkPasswordCriteria('');
+
+      // Redirect immediately to User Dashboard
+      navigateToDashboard('user', nameVal, 'Akun Berhasil Dibuat!', `Selamat datang di ObeSight, ${nameVal}!`);
+    });
   }
 
   if (btnUserLogout) btnUserLogout.addEventListener('click', performLogout);
