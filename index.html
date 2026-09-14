@@ -198,47 +198,445 @@
         </section>
 
         <!-- 3. USER HOME SCREEN (BERANDA PENGGUNA) -->
-        <section class="dashboard-screen hidden" id="user-dashboard-screen">
-          <div class="dash-appbar">
-            <div class="dash-brand">
-              <img src="./assets/logo.png" alt="ObeSight" class="dash-logo" />
-              <span>ObeSight</span>
+        <section class="user-home-screen hidden" id="user-dashboard-screen" aria-label="Beranda Pengguna ObeSight">
+          
+          <!-- Header Top Bar -->
+          <header class="home-topbar">
+            <div class="home-brand">
+              <img src="./assets/logo.png" alt="ObeSight Logo" class="home-brand-logo" />
+              <span class="home-brand-title">ObeSight</span>
             </div>
-            <button type="button" class="btn-logout" id="btn-user-logout" title="Keluar">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="dash-content">
-            <div class="user-hero-card">
-              <span class="role-pill pill-user">BERANDA PENGGUNA</span>
-              <h2 class="user-greeting" id="user-greeting-name">Halo, Zahra Fitriana!</h2>
-              <p class="user-subgreeting">Mari kenali & pantau kesehatan tubuh Anda hari ini.</p>
-            </div>
-            <div class="bmi-card">
-              <div class="bmi-row">
-                <div>
-                  <div class="bmi-label">Indeks Massa Tubuh (BMI)</div>
-                  <div class="bmi-val">21.4 kg/m²</div>
+            <div class="home-profile-wrapper">
+              <button type="button" class="btn-profile-avatar" id="btn-profile-avatar" title="Profil Pengguna">
+                <!-- Exact avatar outline circle with user silhouette in dark green -->
+                <svg class="profile-avatar-svg" viewBox="0 0 36 36" width="34" height="34" fill="none">
+                  <circle cx="18" cy="18" r="16" stroke="#2D6A4F" stroke-width="2.2" fill="#FFFFFF"/>
+                  <circle cx="18" cy="13.5" r="4.5" fill="#2D6A4F"/>
+                  <path d="M9.5 28C10.5 22.5 14 20.5 18 20.5C22 20.5 25.5 22.5 26.5 28" fill="#2D6A4F"/>
+                </svg>
+              </button>
+
+              <!-- Profile Dropdown Menu / Card -->
+              <div class="profile-dropdown hidden" id="profile-dropdown">
+                <div class="profile-dropdown-header">
+                  <div class="profile-avatar-circle" id="profile-avatar-initial">Z</div>
+                  <div class="profile-dropdown-user">
+                    <div class="profile-user-fullname" id="profile-user-fullname">Zahra Fitriana</div>
+                    <div class="profile-user-role">Pengguna Biasa</div>
+                  </div>
                 </div>
-                <span class="bmi-status-tag">Berat Ideal</span>
+                <div class="profile-dropdown-divider"></div>
+                <button type="button" class="profile-menu-item" id="btn-open-biodata-profile">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <span>Lengkapi Biodata</span>
+                </button>
+                <button type="button" class="profile-menu-item item-danger" id="btn-user-logout">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  <span>Keluar Akun</span>
+                </button>
               </div>
-              <div class="bmi-bar"><div class="bmi-fill"></div></div>
             </div>
-            <div class="features-grid">
-              <div class="feat-card">
-                <div class="feat-icon icon-blue">&#9829;</div>
-                <div class="feat-title">Deteksi Risiko</div>
-                <div class="feat-desc">Skrining cerdas</div>
-              </div>
-              <div class="feat-card">
-                <div class="feat-icon icon-green">&#129382;</div>
-                <div class="feat-title">Panduan Gizi</div>
-                <div class="feat-desc">Kalori & nutrisi</div>
-              </div>
+          </header>
+
+          <!-- Scrollable Content Area -->
+          <div class="home-scroll-container" id="home-scroll-container">
+            
+            <!-- Tab 1: BERANDA CONTENT -->
+            <div class="home-tab-content active" id="tab-content-home">
+              
+              <!-- Greeting Section -->
+              <section class="home-greeting-section">
+                <h1 class="greeting-title" id="greeting-title-text">Halo, Zahra! 👋</h1>
+                <p class="greeting-subtitle">Selamat datang di OBESIGHT!</p>
+
+                <!-- Card Banner Pengingat Biodata -->
+                <div class="reminder-banner-card" id="btn-reminder-biodata" role="button" tabindex="0" title="Klik untuk melengkapi biodata">
+                  <div class="reminder-icon-badge">
+                    <svg class="reminder-clipboard-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" fill="#FFFFFF" stroke="#4EA07E" />
+                      <line x1="9" y1="10" x2="15" y2="10" />
+                      <line x1="9" y1="14" x2="15" y2="14" />
+                      <line x1="9" y1="18" x2="13" y2="18" />
+                    </svg>
+                  </div>
+                  <div class="reminder-text">
+                    Lengkapi biodata kamu dulu agar hasil skrining lebih akurat dan sesuai dengan kondisi kamu.
+                  </div>
+                  <div class="reminder-chevron">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section Skrining Obesitas -->
+              <section class="home-section screening-section">
+                <h2 class="section-title">Skrining</h2>
+                <div class="screening-banner-card">
+                  <div class="screening-card-content">
+                    <h3 class="screening-card-title">Deteksi Risiko<br>Obesitas</h3>
+                    <p class="screening-card-desc">Kenali tingkat risiko obesitas berdasarkan pola hidupmu.</p>
+                    <button type="button" class="btn-screening-start" id="btn-start-screening">
+                      <span>Mulai Skrining</span>
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="screening-card-art">
+                    <!-- High-fidelity 3D Medical Illustration matching the mockup -->
+                    <svg class="screening-art-svg" viewBox="0 0 150 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <!-- Decorative ambient leaves & soft glow -->
+                      <circle cx="105" cy="70" r="48" fill="rgba(255,255,255,0.09)" />
+                      <path d="M16 80C20 62 36 56 42 64C48 72 34 90 22 86C17 84 14 82 16 80Z" fill="#3D8866" opacity="0.6"/>
+                      
+                      <!-- Clipboard Base -->
+                      <rect x="26" y="16" width="76" height="100" rx="12" fill="#FFFFFF" filter="drop-shadow(0 8px 16px rgba(0,0,0,0.18))"/>
+                      <rect x="32" y="22" width="64" height="88" rx="8" fill="#F3FAF6"/>
+                      
+                      <!-- Clip Top Header -->
+                      <rect x="48" y="10" width="32" height="14" rx="4" fill="#3D8B68"/>
+                      <rect x="56" y="6" width="16" height="7" rx="2" fill="#E2EFE8"/>
+                      
+                      <!-- Checklist Items -->
+                      <!-- Row 1 -->
+                      <path d="M40 35L45 40L53 31" stroke="#36A36F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <rect x="58" y="34" width="30" height="4.5" rx="2.25" fill="#CBE5D6"/>
+                      
+                      <!-- Row 2 -->
+                      <path d="M40 51L45 56L53 47" stroke="#36A36F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <rect x="58" y="50" width="25" height="4.5" rx="2.25" fill="#CBE5D6"/>
+                      
+                      <!-- Row 3 -->
+                      <path d="M40 67L45 72L53 63" stroke="#36A36F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <rect x="58" y="66" width="28" height="4.5" rx="2.25" fill="#CBE5D6"/>
+                      
+                      <!-- Row 4 -->
+                      <path d="M40 83L45 88L53 79" stroke="#36A36F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <rect x="58" y="82" width="22" height="4.5" rx="2.25" fill="#CBE5D6"/>
+                      
+                      <!-- Medical Heart Badge with Plus -->
+                      <g transform="translate(94, 38)">
+                        <path d="M19 6.5C16 1 8.5 0 4.2 4.2C-1 9.5 -1 17 3.2 23.5L19 38L34.8 23.5C39 17 39 9.5 33.8 4.2C29.5 0 22 1 19 6.5Z" fill="#75C39E" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.14))"/>
+                        <path d="M19 13V23M14 18H24" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round"/>
+                      </g>
+
+                      <!-- Magnifying Glass with Heartbeat Pulse -->
+                      <g transform="translate(68, 48)">
+                        <!-- Handle -->
+                        <line x1="40" y1="40" x2="56" y2="56" stroke="#1D4A37" stroke-width="8" stroke-linecap="round"/>
+                        <line x1="40" y1="40" x2="56" y2="56" stroke="#3D8B68" stroke-width="4.5" stroke-linecap="round"/>
+                        
+                        <!-- Rim -->
+                        <circle cx="24" cy="24" r="24" fill="#3D8866" stroke="#FFFFFF" stroke-width="4.5" filter="drop-shadow(0 6px 14px rgba(0,0,0,0.22))"/>
+                        <circle cx="24" cy="24" r="20" fill="#E8F6EF"/>
+                        
+                        <!-- Pulse Wave / ECG inside Lens -->
+                        <path d="M9 24H15L19 15L23 31L27 20L30 24H39" stroke="#2FA86C" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section Kalkulator IMT -->
+              <section class="home-section bmi-section">
+                <h2 class="section-title">Kalkulator IMT</h2>
+                <div class="bmi-banner-card" id="btn-open-bmi-calc" role="button" tabindex="0" title="Buka Kalkulator IMT">
+                  <div class="bmi-card-left">
+                    <h3 class="bmi-card-title">Hitung Indeks Massa Tubuhmu</h3>
+                    <p class="bmi-card-desc">Ketahui status berat badan berdasarkan tinggi dan berat badanmu.</p>
+                  </div>
+                  <div class="bmi-card-art-box">
+                    <!-- Scale, Calculator and Measuring Tape Art -->
+                    <svg class="bmi-art-svg" viewBox="0 0 135 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <!-- Base shadow -->
+                      <ellipse cx="68" cy="84" rx="58" ry="7" fill="rgba(0,0,0,0.06)" />
+                      
+                      <!-- Weighing Scale (Timbangan Hijau) -->
+                      <rect x="8" y="14" width="66" height="64" rx="16" fill="#589078" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.12))"/>
+                      <rect x="12" y="18" width="58" height="56" rx="13" fill="#6EA58D"/>
+                      
+                      <!-- Scale Digital Screen -->
+                      <rect x="26" y="22" width="30" height="13" rx="3.5" fill="#183628"/>
+                      <text x="41" y="32" fill="#6EE7B7" font-size="8.5" font-family="monospace" font-weight="bold" text-anchor="middle">68.5</text>
+                      
+                      <!-- Feet Outlines -->
+                      <ellipse cx="27" cy="52" rx="5.5" ry="12" fill="#4C7E69" opacity="0.85"/>
+                      <ellipse cx="55" cy="52" rx="5.5" ry="12" fill="#4C7E69" opacity="0.85"/>
+                      
+                      <!-- Calculator in Front -->
+                      <rect x="58" y="28" width="44" height="54" rx="9" fill="#355B4B" filter="drop-shadow(0 6px 12px rgba(0,0,0,0.18))"/>
+                      <!-- Screen with 'BMI' -->
+                      <rect x="64" y="34" width="32" height="11" rx="3" fill="#E8F4EE"/>
+                      <text x="80" y="42.5" fill="#1E4534" font-size="7" font-family="Poppins" font-weight="bold" text-anchor="middle">BMI</text>
+                      <!-- Keys -->
+                      <rect x="64" y="49" width="7" height="5.5" rx="1.5" fill="#547D6C"/>
+                      <rect x="76.5" y="49" width="7" height="5.5" rx="1.5" fill="#547D6C"/>
+                      <rect x="89" y="49" width="7" height="5.5" rx="1.5" fill="#F59E0B"/>
+                      <rect x="64" y="58" width="7" height="5.5" rx="1.5" fill="#547D6C"/>
+                      <rect x="76.5" y="58" width="7" height="5.5" rx="1.5" fill="#547D6C"/>
+                      <rect x="89" y="58" width="7" height="5.5" rx="1.5" fill="#547D6C"/>
+                      <rect x="64" y="67" width="19.5" height="7" rx="2" fill="#10B981"/>
+                      <rect x="89" y="67" width="7" height="7" rx="2" fill="#547D6C"/>
+
+                      <!-- Yellow Coiled Measuring Tape -->
+                      <path d="M12 76C12 76 26 81 48 79C70 77 92 81 110 77C114 76 117 78 117 81C117 84 113 85 106 85C85 85 58 82 36 84C20 85 10 83 10 80C10 78 11 76 12 76Z" fill="#FBBF24" filter="drop-shadow(0 2px 5px rgba(0,0,0,0.18))"/>
+                      <!-- Tape Markings -->
+                      <line x1="26" y1="78" x2="26" y2="81" stroke="#92400E" stroke-width="1"/>
+                      <line x1="36" y1="79" x2="36" y2="82" stroke="#92400E" stroke-width="1"/>
+                      <line x1="46" y1="79" x2="46" y2="82" stroke="#92400E" stroke-width="1"/>
+                      <line x1="56" y1="79" x2="56" y2="82" stroke="#92400E" stroke-width="1"/>
+                      <line x1="68" y1="79" x2="68" y2="82" stroke="#92400E" stroke-width="1"/>
+                      <line x1="80" y1="79" x2="80" y2="82" stroke="#92400E" stroke-width="1"/>
+                      <line x1="92" y1="79" x2="92" y2="82" stroke="#92400E" stroke-width="1"/>
+                      <line x1="104" y1="79" x2="104" y2="82" stroke="#92400E" stroke-width="1"/>
+                    </svg>
+                    <div class="bmi-chevron">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#4B5563" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Section Artikel Kesehatan (Horizontal Scroll Bar) -->
+              <section class="home-section articles-section">
+                <div class="section-header-row">
+                  <h2 class="section-title">Artikel Kesehatan</h2>
+                  <button type="button" class="btn-see-all-articles" id="btn-see-all-articles">
+                    <span>Selengkapnya</span>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Horizontal Scrollable Article List -->
+                <div class="articles-horizontal-scroll" id="articles-horizontal-scroll">
+                  
+                  <!-- Article Card 1 -->
+                  <div class="article-card" data-article-id="1">
+                    <div class="article-card-thumb thumb-pattern-1">
+                      <!-- SVG Illustration of Healthy Eating / Diet Plan matching mock -->
+                      <svg class="article-thumb-svg" viewBox="0 0 130 85" fill="none">
+                        <rect width="130" height="85" fill="#7E96AC"/>
+                        <circle cx="65" cy="42" r="30" fill="#F8FAFC"/>
+                        <!-- Bowl & Nutrition -->
+                        <ellipse cx="65" cy="46" rx="24" ry="13" fill="#E2E8F0"/>
+                        <path d="M45 44C48 33 59 31 65 31C71 31 82 33 85 44Z" fill="#16A34A"/>
+                        <circle cx="58" cy="38" r="4.5" fill="#EF4444"/>
+                        <circle cx="72" cy="40" r="4" fill="#F59E0B"/>
+                        <circle cx="65" cy="35" r="3.5" fill="#84CC16"/>
+                        <text x="65" y="70" fill="#1E293B" font-size="8" font-family="Poppins" font-weight="bold" text-anchor="middle">5 POLA MAKAN</text>
+                      </svg>
+                    </div>
+                    <div class="article-card-body">
+                      <h4 class="article-card-title">5 Pola Makan Sehat Cegah Obesitas</h4>
+                    </div>
+                  </div>
+
+                  <!-- Article Card 2 -->
+                  <div class="article-card" data-article-id="2">
+                    <div class="article-card-thumb thumb-pattern-2">
+                      <!-- SVG Illustration of Isi Piringku Nutrition Guidelines matching mock -->
+                      <svg class="article-thumb-svg" viewBox="0 0 130 85" fill="none">
+                        <rect width="130" height="85" fill="#E5BD87"/>
+                        <!-- Plate with 4 nutrition quarters -->
+                        <circle cx="65" cy="42" r="28" fill="#FFFFFF" filter="drop-shadow(0 3px 8px rgba(0,0,0,0.12))"/>
+                        <path d="M65 42 L65 15 A27 27 0 0 1 92 42 Z" fill="#22C55E"/>
+                        <path d="M65 42 L92 42 A27 27 0 0 1 65 69 Z" fill="#F59E0B"/>
+                        <path d="M65 42 L65 69 A27 27 0 0 1 38 42 Z" fill="#EAB308"/>
+                        <path d="M65 42 L38 42 A27 27 0 0 1 65 15 Z" fill="#EC4899"/>
+                        <circle cx="65" cy="42" r="6" fill="#FFFFFF"/>
+                        <text x="65" y="75" fill="#78350F" font-size="8" font-family="Poppins" font-weight="bold" text-anchor="middle">PORSI PIRING</text>
+                      </svg>
+                    </div>
+                    <div class="article-card-body">
+                      <h4 class="article-card-title">Porsi Piring Gizi Seimbang Kemenkes</h4>
+                    </div>
+                  </div>
+
+                  <!-- Article Card 3 -->
+                  <div class="article-card" data-article-id="3">
+                    <div class="article-card-thumb thumb-pattern-3">
+                      <!-- SVG Illustration of Isi Piringku Sehari-hari matching mock -->
+                      <svg class="article-thumb-svg" viewBox="0 0 130 85" fill="none">
+                        <rect width="130" height="85" fill="#58B29C"/>
+                        <circle cx="65" cy="42" r="28" fill="#FFFFFF" filter="drop-shadow(0 3px 8px rgba(0,0,0,0.1))"/>
+                        <!-- Fruit & Veggie Bowl -->
+                        <path d="M48 46C50 36 60 34 65 34C70 34 80 36 82 46Z" fill="#10B981"/>
+                        <circle cx="58" cy="39" r="4.5" fill="#EF4444"/>
+                        <circle cx="71" cy="41" r="4" fill="#3B82F6"/>
+                        <circle cx="65" cy="37" r="3.5" fill="#FACC15"/>
+                        <text x="65" y="75" fill="#065F46" font-size="8" font-family="Poppins" font-weight="bold" text-anchor="middle">ISI PIRINGKU</text>
+                      </svg>
+                    </div>
+                    <div class="article-card-body">
+                      <h4 class="article-card-title">Isi Piringku: Pedoman Gizi Sehari-hari</h4>
+                    </div>
+                  </div>
+
+                  <!-- Article Card 4 -->
+                  <div class="article-card" data-article-id="4">
+                    <div class="article-card-thumb thumb-pattern-4">
+                      <!-- SVG Illustration of Physical Activity -->
+                      <svg class="article-thumb-svg" viewBox="0 0 130 85" fill="none">
+                        <rect width="130" height="85" fill="#818CF8"/>
+                        <circle cx="65" cy="42" r="28" fill="#FFFFFF" filter="drop-shadow(0 3px 8px rgba(0,0,0,0.1))"/>
+                        <!-- Runner Silhouette -->
+                        <circle cx="65" cy="26" r="4.5" fill="#4F46E5"/>
+                        <path d="M62 32L69 37L64 46L71 54M60 39L55 48M69 37L76 42" stroke="#4F46E5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <text x="65" y="74" fill="#3730A3" font-size="8" font-family="Poppins" font-weight="bold" text-anchor="middle">AKTIVITAS FISIK</text>
+                      </svg>
+                    </div>
+                    <div class="article-card-body">
+                      <h4 class="article-card-title">Aktivitas Fisik Ringan Pembakar Kalori</h4>
+                    </div>
+                  </div>
+
+                </div>
+              </section>
+
+              <!-- Bottom Spacer so floating nav doesn't overlap contents -->
+              <div class="home-bottom-spacer"></div>
             </div>
+
+            <!-- Tab 2: STATISTIK & GRAFIK -->
+            <div class="home-tab-content hidden" id="tab-content-stats">
+              <section class="tab-page-header">
+                <h2 class="tab-page-title">Statistik & Analisis</h2>
+                <p class="tab-page-sub">Pantau grafik perkembangan berat badan dan skrining Anda.</p>
+              </section>
+              
+              <div class="stats-summary-card">
+                <div class="stats-summary-header">
+                  <div>
+                    <span class="stats-pill">STATUS TERAKHIR</span>
+                    <h3 class="stats-big-val">21.4 <span class="stats-unit">kg/m²</span></h3>
+                    <p class="stats-status-text">Kategori: <strong>Normal / Berat Ideal</strong></p>
+                  </div>
+                  <div class="stats-badge-circle">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#2D6A4F" stroke-width="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="stats-chart-mock">
+                  <div class="chart-bars">
+                    <div class="chart-col"><div class="chart-bar" style="height: 55%;"></div><span>Mei</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height: 60%;"></div><span>Jun</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height: 50%;"></div><span>Jul</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height: 48%;"></div><span>Agu</span></div>
+                    <div class="chart-col active"><div class="chart-bar" style="height: 45%;"></div><span>Sep</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="home-bottom-spacer"></div>
+            </div>
+
+            <!-- Tab 3: PENGATURAN -->
+            <div class="home-tab-content hidden" id="tab-content-settings">
+              <section class="tab-page-header">
+                <h2 class="tab-page-title">Pengaturan</h2>
+                <p class="tab-page-sub">Kelola akun dan preferensi aplikasi ObeSight Anda.</p>
+              </section>
+
+              <div class="settings-menu-list">
+                <button type="button" class="settings-item" id="btn-settings-biodata">
+                  <div class="settings-item-icon icon-green-bg">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  <div class="settings-item-text">
+                    <div class="settings-item-title">Data Profil & Biodata</div>
+                    <div class="settings-item-desc">Tinggi, berat badan & riwayat</div>
+                  </div>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94A3B8" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+
+                <button type="button" class="settings-item">
+                  <div class="settings-item-icon icon-blue-bg">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                  </div>
+                  <div class="settings-item-text">
+                    <div class="settings-item-title">Pengingat Skrining</div>
+                    <div class="settings-item-desc">Notifikasi berkala setiap bulan</div>
+                  </div>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94A3B8" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+
+                <button type="button" class="settings-item item-logout" id="btn-settings-logout">
+                  <div class="settings-item-icon icon-red-bg">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                      <polyline points="16 17 21 12 16 7"/>
+                      <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                  </div>
+                  <div class="settings-item-text">
+                    <div class="settings-item-title text-danger">Keluar dari Akun</div>
+                    <div class="settings-item-desc">Kembali ke halaman masuk</div>
+                  </div>
+                </button>
+              </div>
+
+              <div class="home-bottom-spacer"></div>
+            </div>
+
           </div>
+
+          <!-- Floating Custom Bottom Navigation Bar -->
+          <nav class="floating-bottom-nav" aria-label="Navigasi Utama">
+            <!-- Home Tab -->
+            <button type="button" class="nav-item active" id="nav-btn-home" data-tab="home" title="Beranda">
+              <div class="nav-active-pill">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                </svg>
+              </div>
+            </button>
+
+            <!-- Stats Tab -->
+            <button type="button" class="nav-item" id="nav-btn-stats" data-tab="stats" title="Grafik & Analisis">
+              <div class="nav-icon-box">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <!-- Bar Chart with Trend Line matching mock -->
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                  <path d="M4 11L9 6L14 11L20 4" />
+                </svg>
+              </div>
+            </button>
+
+            <!-- Settings Tab -->
+            <button type="button" class="nav-item" id="nav-btn-settings" data-tab="settings" title="Pengaturan">
+              <div class="nav-icon-box">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                  <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                </svg>
+              </div>
+            </button>
+          </nav>
+
         </section>
 
         <!-- 4. ADMIN HOME SCREEN (PANEL ADMINISTRATOR) -->
@@ -274,6 +672,165 @@
             </div>
           </div>
         </section>
+
+        <!-- 5. INTERACTIVE MODAL: SKRINING OBESITAS -->
+        <div class="modal-backdrop hidden" id="screening-modal-backdrop">
+          <div class="app-modal-card">
+            <div class="modal-card-topbar">
+              <div class="modal-topbar-title-box">
+                <span class="modal-pill-tag">SKRINING KESEHATAN</span>
+                <h3 class="modal-card-heading">Deteksi Risiko Obesitas</h3>
+              </div>
+              <button type="button" class="btn-modal-close" id="btn-close-screening-modal">&times;</button>
+            </div>
+            
+            <div class="modal-card-body" id="screening-questions-container">
+              <p class="modal-body-intro">Jawab pertanyaan di bawah ini untuk menilai faktor risiko obesitas Anda:</p>
+              
+              <div class="quiz-question-card">
+                <p class="quiz-q-text">1. Seberapa sering Anda mengonsumsi makanan cepat saji atau minuman manis?</p>
+                <div class="quiz-options-group">
+                  <label class="quiz-option-label"><input type="radio" name="q1" value="0" checked /> Jarang (1-2x per bulan)</label>
+                  <label class="quiz-option-label"><input type="radio" name="q1" value="1" /> Kadang-kadang (1-2x per minggu)</label>
+                  <label class="quiz-option-label"><input type="radio" name="q1" value="2" /> Sering (&gt;3x per minggu)</label>
+                </div>
+              </div>
+
+              <div class="quiz-question-card">
+                <p class="quiz-q-text">2. Berapa durasi aktivitas fisik/olahraga Anda dalam seminggu?</p>
+                <div class="quiz-options-group">
+                  <label class="quiz-option-label"><input type="radio" name="q2" value="0" checked /> Lebih dari 150 menit / minggu</label>
+                  <label class="quiz-option-label"><input type="radio" name="q2" value="1" /> Kurang dari 150 menit / minggu</label>
+                  <label class="quiz-option-label"><input type="radio" name="q2" value="2" /> Hampir tidak pernah olahraga</label>
+                </div>
+              </div>
+
+              <div class="quiz-question-card">
+                <p class="quiz-q-text">3. Rata-rata jam tidur Anda setiap malam?</p>
+                <div class="quiz-options-group">
+                  <label class="quiz-option-label"><input type="radio" name="q3" value="0" checked /> Cukup (7 - 8 jam)</label>
+                  <label class="quiz-option-label"><input type="radio" name="q3" value="1" /> Kurang (&lt;6 jam)</label>
+                </div>
+              </div>
+
+              <div class="screening-result-box hidden" id="screening-result-box">
+                <div class="result-risk-badge" id="result-risk-badge">Risiko Rendah</div>
+                <h4 class="result-risk-title" id="result-risk-title">Pola Hidup Anda Sudah Baik!</h4>
+                <p class="result-risk-desc" id="result-risk-desc">Pertahankan pola makan bergizi seimbang dan aktivitas fisik teratur.</p>
+              </div>
+
+              <div class="modal-action-row">
+                <button type="button" class="btn-modal-primary" id="btn-calc-screening">Lihat Hasil Skrining</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. INTERACTIVE MODAL: KALKULATOR IMT -->
+        <div class="modal-backdrop hidden" id="bmi-modal-backdrop">
+          <div class="app-modal-card">
+            <div class="modal-card-topbar">
+              <div class="modal-topbar-title-box">
+                <span class="modal-pill-tag">KALKULATOR KESEHATAN</span>
+                <h3 class="modal-card-heading">Kalkulator Indeks Massa Tubuh</h3>
+              </div>
+              <button type="button" class="btn-modal-close" id="btn-close-bmi-modal">&times;</button>
+            </div>
+
+            <div class="modal-card-body">
+              <form id="bmi-calc-form" onsubmit="return false;">
+                <div class="form-row-grid">
+                  <div class="form-field-group">
+                    <label class="field-label" for="bmi-input-height">Tinggi Badan (cm)</label>
+                    <input type="number" id="bmi-input-height" class="field-input" placeholder="Contoh: 165" value="165" min="50" max="250" />
+                  </div>
+                  <div class="form-field-group">
+                    <label class="field-label" for="bmi-input-weight">Berat Badan (kg)</label>
+                    <input type="number" id="bmi-input-weight" class="field-input" placeholder="Contoh: 58" value="58" min="20" max="300" step="0.5" />
+                  </div>
+                </div>
+
+                <div class="bmi-interactive-result" id="bmi-interactive-result">
+                  <div class="bmi-score-big" id="bmi-calc-score">21.3</div>
+                  <div class="bmi-calc-category" id="bmi-calc-category">Normal (Berat Ideal)</div>
+                  <p class="bmi-calc-advice" id="bmi-calc-advice">Pertahankan berat badan sehat dengan pola gizi seimbang dan aktivitas fisik 30 menit per hari.</p>
+                </div>
+
+                <div class="modal-action-row">
+                  <button type="button" class="btn-modal-primary" id="btn-recalc-bmi">Hitung Ulang</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. INTERACTIVE MODAL: LENGKAPI BIODATA -->
+        <div class="modal-backdrop hidden" id="biodata-modal-backdrop">
+          <div class="app-modal-card">
+            <div class="modal-card-topbar">
+              <div class="modal-topbar-title-box">
+                <span class="modal-pill-tag">PROFIL PENGGUNA</span>
+                <h3 class="modal-card-heading">Lengkapi Biodata Anda</h3>
+              </div>
+              <button type="button" class="btn-modal-close" id="btn-close-biodata-modal">&times;</button>
+            </div>
+
+            <div class="modal-card-body">
+              <form id="biodata-form" onsubmit="return false;">
+                <div class="form-field-group">
+                  <label class="field-label" for="bio-name">Nama Lengkap</label>
+                  <input type="text" id="bio-name" class="field-input" value="Zahra Fitriana" />
+                </div>
+                <div class="form-row-grid">
+                  <div class="form-field-group">
+                    <label class="field-label" for="bio-age">Usia (Tahun)</label>
+                    <input type="number" id="bio-age" class="field-input" value="22" min="5" max="100" />
+                  </div>
+                  <div class="form-field-group">
+                    <label class="field-label" for="bio-gender">Jenis Kelamin</label>
+                    <select id="bio-gender" class="field-input select-input">
+                      <option value="Perempuan" selected>Perempuan</option>
+                      <option value="Laki-laki">Laki-laki</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row-grid">
+                  <div class="form-field-group">
+                    <label class="field-label" for="bio-height">Tinggi (cm)</label>
+                    <input type="number" id="bio-height" class="field-input" value="165" />
+                  </div>
+                  <div class="form-field-group">
+                    <label class="field-label" for="bio-weight">Berat (kg)</label>
+                    <input type="number" id="bio-weight" class="field-input" value="58" />
+                  </div>
+                </div>
+                <div class="modal-action-row">
+                  <button type="button" class="btn-modal-primary" id="btn-save-biodata">Simpan Perubahan</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. INTERACTIVE MODAL: DETAIL ARTIKEL KESEHATAN -->
+        <div class="modal-backdrop hidden" id="article-modal-backdrop">
+          <div class="app-modal-card article-modal-card">
+            <div class="modal-card-topbar">
+              <span class="modal-pill-tag" id="article-modal-category">PANDUAN GIZI</span>
+              <button type="button" class="btn-modal-close" id="btn-close-article-modal">&times;</button>
+            </div>
+            <div class="modal-card-body">
+              <div class="article-modal-hero" id="article-modal-hero"></div>
+              <h3 class="article-modal-title" id="article-modal-title">Judul Artikel Kesehatan</h3>
+              <div class="article-modal-meta">
+                <span>⏱️ 3 Menit Baca</span> &bull; <span>🏥 Ditinjau Tim Medis ObeSight</span>
+              </div>
+              <div class="article-modal-content-text" id="article-modal-content-text">
+                Konten artikel lengkap...
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Simulated Interactive Google Account Chooser Modal -->
         <div class="modal-backdrop hidden" id="google-modal-backdrop">
