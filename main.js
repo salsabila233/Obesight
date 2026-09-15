@@ -572,6 +572,20 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   function switchHomeTab(targetTab) {
+    if (userDash) {
+      userDash.classList.toggle('in-monitoring', targetTab === 'stats');
+    }
+    if (statusBar) {
+      if (targetTab === 'stats') {
+        statusBar.classList.remove('dark-text');
+      } else {
+        statusBar.classList.add('dark-text');
+      }
+    }
+    if (targetTab === 'stats') {
+      switchMonitoringSubpage('main');
+    }
+
     navBtns.forEach(item => {
       if (!item.btn || !item.content) return;
       const isActive = item.tab === targetTab;
@@ -611,6 +625,172 @@ document.addEventListener('DOMContentLoaded', () => {
       item.btn.addEventListener('click', () => switchHomeTab(item.tab));
     }
   });
+
+  // ========================================================
+  // MONITORING SUBPAGE NAVIGATION & INTERACTIONS
+  // ========================================================
+  const monitoringSubpages = {
+    main: document.getElementById('monitoring-subpage-main'),
+    progress: document.getElementById('monitoring-subpage-progress'),
+    riwayat: document.getElementById('monitoring-subpage-riwayat')
+  };
+
+  function switchMonitoringSubpage(targetSubpage) {
+    Object.keys(monitoringSubpages).forEach(key => {
+      const page = monitoringSubpages[key];
+      if (!page) return;
+      const isTarget = key === targetSubpage;
+      page.classList.toggle('hidden', !isTarget);
+      page.classList.toggle('active', isTarget);
+    });
+
+    if (targetSubpage === 'progress') {
+      setTimeout(() => {
+        const todayPill = document.querySelector('.date-pill.pill-today');
+        if (todayPill) {
+          todayPill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }, 80);
+    }
+  }
+
+  // Header Back Buttons
+  const btnBackToHome = document.getElementById('btn-back-to-home');
+  if (btnBackToHome) {
+    btnBackToHome.addEventListener('click', () => switchHomeTab('home'));
+  }
+
+  const btnBackFromProgress = document.getElementById('btn-back-from-progress');
+  if (btnBackFromProgress) {
+    btnBackFromProgress.addEventListener('click', () => switchMonitoringSubpage('main'));
+  }
+
+  const btnBackFromRiwayat = document.getElementById('btn-back-from-riwayat');
+  if (btnBackFromRiwayat) {
+    btnBackFromRiwayat.addEventListener('click', () => switchMonitoringSubpage('main'));
+  }
+
+  // Menu Navigation Cards
+  const btnOpenProgress = document.getElementById('btn-open-progress');
+  if (btnOpenProgress) {
+    btnOpenProgress.addEventListener('click', () => switchMonitoringSubpage('progress'));
+  }
+
+  const btnOpenRiwayat = document.getElementById('btn-open-riwayat');
+  if (btnOpenRiwayat) {
+    btnOpenRiwayat.addEventListener('click', () => switchMonitoringSubpage('riwayat'));
+  }
+
+  // Horizontal Date Scroller (31 days of August 2026, 15 is Hari ini)
+  const dateScrollerContainer = document.getElementById('progress-date-scroller');
+  function initDateScroller() {
+    if (!dateScrollerContainer) return;
+    dateScrollerContainer.innerHTML = '';
+
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
+
+    for (let dayNum = 1; dayNum <= 31; dayNum++) {
+      const d = new Date(2026, 7, dayNum);
+      const dayOfWeek = dayNames[d.getDay()];
+      const dateStr = `${dayNum}/8/26`;
+
+      const pill = document.createElement('div');
+      pill.className = 'date-pill';
+      pill.dataset.date = dateStr;
+
+      if (dayNum < 15) {
+        pill.classList.add('pill-past');
+        pill.innerHTML = `
+          <span class="date-pill-day">${dayOfWeek}</span>
+          <span class="date-pill-num">${dateStr}</span>
+        `;
+      } else if (dayNum === 15) {
+        pill.classList.add('pill-today');
+        pill.classList.add('selected');
+        pill.innerHTML = `
+          <span class="date-pill-day">Hari ini</span>
+          <span class="date-pill-num">${dateStr}</span>
+        `;
+      } else {
+        pill.classList.add('pill-future');
+        pill.innerHTML = `
+          <span class="date-pill-day">${dayOfWeek}</span>
+          <span class="date-pill-num">${dateStr}</span>
+        `;
+      }
+
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('selected'));
+        pill.classList.add('selected');
+      });
+
+      dateScrollerContainer.appendChild(pill);
+    }
+  }
+  initDateScroller();
+
+  // Activity Checklist & Badges
+  const activityCheckboxes = document.querySelectorAll('.activity-checkbox');
+  function updateCategoryProgress(cat) {
+    const catCheckboxes = document.querySelectorAll(`.activity-checkbox[data-cat="${cat}"]`);
+    const total = catCheckboxes.length;
+    let checked = 0;
+    catCheckboxes.forEach(cb => {
+      if (cb.checked) checked++;
+    });
+
+    const badge = document.getElementById(`badge-cat-${cat}`);
+    if (badge) {
+      badge.textContent = `${checked}/${total} Selesai`;
+      if (checked === total && total > 0) {
+        badge.classList.remove('badge-pending');
+        badge.classList.add('badge-done');
+      } else {
+        badge.classList.remove('badge-done');
+        badge.classList.add('badge-pending');
+      }
+    }
+  }
+
+  activityCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const cat = cb.getAttribute('data-cat');
+      if (cat) updateCategoryProgress(cat);
+    });
+  });
+
+  // Simpan Progress & Confirmation Modal
+  const btnSaveProgress = document.getElementById('btn-save-progress');
+  const progressConfirmModal = document.getElementById('progress-confirm-modal');
+  const btnCancelProgressModal = document.getElementById('btn-cancel-progress-modal');
+  const btnYesProgressModal = document.getElementById('btn-yes-progress-modal');
+
+  if (btnSaveProgress && progressConfirmModal) {
+    btnSaveProgress.addEventListener('click', () => {
+      progressConfirmModal.classList.remove('hidden');
+    });
+  }
+
+  if (btnCancelProgressModal && progressConfirmModal) {
+    btnCancelProgressModal.addEventListener('click', () => {
+      progressConfirmModal.classList.add('hidden');
+    });
+  }
+
+  if (progressConfirmModal) {
+    progressConfirmModal.addEventListener('click', (e) => {
+      if (e.target === progressConfirmModal) {
+        progressConfirmModal.classList.add('hidden');
+      }
+    });
+  }
+
+  if (btnYesProgressModal && progressConfirmModal) {
+    btnYesProgressModal.addEventListener('click', () => {
+      progressConfirmModal.classList.add('hidden');
+      showToast('Berhasil!', 'Rekomendasi berhasil disimpan!');
+    });
+  }
 
   // Skrining Obesitas Modal Handlers
   const btnStartScreening = document.getElementById('btn-start-screening');
