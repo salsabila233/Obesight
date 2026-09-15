@@ -277,6 +277,31 @@ function authOtpApiPlugin() {
           });
         }
 
+        // 4. GET & POST /api/auth/google-config
+        if (req.url === '/api/auth/google-config') {
+          if (req.method === 'GET') {
+            loadEnv();
+            const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
+            return sendJson(200, { success: true, clientId });
+          }
+          if (req.method === 'POST') {
+            const body = await parseBody();
+            const clientId = (body.clientId || '').trim();
+            process.env.VITE_GOOGLE_CLIENT_ID = clientId;
+            // Update or write to .env
+            const envPath = path.resolve(process.cwd(), '.env');
+            let content = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+            if (content.includes('VITE_GOOGLE_CLIENT_ID=')) {
+              content = content.replace(/VITE_GOOGLE_CLIENT_ID=.*/g, `VITE_GOOGLE_CLIENT_ID=${clientId}`);
+            } else {
+              content += `\nVITE_GOOGLE_CLIENT_ID=${clientId}\n`;
+            }
+            fs.writeFileSync(envPath, content, 'utf8');
+            console.log(`[ObeSight Auth] Google Client ID berhasil diperbarui: ${clientId}`);
+            return sendJson(200, { success: true, clientId, message: 'Google Client ID berhasil disimpan!' });
+          }
+        }
+
         next();
       });
     }

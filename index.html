@@ -1706,49 +1706,58 @@
           </div>
         </div>
 
-        <!-- Simulated Interactive Google Account Chooser Modal -->
-        <div class="modal-backdrop hidden" id="google-modal-backdrop">
-          <div class="google-modal-card" id="google-modal-card">
+        <!-- Real Google OAuth 2.0 Integration & Setup Modal -->
+        <div class="modal-backdrop hidden" id="google-auth-modal">
+          <div class="google-modal-card" id="google-auth-card">
             <div class="google-modal-header">
               <img src="./assets/google_icon.svg" alt="Google" class="google-modal-logo" />
               <div class="google-modal-titles">
-                <div class="google-modal-title">Pilih akun Google</div>
-                <div class="google-modal-sub">untuk melanjutkan masuk ke ObeSight</div>
+                <div class="google-modal-title">Masuk dengan Akun Google</div>
+                <div class="google-modal-sub">Autentikasi resmi pengguna ObeSight</div>
               </div>
-              <button type="button" class="btn-close-modal" id="btn-close-google-modal">&times;</button>
+              <button type="button" class="btn-close-modal" id="btn-close-google-auth-modal">&times;</button>
             </div>
 
-            <div class="google-account-list">
-              <!-- Account 1: Normal User -->
-              <button type="button" class="google-account-item" data-role="user" data-name="Zahra Fitriana"
-                data-email="zahraafitriana@gmail.com">
-                <div class="google-avatar avatar-green">Z</div>
-                <div class="google-acc-info">
-                  <div class="acc-name-row">
-                    <span class="acc-name">Zahra Fitriana</span>
-                    <span class="acc-badge badge-user">Pengguna Biasa</span>
-                  </div>
-                  <span class="acc-email">zahraafitriana@gmail.com</span>
+            <div class="google-auth-body">
+              <div class="google-security-notice">
+                <div class="notice-icon">🛡️</div>
+                <div class="notice-text">
+                  <strong>Keamanan Akun:</strong> Tombol Google Sign-In terhubung ke akun Google resmi Anda sebagai <em>Pengguna Biasa</em>. Akun Administrator dikelola mandiri secara terpisah demi keamanan sistem.
                 </div>
-              </button>
+              </div>
 
-              <!-- Account 2: Admin -->
-              <button type="button" class="google-account-item" data-role="admin" data-name="Dr. Hendra Wijaya, Sp.GK"
-                data-email="admin@obesight.com">
-                <div class="google-avatar avatar-blue">H</div>
-                <div class="google-acc-info">
-                  <div class="acc-name-row">
-                    <span class="acc-name">Dr. Hendra Wijaya</span>
-                    <span class="acc-badge badge-admin">Administrator</span>
-                  </div>
-                  <span class="acc-email">admin@obesight.com</span>
-                </div>
-              </button>
+              <div class="form-field-group" style="margin-top: 14px;">
+                <label for="cfg-google-client-id" class="field-label">Google OAuth 2.0 Client ID</label>
+                <input type="text" id="cfg-google-client-id" class="field-input"
+                  placeholder="Contoh: xxxxxxxx.apps.googleusercontent.com" autocomplete="off" />
+                <span class="field-helper-info">Client ID dari Google Cloud Console dengan origin <code>http://localhost:3000</code>.</span>
+              </div>
+
+              <div class="google-modal-btn-row">
+                <button type="button" class="btn-masuk" id="btn-save-start-google">
+                  <span>Hubungkan & Masuk Sekarang</span>
+                </button>
+              </div>
+
+              <!-- Quick Demo Testing Option if user hasn't created a cloud project yet -->
+              <div class="demo-google-box">
+                <span class="demo-google-label">Ingin uji coba langsung dengan akun Google Anda?</span>
+                <button type="button" class="btn-demo-google-prompt" id="btn-demo-google-prompt">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                  <span>Gunakan Akun Google Saya Secara Langsung</span>
+                </button>
+              </div>
             </div>
 
             <div class="google-modal-footer">
-              <button type="button" class="btn-cancel-modal" id="btn-cancel-google">Batal</button>
+              <button type="button" class="btn-cancel-modal" id="btn-cancel-google-auth">Tutup</button>
             </div>
+          </div>
+        </div>
         <!-- 9. INTERACTIVE MODAL: KONFIRMASI SIMPAN PROGRESS -->
         <div class="modal-backdrop hidden" id="progress-confirm-modal">
           <div class="progress-confirm-card">
