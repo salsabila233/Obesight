@@ -1613,12 +1613,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Google Sign In Modal
   if (btnGoogleAuth) {
     btnGoogleAuth.addEventListener('click', () => {
-      googleModalBackdrop.classList.remove('hidden');
+      if (googleModalBackdrop) {
+        googleModalBackdrop.classList.remove('hidden');
+      }
     });
   }
 
   function closeGoogleModal() {
-    googleModalBackdrop.classList.add('hidden');
+    if (googleModalBackdrop) {
+      googleModalBackdrop.classList.add('hidden');
+    }
   }
 
   if (btnCloseGoogleModal) btnCloseGoogleModal.addEventListener('click', closeGoogleModal);
@@ -1630,10 +1634,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Google Account Select
-  googleAccountItems.forEach(item => {
+  const currentGoogleAccountItems = document.querySelectorAll('.google-account-item');
+  currentGoogleAccountItems.forEach(item => {
     item.addEventListener('click', () => {
-      const role = item.getAttribute('data-role');
-      const name = item.getAttribute('data-name');
+      const role = item.getAttribute('data-role') || 'user';
+      const name = item.getAttribute('data-name') || 'Zahra Fitriana';
       closeGoogleModal();
       navigateToDashboard(role, name);
     });
