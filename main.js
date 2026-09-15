@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const splashScreen = document.getElementById('splash-screen');
   const authScreen = document.getElementById('auth-screen');
   const registerScreen = document.getElementById('register-screen');
+  const forgotEmailScreen = document.getElementById('forgot-email-screen');
+  const forgotOtpScreen = document.getElementById('forgot-otp-screen');
+  const forgotResetScreen = document.getElementById('forgot-reset-screen');
   const userDash = document.getElementById('user-dashboard-screen');
   const adminDash = document.getElementById('admin-dashboard-screen');
   const statusBar = document.getElementById('phone-status-bar');
@@ -31,6 +34,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnTogglePwd = document.getElementById('btn-toggle-pwd');
   const iconEyeClosed = document.querySelector('.icon-eye-closed');
   const iconEyeOpen = document.querySelector('.icon-eye-open');
+  const linkForgot = document.getElementById('link-forgot');
+
+  // Forgot Password Screen Elements
+  // Step 1:
+  const formForgotEmail = document.getElementById('form-forgot-email');
+  const forgotEmailInput = document.getElementById('forgot-email');
+  const errForgotEmail = document.getElementById('err-forgot-email');
+  const bannerForgotEmail = document.getElementById('banner-forgot-email');
+  const bannerForgotEmailMsg = document.getElementById('banner-forgot-email-msg');
+  const btnKirimKode = document.getElementById('btn-kirim-kode');
+  const linkBackLogin1 = document.getElementById('link-back-login-1');
+
+  // Step 2:
+  const formVerifyOtp = document.getElementById('form-verify-otp');
+  const otpDisplayEmail = document.getElementById('otp-display-email');
+  const otpDigitBoxes = document.querySelectorAll('.otp-digit-box');
+  const errOtpCode = document.getElementById('err-otp-code');
+  const bannerVerifyOtp = document.getElementById('banner-verify-otp');
+  const bannerVerifyOtpMsg = document.getElementById('banner-verify-otp-msg');
+  const btnVerifikasiOtp = document.getElementById('btn-verifikasi-otp');
+  const btnResendCode = document.getElementById('btn-resend-code');
+  const resendTimerBadge = document.getElementById('resend-timer-badge');
+  const linkBackLogin2 = document.getElementById('link-back-login-2');
+
+  // Step 3:
+  const formResetPassword = document.getElementById('form-reset-password');
+  const resetPasswordVal = document.getElementById('reset-password-val');
+  const resetConfirmPasswordVal = document.getElementById('reset-confirm-password-val');
+  const btnToggleResetPwd = document.getElementById('btn-toggle-reset-pwd');
+  const btnToggleResetConfirm = document.getElementById('btn-toggle-reset-confirm');
+  const errResetPasswordVal = document.getElementById('err-reset-password-val');
+  const errResetConfirmVal = document.getElementById('err-reset-confirm-val');
+  const bannerResetPassword = document.getElementById('banner-reset-password');
+  const bannerResetPasswordMsg = document.getElementById('banner-reset-password-msg');
+  const btnSimpanPassword = document.getElementById('btn-simpan-password');
+  const linkBackLogin3 = document.getElementById('link-back-login-3');
+
+  // Criteria rules for Step 3
+  const resetRuleLen = document.getElementById('reset-rule-len');
+  const resetRuleCase = document.getElementById('reset-rule-case');
+  const resetRuleDigit = document.getElementById('reset-rule-digit');
 
   // Register Form Elements
   const linkDaftar = document.getElementById('link-daftar');
@@ -93,6 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     splashScreen.style.display = 'flex';
     authScreen.classList.add('hidden');
     if (registerScreen) registerScreen.classList.add('hidden');
+    if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
+    if (forgotOtpScreen) forgotOtpScreen.classList.add('hidden');
+    if (forgotResetScreen) forgotResetScreen.classList.add('hidden');
     if (userDash) userDash.classList.add('hidden');
     if (adminDash) adminDash.classList.add('hidden');
     statusBar.classList.remove('dark-text');
@@ -132,6 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
       splashScreen.style.display = 'none';
       authScreen.classList.remove('hidden');
       if (registerScreen) registerScreen.classList.add('hidden');
+      if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
+      if (forgotOtpScreen) forgotOtpScreen.classList.add('hidden');
+      if (forgotResetScreen) forgotResetScreen.classList.add('hidden');
       if (userDash) userDash.classList.add('hidden');
       if (adminDash) adminDash.classList.add('hidden');
     }, 400);
@@ -328,12 +378,16 @@ document.addEventListener('DOMContentLoaded', () => {
     userDash.classList.add('hidden');
     if (adminDash) adminDash.classList.add('hidden');
     if (registerScreen) registerScreen.classList.add('hidden');
+    if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
+    if (forgotOtpScreen) forgotOtpScreen.classList.add('hidden');
+    if (forgotResetScreen) forgotResetScreen.classList.add('hidden');
     authScreen.classList.remove('hidden');
     if (inputPassword) inputPassword.value = '';
     const profileDropdown = document.getElementById('profile-dropdown');
     if (profileDropdown) profileDropdown.classList.add('hidden');
     clearErrors();
     clearRegErrors();
+    clearForgotErrors();
     showToast('Sesi Berakhir', 'Anda telah keluar dari akun.');
   }
 
@@ -540,6 +594,534 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Redirect immediately to User Dashboard
       navigateToDashboard('user', nameVal, 'Akun Berhasil Dibuat!', `Selamat datang di ObeSight, ${nameVal}!`);
+    });
+  }
+
+  // ========================================================
+  // FORGOT PASSWORD CONTROLLER (3 CONNECTED SCREENS & OTP)
+  // ========================================================
+
+  let recoverySession = {
+    email: '',
+    resetToken: '',
+    cooldownTimer: null,
+    cooldownSeconds: 0
+  };
+
+  function setButtonLoading(btn, isLoading, defaultText) {
+    if (!btn) return;
+    const spinner = btn.querySelector('.btn-spinner-icon');
+    const label = btn.querySelector('.btn-label-text');
+    btn.classList.toggle('loading', isLoading);
+    btn.disabled = isLoading;
+    if (spinner) spinner.classList.toggle('hidden', !isLoading);
+    if (label && defaultText) {
+      label.textContent = isLoading ? 'Memproses...' : defaultText;
+    }
+  }
+
+  function clearForgotErrors() {
+    if (errForgotEmail) errForgotEmail.classList.add('hidden');
+    if (bannerForgotEmail) bannerForgotEmail.classList.add('hidden');
+    if (errOtpCode) errOtpCode.classList.add('hidden');
+    if (bannerVerifyOtp) bannerVerifyOtp.classList.add('hidden');
+    if (errResetPasswordVal) errResetPasswordVal.classList.add('hidden');
+    if (errResetConfirmVal) errResetConfirmVal.classList.add('hidden');
+    if (bannerResetPassword) bannerResetPassword.classList.add('hidden');
+  }
+
+  function resetOtpBoxes() {
+    otpDigitBoxes.forEach((box) => {
+      box.value = '';
+      box.classList.remove('filled');
+    });
+  }
+
+  function checkResetPasswordCriteria(pwd) {
+    const isLenValid = pwd.length >= 8;
+    const isCaseValid = /[a-z]/.test(pwd) && /[A-Z]/.test(pwd);
+    const isDigitValid = /\d/.test(pwd);
+
+    setRuleItemState(resetRuleLen, isLenValid);
+    setRuleItemState(resetRuleCase, isCaseValid);
+    setRuleItemState(resetRuleDigit, isDigitValid);
+
+    return isLenValid && isCaseValid && isDigitValid;
+  }
+
+  function startResendCooldown(seconds = 60) {
+    if (recoverySession.cooldownTimer) {
+      clearInterval(recoverySession.cooldownTimer);
+    }
+    recoverySession.cooldownSeconds = seconds;
+    if (btnResendCode) btnResendCode.disabled = true;
+    if (resendTimerBadge) {
+      resendTimerBadge.textContent = `(${seconds}s)`;
+      resendTimerBadge.classList.remove('hidden');
+    }
+
+    recoverySession.cooldownTimer = setInterval(() => {
+      recoverySession.cooldownSeconds -= 1;
+      if (recoverySession.cooldownSeconds <= 0) {
+        clearInterval(recoverySession.cooldownTimer);
+        recoverySession.cooldownTimer = null;
+        if (btnResendCode) btnResendCode.disabled = false;
+        if (resendTimerBadge) resendTimerBadge.classList.add('hidden');
+      } else {
+        if (resendTimerBadge) {
+          resendTimerBadge.textContent = `(${recoverySession.cooldownSeconds}s)`;
+        }
+      }
+    }, 1000);
+  }
+
+  // Public/Global navigation to Screen 1
+  function tampilkanFormLupaSandi() {
+    authScreen.classList.add('hidden');
+    if (registerScreen) registerScreen.classList.add('hidden');
+    if (forgotOtpScreen) forgotOtpScreen.classList.add('hidden');
+    if (forgotResetScreen) forgotResetScreen.classList.add('hidden');
+    if (forgotEmailScreen) {
+      forgotEmailScreen.classList.remove('hidden');
+      clearForgotErrors();
+      if (forgotEmailInput) {
+        forgotEmailInput.value = '';
+        setTimeout(() => forgotEmailInput.focus(), 150);
+      }
+    }
+  }
+  // Expose globally for inline onclick="tampilkanFormLupaSandi()"
+  window.tampilkanFormLupaSandi = tampilkanFormLupaSandi;
+
+  function kembaliKeLogin() {
+    if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
+    if (forgotOtpScreen) forgotOtpScreen.classList.add('hidden');
+    if (forgotResetScreen) forgotResetScreen.classList.add('hidden');
+    if (registerScreen) registerScreen.classList.add('hidden');
+    authScreen.classList.remove('hidden');
+    clearErrors();
+    clearRegErrors();
+    clearForgotErrors();
+  }
+
+  // Setup Password Visibility Toggles for Reset Screen
+  setupPasswordToggle(btnToggleResetPwd, resetPasswordVal);
+  setupPasswordToggle(btnToggleResetConfirm, resetConfirmPasswordVal);
+
+  // Wire navigation back buttons
+  if (linkForgot) {
+    linkForgot.addEventListener('click', (e) => {
+      e.preventDefault();
+      tampilkanFormLupaSandi();
+    });
+  }
+
+  if (linkBackLogin1) linkBackLogin1.addEventListener('click', (e) => { e.preventDefault(); kembaliKeLogin(); });
+  if (linkBackLogin2) linkBackLogin2.addEventListener('click', (e) => { e.preventDefault(); kembaliKeLogin(); });
+  if (linkBackLogin3) linkBackLogin3.addEventListener('click', (e) => { e.preventDefault(); kembaliKeLogin(); });
+
+  // Clear errors when typing in forgot inputs
+  if (forgotEmailInput) {
+    forgotEmailInput.addEventListener('input', () => {
+      if (errForgotEmail) errForgotEmail.classList.add('hidden');
+      if (bannerForgotEmail) bannerForgotEmail.classList.add('hidden');
+    });
+  }
+
+  if (resetPasswordVal) {
+    resetPasswordVal.addEventListener('input', () => {
+      checkResetPasswordCriteria(resetPasswordVal.value);
+      if (errResetPasswordVal) errResetPasswordVal.classList.add('hidden');
+      if (bannerResetPassword) bannerResetPassword.classList.add('hidden');
+    });
+  }
+
+  if (resetConfirmPasswordVal) {
+    resetConfirmPasswordVal.addEventListener('input', () => {
+      if (errResetConfirmVal) errResetConfirmVal.classList.add('hidden');
+      if (bannerResetPassword) bannerResetPassword.classList.add('hidden');
+    });
+  }
+
+  // ----------------------------------------------------
+  // STEP 1: KIRIM KODE OTP
+  // ----------------------------------------------------
+  if (formForgotEmail) {
+    formForgotEmail.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearForgotErrors();
+
+      const idVal = forgotEmailInput ? forgotEmailInput.value.trim() : '';
+      if (!idVal) {
+        if (errForgotEmail) {
+          errForgotEmail.textContent = 'Nama pengguna atau email wajib diisi';
+          errForgotEmail.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const cleanId = idVal.toLowerCase();
+
+      // Check registered accounts
+      let matchedEmail = '';
+      if (cleanId === 'zahraafitriana' || cleanId === 'zahraafitriana@gmail.com') {
+        matchedEmail = 'zahraafitriana@gmail.com';
+      } else if (cleanId === 'zahrafitrie' || cleanId === 'zahrafitrie@gmail.com') {
+        matchedEmail = 'zahrafitrie@gmail.com';
+      } else if (cleanId === 'zahraalfitiarisa' || cleanId === 'zahraalfitiarisa@gmail.com') {
+        matchedEmail = 'zahraalfitiarisa@gmail.com';
+      } else if (cleanId === 'admin' || cleanId === 'admin@obesight.com') {
+        matchedEmail = 'admin@obesight.com';
+      } else {
+        const found = registeredUsers.find(u =>
+          u.email.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId
+        );
+        if (found) {
+          matchedEmail = found.email;
+        } else if (isValidEmailFormat(cleanId)) {
+          matchedEmail = cleanId;
+        }
+      }
+
+      if (!matchedEmail) {
+        if (bannerForgotEmail) {
+          if (bannerForgotEmailMsg) bannerForgotEmailMsg.textContent = 'Akun atau email tidak ditemukan di sistem.';
+          bannerForgotEmail.classList.remove('hidden');
+        }
+        return;
+      }
+
+      setButtonLoading(btnKirimKode, true, 'Kirim Kode');
+
+      try {
+        const res = await fetch('/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: idVal, knownEmail: matchedEmail })
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+          if (bannerForgotEmail) {
+            if (bannerForgotEmailMsg) bannerForgotEmailMsg.textContent = data.message || 'Gagal mengirim kode verifikasi.';
+            bannerForgotEmail.classList.remove('hidden');
+          }
+          setButtonLoading(btnKirimKode, false, 'Kirim Kode');
+          return;
+        }
+
+        recoverySession.email = data.email || matchedEmail;
+        if (data.devOtp) {
+          console.log(`[ObeSight Auth - DEV] Kode OTP: ${data.devOtp}`);
+          showToast('Kode OTP Terkirim', `Kode 6 digit: ${data.devOtp} (Dev Mode)`);
+        } else {
+          showToast('Kode OTP Terkirim', `Kode verifikasi telah dikirim ke ${recoverySession.email}`);
+        }
+      } catch (err) {
+        // Fallback in-memory OTP if backend API is not responding
+        const fallbackOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        window.__obesightFallbackOtp = {
+          email: matchedEmail,
+          otp: fallbackOtp,
+          expiresAt: Date.now() + 5 * 60 * 1000
+        };
+        recoverySession.email = matchedEmail;
+        console.log(`[ObeSight Auth - Fallback] Email: ${matchedEmail} | OTP: ${fallbackOtp}`);
+        showToast('Kode OTP Terkirim', `Kode verifikasi: ${fallbackOtp} (Dev Mode)`);
+      }
+
+      setButtonLoading(btnKirimKode, false, 'Kirim Kode');
+
+      // Navigate to Step 2
+      forgotEmailScreen.classList.add('hidden');
+      forgotOtpScreen.classList.remove('hidden');
+      if (otpDisplayEmail) otpDisplayEmail.textContent = recoverySession.email;
+
+      resetOtpBoxes();
+      clearForgotErrors();
+      startResendCooldown(60);
+
+      // Focus first OTP box
+      if (otpDigitBoxes[0]) {
+        setTimeout(() => otpDigitBoxes[0].focus(), 150);
+      }
+    });
+  }
+
+  // ----------------------------------------------------
+  // STEP 2: VERIFIKASI 6 DIGIT KODE OTP
+  // ----------------------------------------------------
+  otpDigitBoxes.forEach((box, index) => {
+    // Digits input & auto-advance
+    box.addEventListener('input', (e) => {
+      box.value = box.value.replace(/\D/g, '');
+      if (box.value) {
+        box.classList.add('filled');
+        if (index < otpDigitBoxes.length - 1) {
+          otpDigitBoxes[index + 1].focus();
+        }
+      } else {
+        box.classList.remove('filled');
+      }
+      if (errOtpCode) errOtpCode.classList.add('hidden');
+      if (bannerVerifyOtp) bannerVerifyOtp.classList.add('hidden');
+    });
+
+    // Backspace & arrow keys navigation
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        if (!box.value && index > 0) {
+          otpDigitBoxes[index - 1].focus();
+          otpDigitBoxes[index - 1].value = '';
+          otpDigitBoxes[index - 1].classList.remove('filled');
+        } else {
+          box.value = '';
+          box.classList.remove('filled');
+        }
+      } else if (e.key === 'ArrowLeft' && index > 0) {
+        otpDigitBoxes[index - 1].focus();
+      } else if (e.key === 'ArrowRight' && index < otpDigitBoxes.length - 1) {
+        otpDigitBoxes[index + 1].focus();
+      }
+    });
+
+    // Paste handling (distributes 6 digits across all boxes)
+    box.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+      const digits = pasteData.replace(/\D/g, '').slice(0, 6);
+      if (digits) {
+        digits.split('').forEach((d, i) => {
+          if (otpDigitBoxes[i]) {
+            otpDigitBoxes[i].value = d;
+            otpDigitBoxes[i].classList.add('filled');
+          }
+        });
+        const lastIdx = Math.min(digits.length - 1, 5);
+        if (otpDigitBoxes[lastIdx]) otpDigitBoxes[lastIdx].focus();
+      }
+    });
+  });
+
+  // Resend OTP button
+  if (btnResendCode) {
+    btnResendCode.addEventListener('click', async () => {
+      if (recoverySession.cooldownSeconds > 0) return;
+      if (!recoverySession.email) return;
+
+      btnResendCode.disabled = true;
+      try {
+        const res = await fetch('/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: recoverySession.email })
+        });
+        const data = await res.json();
+        if (data.devOtp) {
+          console.log(`[ObeSight Auth - RESEND] OTP: ${data.devOtp}`);
+          showToast('Kode Baru Terkirim', `Kode OTP baru: ${data.devOtp} (Dev Mode)`);
+        } else {
+          showToast('Kode Baru Terkirim', `Kode verifikasi baru telah dikirim ke ${recoverySession.email}`);
+        }
+      } catch (err) {
+        const fallbackOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        window.__obesightFallbackOtp = {
+          email: recoverySession.email,
+          otp: fallbackOtp,
+          expiresAt: Date.now() + 5 * 60 * 1000
+        };
+        console.log(`[ObeSight Auth - RESEND Fallback] OTP: ${fallbackOtp}`);
+        showToast('Kode Baru Terkirim', `Kode baru: ${fallbackOtp} (Dev Mode)`);
+      }
+
+      resetOtpBoxes();
+      clearForgotErrors();
+      startResendCooldown(60);
+      if (otpDigitBoxes[0]) otpDigitBoxes[0].focus();
+    });
+  }
+
+  // Verify OTP Form Submit
+  if (formVerifyOtp) {
+    formVerifyOtp.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearForgotErrors();
+
+      const enteredOtp = Array.from(otpDigitBoxes).map(b => b.value.trim()).join('');
+      if (enteredOtp.length < 6) {
+        if (errOtpCode) {
+          errOtpCode.textContent = 'Masukkan lengkap 6 digit kode verifikasi';
+          errOtpCode.classList.remove('hidden');
+        }
+        return;
+      }
+
+      setButtonLoading(btnVerifikasiOtp, true, 'Verifikasi');
+
+      let verifySuccess = false;
+      let returnedToken = '';
+
+      try {
+        const res = await fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: recoverySession.email, otp: enteredOtp })
+        });
+        const data = await res.json();
+        if (data.success) {
+          verifySuccess = true;
+          returnedToken = data.resetToken;
+        } else {
+          if (bannerVerifyOtp) {
+            if (bannerVerifyOtpMsg) bannerVerifyOtpMsg.textContent = data.message || 'Kode verifikasi salah atau kedaluwarsa.';
+            bannerVerifyOtp.classList.remove('hidden');
+          }
+          if (errOtpCode) {
+            errOtpCode.textContent = data.message || 'Kode verifikasi salah';
+            errOtpCode.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        // Fallback in-memory validation
+        const record = window.__obesightFallbackOtp;
+        if (record && record.email === recoverySession.email) {
+          if (Date.now() > record.expiresAt) {
+            if (bannerVerifyOtp) {
+              if (bannerVerifyOtpMsg) bannerVerifyOtpMsg.textContent = 'Kode verifikasi telah kedaluwarsa (lebih dari 5 menit).';
+              bannerVerifyOtp.classList.remove('hidden');
+            }
+          } else if (record.otp === enteredOtp) {
+            verifySuccess = true;
+            returnedToken = 'fb_token_' + Date.now();
+            delete window.__obesightFallbackOtp;
+          } else {
+            if (bannerVerifyOtp) {
+              if (bannerVerifyOtpMsg) bannerVerifyOtpMsg.textContent = 'Kode verifikasi 6 digit yang Anda masukkan salah.';
+              bannerVerifyOtp.classList.remove('hidden');
+            }
+            if (errOtpCode) errOtpCode.classList.remove('hidden');
+          }
+        } else {
+          if (bannerVerifyOtp) {
+            if (bannerVerifyOtpMsg) bannerVerifyOtpMsg.textContent = 'Kode verifikasi tidak ditemukan atau kedaluwarsa.';
+            bannerVerifyOtp.classList.remove('hidden');
+          }
+        }
+      }
+
+      setButtonLoading(btnVerifikasiOtp, false, 'Verifikasi');
+
+      if (verifySuccess) {
+        recoverySession.resetToken = returnedToken;
+        showToast('Verifikasi Berhasil', 'Silakan tentukan kata sandi baru akun Anda.');
+
+        // Navigate to Step 3
+        forgotOtpScreen.classList.add('hidden');
+        forgotResetScreen.classList.remove('hidden');
+        clearForgotErrors();
+
+        if (resetPasswordVal) resetPasswordVal.value = '';
+        if (resetConfirmPasswordVal) resetConfirmPasswordVal.value = '';
+        checkResetPasswordCriteria('');
+
+        if (resetPasswordVal) {
+          setTimeout(() => resetPasswordVal.focus(), 150);
+        }
+      }
+    });
+  }
+
+  // ----------------------------------------------------
+  // STEP 3: BUAT KATA SANDI BARU
+  // ----------------------------------------------------
+  if (formResetPassword) {
+    formResetPassword.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearForgotErrors();
+
+      const newPwd = resetPasswordVal ? resetPasswordVal.value : '';
+      const confirmPwd = resetConfirmPasswordVal ? resetConfirmPasswordVal.value : '';
+
+      let hasError = false;
+
+      if (!newPwd) {
+        if (errResetPasswordVal) {
+          errResetPasswordVal.textContent = 'Kata sandi baru wajib diisi';
+          errResetPasswordVal.classList.remove('hidden');
+        }
+        hasError = true;
+      } else if (!checkResetPasswordCriteria(newPwd)) {
+        if (errResetPasswordVal) {
+          errResetPasswordVal.textContent = 'Kata sandi belum memenuhi kriteria';
+          errResetPasswordVal.classList.remove('hidden');
+        }
+        hasError = true;
+      }
+
+      if (!confirmPwd) {
+        if (errResetConfirmVal) {
+          errResetConfirmVal.textContent = 'Konfirmasi kata sandi wajib diisi';
+          errResetConfirmVal.classList.remove('hidden');
+        }
+        hasError = true;
+      } else if (confirmPwd !== newPwd) {
+        if (errResetConfirmVal) {
+          errResetConfirmVal.textContent = 'Konfirmasi kata sandi tidak cocok';
+          errResetConfirmVal.classList.remove('hidden');
+        }
+        hasError = true;
+      }
+
+      if (hasError) {
+        if (bannerResetPassword) {
+          if (bannerResetPasswordMsg) bannerResetPasswordMsg.textContent = 'Mohon periksa kembali kriteria kata sandi Anda.';
+          bannerResetPassword.classList.remove('hidden');
+        }
+        return;
+      }
+
+      setButtonLoading(btnSimpanPassword, true, 'Simpan Kata Sandi');
+
+      try {
+        await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: recoverySession.email,
+            resetToken: recoverySession.resetToken,
+            newPassword: newPwd
+          })
+        });
+      } catch (err) {}
+
+      // Update registered users repository in localStorage
+      const userIdx = registeredUsers.findIndex(u => u.email.toLowerCase() === recoverySession.email.toLowerCase());
+      if (userIdx !== -1) {
+        registeredUsers[userIdx].password = newPwd;
+      } else {
+        // Preset user updated: store as registered entry so subsequent logins accept new password
+        registeredUsers.push({
+          name: recoverySession.email.split('@')[0],
+          email: recoverySession.email,
+          password: newPwd
+        });
+      }
+
+      try {
+        localStorage.setItem('obesight_registered_users', JSON.stringify(registeredUsers));
+      } catch (err) {}
+
+      setButtonLoading(btnSimpanPassword, false, 'Simpan Kata Sandi');
+
+      // Navigate back to Login Screen
+      forgotResetScreen.classList.add('hidden');
+      authScreen.classList.remove('hidden');
+
+      if (inputIdentifier) inputIdentifier.value = recoverySession.email;
+      if (inputPassword) inputPassword.value = '';
+      clearErrors();
+
+      showToast('Kata Sandi Berhasil Diperbarui!', 'Silakan masuk menggunakan kata sandi baru Anda.');
     });
   }
 

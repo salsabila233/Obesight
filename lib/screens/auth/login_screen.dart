@@ -137,47 +137,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   void _handleForgotPassword() {
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Icons.lock_reset_rounded, color: AppColors.primaryGreen, size: 24),
-            const SizedBox(width: 8),
-            Text(
-              'Lupa Kata Sandi',
-              style: GoogleFonts.poppins(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppColors.darkGreen,
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Tautan pemulihan kata sandi telah disiapkan. Masukkan email Anda untuk menerima instruksi reset kata sandi.',
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            color: const Color(0xFF4A5568),
-            height: 1.4,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: Text(
-              'Mengerti',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryGreen,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    Navigator.of(context).pushNamed('/forgot-password');
   }
 
 

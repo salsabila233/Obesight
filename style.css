@@ -3672,3 +3672,261 @@ input[type="password"]::-ms-clear {
   display: flex;
   align-items: center;
 }
+
+/* ========================================================
+   FORGOT PASSWORD FLOW (3 SCREENS - STEP 1, 2, 3)
+   ======================================================== */
+
+.forgot-screen {
+  background-color: #FFFFFF;
+}
+
+.forgot-scroll-area {
+  padding: 44px 24px 34px 24px;
+}
+
+.forgot-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #234C37;
+  text-align: center;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.forgot-subtitle {
+  font-size: 13px;
+  color: #4A5568;
+  text-align: center;
+  line-height: 1.5;
+  max-width: 320px;
+  margin: 0 auto 22px auto;
+}
+
+.forgot-subtitle-otp {
+  max-width: 330px;
+  margin-bottom: 20px;
+}
+
+.forgot-subtitle .highlight-email {
+  color: #1F2937;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.forgot-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Leading Icon Input Wrappers */
+.input-with-leading-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-leading-icon {
+  position: absolute;
+  left: 14px;
+  color: #6B7280;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.field-input.field-with-leading {
+  padding-left: 44px;
+}
+
+.password-input-wrapper.with-leading-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-input.field-with-both {
+  padding-left: 44px;
+  padding-right: 44px;
+}
+
+/* Wide Action Buttons */
+.btn-action-wide {
+  width: 100% !important;
+  max-width: 340px;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Button Loading State */
+.btn-masuk.loading {
+  opacity: 0.85;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-spinner-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: btnSpin 0.75s linear infinite;
+}
+
+@keyframes btnSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Back to Login Link */
+.forgot-bottom-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.link-kembali-login {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4F9B77;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link-kembali-login:hover {
+  color: #234C37;
+  text-decoration: underline;
+}
+
+/* 6-Digit OTP Box Grid */
+.otp-inputs-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.otp-inputs-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+}
+
+.otp-digit-box {
+  flex: 1;
+  max-width: 48px;
+  height: 52px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1F2937;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+  caret-color: #4F9B77;
+}
+
+.otp-digit-box:focus {
+  border-color: #4F9B77;
+  box-shadow: 0 0 0 1px #4F9B77, 0 2px 8px rgba(79, 155, 119, 0.15);
+  background: #F9FCFB;
+}
+
+.otp-digit-box.filled {
+  border-color: #4F9B77;
+  background-color: #F0FDF4;
+  color: #234C37;
+}
+
+.otp-digit-box::placeholder {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+/* Resend Action Row */
+.resend-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+  margin-bottom: 22px;
+}
+
+.btn-resend-code {
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4F9B77;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-resend-code:hover:not(:disabled) {
+  color: #234C37;
+  text-decoration: underline;
+}
+
+.btn-resend-code:disabled {
+  color: #9CA3AF;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.btn-resend-code:disabled .icon-refresh {
+  stroke: #9CA3AF;
+}
+
+.icon-refresh {
+  transition: transform 0.3s ease;
+}
+
+.btn-resend-code:not(:disabled):hover .icon-refresh {
+  transform: rotate(180deg);
+}
+
+.resend-timer-badge {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #9CA3AF;
+}
+
+/* Criteria checklist container in Reset Screen */
+.reset-criteria-container {
+  margin-top: 4px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.criteria-intro-text {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #4A5568;
+  margin-bottom: 8px;
+}
+
+.text-center {
+  text-align: center !important;
+}

@@ -359,6 +359,285 @@
           </div>
         </section>
 
+        <!-- 2.6 FORGOT PASSWORD - STEP 1: INPUT USERNAME / EMAIL -->
+        <section class="auth-screen forgot-screen hidden" id="forgot-email-screen"
+          aria-label="Layar Lupa Kata Sandi - Masukkan Email">
+          <div class="auth-scroll-area forgot-scroll-area">
+            <!-- Top Logo & Brand Name Centered -->
+            <div class="brand-center-header">
+              <img src="./assets/logo.png" alt="ObeSight Logo" class="brand-logo-img" />
+              <div class="brand-name-text">ObeSight</div>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <h1 class="forgot-heading">Lupa Kata Sandi?</h1>
+            <p class="forgot-subtitle">Masukkan email yang terdaftar untuk menerima kode verifikasi.</p>
+
+            <!-- Form Step 1 -->
+            <form class="forgot-form" id="form-forgot-email" onsubmit="return false;">
+              <div class="form-field-group">
+                <label for="forgot-email" class="field-label">Nama Pengguna dan Email</label>
+                <div class="input-with-leading-wrapper">
+                  <svg class="field-leading-icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                    stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                  <input type="text" id="forgot-email" class="field-input field-with-leading"
+                    placeholder="nama@email.com" autocomplete="email" />
+                </div>
+                <span class="field-error-text hidden" id="err-forgot-email">Nama pengguna atau email wajib diisi</span>
+              </div>
+
+              <!-- Error Banner -->
+              <div class="auth-error-banner hidden" id="banner-forgot-email">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="banner-forgot-email-msg">Email tidak terdaftar</span>
+              </div>
+
+              <div class="submit-btn-row">
+                <button type="submit" class="btn-masuk btn-action-wide" id="btn-kirim-kode">
+                  <span class="btn-spinner-icon hidden"></span>
+                  <span class="btn-label-text">Kirim Kode</span>
+                </button>
+              </div>
+
+              <div class="forgot-bottom-row">
+                <a href="#masuk" class="link-kembali-login" id="link-back-login-1">Kembali ke Login</a>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- 2.7 FORGOT PASSWORD - STEP 2: VERIFIKASI KODE OTP -->
+        <section class="auth-screen forgot-screen hidden" id="forgot-otp-screen"
+          aria-label="Layar Verifikasi Kode OTP">
+          <div class="auth-scroll-area forgot-scroll-area">
+            <!-- Top Logo & Brand Name Centered -->
+            <div class="brand-center-header">
+              <img src="./assets/logo.png" alt="ObeSight Logo" class="brand-logo-img" />
+              <div class="brand-name-text">ObeSight</div>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <h1 class="forgot-heading">Verifikasi Kode</h1>
+            <p class="forgot-subtitle forgot-subtitle-otp">
+              Kode verifikasi telah dikirim ke email<br />
+              <strong id="otp-display-email" class="highlight-email">zahraalfitiarisa@gmail.com</strong>.<br />
+              Masukkan kode 6 digit di bawah ini.
+            </p>
+
+            <!-- Form Step 2 -->
+            <form class="forgot-form" id="form-verify-otp" onsubmit="return false;">
+              <div class="otp-inputs-wrapper">
+                <div class="otp-inputs-row" id="otp-inputs-container">
+                  <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit-box"
+                    data-index="0" placeholder="-" autocomplete="one-time-code" />
+                  <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit-box"
+                    data-index="1" placeholder="-" />
+                  <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit-box"
+                    data-index="2" placeholder="-" />
+                  <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit-box"
+                    data-index="3" placeholder="-" />
+                  <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit-box"
+                    data-index="4" placeholder="-" />
+                  <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit-box"
+                    data-index="5" placeholder="-" />
+                </div>
+                <span class="field-error-text text-center hidden" id="err-otp-code">Kode verifikasi salah atau sudah kedaluwarsa</span>
+              </div>
+
+              <!-- Kirim Ulang Kode -->
+              <div class="resend-action-row">
+                <button type="button" class="btn-resend-code" id="btn-resend-code">
+                  <span id="resend-text">Kirim ulang kode</span>
+                  <svg class="icon-refresh" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                  </svg>
+                </button>
+                <span class="resend-timer-badge hidden" id="resend-timer-badge">(60s)</span>
+              </div>
+
+              <!-- Error Banner -->
+              <div class="auth-error-banner hidden" id="banner-verify-otp">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="banner-verify-otp-msg">Kode verifikasi salah</span>
+              </div>
+
+              <div class="submit-btn-row">
+                <button type="submit" class="btn-masuk btn-action-wide" id="btn-verifikasi-otp">
+                  <span class="btn-spinner-icon hidden"></span>
+                  <span class="btn-label-text">Verifikasi</span>
+                </button>
+              </div>
+
+              <div class="forgot-bottom-row">
+                <a href="#masuk" class="link-kembali-login" id="link-back-login-2">Kembali ke Login</a>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- 2.8 FORGOT PASSWORD - STEP 3: BUAT KATA SANDI BARU -->
+        <section class="auth-screen forgot-screen hidden" id="forgot-reset-screen"
+          aria-label="Layar Buat Kata Sandi Baru">
+          <div class="auth-scroll-area forgot-scroll-area">
+            <!-- Top Logo & Brand Name Centered -->
+            <div class="brand-center-header">
+              <img src="./assets/logo.png" alt="ObeSight Logo" class="brand-logo-img" />
+              <div class="brand-name-text">ObeSight</div>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <h1 class="forgot-heading">Buat Kata Sandi Baru</h1>
+            <p class="forgot-subtitle">Masukkan kata sandi baru untuk akun Anda.</p>
+
+            <!-- Form Step 3 -->
+            <form class="forgot-form" id="form-reset-password" onsubmit="return false;">
+              <!-- Field: Kata Sandi Baru -->
+              <div class="form-field-group">
+                <label for="reset-password-val" class="field-label">Kata Sandi Baru</label>
+                <div class="password-input-wrapper with-leading-icon">
+                  <svg class="field-leading-icon" viewBox="0 0 24 24" width="19" height="19" fill="none"
+                    stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <input type="password" id="reset-password-val" class="field-input field-with-both"
+                    placeholder="Masukkan kata sandi baru" autocomplete="new-password" />
+                  <button type="button" class="btn-toggle-visibility" id="btn-toggle-reset-pwd"
+                    title="Lihat/Sembunyikan Sandi">
+                    <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none"
+                      stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                      <path d="M4 11c3 4 8 4 11 0" />
+                      <line x1="7" y1="13.5" x2="5.5" y2="17.5" />
+                      <line x1="9.5" y1="15" x2="9.5" y2="19" />
+                      <line x1="12" y1="13.5" x2="13.5" y2="17.5" />
+                    </svg>
+                    <svg class="icon-eye-open hidden" viewBox="0 0 24 24" width="22" height="22" fill="none"
+                      stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+                <span class="field-error-text hidden" id="err-reset-password-val">Kata sandi baru wajib diisi</span>
+              </div>
+
+              <!-- Field: Konfirmasi Kata Sandi -->
+              <div class="form-field-group">
+                <label for="reset-confirm-password-val" class="field-label">Konfirmasi Kata Sandi</label>
+                <div class="password-input-wrapper with-leading-icon">
+                  <svg class="field-leading-icon" viewBox="0 0 24 24" width="19" height="19" fill="none"
+                    stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  <input type="password" id="reset-confirm-password-val" class="field-input field-with-both"
+                    placeholder="Konfirmasi kata sandi" autocomplete="new-password" />
+                  <button type="button" class="btn-toggle-visibility" id="btn-toggle-reset-confirm"
+                    title="Lihat/Sembunyikan Konfirmasi Sandi">
+                    <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none"
+                      stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                      <path d="M4 11c3 4 8 4 11 0" />
+                      <line x1="7" y1="13.5" x2="5.5" y2="17.5" />
+                      <line x1="9.5" y1="15" x2="9.5" y2="19" />
+                      <line x1="12" y1="13.5" x2="13.5" y2="17.5" />
+                    </svg>
+                    <svg class="icon-eye-open hidden" viewBox="0 0 24 24" width="22" height="22" fill="none"
+                      stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+                <span class="field-error-text hidden" id="err-reset-confirm-val">Konfirmasi kata sandi tidak cocok</span>
+              </div>
+
+              <!-- Live Password Criteria (Exact wording from design) -->
+              <div class="reset-criteria-container">
+                <div class="criteria-intro-text">Kata sandi harus memenuhi:</div>
+                <div class="password-rules-list">
+                  <div class="rule-item" id="reset-rule-len">
+                    <span class="rule-icon">
+                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none"
+                        stroke="#9CA3AF" stroke-width="2">
+                        <circle cx="8" cy="8" r="6" />
+                      </svg>
+                      <svg class="icon-checked hidden" viewBox="0 0 16 16" width="15" height="15" fill="#16A34A">
+                        <circle cx="8" cy="8" r="7" fill="#16A34A" />
+                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" fill="none" />
+                      </svg>
+                    </span>
+                    <span class="rule-text">Minimal 8 karakter</span>
+                  </div>
+
+                  <div class="rule-item" id="reset-rule-case">
+                    <span class="rule-icon">
+                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none"
+                        stroke="#9CA3AF" stroke-width="2">
+                        <circle cx="8" cy="8" r="6" />
+                      </svg>
+                      <svg class="icon-checked hidden" viewBox="0 0 16 16" width="15" height="15" fill="#16A34A">
+                        <circle cx="8" cy="8" r="7" fill="#16A34A" />
+                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" fill="none" />
+                      </svg>
+                    </span>
+                    <span class="rule-text">Mengandung huruf besar dan kecil</span>
+                  </div>
+
+                  <div class="rule-item" id="reset-rule-digit">
+                    <span class="rule-icon">
+                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none"
+                        stroke="#9CA3AF" stroke-width="2">
+                        <circle cx="8" cy="8" r="6" />
+                      </svg>
+                      <svg class="icon-checked hidden" viewBox="0 0 16 16" width="15" height="15" fill="#16A34A">
+                        <circle cx="8" cy="8" r="7" fill="#16A34A" />
+                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" fill="none" />
+                      </svg>
+                    </span>
+                    <span class="rule-text">Mengandung angka</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error Banner -->
+              <div class="auth-error-banner hidden" id="banner-reset-password">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="banner-reset-password-msg">Kata sandi belum memenuhi kriteria</span>
+              </div>
+
+              <div class="submit-btn-row">
+                <button type="submit" class="btn-masuk btn-action-wide" id="btn-simpan-password">
+                  <span class="btn-spinner-icon hidden"></span>
+                  <span class="btn-label-text">Simpan Kata Sandi</span>
+                </button>
+              </div>
+
+              <div class="forgot-bottom-row">
+                <a href="#masuk" class="link-kembali-login" id="link-back-login-3">Kembali ke Login</a>
+              </div>
+            </form>
+          </div>
+        </section>
+
         <!-- 3. USER HOME SCREEN (BERANDA PENGGUNA) -->
         <section class="user-home-screen hidden" id="user-dashboard-screen" aria-label="Beranda Pengguna ObeSight">
 
