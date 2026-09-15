@@ -4,12 +4,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ObeSight - Solusi Cerdas Pengendalian Obesitas</title>
+  <title>ObeSight</title>
 
   <!-- Google Fonts: Poppins -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- Stylesheet -->
   <link rel="stylesheet" href="./style.css" />
@@ -71,9 +73,6 @@
               <span class="splash-brand-text">ObeSight</span>
             </div>
           </div>
-          <button type="button" class="btn-skip-splash" id="btn-skip-splash" title="Lewati Animasi">
-            Lewati &rarr;
-          </button>
         </section>
 
         <!-- 2. AUTHENTICATION / LOGIN SCREEN (EXACT FIGMA LAYOUT) -->
@@ -135,9 +134,9 @@
                 <span class="field-error-text hidden" id="err-password">Kata sandi wajib diisi</span>
               </div>
 
-              <!-- Lupa kata sandi? -->
               <div class="forgot-pwd-row">
-                <a href="#forgot" class="link-forgot-pwd" id="link-forgot-pwd">Lupa kata sandi?</a>
+                <a href="#" class="link-forgot" id="link-forgot"
+                  onclick="event.preventDefault(); tampilkanFormLupaSandi();">Lupa kata sandi?</a>
               </div>
 
               <!-- General Error Banner -->
@@ -182,9 +181,10 @@
         </section>
 
         <!-- 2.5 REGISTER SCREEN (DAFTAR PENGGUNA) -->
-        <section class="auth-screen register-screen hidden" id="register-screen" aria-label="Layar Pendaftaran ObeSight">
+        <section class="auth-screen register-screen hidden" id="register-screen"
+          aria-label="Layar Pendaftaran ObeSight">
           <div class="auth-scroll-area register-scroll-area">
-            
+
             <!-- Top Logo & Brand Name Centered -->
             <div class="brand-center-header">
               <img src="./assets/logo.png" alt="ObeSight Logo" class="brand-logo-img" />
@@ -196,52 +196,41 @@
 
             <!-- Form Pendaftaran -->
             <form class="register-form" id="register-form" onsubmit="return false;">
-              
+
               <!-- Input: Nama -->
               <div class="form-field-group">
                 <label for="reg-name" class="field-label">Nama</label>
-                <input 
-                  type="text" 
-                  id="reg-name" 
-                  class="field-input" 
-                  placeholder="Masukkan nama lengkap anda" 
-                  autocomplete="name" 
-                />
+                <input type="text" id="reg-name" class="field-input" placeholder="Masukkan nama lengkap anda"
+                  autocomplete="name" />
                 <span class="field-error-text hidden" id="err-reg-name">Nama lengkap wajib diisi</span>
               </div>
 
               <!-- Input: Email -->
               <div class="form-field-group">
                 <label for="reg-email" class="field-label">Email</label>
-                <input 
-                  type="email" 
-                  id="reg-email" 
-                  class="field-input" 
-                  placeholder="Masukkan email anda" 
-                  autocomplete="email" 
-                />
-                <span class="field-error-text hidden" id="err-reg-email">Masukkan format email yang valid (contoh: nama@email.com)</span>
+                <input type="email" id="reg-email" class="field-input" placeholder="Masukkan email anda"
+                  autocomplete="email" />
+                <span class="field-error-text hidden" id="err-reg-email">Masukkan format email yang valid (contoh:
+                  nama@email.com)</span>
               </div>
 
               <!-- Input: Kata Sandi -->
               <div class="form-field-group">
                 <label for="reg-password" class="field-label">Kata Sandi</label>
                 <div class="password-input-wrapper">
-                  <input 
-                    type="password" 
-                    id="reg-password" 
-                    class="field-input" 
-                    placeholder="Masukkan kata sandi anda" 
-                    autocomplete="new-password" 
-                  />
-                  <button type="button" class="btn-toggle-visibility" id="btn-toggle-reg-pwd" title="Lihat/Sembunyikan Sandi">
-                    <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                  <input type="password" id="reg-password" class="field-input" placeholder="Masukkan kata sandi anda"
+                    autocomplete="new-password" />
+                  <button type="button" class="btn-toggle-visibility" id="btn-toggle-reg-pwd"
+                    title="Lihat/Sembunyikan Sandi">
+                    <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280"
+                      stroke-width="1.8" stroke-linecap="round">
                       <path d="M4 11c3 4 8 4 11 0" />
                       <line x1="7" y1="13.5" x2="5.5" y2="17.5" />
                       <line x1="9.5" y1="15" x2="9.5" y2="19" />
                       <line x1="12" y1="13.5" x2="13.5" y2="17.5" />
                     </svg>
-                    <svg class="icon-eye-open hidden" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                    <svg class="icon-eye-open hidden" viewBox="0 0 24 24" width="22" height="22" fill="none"
+                      stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
@@ -252,12 +241,14 @@
                 <div class="password-rules-list">
                   <div class="rule-item" id="rule-length">
                     <span class="rule-icon">
-                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#9CA3AF" stroke-width="2">
+                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#9CA3AF"
+                        stroke-width="2">
                         <circle cx="8" cy="8" r="6" />
                       </svg>
                       <svg class="icon-checked hidden" viewBox="0 0 16 16" width="15" height="15" fill="#16A34A">
                         <circle cx="8" cy="8" r="7" fill="#16A34A" />
-                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" fill="none" />
                       </svg>
                     </span>
                     <span class="rule-text">Minimum 8 karakter (maksimal 16)</span>
@@ -265,12 +256,14 @@
 
                   <div class="rule-item" id="rule-digit">
                     <span class="rule-icon">
-                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#9CA3AF" stroke-width="2">
+                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#9CA3AF"
+                        stroke-width="2">
                         <circle cx="8" cy="8" r="6" />
                       </svg>
                       <svg class="icon-checked hidden" viewBox="0 0 16 16" width="15" height="15" fill="#16A34A">
                         <circle cx="8" cy="8" r="7" fill="#16A34A" />
-                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" fill="none" />
                       </svg>
                     </span>
                     <span class="rule-text">Terdapat minimum 1 angka</span>
@@ -278,45 +271,47 @@
 
                   <div class="rule-item" id="rule-case">
                     <span class="rule-icon">
-                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#9CA3AF" stroke-width="2">
+                      <svg class="icon-circle" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="#9CA3AF"
+                        stroke-width="2">
                         <circle cx="8" cy="8" r="6" />
                       </svg>
                       <svg class="icon-checked hidden" viewBox="0 0 16 16" width="15" height="15" fill="#16A34A">
                         <circle cx="8" cy="8" r="7" fill="#16A34A" />
-                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        <path d="M4.5 8L7 10.5L11.5 6" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round" fill="none" />
                       </svg>
                     </span>
                     <span class="rule-text">Terdapat minimum 1 huruf besar dan 1 huruf kecil</span>
                   </div>
                 </div>
-                <span class="field-error-text hidden" id="err-reg-password">Kata sandi belum memenuhi kriteria di atas</span>
+                <span class="field-error-text hidden" id="err-reg-password">Kata sandi belum memenuhi kriteria di
+                  atas</span>
               </div>
 
               <!-- Input: Konfirmasi Kata Sandi -->
               <div class="form-field-group">
                 <label for="reg-confirm-password" class="field-label">Konfirmasi Kata Sandi</label>
                 <div class="password-input-wrapper">
-                  <input 
-                    type="password" 
-                    id="reg-confirm-password" 
-                    class="field-input" 
-                    placeholder="Masukkan konfirmasi kata sandi" 
-                    autocomplete="new-password" 
-                  />
-                  <button type="button" class="btn-toggle-visibility" id="btn-toggle-reg-confirm-pwd" title="Lihat/Sembunyikan Konfirmasi Sandi">
-                    <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                  <input type="password" id="reg-confirm-password" class="field-input"
+                    placeholder="Masukkan konfirmasi kata sandi" autocomplete="new-password" />
+                  <button type="button" class="btn-toggle-visibility" id="btn-toggle-reg-confirm-pwd"
+                    title="Lihat/Sembunyikan Konfirmasi Sandi">
+                    <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280"
+                      stroke-width="1.8" stroke-linecap="round">
                       <path d="M4 11c3 4 8 4 11 0" />
                       <line x1="7" y1="13.5" x2="5.5" y2="17.5" />
                       <line x1="9.5" y1="15" x2="9.5" y2="19" />
                       <line x1="12" y1="13.5" x2="13.5" y2="17.5" />
                     </svg>
-                    <svg class="icon-eye-open hidden" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
+                    <svg class="icon-eye-open hidden" viewBox="0 0 24 24" width="22" height="22" fill="none"
+                      stroke="#6B7280" stroke-width="1.8" stroke-linecap="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
                   </button>
                 </div>
-                <span class="field-error-text hidden" id="err-reg-confirm-password">Konfirmasi kata sandi tidak cocok</span>
+                <span class="field-error-text hidden" id="err-reg-confirm-password">Konfirmasi kata sandi tidak
+                  cocok</span>
               </div>
 
               <!-- Checkbox: Syarat dan Ketentuan -->
@@ -324,19 +319,24 @@
                 <label class="custom-checkbox-container" for="reg-terms-checkbox">
                   <input type="checkbox" id="reg-terms-checkbox" class="terms-checkbox-input" />
                   <span class="custom-checkbox-box">
-                    <svg class="checkbox-check-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="checkbox-check-icon" viewBox="0 0 16 16" width="13" height="13" fill="none"
+                      stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M3.5 8L6.5 11L12.5 5" />
                     </svg>
                   </span>
                   <span class="terms-label-text">Saya menyetujui syarat dan ketentuan</span>
                 </label>
               </div>
-              <span class="field-error-text hidden" id="err-reg-terms" style="margin-top: -6px; margin-bottom: 12px;">Anda harus menyetujui syarat dan ketentuan untuk mendaftar</span>
+              <span class="field-error-text hidden" id="err-reg-terms"
+                style="margin-top: -6px; margin-bottom: 12px;">Anda harus menyetujui syarat dan ketentuan untuk
+                mendaftar</span>
 
               <!-- Error Banner for Register -->
               <div class="auth-error-banner hidden" id="reg-error-banner">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
                 <span id="reg-error-msg">Mohon lengkapi seluruh data dengan benar</span>
               </div>

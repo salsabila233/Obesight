@@ -367,7 +367,7 @@ body {
 
 /* Splash Branding Container (holds Logo and Text) */
 .splash-brand-container {
-  position: relative;
+  position: absolute;
   z-index: 10;
   display: flex;
   align-items: center;
