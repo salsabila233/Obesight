@@ -59,16 +59,24 @@
       <!-- Phone Screen Canvas -->
       <div class="screen-canvas" id="screen-canvas">
 
-        <!-- 1. SPLASH SCREEN LAYER -->
-        <section class="splash-screen stage-init" id="splash-screen" aria-label="Splash Screen ObeSight">
-          <div class="splash-green-bg" id="splash-green-bg"></div>
-          <div class="splash-white-ellipse" id="splash-white-ellipse"></div>
-          <div class="splash-brand-container" id="splash-brand-container">
-            <div class="splash-logo-wrapper" id="splash-logo-wrapper">
+        <!-- 1. SPLASH SCREEN LAYER (5 TAHAP ANIMASI MULUS) -->
+        <section class="splash-screen stage-1" id="splash-screen" aria-label="Splash Screen ObeSight">
+          <!-- Lapisan Latar Belakang Hijau Tua Khas ObeSight (#529A7B) -->
+          <div class="splash-bg-green" id="splash-bg-green"></div>
+
+          <!-- Lapisan Latar Belakang Putih Bersih (#FFFFFF) -->
+          <div class="splash-bg-white" id="splash-bg-white"></div>
+
+          <!-- Kontainer Utama: Logo dan Teks ObeSight Pas di Tengah Layar -->
+          <div class="splash-brand-center" id="splash-brand-center">
+            <!-- Box Logo ObeSight -->
+            <div class="splash-logo-box" id="splash-logo-box">
               <img src="./assets/logo.png" alt="ObeSight Logo" class="splash-logo-img" id="splash-logo-img" />
             </div>
-            <div class="splash-text-wrapper" id="splash-text-wrapper">
-              <span class="splash-brand-text">ObeSight</span>
+
+            <!-- Box Teks Merek "ObeSight" -->
+            <div class="splash-text-box" id="splash-text-box">
+              <span class="splash-brand-title">ObeSight</span>
             </div>
           </div>
         </section>
