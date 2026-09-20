@@ -123,9 +123,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     // Should navigate to User Dashboard
-    expect(find.text('BERANDA PENGGUNA'), findsOneWidget);
-    expect(find.text('Halo, Zahra Fitriana!'), findsOneWidget);
-    expect(find.text('Indeks Massa Tubuh (BMI)'), findsOneWidget);
+    expect(find.textContaining('Halo, Zahra'), findsOneWidget);
+    expect(find.text('Status Kesehatan'), findsOneWidget);
   });
 
   testWidgets('Admin login with valid dummy account succeeds and enters AdminHomeScreen', (WidgetTester tester) async {

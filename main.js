@@ -261,11 +261,93 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = {
     name: 'Zahra Fitriana',
     firstName: 'Zahra',
+    email: 'zahraafitriana@gmail.com',
     role: 'user'
   };
 
-  function updateUserData(fullName) {
+  function getUserBiodataStatus(userEmail) {
+    const email = (userEmail || '').toLowerCase();
+    const key = `obesight_biodata_complete_${email}`;
+    const stored = localStorage.getItem(key);
+    if (stored !== null) {
+      return stored === 'true';
+    }
+    // Default preset rules:
+    // zahrafitrie is already complete
+    if (email.includes('zahrafitrie')) {
+      return true;
+    }
+    // zahraafitriana is incomplete by default
+    return false;
+  }
+
+  function setUserBiodataStatus(userEmail, isComplete) {
+    const email = (userEmail || '').toLowerCase();
+    const key = `obesight_biodata_complete_${email}`;
+    localStorage.setItem(key, isComplete ? 'true' : 'false');
+  }
+
+  function updateReminderBannerVisibility() {
+    const banner = document.getElementById('btn-reminder-biodata');
+    if (!banner) return;
+    const isComplete = getUserBiodataStatus(currentUser.email);
+    if (isComplete) {
+      banner.classList.add('hidden');
+    } else {
+      banner.classList.remove('hidden');
+    }
+  }
+
+  function getUserBmiData(userEmail) {
+    const email = (userEmail || '').toLowerCase();
+    const key = `obesight_user_bmi_${email}`;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {}
+    }
+    return {
+      bmi: '22.8',
+      category: 'Normal',
+      risk: 'Rendah'
+    };
+  }
+
+  function setUserBmiData(userEmail, data) {
+    const email = (userEmail || '').toLowerCase();
+    const key = `obesight_user_bmi_${email}`;
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function updateHealthStatusCard(bmiData) {
+    const imtVal = document.getElementById('status-imt-value');
+    const imtTag = document.getElementById('status-imt-tag');
+    const riskTag = document.getElementById('status-risk-tag');
+
+    if (imtVal) imtVal.textContent = bmiData.bmi;
+    if (imtTag) {
+      imtTag.textContent = bmiData.category;
+      imtTag.className = 'status-metric-tag';
+      const catLower = (bmiData.category || '').toLowerCase();
+      if (catLower.includes('kurus')) imtTag.classList.add('kurus');
+      else if (catLower.includes('normal')) imtTag.classList.add('normal');
+      else if (catLower.includes('kelebihan') || catLower.includes('overweight')) imtTag.classList.add('overweight');
+      else imtTag.classList.add('obesitas');
+    }
+    if (riskTag) {
+      riskTag.textContent = bmiData.risk;
+      riskTag.className = 'status-metric-tag';
+      const riskLower = (bmiData.risk || '').toLowerCase();
+      if (riskLower.includes('rendah')) riskTag.classList.add('risk-rendah');
+      else if (riskLower.includes('sedang')) riskTag.classList.add('risk-sedang');
+      else riskTag.classList.add('risk-tinggi');
+    }
+  }
+
+  function updateUserData(fullName, email) {
     currentUser.name = fullName || 'Zahra Fitriana';
+    if (email) currentUser.email = email;
     const parts = currentUser.name.trim().split(' ');
     currentUser.firstName = parts[0] || 'Zahra';
 
@@ -283,9 +365,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const bioName = document.getElementById('bio-name');
     if (bioName) bioName.value = currentUser.name;
+
+    updateReminderBannerVisibility();
+
+    // Auto-sync Health Status Card with current user's latest BMI
+    const bmiData = getUserBmiData(currentUser.email);
+    updateHealthStatusCard(bmiData);
   }
 
-  function navigateToDashboard(role, name, customToastTitle, customToastMsg) {
+  function navigateToDashboard(role, name, email, customToastTitle, customToastMsg) {
     authScreen.classList.add('hidden');
     if (registerScreen) registerScreen.classList.add('hidden');
     if (role === 'admin') {
@@ -296,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       userDash.classList.remove('hidden');
       adminDash.classList.add('hidden');
-      updateUserData(name || 'Zahra Fitriana');
+      updateUserData(name || 'Zahra Fitriana', email || 'zahraafitriana@gmail.com');
       // Reset to Home Tab
       switchHomeTab('home');
     }
@@ -338,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Admin account check
       if ((cleanId === 'admin@obesight.com' || cleanId === 'admin') && password === 'admin123') {
-        navigateToDashboard('admin', 'Dr. Hendra Wijaya, Sp.GK');
+        navigateToDashboard('admin', 'Dr. Hendra Wijaya, Sp.GK', 'admin@obesight.com');
         return;
       }
 
@@ -347,7 +435,8 @@ document.addEventListener('DOMContentLoaded', () => {
         (cleanId === 'zahraafitriana@gmail.com' || cleanId === 'zahraafitriana' || cleanId === 'zahrafitrie@gmail.com' || cleanId === 'zahra') &&
         (password === 'Zahra1234' || password === 'zahra1234' || password === 'zohf1234')
       ) {
-        navigateToDashboard('user', 'Zahra Fitriana');
+        const userEmail = cleanId.includes('@') ? cleanId : (cleanId.includes('zahrafitrie') ? 'zahrafitrie@gmail.com' : 'zahraafitriana@gmail.com');
+        navigateToDashboard('user', 'Zahra Fitriana', userEmail);
         return;
       }
 
@@ -356,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (u.email.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId) && u.password === password
       );
       if (matchRegistered) {
-        navigateToDashboard('user', matchRegistered.name);
+        navigateToDashboard('user', matchRegistered.name, matchRegistered.email);
         return;
       }
 
@@ -364,7 +453,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (password === '123456' || password === 'password' || password === 'Zahra1234' || password === 'zahra1234') {
         const displayName = identifier.includes('@') ? identifier.split('@')[0] : identifier;
         const capitalized = displayName.charAt(0).toUpperCase() + displayName.slice(1);
-        navigateToDashboard('user', capitalized);
+        const userEmail = identifier.includes('@') ? identifier : `${displayName.toLowerCase()}@example.com`;
+        navigateToDashboard('user', capitalized, userEmail);
         return;
       }
 
@@ -593,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
       checkPasswordCriteria('');
 
       // Redirect immediately to User Dashboard
-      navigateToDashboard('user', nameVal, 'Akun Berhasil Dibuat!', `Selamat datang di ObeSight, ${nameVal}!`);
+      navigateToDashboard('user', nameVal, emailVal, 'Akun Berhasil Dibuat!', `Selamat datang di ObeSight, ${nameVal}!`);
     });
   }
 
@@ -1376,17 +1466,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Skrining Obesitas Modal Handlers
   const btnStartScreening = document.getElementById('btn-start-screening');
+  const btnScreeningBanner = document.getElementById('btn-screening-banner');
   const screeningModal = document.getElementById('screening-modal-backdrop');
   const btnCloseScreeningModal = document.getElementById('btn-close-screening-modal');
   const btnCalcScreening = document.getElementById('btn-calc-screening');
   const screeningResultBox = document.getElementById('screening-result-box');
 
-  if (btnStartScreening && screeningModal) {
-    btnStartScreening.addEventListener('click', () => {
+  function openScreeningModal() {
+    if (screeningModal) {
       screeningModal.classList.remove('hidden');
       if (screeningResultBox) screeningResultBox.classList.add('hidden');
-    });
+    }
   }
+
+  if (btnStartScreening) btnStartScreening.addEventListener('click', openScreeningModal);
+  if (btnScreeningBanner) btnScreeningBanner.addEventListener('click', openScreeningModal);
 
   if (btnCloseScreeningModal && screeningModal) {
     btnCloseScreeningModal.addEventListener('click', () => {
@@ -1449,23 +1543,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bmiCalcScore) bmiCalcScore.textContent = bmi;
 
     const bmiVal = parseFloat(bmi);
+    let category = 'Normal';
+    let risk = 'Rendah';
+
     if (bmiVal < 18.5) {
+      category = 'Kurus';
+      risk = 'Rendah';
       if (bmiCalcCategory) bmiCalcCategory.textContent = 'Kurus (Kekurangan Berat)';
       if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Tingkatkan asupan kalori bernutrisi dan protein untuk mencapai berat badan ideal.';
       if (bmiCalcScore) bmiCalcScore.style.color = '#0284C7';
     } else if (bmiVal <= 22.9) {
+      category = 'Normal';
+      risk = 'Rendah';
       if (bmiCalcCategory) bmiCalcCategory.textContent = 'Normal (Berat Ideal)';
       if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Selamat! Berat badan Anda ideal. Pertahankan dengan pola makan bergizi dan olahraga teratur.';
       if (bmiCalcScore) bmiCalcScore.style.color = '#15803D';
     } else if (bmiVal <= 24.9) {
+      category = 'Overweight';
+      risk = 'Sedang';
       if (bmiCalcCategory) bmiCalcCategory.textContent = 'Kelebihan Berat Badan (Overweight)';
       if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Waspada peningkatan berat badan. Kurangi karbohidrat olahan dan gula tambahan.';
       if (bmiCalcScore) bmiCalcScore.style.color = '#D97706';
     } else {
+      category = 'Obesitas';
+      risk = 'Tinggi';
       if (bmiCalcCategory) bmiCalcCategory.textContent = 'Obesitas';
       if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Disarankan untuk melakukan penyesuaian defisit kalori sehat dan konsultasi medis.';
       if (bmiCalcScore) bmiCalcScore.style.color = '#DC2626';
     }
+
+    // Automatically persist latest BMI calculation and synchronize Status Kesehatan card
+    const currentBmiData = {
+      bmi: bmi,
+      category: category,
+      risk: risk
+    };
+    setUserBmiData(currentUser.email, currentBmiData);
+    updateHealthStatusCard(currentBmiData);
   }
 
   if (btnOpenBmiCalc && bmiModal) {
@@ -1515,10 +1629,51 @@ document.addEventListener('DOMContentLoaded', () => {
       const bioNameInput = document.getElementById('bio-name');
       const newName = bioNameInput?.value.trim();
       if (newName) {
-        updateUserData(newName);
+        currentUser.name = newName;
       }
+      // Update biodata completion status to true and refresh visibility immediately
+      setUserBiodataStatus(currentUser.email, true);
+      updateUserData(currentUser.name, currentUser.email);
       biodataModal.classList.add('hidden');
       showToast('Biodata Tersimpan', 'Informasi profil dan kesehatan Anda telah diperbarui.');
+    });
+  }
+
+  // 4 Menu Ikon Beranda Click Handlers
+  const menuBtnScreening = document.getElementById('menu-btn-screening');
+  const menuBtnBmi = document.getElementById('menu-btn-bmi');
+  const menuBtnProgress = document.getElementById('menu-btn-progress');
+  const menuBtnHistory = document.getElementById('menu-btn-history');
+
+  if (menuBtnScreening) {
+    menuBtnScreening.addEventListener('click', () => {
+      if (screeningModal) {
+        screeningModal.classList.remove('hidden');
+        if (screeningResultBox) screeningResultBox.classList.add('hidden');
+      }
+    });
+  }
+
+  if (menuBtnBmi) {
+    menuBtnBmi.addEventListener('click', () => {
+      if (bmiModal) {
+        bmiModal.classList.remove('hidden');
+        calculateBmi();
+      }
+    });
+  }
+
+  if (menuBtnProgress) {
+    menuBtnProgress.addEventListener('click', () => {
+      switchHomeTab('stats');
+      switchMonitoringSubpage('progress');
+    });
+  }
+
+  if (menuBtnHistory) {
+    menuBtnHistory.addEventListener('click', () => {
+      switchHomeTab('stats');
+      switchMonitoringSubpage('riwayat');
     });
   }
 
@@ -1634,8 +1789,9 @@ document.addEventListener('DOMContentLoaded', () => {
     item.addEventListener('click', () => {
       const role = item.getAttribute('data-role');
       const name = item.getAttribute('data-name');
+      const email = item.getAttribute('data-email');
       closeGoogleModal();
-      navigateToDashboard(role, name);
+      navigateToDashboard(role, name, email);
     });
   });
 

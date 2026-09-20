@@ -32,6 +32,7 @@ class AuthService {
     username: 'zahraafitriana',
     role: UserRole.user,
     title: 'Anggota Aktif ObeSight',
+    isBiodataComplete: false,
   );
 
   static const UserModel alternativeUserAccount = UserModel(
@@ -41,6 +42,7 @@ class AuthService {
     username: 'zahrafitrie',
     role: UserRole.user,
     title: 'Anggota Aktif ObeSight',
+    isBiodataComplete: true,
   );
 
   static const UserModel defaultAdminAccount = UserModel(
@@ -50,12 +52,81 @@ class AuthService {
     username: 'admin',
     role: UserRole.admin,
     title: 'Kepala Medis & Administrator Sistem',
+    isBiodataComplete: true,
   );
+
+  final Map<String, bool> _biodataStatusCache = {
+    'usr_001': false,
+    'usr_002': true,
+    'adm_001': true,
+  };
+
+  final Map<String, Map<String, dynamic>> _userBmiCache = {
+    'usr_001': {'bmi': 22.8, 'category': 'Normal', 'risk': 'Rendah'},
+    'usr_002': {'bmi': 22.8, 'category': 'Normal', 'risk': 'Rendah'},
+    'adm_001': {'bmi': 23.5, 'category': 'Kelebihan Berat Badan', 'risk': 'Sedang'},
+  };
+
+  bool isBiodataCompleted(String userId) {
+    return _biodataStatusCache[userId] ?? false;
+  }
+
+  Map<String, dynamic> getUserBmi(String userId) {
+    return _userBmiCache[userId] ?? {
+      'bmi': 22.8,
+      'category': 'Normal',
+      'risk': 'Rendah',
+    };
+  }
+
+  void updateUserBmi({
+    required String userId,
+    required double bmi,
+    required String category,
+    required String risk,
+  }) {
+    _userBmiCache[userId] = {
+      'bmi': bmi,
+      'category': category,
+      'risk': risk,
+    };
+    if (_currentUser != null && _currentUser!.id == userId) {
+      _currentUser = _currentUser!.copyWith(
+        bmiScore: bmi,
+        bmiCategory: category,
+        obesityRisk: risk,
+      );
+    }
+  }
+
+  void updateBiodataStatus({
+    required String userId,
+    required bool isComplete,
+    String? name,
+  }) {
+    _biodataStatusCache[userId] = isComplete;
+    if (_currentUser != null && _currentUser!.id == userId) {
+      _currentUser = _currentUser!.copyWith(
+        name: name ?? _currentUser!.name,
+        isBiodataComplete: isComplete,
+      );
+    }
+  }
 
   // Available Google accounts in picker
   List<UserModel> get availableGoogleAccounts => [
-        defaultUserAccount,
-        defaultAdminAccount,
+        defaultUserAccount.copyWith(
+          isBiodataComplete: isBiodataCompleted(defaultUserAccount.id),
+          bmiScore: (getUserBmi(defaultUserAccount.id)['bmi'] as num).toDouble(),
+          bmiCategory: getUserBmi(defaultUserAccount.id)['category'] as String,
+          obesityRisk: getUserBmi(defaultUserAccount.id)['risk'] as String,
+        ),
+        defaultAdminAccount.copyWith(
+          isBiodataComplete: isBiodataCompleted(defaultAdminAccount.id),
+          bmiScore: (getUserBmi(defaultAdminAccount.id)['bmi'] as num).toDouble(),
+          bmiCategory: getUserBmi(defaultAdminAccount.id)['category'] as String,
+          obesityRisk: getUserBmi(defaultAdminAccount.id)['risk'] as String,
+        ),
       ];
 
   Future<AuthResponse> login({
@@ -71,22 +142,40 @@ class AuthService {
     // Check Admin account
     if ((cleanId == 'admin@obesight.com' || cleanId == 'admin') &&
         cleanPass == 'admin123') {
-      _currentUser = defaultAdminAccount;
-      return const AuthResponse.success(defaultAdminAccount);
+      final bmiInfo = getUserBmi(defaultAdminAccount.id);
+      _currentUser = defaultAdminAccount.copyWith(
+        isBiodataComplete: isBiodataCompleted(defaultAdminAccount.id),
+        bmiScore: (bmiInfo['bmi'] as num).toDouble(),
+        bmiCategory: bmiInfo['category'] as String,
+        obesityRisk: bmiInfo['risk'] as String,
+      );
+      return AuthResponse.success(_currentUser);
     }
 
     // Check Normal User Account 1 (zahraafitriana)
     if ((cleanId == 'zahraafitriana@gmail.com' || cleanId == 'zahraafitriana') &&
         (cleanPass == 'Zahra1234' || cleanPass == 'zahra1234')) {
-      _currentUser = defaultUserAccount;
-      return const AuthResponse.success(defaultUserAccount);
+      final bmiInfo = getUserBmi(defaultUserAccount.id);
+      _currentUser = defaultUserAccount.copyWith(
+        isBiodataComplete: isBiodataCompleted(defaultUserAccount.id),
+        bmiScore: (bmiInfo['bmi'] as num).toDouble(),
+        bmiCategory: bmiInfo['category'] as String,
+        obesityRisk: bmiInfo['risk'] as String,
+      );
+      return AuthResponse.success(_currentUser);
     }
 
     // Check Normal User Account 2 (zahrafitrie)
     if ((cleanId == 'zahrafitrie@gmail.com' || cleanId == 'zahrafitrie') &&
         cleanPass == 'zohf1234') {
-      _currentUser = alternativeUserAccount;
-      return const AuthResponse.success(alternativeUserAccount);
+      final bmiInfo = getUserBmi(alternativeUserAccount.id);
+      _currentUser = alternativeUserAccount.copyWith(
+        isBiodataComplete: isBiodataCompleted(alternativeUserAccount.id),
+        bmiScore: (bmiInfo['bmi'] as num).toDouble(),
+        bmiCategory: bmiInfo['category'] as String,
+        obesityRisk: bmiInfo['risk'] as String,
+      );
+      return AuthResponse.success(_currentUser);
     }
 
     // Invalid credentials
@@ -95,8 +184,14 @@ class AuthService {
 
   Future<AuthResponse> loginWithGoogleAccount(UserModel account) async {
     await Future.delayed(const Duration(milliseconds: 400));
-    _currentUser = account;
-    return AuthResponse.success(account);
+    final bmiInfo = getUserBmi(account.id);
+    _currentUser = account.copyWith(
+      isBiodataComplete: isBiodataCompleted(account.id),
+      bmiScore: (bmiInfo['bmi'] as num).toDouble(),
+      bmiCategory: bmiInfo['category'] as String,
+      obesityRisk: bmiInfo['risk'] as String,
+    );
+    return AuthResponse.success(_currentUser);
   }
 
   void logout() {
