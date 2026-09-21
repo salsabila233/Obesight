@@ -1430,62 +1430,638 @@
 
             </div>
 
-            <!-- Tab 3: PENGATURAN -->
+            <!-- Tab 3: PENGATURAN (6 Subhalaman: Menu Utama, Ubah Sandi, Ubah Email, Info & Sumber, Pusat Bantuan, Tentang Aplikasi) -->
             <div class="home-tab-content hidden" id="tab-content-settings">
-              <section class="tab-page-header">
-                <h2 class="tab-page-title">Pengaturan</h2>
-                <p class="tab-page-sub">Kelola akun dan preferensi aplikasi ObeSight Anda.</p>
-              </section>
 
-              <div class="settings-menu-list">
-                <button type="button" class="settings-item" id="btn-settings-biodata">
-                  <div class="settings-item-icon icon-green-bg">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
+              <!-- Subhalaman 1: PENGATURAN UTAMA -->
+              <div class="settings-subpage active" id="settings-subpage-main">
+                <header class="settings-header">
+                  <button type="button" class="btn-settings-back" id="btn-settings-back-home" title="Kembali ke Beranda">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
                     </svg>
-                  </div>
-                  <div class="settings-item-text">
-                    <div class="settings-item-title">Data Profil & Biodata</div>
-                    <div class="settings-item-desc">Tinggi, berat badan & riwayat</div>
-                  </div>
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94A3B8" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
+                  </button>
+                  <h2 class="settings-header-title">Pengaturan</h2>
+                  <div class="settings-header-spacer"></div>
+                </header>
 
-                <button type="button" class="settings-item">
-                  <div class="settings-item-icon icon-blue-bg">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                  </div>
-                  <div class="settings-item-text">
-                    <div class="settings-item-title">Pengingat Skrining</div>
-                    <div class="settings-item-desc">Notifikasi berkala setiap bulan</div>
-                  </div>
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94A3B8" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
+                <div class="settings-body">
+                  <!-- Seksi 1: Keamanan -->
+                  <div class="settings-section">
+                    <h3 class="settings-section-title">Keamanan</h3>
+                    <div class="settings-card-group">
+                      <!-- Ubah Kata Sandi -->
+                      <button type="button" class="settings-nav-row" id="btn-goto-password">
+                        <div class="settings-row-icon icon-sage-circle">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                        </div>
+                        <div class="settings-row-content">
+                          <div class="settings-row-title">Ubah Kata Sandi</div>
+                          <div class="settings-row-desc">Perbarui kata sandi akun Anda</div>
+                        </div>
+                        <div class="settings-row-chevron">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </button>
 
-                <button type="button" class="settings-item item-logout" id="btn-settings-logout">
-                  <div class="settings-item-icon icon-red-bg">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
+                      <div class="settings-row-divider"></div>
+
+                      <!-- Ubah Email -->
+                      <button type="button" class="settings-nav-row" id="btn-goto-email">
+                        <div class="settings-row-icon icon-sage-circle">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                            <polyline points="22,6 12,13 2,6" />
+                          </svg>
+                        </div>
+                        <div class="settings-row-content">
+                          <div class="settings-row-title">Ubah Email</div>
+                          <div class="settings-row-desc">Ganti alamat email terdaftar</div>
+                        </div>
+                        <div class="settings-row-chevron">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </button>
+                    </div>
                   </div>
-                  <div class="settings-item-text">
-                    <div class="settings-item-title text-danger">Keluar dari Akun</div>
-                    <div class="settings-item-desc">Kembali ke halaman masuk</div>
+
+                  <!-- Seksi 2: Tampilan -->
+                  <div class="settings-section">
+                    <h3 class="settings-section-title">Tampilan</h3>
+                    <div class="settings-card-group">
+                      <div class="settings-toggle-row">
+                        <div class="settings-row-icon icon-indigo-circle">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                          </svg>
+                        </div>
+                        <div class="settings-row-content">
+                          <div class="settings-row-title">Mode Gelap</div>
+                          <div class="settings-row-desc">Tampilan gelap yang nyaman di mata</div>
+                        </div>
+                        <label class="switch-toggle" for="toggle-dark-mode">
+                          <input type="checkbox" id="toggle-dark-mode" aria-label="Toggle Mode Gelap" />
+                          <span class="switch-slider"></span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
-                </button>
+
+                  <!-- Seksi 3: Informasi dan Akun -->
+                  <div class="settings-section">
+                    <h3 class="settings-section-title">Informasi dan Akun</h3>
+                    <div class="settings-card-group">
+                      <!-- Informasi dan Sumber -->
+                      <button type="button" class="settings-nav-row" id="btn-goto-info">
+                        <div class="settings-row-icon icon-blue-circle">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                          </svg>
+                        </div>
+                        <div class="settings-row-content">
+                          <div class="settings-row-title">Informasi dan Sumber</div>
+                          <div class="settings-row-desc">Pedoman klinis, rumus & referensi</div>
+                        </div>
+                        <div class="settings-row-chevron">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </button>
+
+                      <div class="settings-row-divider"></div>
+
+                      <!-- Pusat Bantuan -->
+                      <button type="button" class="settings-nav-row" id="btn-goto-help">
+                        <div class="settings-row-icon icon-emerald-circle">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                          </svg>
+                        </div>
+                        <div class="settings-row-content">
+                          <div class="settings-row-title">Pusat Bantuan</div>
+                          <div class="settings-row-desc">FAQ, WhatsApp, & kontak bantuan</div>
+                        </div>
+                        <div class="settings-row-chevron">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </button>
+
+                      <div class="settings-row-divider"></div>
+
+                      <!-- Tentang Aplikasi -->
+                      <button type="button" class="settings-nav-row" id="btn-goto-about">
+                        <div class="settings-row-icon icon-teal-circle">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                          </svg>
+                        </div>
+                        <div class="settings-row-content">
+                          <div class="settings-row-title">Tentang Aplikasi</div>
+                          <div class="settings-row-desc">Versi, visi & fitur ObeSight</div>
+                        </div>
+                        <div class="settings-row-chevron">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </button>
+
+                      <div class="settings-row-divider"></div>
+
+                      <!-- Hapus Akun -->
+                      <button type="button" class="settings-nav-row item-danger-text" id="btn-trigger-delete-account">
+                        <div class="settings-row-icon icon-red-subtle-circle">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                          </svg>
+                        </div>
+                        <div class="settings-row-content">
+                          <div class="settings-row-title text-danger">Hapus Akun</div>
+                          <div class="settings-row-desc">Hapus akun dan riwayat permanen</div>
+                        </div>
+                        <div class="settings-row-chevron text-danger">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Seksi 4: Keluar -->
+                  <div class="settings-section">
+                    <button type="button" class="settings-logout-card" id="btn-settings-logout-action">
+                      <div class="settings-logout-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                      </div>
+                      <div class="settings-logout-text">
+                        <span class="settings-logout-title">Keluar</span>
+                        <span class="settings-logout-sub">Keluar dari sesi akun saat ini</span>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div class="home-bottom-spacer"></div>
+                </div>
               </div>
 
-              <div class="home-bottom-spacer"></div>
+              <!-- Subhalaman 2: UBAH EMAIL -->
+              <div class="settings-subpage hidden" id="settings-subpage-email">
+                <header class="settings-header">
+                  <button type="button" class="btn-settings-back" id="btn-back-from-email" title="Kembali ke Pengaturan">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <h2 class="settings-header-title">Ubah Email</h2>
+                  <div class="settings-header-spacer"></div>
+                </header>
+
+                <div class="settings-body settings-form-body">
+                  <div class="settings-form-container">
+                    <!-- Input 1: Email saat ini -->
+                    <div class="settings-input-group">
+                      <label for="input-email-current" class="settings-input-label">Email saat ini</label>
+                      <div class="settings-pill-input-box">
+                        <div class="settings-input-icon">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2" />
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                          </svg>
+                        </div>
+                        <input type="email" id="input-email-current" class="settings-pill-input" placeholder="Masukkan email Anda saat ini..." value="zahraafitriana@gmail.com" />
+                      </div>
+                    </div>
+
+                    <!-- Input 2: Email Baru -->
+                    <div class="settings-input-group">
+                      <label for="input-email-new" class="settings-input-label">Email Baru</label>
+                      <div class="settings-pill-input-box">
+                        <div class="settings-input-icon">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2" />
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                          </svg>
+                        </div>
+                        <input type="email" id="input-email-new" class="settings-pill-input" placeholder="Masukkan email baru Anda..." />
+                      </div>
+                    </div>
+
+                    <!-- Tombol Aksi Simpan -->
+                    <div class="settings-action-btn-row">
+                      <button type="button" class="btn-settings-pill-action" id="btn-save-email">
+                        <span>Simpan</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="home-bottom-spacer"></div>
+                </div>
+              </div>
+
+              <!-- Subhalaman 3: UBAH KATA SANDI -->
+              <div class="settings-subpage hidden" id="settings-subpage-password">
+                <header class="settings-header">
+                  <button type="button" class="btn-settings-back" id="btn-back-from-password" title="Kembali ke Pengaturan">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <h2 class="settings-header-title">Ubah Kata Sandi</h2>
+                  <div class="settings-header-spacer"></div>
+                </header>
+
+                <div class="settings-body settings-form-body">
+                  <div class="settings-form-container">
+                    <!-- Input 1: Password lama -->
+                    <div class="settings-input-group">
+                      <div class="settings-pill-input-box">
+                        <input type="password" id="input-pwd-old" class="settings-pill-input" placeholder="Password lama" autocomplete="current-password" />
+                        <button type="button" class="settings-input-eye-btn" id="btn-toggle-pwd-old" title="Lihat password">
+                          <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Input 2: Password baru -->
+                    <div class="settings-input-group">
+                      <div class="settings-pill-input-box">
+                        <input type="password" id="input-pwd-new" class="settings-pill-input" placeholder="Password baru" autocomplete="new-password" />
+                        <button type="button" class="settings-input-eye-btn" id="btn-toggle-pwd-new" title="Lihat password">
+                          <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <!-- Live Checklist Validasi Password -->
+                      <div class="password-validation-checklist">
+                        <div class="pwd-check-item" id="chk-pwd-len">
+                          <span class="pwd-check-circle">
+                            <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                              <circle cx="10" cy="10" r="10" />
+                              <path d="M6 10l3 3 5-6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </span>
+                          <span class="pwd-check-text">Minimum 8 karakter (maksimal 16)</span>
+                        </div>
+
+                        <div class="pwd-check-item" id="chk-pwd-digit">
+                          <span class="pwd-check-circle">
+                            <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                              <circle cx="10" cy="10" r="10" />
+                              <path d="M6 10l3 3 5-6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </span>
+                          <span class="pwd-check-text">Terdapat minimum 1 angka</span>
+                        </div>
+
+                        <div class="pwd-check-item" id="chk-pwd-case">
+                          <span class="pwd-check-circle">
+                            <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+                              <circle cx="10" cy="10" r="10" />
+                              <path d="M6 10l3 3 5-6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </span>
+                          <span class="pwd-check-text">Terdapat minimum 1 huruf besar dan 1 huruf kecil</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Input 3: Konfirmasi password baru -->
+                    <div class="settings-input-group">
+                      <div class="settings-pill-input-box">
+                        <input type="password" id="input-pwd-confirm" class="settings-pill-input" placeholder="Konfirmasi password baru" autocomplete="new-password" />
+                        <button type="button" class="settings-input-eye-btn" id="btn-toggle-pwd-confirm" title="Lihat password">
+                          <svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Tombol Aksi Simpan -->
+                    <div class="settings-action-btn-row">
+                      <button type="button" class="btn-settings-pill-action" id="btn-save-password">
+                        <span>Simpan</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="home-bottom-spacer"></div>
+                </div>
+              </div>
+
+              <!-- Subhalaman 4: INFORMASI DAN SUMBER -->
+              <div class="settings-subpage hidden" id="settings-subpage-info">
+                <header class="settings-header">
+                  <button type="button" class="btn-settings-back" id="btn-back-from-info" title="Kembali ke Pengaturan">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <h2 class="settings-header-title">Informasi dan Sumber</h2>
+                  <div class="settings-header-spacer"></div>
+                </header>
+
+                <div class="settings-body">
+                  <div class="info-content-card">
+                    <!-- Seksi Penting -->
+                    <div class="info-block">
+                      <h4 class="info-block-title">Penting</h4>
+                      <p class="info-block-text">Angka di aplikasi ini adalah perkiraan umum untuk dewasa sehat. Bukan saran medis, diagnosis, atau pengobatan. Selalu konsultasikan dengan tenaga kesehatan yang kompeten tentang kebutuhan, kondisi, dan target pribadi Anda.</p>
+                    </div>
+
+                    <!-- Seksi Indeks massa tubuh -->
+                    <div class="info-block">
+                      <h4 class="info-block-title">Indeks massa tubuh (IMT / BMI)</h4>
+                      <p class="info-block-text">IMT dihitung dari berat badan (kg) dibagi kuadrat tinggi badan (m). Label kategori menggunakan pembagian yang umum dipakai secara internasional untuk dewasa (kurus, normal, berlebih, obesitas).</p>
+                      <p class="info-block-subtext">Kategori IMT di aplikasi mengikuti batas yang dijelaskan dalam rujukan kesehatan masyarakat utama (misalnya klasifikasi BMI WHO).</p>
+                      
+                      <div class="info-links-list">
+                        <a href="https://keslan.kemkes.go.id/unduhan/KMK%20No.%20HK.01.07-MENKES-509-2025.pdf" target="_blank" rel="noopener noreferrer" class="info-external-link">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                          </svg>
+                          <span>Pedoman Nasional Pelayanan Klinis Tata Laksana Obesitas Dewasa - Kemenkes RI</span>
+                        </a>
+
+                        <a href="https://www.who.int/news-room/fact-sheets/detail/obesity-and-overweight" target="_blank" rel="noopener noreferrer" class="info-external-link">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                          </svg>
+                          <span>WHO - Kegemukan dan kelebihan berat badan (fakta)</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    <!-- Seksi Perkiraan kalori -->
+                    <div class="info-block">
+                      <h4 class="info-block-title">Perkiraan kalori (kebutuhan energi)</h4>
+                      <p class="info-block-text">Kami memperkirakan kebutuhan energi istirahat dengan persamaan Harris-Benedict yang direvisi (berat kg, tinggi cm, umur tahun). Lalu dikalikan faktor aktivitas sesuai level olahraga yang Anda pilih, dan dikurangi sedikit jika Anda memilih tujuan menurunkan berat. Hasilnya adalah perkiraan target kalori harian, bukan resep medis.</p>
+                      
+                      <div class="info-links-list">
+                        <a href="https://www.cdc.gov/healthy-weight-growth/physical-activity/" target="_blank" rel="noopener noreferrer" class="info-external-link">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                          </svg>
+                          <span>CDC - Aktivitas Fisik dan Berat Badan Sehat</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    <!-- Seksi Asupan cairan -->
+                    <div class="info-block">
+                      <h4 class="info-block-title">Asupan cairan (target air)</h4>
+                      <p class="info-block-text">Target air memakai anggapan umum sekitar 30 mililiter per kilogram berat badan per hari, ditampilkan dalam liter di aplikasi. Kebutuhan bisa berbeda tergantung iklim, aktivitas, dan kondisi kesehatan.</p>
+                      
+                      <div class="info-links-list">
+                        <a href="https://efsa.onlinelibrary.wiley.com/doi/10.2903/j.efsa.2010.1459" target="_blank" rel="noopener noreferrer" class="info-external-link">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                          </svg>
+                          <span>EFSA - Pendapat ilmiah nilai acuan asupan air</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="home-bottom-spacer"></div>
+                </div>
+              </div>
+
+              <!-- Subhalaman 5: PUSAT BANTUAN -->
+              <div class="settings-subpage hidden" id="settings-subpage-help">
+                <header class="settings-header">
+                  <button type="button" class="btn-settings-back" id="btn-back-from-help" title="Kembali ke Pengaturan">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <h2 class="settings-header-title">Pusat Bantuan</h2>
+                  <div class="settings-header-spacer"></div>
+                </header>
+
+                <div class="settings-body">
+                  <!-- Card Informasi Atas (Mint) -->
+                  <div class="help-hero-card">
+                    <div class="help-hero-text">
+                      <h3 class="help-hero-title">Pusat Bantuan</h3>
+                      <p class="help-hero-desc">Temukan jawaban untuk pertanyaan umum seputar ObeSight.</p>
+                    </div>
+                    <div class="help-hero-icon-box">
+                      <svg viewBox="0 0 64 64" width="56" height="56" fill="none">
+                        <rect x="6" y="8" width="52" height="42" rx="14" fill="#C8E6D9" />
+                        <path d="M22 50L14 58V50H22Z" fill="#C8E6D9" />
+                        <path d="M26 23C26 19.7 28.7 17 32 17C35.3 17 38 19.7 38 23C38 26.2 35.2 27.8 33.6 29.5C32.4 30.7 32 32 32 34" stroke="#3D8A68" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                        <circle cx="32" cy="41" r="2.2" fill="#3D8A68" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <!-- Seksi Hubungi Kami -->
+                  <div class="help-contact-section">
+                    <h3 class="help-section-heading">Hubungi Kami</h3>
+                    <div class="help-contact-card">
+                      <!-- Email -->
+                      <a href="mailto:support@obesight.co.id" class="help-contact-row">
+                        <div class="help-contact-icon">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2" />
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                          </svg>
+                        </div>
+                        <span class="help-contact-label">Email</span>
+                        <span class="help-contact-value">support@obesight.co.id</span>
+                      </a>
+
+                      <div class="help-contact-divider"></div>
+
+                      <!-- WhatsApp: Direct URL Scheme wa.me -->
+                      <a href="https://wa.me/6285602778748" target="_blank" rel="noopener noreferrer" class="help-contact-row" title="Buka percakapan WhatsApp">
+                        <div class="help-contact-icon">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="#0F172A">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                          </svg>
+                        </div>
+                        <span class="help-contact-label">WhatsApp</span>
+                        <span class="help-contact-value">+62 856-0277-8748</span>
+                      </a>
+
+                      <div class="help-contact-divider"></div>
+
+                      <!-- Website -->
+                      <a href="https://www.obesight.com" target="_blank" rel="noopener noreferrer" class="help-contact-row">
+                        <div class="help-contact-icon">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                          </svg>
+                        </div>
+                        <span class="help-contact-label">Website</span>
+                        <span class="help-contact-value">www.obesight.com</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Banner Apresiasi Bawah (Yellow-green) -->
+                  <div class="help-gratitude-banner">
+                    <div class="help-gratitude-text">
+                      <h4 class="help-gratitude-title">Terima Kasih!</h4>
+                      <p class="help-gratitude-desc">Dukungan Anda membantu kami memberikan layanan yang lebih baik.</p>
+                    </div>
+                    <div class="help-gratitude-avatar">
+                      <img src="./assets/illustration_woman.png" alt="Dukungan ObeSight" class="help-avatar-img" />
+                    </div>
+                  </div>
+
+                  <div class="home-bottom-spacer"></div>
+                </div>
+              </div>
+
+              <!-- Subhalaman 6: TENTANG APLIKASI -->
+              <div class="settings-subpage hidden" id="settings-subpage-about">
+                <header class="settings-header">
+                  <button type="button" class="btn-settings-back" id="btn-back-from-about" title="Kembali ke Pengaturan">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                  <h2 class="settings-header-title">Tentang Aplikasi</h2>
+                  <div class="settings-header-spacer"></div>
+                </header>
+
+                <div class="settings-body">
+                  <!-- Card Atas: Logo & Visi ObeSight -->
+                  <div class="about-hero-card">
+                    <div class="about-logo-wrapper">
+                      <div class="about-logo-circle">
+                        <img src="./assets/logo.png" alt="ObeSight Logo" class="about-logo-img" />
+                      </div>
+                    </div>
+                    <h3 class="about-app-name">ObeSight</h3>
+                    <div class="about-brand-underline"></div>
+                    <h4 class="about-app-tagline">Kenali Risiko, Jaga Masa Depanmu</h4>
+                    <p class="about-app-desc">Obesight adalah aplikasi kesehatan yang membantu kamu melakukan skrining risiko obesitas berdasarkan pola hidup, serta membantu memantau kebiasaan hidup secara berkala</p>
+                  </div>
+
+                  <!-- Card Fitur Utama -->
+                  <div class="about-features-card">
+                    <div class="about-features-header">
+                      <div class="about-features-title-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#489874" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <circle cx="12" cy="12" r="6" />
+                          <circle cx="12" cy="12" r="2" />
+                        </svg>
+                      </div>
+                      <h4 class="about-features-title">Fitur Utama Obesight</h4>
+                    </div>
+
+                    <!-- 3 Feature Boxes in Pale Sage -->
+                    <div class="about-feature-box">
+                      <div class="about-feat-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#489874" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                          <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                          <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                          <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                          <path d="M12 9c-1.5 0-3 1.2-3 2.8 0 2.2 3 4.2 3 4.2s3-2 3-4.2c0-1.6-1.5-2.8-3-2.8z" />
+                        </svg>
+                      </div>
+                      <div class="about-feat-text">
+                        <div class="about-feat-heading">Skrining Risiko</div>
+                        <div class="about-feat-desc">Membantu kamu mengenali risiko obesitas sejak dini berdasarkan kondisi tubuh dan pola hidup.</div>
+                      </div>
+                    </div>
+
+                    <div class="about-feature-box">
+                      <div class="about-feat-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#489874" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="20" x2="18" y2="10" />
+                          <line x1="12" y1="20" x2="12" y2="4" />
+                          <line x1="6" y1="20" x2="6" y2="14" />
+                          <path d="M4 11L9 6L14 11L20 4" />
+                        </svg>
+                      </div>
+                      <div class="about-feat-text">
+                        <div class="about-feat-heading">Monitoring Pola Hidup</div>
+                        <div class="about-feat-desc">Membantu kamu memantau perkembangan berat badan, aktivitas fisik, pola makan, dan kebiasaan hidup.</div>
+                      </div>
+                    </div>
+
+                    <div class="about-feature-box">
+                      <div class="about-feat-icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#489874" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M9 18h6" />
+                          <path d="M10 22h4" />
+                          <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5" />
+                          <path d="M10 8h.01M14 8h.01" />
+                        </svg>
+                      </div>
+                      <div class="about-feat-text">
+                        <div class="about-feat-heading">Rekomendasi berbasis AI</div>
+                        <div class="about-feat-desc">Memberikan insight dan rekomendasi yang disesuaikan dengan kondisi kamu melalui teknologi AI.</div>
+                      </div>
+                    </div>
+
+                    <!-- Card Catatan (Amber / Soft Yellow) -->
+                    <div class="about-note-card">
+                      <div class="about-note-header">
+                        <div class="about-note-icon">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="#EAB308">
+                            <path d="M12 2L1 21h22L12 2zm0 3.45l8.7 15.05H3.3L12 5.45zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" />
+                          </svg>
+                        </div>
+                        <span class="about-note-title">Catatan</span>
+                      </div>
+                      <p class="about-note-desc">ObeSight merupakan aplikasi untuk skrining awal dan pemantauan pola hidup, bukan alat untuk mendiagnosis obesitas atau menggantikan konsultasi dengan tenaga kesehatan.</p>
+                    </div>
+                  </div>
+
+                  <!-- Footer Teks -->
+                  <div class="about-app-footer">
+                    <div class="about-footer-version">Versi 1.0.0</div>
+                    <div class="about-footer-copy">@ 2026 Obesight. Semua hak dilindungi.</div>
+                  </div>
+
+                  <div class="home-bottom-spacer"></div>
+                </div>
+              </div>
+
             </div>
 
           </div>
@@ -1778,11 +2354,6 @@
               <button type="button" class="btn-cancel-modal" id="btn-cancel-google">Batal</button>
             </div>
           </div>
-        </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> f74f72e4e6d01a8643e96f147bbd4f6a216debff
         <!-- 9. INTERACTIVE MODAL: KONFIRMASI SIMPAN PROGRESS -->
         <div class="modal-backdrop hidden" id="progress-confirm-modal">
           <div class="progress-confirm-card">
@@ -1803,6 +2374,52 @@
             <div class="confirm-modal-actions">
               <button type="button" class="btn-confirm-cancel" id="btn-cancel-progress-modal">BATAL</button>
               <button type="button" class="btn-confirm-yes" id="btn-yes-progress-modal">YA</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. MODAL: KONFIRMASI HAPUS AKUN -->
+        <div class="modal-backdrop hidden" id="modal-delete-account">
+          <div class="progress-confirm-card modal-card-danger">
+            <div class="confirm-icon-wrap">
+              <div class="confirm-icon-circle icon-danger-circle">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </div>
+            </div>
+
+            <h3 class="confirm-modal-title text-danger">Hapus Akun Anda?</h3>
+            <p class="confirm-modal-desc">Semua riwayat skrining, progres kesehatan, dan data pribadi Anda akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.</p>
+
+            <div class="confirm-modal-actions">
+              <button type="button" class="btn-confirm-cancel" id="btn-cancel-delete-account">BATAL</button>
+              <button type="button" class="btn-confirm-danger" id="btn-confirm-delete-account">HAPUS AKUN</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 11. MODAL: KONFIRMASI KELUAR (LOGOUT) -->
+        <div class="modal-backdrop hidden" id="modal-logout-confirm">
+          <div class="progress-confirm-card">
+            <div class="confirm-icon-wrap">
+              <div class="confirm-icon-circle icon-logout-circle">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </div>
+            </div>
+
+            <h3 class="confirm-modal-title">Keluar dari Akun?</h3>
+            <p class="confirm-modal-desc">Apakah Anda yakin ingin keluar dari sesi akun ObeSight saat ini?</p>
+
+            <div class="confirm-modal-actions">
+              <button type="button" class="btn-confirm-cancel" id="btn-cancel-logout">BATAL</button>
+              <button type="button" class="btn-confirm-danger" id="btn-confirm-logout">KELUAR</button>
             </div>
           </div>
         </div>

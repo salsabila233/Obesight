@@ -151,9 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
     clearAllTimers();
 
     // Reset visual states
-    splashScreen.style.display = 'flex';
-    splashScreen.classList.remove('fade-out');
-    authScreen.classList.add('hidden');
+    if (splashScreen) {
+      splashScreen.style.display = 'flex';
+      splashScreen.classList.remove('fade-out');
+    }
+    if (authScreen) authScreen.classList.add('hidden');
     if (registerScreen) registerScreen.classList.add('hidden');
     if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
     if (forgotOtpScreen) forgotOtpScreen.classList.add('hidden');
@@ -192,13 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function transitionToLogin() {
     clearAllTimers();
-    if (!splashScreen) return;
-    splashScreen.classList.add('fade-out');
+    if (splashScreen) splashScreen.classList.add('fade-out');
 
     setTimeout(() => {
-      splashScreen.style.display = 'none';
+      if (splashScreen) splashScreen.style.display = 'none';
       if (statusBar) statusBar.classList.add('dark-text');
-      authScreen.classList.remove('hidden');
+      if (authScreen) authScreen.classList.remove('hidden');
       if (registerScreen) registerScreen.classList.add('hidden');
       if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
       if (forgotOtpScreen) forgotOtpScreen.classList.add('hidden');
@@ -1264,9 +1265,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function switchHomeTab(targetTab) {
     if (userDash) {
       userDash.classList.toggle('in-monitoring', targetTab === 'stats');
+      userDash.classList.toggle('in-settings', targetTab === 'settings');
     }
     if (statusBar) {
-      if (targetTab === 'stats') {
+      if (targetTab === 'stats' || targetTab === 'settings') {
         statusBar.classList.remove('dark-text');
       } else {
         statusBar.classList.add('dark-text');
@@ -1274,6 +1276,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (targetTab === 'stats') {
       switchMonitoringSubpage('main');
+    }
+    if (targetTab === 'settings') {
+      switchSettingsSubpage('main');
     }
 
     navBtns.forEach(item => {
@@ -1315,6 +1320,300 @@ document.addEventListener('DOMContentLoaded', () => {
       item.btn.addEventListener('click', () => switchHomeTab(item.tab));
     }
   });
+
+  // ========================================================
+  // SETTINGS (PENGATURAN) SUBPAGE NAVIGATION & CONTROLLER
+  // ========================================================
+  const settingsSubpages = {
+    main: document.getElementById('settings-subpage-main'),
+    email: document.getElementById('settings-subpage-email'),
+    password: document.getElementById('settings-subpage-password'),
+    info: document.getElementById('settings-subpage-info'),
+    help: document.getElementById('settings-subpage-help'),
+    about: document.getElementById('settings-subpage-about')
+  };
+
+  function switchSettingsSubpage(targetSubpage) {
+    Object.keys(settingsSubpages).forEach(key => {
+      const page = settingsSubpages[key];
+      if (!page) return;
+      const isTarget = key === targetSubpage;
+      page.classList.toggle('hidden', !isTarget);
+      page.classList.toggle('active', isTarget);
+    });
+  }
+
+  // Header Back Buttons
+  const btnSettingsBackHome = document.getElementById('btn-settings-back-home');
+  if (btnSettingsBackHome) {
+    btnSettingsBackHome.addEventListener('click', () => switchHomeTab('home'));
+  }
+
+  const btnBackFromEmail = document.getElementById('btn-back-from-email');
+  if (btnBackFromEmail) {
+    btnBackFromEmail.addEventListener('click', () => switchSettingsSubpage('main'));
+  }
+
+  const btnBackFromPassword = document.getElementById('btn-back-from-password');
+  if (btnBackFromPassword) {
+    btnBackFromPassword.addEventListener('click', () => switchSettingsSubpage('main'));
+  }
+
+  const btnBackFromInfo = document.getElementById('btn-back-from-info');
+  if (btnBackFromInfo) {
+    btnBackFromInfo.addEventListener('click', () => switchSettingsSubpage('main'));
+  }
+
+  const btnBackFromHelp = document.getElementById('btn-back-from-help');
+  if (btnBackFromHelp) {
+    btnBackFromHelp.addEventListener('click', () => switchSettingsSubpage('main'));
+  }
+
+  const btnBackFromAbout = document.getElementById('btn-back-from-about');
+  if (btnBackFromAbout) {
+    btnBackFromAbout.addEventListener('click', () => switchSettingsSubpage('main'));
+  }
+
+  // Sub-menu Navigation Rows
+  const btnGotoPassword = document.getElementById('btn-goto-password');
+  if (btnGotoPassword) {
+    btnGotoPassword.addEventListener('click', () => {
+      if (inputPwdOld) inputPwdOld.value = '';
+      if (inputPwdNew) inputPwdNew.value = '';
+      if (inputPwdConfirm) inputPwdConfirm.value = '';
+      validatePasswordRules('');
+      switchSettingsSubpage('password');
+    });
+  }
+
+  const btnGotoEmail = document.getElementById('btn-goto-email');
+  if (btnGotoEmail) {
+    btnGotoEmail.addEventListener('click', () => {
+      if (inputEmailCurrent) {
+        inputEmailCurrent.value = currentUser?.email || 'zahraafitriana@gmail.com';
+      }
+      if (inputEmailNew) inputEmailNew.value = '';
+      switchSettingsSubpage('email');
+    });
+  }
+
+  const btnGotoInfo = document.getElementById('btn-goto-info');
+  if (btnGotoInfo) {
+    btnGotoInfo.addEventListener('click', () => switchSettingsSubpage('info'));
+  }
+
+  const btnGotoHelp = document.getElementById('btn-goto-help');
+  if (btnGotoHelp) {
+    btnGotoHelp.addEventListener('click', () => switchSettingsSubpage('help'));
+  }
+
+  const btnGotoAbout = document.getElementById('btn-goto-about');
+  if (btnGotoAbout) {
+    btnGotoAbout.addEventListener('click', () => switchSettingsSubpage('about'));
+  }
+
+  // Dark Mode Switch Toggle
+  const toggleDarkMode = document.getElementById('toggle-dark-mode');
+  const savedDarkMode = localStorage.getItem('obesight_dark_mode') === 'true';
+  if (toggleDarkMode) {
+    toggleDarkMode.checked = savedDarkMode;
+    if (savedDarkMode) {
+      document.body.classList.add('theme-dark');
+      document.body.classList.remove('theme-light');
+    }
+
+    toggleDarkMode.addEventListener('change', (e) => {
+      const isDark = e.target.checked;
+      if (isDark) {
+        document.body.classList.add('theme-dark');
+        document.body.classList.remove('theme-light');
+      } else {
+        document.body.classList.remove('theme-dark');
+        document.body.classList.add('theme-light');
+      }
+      localStorage.setItem('obesight_dark_mode', isDark);
+      showToast('Mode Tampilan', isDark ? 'Mode Gelap diaktifkan' : 'Mode Terang diaktifkan');
+    });
+  }
+
+  // Ubah Email Form Logic
+  const inputEmailCurrent = document.getElementById('input-email-current');
+  const inputEmailNew = document.getElementById('input-email-new');
+  const btnSaveEmail = document.getElementById('btn-save-email');
+  if (btnSaveEmail) {
+    btnSaveEmail.addEventListener('click', () => {
+      const newEmail = (inputEmailNew?.value || '').trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!newEmail) {
+        alert('Silakan masukkan email baru Anda');
+        inputEmailNew?.focus();
+        return;
+      }
+      if (!emailRegex.test(newEmail)) {
+        alert('Format email tidak valid (contoh: nama@email.com)');
+        inputEmailNew?.focus();
+        return;
+      }
+      if (inputEmailCurrent && inputEmailCurrent.value.trim().toLowerCase() === newEmail.toLowerCase()) {
+        alert('Email baru tidak boleh sama dengan email saat ini');
+        inputEmailNew?.focus();
+        return;
+      }
+
+      if (currentUser) {
+        currentUser.email = newEmail;
+      }
+      if (inputEmailCurrent) inputEmailCurrent.value = newEmail;
+      if (inputEmailNew) inputEmailNew.value = '';
+
+      showToast('Email Diperbarui', 'Alamat email Anda berhasil diperbarui!');
+      setTimeout(() => {
+        switchSettingsSubpage('main');
+      }, 900);
+    });
+  }
+
+  // Ubah Kata Sandi Form & Live Validation
+  const inputPwdOld = document.getElementById('input-pwd-old');
+  const inputPwdNew = document.getElementById('input-pwd-new');
+  const inputPwdConfirm = document.getElementById('input-pwd-confirm');
+  const btnSavePassword = document.getElementById('btn-save-password');
+
+  const chkPwdLen = document.getElementById('chk-pwd-len');
+  const chkPwdDigit = document.getElementById('chk-pwd-digit');
+  const chkPwdCase = document.getElementById('chk-pwd-case');
+
+  function validatePasswordRules(pwd) {
+    const isLenValid = pwd.length >= 8 && pwd.length <= 16;
+    const isDigitValid = /[0-9]/.test(pwd);
+    const isCaseValid = /[A-Z]/.test(pwd) && /[a-z]/.test(pwd);
+
+    if (chkPwdLen) chkPwdLen.classList.toggle('valid', isLenValid);
+    if (chkPwdDigit) chkPwdDigit.classList.toggle('valid', isDigitValid);
+    if (chkPwdCase) chkPwdCase.classList.toggle('valid', isCaseValid);
+
+    return isLenValid && isDigitValid && isCaseValid;
+  }
+
+  if (inputPwdNew) {
+    inputPwdNew.addEventListener('input', (e) => {
+      validatePasswordRules(e.target.value);
+    });
+  }
+
+  // Password Visibility Toggles
+  function setupPwdToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+
+    btn.addEventListener('click', () => {
+      const isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      btn.innerHTML = isPwd
+        ? `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#489874" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+           </svg>`
+        : `<svg class="icon-eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+            <circle cx="12" cy="12" r="3" />
+           </svg>`;
+    });
+  }
+
+  setupPwdToggle('btn-toggle-pwd-old', 'input-pwd-old');
+  setupPwdToggle('btn-toggle-pwd-new', 'input-pwd-new');
+  setupPwdToggle('btn-toggle-pwd-confirm', 'input-pwd-confirm');
+
+  if (btnSavePassword) {
+    btnSavePassword.addEventListener('click', () => {
+      const oldPwd = inputPwdOld?.value || '';
+      const newPwd = inputPwdNew?.value || '';
+      const confirmPwd = inputPwdConfirm?.value || '';
+
+      if (!oldPwd) {
+        alert('Silakan masukkan kata sandi lama Anda.');
+        inputPwdOld?.focus();
+        return;
+      }
+      if (!validatePasswordRules(newPwd)) {
+        alert('Kata sandi baru belum memenuhi semua kriteria keamanan.');
+        inputPwdNew?.focus();
+        return;
+      }
+      if (newPwd !== confirmPwd) {
+        alert('Konfirmasi kata sandi baru tidak cocok.');
+        inputPwdConfirm?.focus();
+        return;
+      }
+
+      showToast('Kata Sandi Berhasil Diubah', 'Kata sandi akun Anda telah diperbarui.');
+      if (inputPwdOld) inputPwdOld.value = '';
+      if (inputPwdNew) inputPwdNew.value = '';
+      if (inputPwdConfirm) inputPwdConfirm.value = '';
+      validatePasswordRules('');
+
+      setTimeout(() => {
+        switchSettingsSubpage('main');
+      }, 900);
+    });
+  }
+
+  // Modal Hapus Akun
+  const btnTriggerDeleteAccount = document.getElementById('btn-trigger-delete-account');
+  const modalDeleteAccount = document.getElementById('modal-delete-account');
+  const btnCancelDeleteAccount = document.getElementById('btn-cancel-delete-account');
+  const btnConfirmDeleteAccount = document.getElementById('btn-confirm-delete-account');
+
+  if (btnTriggerDeleteAccount && modalDeleteAccount) {
+    btnTriggerDeleteAccount.addEventListener('click', () => {
+      modalDeleteAccount.classList.remove('hidden');
+    });
+  }
+
+  if (btnCancelDeleteAccount && modalDeleteAccount) {
+    btnCancelDeleteAccount.addEventListener('click', () => {
+      modalDeleteAccount.classList.add('hidden');
+    });
+  }
+
+  if (btnConfirmDeleteAccount && modalDeleteAccount) {
+    btnConfirmDeleteAccount.addEventListener('click', () => {
+      modalDeleteAccount.classList.add('hidden');
+      localStorage.removeItem('obesight_registered_users');
+      localStorage.removeItem('obesight_monitoring_progress');
+      showToast('Akun Dihapus', 'Data akun Anda telah berhasil dihapus.');
+      setTimeout(() => {
+        performLogout();
+      }, 1000);
+    });
+  }
+
+  // Modal Logout dari Seksi 4 Pengaturan
+  const btnSettingsLogoutAction = document.getElementById('btn-settings-logout-action');
+  const modalLogoutConfirm = document.getElementById('modal-logout-confirm');
+  const btnCancelLogout = document.getElementById('btn-cancel-logout');
+  const btnConfirmLogout = document.getElementById('btn-confirm-logout');
+
+  if (btnSettingsLogoutAction && modalLogoutConfirm) {
+    btnSettingsLogoutAction.addEventListener('click', () => {
+      modalLogoutConfirm.classList.remove('hidden');
+    });
+  }
+
+  if (btnCancelLogout && modalLogoutConfirm) {
+    btnCancelLogout.addEventListener('click', () => {
+      modalLogoutConfirm.classList.add('hidden');
+    });
+  }
+
+  if (btnConfirmLogout && modalLogoutConfirm) {
+    btnConfirmLogout.addEventListener('click', () => {
+      modalLogoutConfirm.classList.add('hidden');
+      performLogout();
+    });
+  }
 
   // ========================================================
   // MONITORING SUBPAGE NAVIGATION & INTERACTIONS
@@ -1826,7 +2125,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Start the Splash sequence on initial load
-  runSplashAnimation();
+  // Start the Splash sequence on initial load if splash screen exists
+  if (splashScreen) {
+    runSplashAnimation();
+  } else if (document.getElementById('tab-content-settings')) {
+    switchSettingsSubpage('main');
+  }
 });
 
