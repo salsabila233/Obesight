@@ -138,87 +138,63 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 40),
         physics: const BouncingScrollPhysics(),
         children: [
-          // Featured Banner Card
-          GestureDetector(
-            onTap: () {
-              _openArticleDetail({
-                'id': 6,
-                'title': 'Yuk, Kenali Pola Hidup Sehat untuk Cegah Obesitas',
-                'category': 'Artikel Unggulan',
-                'snippet': 'Temukan informasi risiko obesitas berdasarkan pola hidup dan kebiasaan sehari-hari.',
-                'author': 'Tim Ahli Gizi & Medis ObeSight',
-                'date': '21 September 2026',
-                'readTime': '6 Menit Baca',
-                'content': 'Mencegah obesitas berakar dari kesadaran diri terhadap pola hidup yang dijalani setiap hari. Mulai dari makanan bergizi seimbang, rutin bergerak 30 menit sehari, minum air putih cukup, dan tidur teratur.',
-                'takeaways': [
-                  'Pola hidup sehat adalah investasi jangka panjang untuk kualitas hidup terbaik.',
-                  'Gunakan aplikasi ObeSight untuk memantau kemajuan Anda secara berkala.'
-                ]
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE6F7F0), Color(0xFFD4F1E4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          // Featured Banner Card (Static Non-Interactive)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE6F7F0), Color(0xFFD4F1E4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFC4ECDA)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14489874),
+                  blurRadius: 14,
+                  offset: Offset(0, 4),
                 ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFC4ECDA)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x14489874),
-                    blurRadius: 14,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 6,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Yuk, Kenali Pola Hidup Sehat untuk Cegah Obesitas',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF112A1F),
-                            height: 1.35,
-                          ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 6,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Yuk, Kenali Pola Hidup Sehat untuk Cegah Obesitas',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF112A1F),
+                          height: 1.35,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Temukan informasi risiko obesitas berdasarkan pola hidup dan kebiasaan sehari-hari.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: const Color(0xFF375347),
-                            height: 1.45,
-                          ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Temukan informasi risiko obesitas berdasarkan pola hidup dan kebiasaan sehari-hari.',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: const Color(0xFF375347),
+                          height: 1.45,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 4,
-                    child: Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2F6EC),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
                       ),
-                      child: const Center(
-                        child: Icon(Icons.favorite_rounded, color: Color(0xFF489874), size: 48),
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 4,
+                  child: Image.asset(
+                    'assets/illustration_woman.png',
+                    height: 105,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),

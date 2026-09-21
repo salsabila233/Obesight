@@ -212,72 +212,24 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                           height: 1.35,
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 8),
 
-                      // Author & Date Row
+                      // Publish Date directly under title
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 34,
-                                height: 34,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F5EE),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFC4ECDA)),
-                                ),
-                                child: const Icon(Icons.medical_services_rounded, color: Color(0xFF2E6B4F), size: 18),
-                              ),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    author,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  Text(
-                                    date,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10.5,
-                                      color: const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0FDF4),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFBBF7D0)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.verified_rounded, size: 13, color: Color(0xFF166534)),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'Ditinjau Medis',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF166534),
-                                  ),
-                                ),
-                              ],
+                          const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF64748B)),
+                          const SizedBox(width: 6),
+                          Text(
+                            date,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
-                      const Divider(height: 28, color: Color(0xFFE2E8F0)),
+                      const Divider(height: 24, color: Color(0xFFE2E8F0)),
 
                       // Article Content
                       Text(

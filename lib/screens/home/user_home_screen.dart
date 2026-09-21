@@ -688,7 +688,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '⏱️ 3 Menit Baca • Ditinjau Tim Medis ObeSight',
+                    '⏱️ 3 Menit Baca',
                     style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B)),
                   ),
                   const SizedBox(height: 16),
@@ -1362,6 +1362,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         'icon': Icons.directions_run_rounded,
         'content':
             'Jalan kaki 30 menit per hari membakar hingga 200 kalori. Kombinasikan naik tangga dan peregangan berkala.',
+      },
+      {
+        'title': 'Obesitas Sebagai Pemicu Komplikasi',
+        'color': const Color(0xFF94A3B8),
+        'icon': Icons.medical_services_outlined,
+        'content':
+            'Deteksi dini dan skrining berkala mencegah komplikasi fatal akibat obesitas pada jantung dan metabolisme.',
+      },
+      {
+        'title': 'Yuk, Kenali Pola Hidup Sehat',
+        'color': const Color(0xFF489874),
+        'icon': Icons.favorite_outline_rounded,
+        'content':
+            'Pola hidup sehat adalah investasi jangka panjang untuk kualitas hidup terbaik dan kebugaran tubuh harian.',
       },
     ];
 

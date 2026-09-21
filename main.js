@@ -3058,7 +3058,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Otak membutuhkan waktu sekitar 15 hingga 20 menit sejak suapan pertama untuk menerima sinyal rasa kenyang dari hormon leptin di saluran pencernaan. Makan terburu-buru sambil menatap layar ponsel atau televisi membuat kita mengonsumsi 30-50% lebih banyak kalori sebelum otak menyadari bahwa tubuh sudah kenyang.</p>
 
         <div class="article-callout-quote">
-          "Mengunyah makanan secara perlahan (20-30 kali kunyah per suapan) terbukti klinis membantu kerja enzim pencernaan dan mengurangi asupan kalori harian secara alami." — <strong>Dr. Hendra Wijaya, Sp.GK</strong>
+          "Mengunyah makanan secara perlahan (20-30 kali kunyah per suapan) terbukti secara ilmiah membantu kerja enzim pencernaan dan mengurangi asupan kalori harian secara alami."
         </div>
 
         <h3>3. Melewatkan Sarapan Bergizi</h3>
@@ -3650,8 +3650,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainTitleEl = document.getElementById('article-detail-main-title');
     if (mainTitleEl) mainTitleEl.textContent = art.title;
     if (articleDetailStickyTitle) articleDetailStickyTitle.textContent = art.title;
-    const authorEl = document.getElementById('article-detail-author');
-    if (authorEl) authorEl.textContent = art.author;
     const dateEl = document.getElementById('article-detail-date');
     if (dateEl) dateEl.textContent = art.date;
     const bodyEl = document.getElementById('article-detail-body-content');
@@ -3729,12 +3727,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Top Featured Banner Click -> Open Article 6 (Yuk, Kenali Pola Hidup Sehat untuk Cegah Obesitas)
-  if (bannerFeaturedArticle) {
-    bannerFeaturedArticle.addEventListener('click', () => {
-      openArticleDetail(6, 'article-list');
-    });
-  }
+  // Top Featured Banner is static and non-clickable as per requirements
 
   // Article Detail Parallax and Sticky Header Scroll Listener
   if (articleDetailScrollView) {
@@ -3785,13 +3778,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Connect Horizontal Article Cards on Home Screen to Detail Screen
-  homeHorizontalArticleCards.forEach(card => {
-    card.addEventListener('click', () => {
-      const id = card.getAttribute('data-article-id') || '1';
-      openArticleDetail(id, 'home');
+  // Connect Horizontal Article Cards on Home Screen to Detail Screen & Enable Smooth Drag/Wheel Horizontal Scroll
+  const horizontalScrollContainer = document.getElementById('articles-horizontal-scroll');
+  if (horizontalScrollContainer) {
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    let hasMoved = false;
+
+    horizontalScrollContainer.addEventListener('mousedown', (e) => {
+      isDown = true;
+      hasMoved = false;
+      horizontalScrollContainer.classList.add('active');
+      startX = e.pageX - horizontalScrollContainer.offsetLeft;
+      scrollLeft = horizontalScrollContainer.scrollLeft;
     });
-  });
+
+    horizontalScrollContainer.addEventListener('mouseleave', () => {
+      isDown = false;
+    });
+
+    horizontalScrollContainer.addEventListener('mouseup', () => {
+      isDown = false;
+    });
+
+    horizontalScrollContainer.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - horizontalScrollContainer.offsetLeft;
+      const walk = (x - startX) * 1.5; // scroll speed multiplier
+      if (Math.abs(walk) > 4) hasMoved = true;
+      horizontalScrollContainer.scrollLeft = scrollLeft - walk;
+    });
+
+    // Horizontal scrolling with mouse wheel when hovering the article list
+    horizontalScrollContainer.addEventListener('wheel', (e) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        horizontalScrollContainer.scrollBy({
+          left: e.deltaY * 1.8,
+          behavior: 'smooth'
+        });
+      }
+    }, { passive: false });
+
+    // Connect all cards (including cards 5 and 6)
+    horizontalScrollContainer.querySelectorAll('.article-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (hasMoved) return; // Prevent triggering detail if user was dragging/swiping
+        const id = card.getAttribute('data-article-id') || '1';
+        openArticleDetail(id, 'home');
+      });
+    });
+  }
 
   // Preview Toolbar Shortcut
   if (btnDemoArticles) {
