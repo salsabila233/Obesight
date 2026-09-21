@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const forgotResetScreen = document.getElementById('forgot-reset-screen');
   const userDash = document.getElementById('user-dashboard-screen');
   const adminDash = document.getElementById('admin-dashboard-screen');
+  const profileScreen = document.getElementById('profile-screen');
+  const editProfileScreen = document.getElementById('edit-profile-screen');
+  const photoSheetBackdrop = document.getElementById('photo-sheet-backdrop');
+  const cancelModalBackdrop = document.getElementById('modal-cancel-edit-backdrop');
   const statusBar = document.getElementById('phone-status-bar');
 
   // Controls & Toolbar
@@ -22,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnToggleFrame = document.getElementById('btn-toggle-frame');
   const frameToggleLabel = document.getElementById('frame-toggle-label');
   const viewportWrapper = document.getElementById('viewport-wrapper');
+  const btnDemoBeranda = document.getElementById('btn-demo-beranda');
+  const btnDemoProfil = document.getElementById('btn-demo-profil');
+  const btnDemoEdit = document.getElementById('btn-demo-edit');
+  const btnToggleBiodataDemo = document.getElementById('btn-toggle-biodata-demo');
+  const badgeBiodataStatus = document.getElementById('badge-biodata-status');
 
   // Login Form Elements
   const loginForm = document.getElementById('login-form');
@@ -284,6 +293,126 @@ document.addEventListener('DOMContentLoaded', () => {
     role: 'user'
   };
 
+  function getCurrentMonthYearIndo() {
+    const monthNames = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    const now = new Date();
+    return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+  }
+
+  const DEFAULT_AVATAR_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23D1FAE5'/><circle cx='50' cy='38' r='18' fill='%234E9070'/><path d='M20 86c0-16.5 13.5-30 30-30s30 13.5 30 30z' fill='%234E9070'/></svg>";
+
+  // User Profile full data model
+  let userProfile = {
+    fullName: 'Zahra Fitriana',
+    dob: '12 Juli 2003',
+    gender: 'Perempuan',
+    email: 'zahraafitriana@gmail.com',
+    phone: '089334212098',
+    avatar: './assets/avatar_zahra.png',
+    joinedDate: 'Agustus 2025'
+  };
+
+  function loadUserProfile(email, initialName) {
+    const cleanEmail = (email || currentUser.email || '').toLowerCase();
+    const key = `obesight_profile_data_${cleanEmail}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        userProfile = { ...userProfile, ...parsed };
+      } catch (e) {
+        console.error('Failed to parse user profile', e);
+      }
+    } else {
+      // Find from registered users if exists
+      const regUser = (registeredUsers || []).find(u => u.email && u.email.toLowerCase() === cleanEmail);
+      const nameToUse = initialName || (regUser ? regUser.name : (cleanEmail.includes('zahra') ? 'Zahra Fitriana' : 'Pengguna'));
+      const joinedToUse = (regUser && regUser.joinedDate) ? regUser.joinedDate : (cleanEmail.includes('zahra') ? 'Agustus 2025' : getCurrentMonthYearIndo());
+      userProfile = {
+        fullName: nameToUse,
+        dob: cleanEmail.includes('zahra') ? '12 Juli 2003' : '',
+        gender: cleanEmail.includes('zahra') ? 'Perempuan' : '',
+        email: cleanEmail || 'zahraafitriana@gmail.com',
+        phone: cleanEmail.includes('zahra') ? '089334212098' : '',
+        avatar: './assets/avatar_zahra.png',
+        joinedDate: joinedToUse
+      };
+    }
+    renderUserProfileUI();
+  }
+
+  function saveUserProfile(email) {
+    const cleanEmail = (email || currentUser.email || '').toLowerCase();
+    const key = `obesight_profile_data_${cleanEmail}`;
+    localStorage.setItem(key, JSON.stringify(userProfile));
+    renderUserProfileUI();
+  }
+
+  function renderUserProfileUI() {
+    // Profil Saya display elements
+    const dispName = document.getElementById('profile-display-name');
+    const dispEmail = document.getElementById('profile-display-email');
+    const dispJoined = document.getElementById('profile-display-joined');
+    const viewAvatar = document.getElementById('view-profile-avatar');
+    const valName = document.getElementById('detail-val-name');
+    const valDob = document.getElementById('detail-val-dob');
+    const valGender = document.getElementById('detail-val-gender');
+    const valEmail = document.getElementById('detail-val-email');
+    const valPhone = document.getElementById('detail-val-phone');
+    const topAvatar = document.getElementById('topbar-avatar-img');
+
+    if (dispName) dispName.textContent = userProfile.fullName;
+    if (dispEmail) dispEmail.textContent = userProfile.email;
+    if (dispJoined) dispJoined.textContent = `Bergabung sejak ${userProfile.joinedDate || 'Agustus 2025'}`;
+    if (viewAvatar) viewAvatar.src = userProfile.avatar || DEFAULT_AVATAR_PLACEHOLDER;
+    if (topAvatar) topAvatar.src = userProfile.avatar || DEFAULT_AVATAR_PLACEHOLDER;
+    if (valName) valName.textContent = userProfile.fullName || '-';
+    if (valDob) valDob.textContent = userProfile.dob || '-';
+    if (valGender) valGender.textContent = userProfile.gender || '-';
+    if (valEmail) valEmail.textContent = userProfile.email || '-';
+    if (valPhone) valPhone.textContent = userProfile.phone || '-';
+
+    // Edit Profil inputs
+    const inName = document.getElementById('input-edit-fullname');
+    const inDob = document.getElementById('input-edit-dob');
+    const inGender = document.getElementById('input-edit-gender');
+    const inEmail = document.getElementById('input-edit-email');
+    const inPhone = document.getElementById('input-edit-phone');
+    const editAvatar = document.getElementById('edit-avatar-preview');
+
+    if (inName) inName.value = userProfile.fullName || '';
+    if (inDob) inDob.value = userProfile.dob || '';
+    if (inGender) inGender.value = userProfile.gender || 'Perempuan';
+    if (inEmail) inEmail.value = userProfile.email || '';
+    if (inPhone) inPhone.value = userProfile.phone || '';
+    if (editAvatar) editAvatar.src = userProfile.avatar || DEFAULT_AVATAR_PLACEHOLDER;
+
+    // Update greeting on Home screen
+    const greetingTitle = document.getElementById('greeting-title-text');
+    if (greetingTitle) {
+      const firstName = userProfile.fullName ? userProfile.fullName.trim().split(' ')[0] : 'Pengguna';
+      greetingTitle.textContent = `Halo, ${firstName}! 👋`;
+    }
+  }
+
+  let profileToastTimer = null;
+  function showProfileToast(message) {
+    const alertBox = document.getElementById('profile-toast-alert');
+    const alertText = document.getElementById('profile-toast-text');
+    if (!alertBox) return;
+
+    if (alertText && message) alertText.textContent = message;
+    alertBox.classList.remove('hidden');
+
+    if (profileToastTimer) clearTimeout(profileToastTimer);
+    profileToastTimer = setTimeout(() => {
+      alertBox.classList.add('hidden');
+    }, 3500);
+  }
+
   function getUserBiodataStatus(userEmail) {
     const email = (userEmail || '').toLowerCase();
     const key = `obesight_biodata_complete_${email}`;
@@ -308,13 +437,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateReminderBannerVisibility() {
     const banner = document.getElementById('btn-reminder-biodata');
-    if (!banner) return;
     const isComplete = getUserBiodataStatus(currentUser.email);
-    if (isComplete) {
-      banner.classList.add('hidden');
-    } else {
-      banner.classList.remove('hidden');
+    if (banner) {
+      if (isComplete) {
+        banner.classList.add('hidden');
+      } else {
+        banner.classList.remove('hidden');
+      }
     }
+    updateDemoBadge();
+  }
+
+  function updateDemoBadge() {
+    if (badgeBiodataStatus) {
+      const isComplete = getUserBiodataStatus(currentUser.email);
+      if (isComplete) {
+        badgeBiodataStatus.textContent = '✅ Biodata: Lengkap';
+        badgeBiodataStatus.style.color = '#4E9070';
+      } else {
+        badgeBiodataStatus.textContent = '⚠️ Biodata: Belum Lengkap';
+        badgeBiodataStatus.style.color = '#F59E0B';
+      }
+    }
+  }
+
+  function showScreen(screenName) {
+    // Hide subpage overlays
+    if (profileScreen) profileScreen.classList.add('hidden');
+    if (editProfileScreen) editProfileScreen.classList.add('hidden');
+    if (photoSheetBackdrop) photoSheetBackdrop.classList.add('hidden');
+    if (cancelModalBackdrop) cancelModalBackdrop.classList.add('hidden');
+
+    if (screenName === 'home') {
+      if (splashScreen) splashScreen.style.display = 'none';
+      if (authScreen) authScreen.classList.add('hidden');
+      if (adminDash) adminDash.classList.add('hidden');
+      if (userDash) {
+        userDash.classList.remove('hidden');
+        switchHomeTab('home');
+      }
+      if (statusBar) statusBar.classList.add('dark-text');
+      updateReminderBannerVisibility();
+    } else if (screenName === 'profile') {
+      if (splashScreen) splashScreen.style.display = 'none';
+      if (authScreen) authScreen.classList.add('hidden');
+      if (adminDash) adminDash.classList.add('hidden');
+      if (userDash) userDash.classList.add('hidden');
+      if (profileScreen) profileScreen.classList.remove('hidden');
+      if (statusBar) statusBar.classList.remove('dark-text');
+      renderUserProfileUI();
+    } else if (screenName === 'edit-profile') {
+      if (splashScreen) splashScreen.style.display = 'none';
+      if (authScreen) authScreen.classList.add('hidden');
+      if (adminDash) adminDash.classList.add('hidden');
+      if (userDash) userDash.classList.add('hidden');
+      if (editProfileScreen) editProfileScreen.classList.remove('hidden');
+      if (statusBar) statusBar.classList.remove('dark-text');
+      renderUserProfileUI();
+    }
+    updateDemoBadge();
   }
 
   function getUserBmiData(userEmail) {
@@ -401,11 +582,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const adminGreeting = document.getElementById('admin-greeting-name');
       if (adminGreeting) adminGreeting.textContent = name || 'Dr. Hendra Wijaya, Sp.GK';
     } else {
-      userDash.classList.remove('hidden');
-      adminDash.classList.add('hidden');
-      updateUserData(name || 'Zahra Fitriana', email || 'zahraafitriana@gmail.com');
-      // Reset to Home Tab
-      switchHomeTab('home');
+      loadUserProfile(email || 'zahraafitriana@gmail.com', name);
+      showScreen('home');
+      updateUserData(name || userProfile.fullName, email || userProfile.email);
     }
     const tTitle = customToastTitle || 'Berhasil Masuk!';
     const tMsg = customToastMsg || `Selamat datang di Beranda ${role === 'admin' ? 'Administrator' : 'Pengguna'}.`;
@@ -687,15 +866,31 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Save user to repository
+      const joinedStr = getCurrentMonthYearIndo();
       registeredUsers.push({
         name: nameVal,
         email: emailVal,
-        password: pwdVal
+        password: pwdVal,
+        joinedDate: joinedStr
       });
 
       try {
         localStorage.setItem('obesight_registered_users', JSON.stringify(registeredUsers));
       } catch (err) { }
+
+      // Initialize fresh user profile for newly registered user
+      userProfile = {
+        fullName: nameVal,
+        dob: '',
+        gender: 'Perempuan',
+        email: emailVal,
+        phone: '',
+        avatar: './assets/avatar_zahra.png',
+        joinedDate: joinedStr
+      };
+      saveUserProfile(emailVal);
+      // New registered account initially has incomplete profile biodata
+      setUserBiodataStatus(emailVal, false);
 
       // Reset form & criteria
       registerForm.reset();
@@ -1239,19 +1434,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSettingsLogout = document.getElementById('btn-settings-logout');
   if (btnSettingsLogout) btnSettingsLogout.addEventListener('click', performLogout);
 
-  // Profile Avatar Dropdown Toggle
+  // Profile Avatar Navigation to Profil Saya
   const btnProfileAvatar = document.getElementById('btn-profile-avatar');
-  const profileDropdown = document.getElementById('profile-dropdown');
-  if (btnProfileAvatar && profileDropdown) {
+  if (btnProfileAvatar) {
     btnProfileAvatar.addEventListener('click', (e) => {
       e.stopPropagation();
-      profileDropdown.classList.toggle('hidden');
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!profileDropdown.contains(e.target) && e.target !== btnProfileAvatar) {
-        profileDropdown.classList.add('hidden');
-      }
+      showScreen('profile');
     });
   }
 
@@ -2424,41 +2612,233 @@ document.addEventListener('DOMContentLoaded', () => {
   if (bmiInputHeight) bmiInputHeight.addEventListener('input', calculateBmi);
   if (bmiInputWeight) bmiInputWeight.addEventListener('input', calculateBmi);
 
-  // Lengkapi Biodata Modal Handlers
+  // Profil Saya & Edit Profil Navigation and Handlers
   const btnReminderBiodata = document.getElementById('btn-reminder-biodata');
-  const btnOpenBiodataProfile = document.getElementById('btn-open-biodata-profile');
-  const btnSettingsBiodata = document.getElementById('btn-settings-biodata');
-  const biodataModal = document.getElementById('biodata-modal-backdrop');
-  const btnCloseBiodataModal = document.getElementById('btn-close-biodata-modal');
-  const btnSaveBiodata = document.getElementById('btn-save-biodata');
+  const btnBackFromProfile = document.getElementById('btn-back-from-profile');
+  const btnGotoEditProfile = document.getElementById('btn-goto-edit-profile');
+  const btnBackFromEdit = document.getElementById('btn-back-from-edit');
+  const btnCancelStay = document.getElementById('btn-cancel-stay');
+  const btnCancelSave = document.getElementById('btn-cancel-save');
+  const btnSubmitEditProfile = document.getElementById('btn-submit-edit-profile');
+  const btnCloseProfileToast = document.getElementById('btn-close-profile-toast');
 
-  function openBiodataModal() {
-    if (profileDropdown) profileDropdown.classList.add('hidden');
-    if (biodataModal) biodataModal.classList.remove('hidden');
-  }
+  // Photo change & Bottom Sheet elements
+  const btnBadgeChangePhoto = document.getElementById('btn-badge-change-photo');
+  const btnTextChangePhoto = document.getElementById('btn-text-change-photo');
+  const btnClosePhotoSheet = document.getElementById('btn-close-photo-sheet');
+  const btnCancelPhotoSheet = document.getElementById('btn-cancel-photo-sheet');
+  const optTakePhoto = document.getElementById('opt-take-photo');
+  const optChooseGallery = document.getElementById('opt-choose-gallery');
+  const optDeletePhoto = document.getElementById('opt-delete-photo');
+  const inputCameraCapture = document.getElementById('input-camera-capture');
+  const inputGalleryPick = document.getElementById('input-gallery-pick');
 
-  if (btnReminderBiodata) btnReminderBiodata.addEventListener('click', openBiodataModal);
-  if (btnOpenBiodataProfile) btnOpenBiodataProfile.addEventListener('click', openBiodataModal);
-  if (btnSettingsBiodata) btnSettingsBiodata.addEventListener('click', openBiodataModal);
+  // Bottom Navigation from Profil Saya & Edit Profil
+  const profileNavHome = document.getElementById('profile-nav-home');
+  const profileNavStats = document.getElementById('profile-nav-stats');
+  const profileNavSettings = document.getElementById('profile-nav-settings');
+  const editNavHome = document.getElementById('edit-nav-home');
+  const editNavStats = document.getElementById('edit-nav-stats');
+  const editNavSettings = document.getElementById('edit-nav-settings');
 
-  if (btnCloseBiodataModal && biodataModal) {
-    btnCloseBiodataModal.addEventListener('click', () => {
-      biodataModal.classList.add('hidden');
+  // 1. Tapping reminder card in Beranda opens Profil Saya directly
+  if (btnReminderBiodata) {
+    btnReminderBiodata.addEventListener('click', () => {
+      showScreen('profile');
     });
   }
 
-  if (btnSaveBiodata && biodataModal) {
-    btnSaveBiodata.addEventListener('click', () => {
-      const bioNameInput = document.getElementById('bio-name');
-      const newName = bioNameInput?.value.trim();
-      if (newName) {
-        currentUser.name = newName;
+  // 2. Back button from Profil Saya returns to Beranda
+  if (btnBackFromProfile) {
+    btnBackFromProfile.addEventListener('click', () => {
+      showScreen('home');
+    });
+  }
+
+  // 3. Edit Profil button opens Edit Profil screen
+  if (btnGotoEditProfile) {
+    btnGotoEditProfile.addEventListener('click', () => {
+      showScreen('edit-profile');
+    });
+  }
+
+  // 4. Back button from Edit Profil: cancels all unsaved changes and directly returns to Profil Saya without saving
+  if (btnBackFromEdit) {
+    btnBackFromEdit.addEventListener('click', () => {
+      // Revert input values to saved userProfile
+      renderUserProfileUI();
+      // Immediately return to Profil Saya screen without saving anything
+      showScreen('profile');
+    });
+  }
+
+  // Confirmation Modal actions (for modal if triggered):
+  // "Batal" -> stay on Edit Profil screen
+  if (btnCancelStay) {
+    btnCancelStay.addEventListener('click', () => {
+      if (cancelModalBackdrop) cancelModalBackdrop.classList.add('hidden');
+    });
+  }
+
+  // "Simpan" in Modal -> save and return to Profil Saya with toast
+  if (btnCancelSave) {
+    btnCancelSave.addEventListener('click', () => {
+      if (cancelModalBackdrop) cancelModalBackdrop.classList.add('hidden');
+      executeSaveProfile();
+    });
+  }
+
+  // 5. Submit button "Simpan" at bottom of Edit Profil
+  if (btnSubmitEditProfile) {
+    btnSubmitEditProfile.addEventListener('click', () => {
+      executeSaveProfile();
+    });
+  }
+
+  function executeSaveProfile() {
+    const inName = document.getElementById('input-edit-fullname');
+    const inDob = document.getElementById('input-edit-dob');
+    const inGender = document.getElementById('input-edit-gender');
+    const inEmail = document.getElementById('input-edit-email');
+    const inPhone = document.getElementById('input-edit-phone');
+
+    if (inName && inName.value.trim()) userProfile.fullName = inName.value.trim();
+    if (inDob && inDob.value.trim()) userProfile.dob = inDob.value.trim();
+    if (inGender && inGender.value.trim()) userProfile.gender = inGender.value.trim();
+    if (inEmail && inEmail.value.trim()) userProfile.email = inEmail.value.trim();
+    if (inPhone && inPhone.value.trim()) userProfile.phone = inPhone.value.trim();
+
+    currentUser.name = userProfile.fullName;
+    currentUser.email = userProfile.email;
+
+    // Save profile data
+    saveUserProfile(currentUser.email);
+
+    // Dynamic Rule: Mark profile data complete, hiding reminder card in Beranda
+    setUserBiodataStatus(currentUser.email, true);
+    updateReminderBannerVisibility();
+
+    // Update greeting and other dashboard displays
+    updateUserData(userProfile.fullName, userProfile.email);
+
+    // Smoothly transition back to Profil Saya screen
+    showScreen('profile');
+
+    // Trigger success toast alert at top of Profil Saya
+    showProfileToast('Profil berhasil diperbarui!');
+  }
+
+  // 6. Photo Bottom Sheet triggers
+  function openPhotoSheet() {
+    if (photoSheetBackdrop) photoSheetBackdrop.classList.remove('hidden');
+  }
+
+  function closePhotoSheet() {
+    if (photoSheetBackdrop) photoSheetBackdrop.classList.add('hidden');
+  }
+
+  if (btnBadgeChangePhoto) btnBadgeChangePhoto.addEventListener('click', openPhotoSheet);
+  if (btnTextChangePhoto) btnTextChangePhoto.addEventListener('click', openPhotoSheet);
+  if (btnClosePhotoSheet) btnClosePhotoSheet.addEventListener('click', closePhotoSheet);
+  if (btnCancelPhotoSheet) btnCancelPhotoSheet.addEventListener('click', closePhotoSheet);
+
+  if (photoSheetBackdrop) {
+    photoSheetBackdrop.addEventListener('click', (e) => {
+      if (e.target === photoSheetBackdrop) closePhotoSheet();
+    });
+  }
+
+  // "Ambil Foto" & "Pilih dari Galeri"
+  if (optTakePhoto && inputCameraCapture) {
+    optTakePhoto.addEventListener('click', () => {
+      inputCameraCapture.click();
+    });
+  }
+
+  if (optChooseGallery && inputGalleryPick) {
+    optChooseGallery.addEventListener('click', () => {
+      inputGalleryPick.click();
+    });
+  }
+
+  // "Hapus Foto Profil"
+  if (optDeletePhoto) {
+    optDeletePhoto.addEventListener('click', () => {
+      userProfile.avatar = DEFAULT_AVATAR_PLACEHOLDER;
+      const editAvatar = document.getElementById('edit-avatar-preview');
+      const viewAvatar = document.getElementById('view-profile-avatar');
+      const topAvatar = document.getElementById('topbar-avatar-img');
+      if (editAvatar) editAvatar.src = userProfile.avatar;
+      if (viewAvatar) viewAvatar.src = userProfile.avatar;
+      if (topAvatar) topAvatar.src = userProfile.avatar;
+      saveUserProfile(currentUser.email);
+      closePhotoSheet();
+      showToast('Foto Profil Dihapus', 'Foto profil berhasil dihapus dan dikembalikan ke avatar bawaan.');
+    });
+  }
+
+  function handleProfileImageFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target.result;
+      userProfile.avatar = dataUrl;
+      const editAvatar = document.getElementById('edit-avatar-preview');
+      const viewAvatar = document.getElementById('view-profile-avatar');
+      const topAvatar = document.getElementById('topbar-avatar-img');
+      if (editAvatar) editAvatar.src = dataUrl;
+      if (viewAvatar) viewAvatar.src = dataUrl;
+      if (topAvatar) topAvatar.src = dataUrl;
+      saveUserProfile(currentUser.email);
+      closePhotoSheet();
+      showToast('Foto Profil Diperbarui', 'Foto profil Anda berhasil diunggah.');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (inputCameraCapture) {
+    inputCameraCapture.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleProfileImageFile(e.target.files[0]);
       }
-      // Update biodata completion status to true and refresh visibility immediately
-      setUserBiodataStatus(currentUser.email, true);
-      updateUserData(currentUser.name, currentUser.email);
-      biodataModal.classList.add('hidden');
-      showToast('Biodata Tersimpan', 'Informasi profil dan kesehatan Anda telah diperbarui.');
+    });
+  }
+
+  if (inputGalleryPick) {
+    inputGalleryPick.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleProfileImageFile(e.target.files[0]);
+      }
+    });
+  }
+
+  // Toast close button
+  if (btnCloseProfileToast) {
+    btnCloseProfileToast.addEventListener('click', () => {
+      const alertBox = document.getElementById('profile-toast-alert');
+      if (alertBox) alertBox.classList.add('hidden');
+    });
+  }
+
+  // Bottom navigation inside Profil Saya & Edit Profil
+  if (profileNavHome) profileNavHome.addEventListener('click', () => showScreen('home'));
+  if (profileNavStats) profileNavStats.addEventListener('click', () => { showScreen('home'); switchHomeTab('stats'); });
+  if (profileNavSettings) profileNavSettings.addEventListener('click', () => { showScreen('home'); switchHomeTab('settings'); });
+
+  if (editNavHome) editNavHome.addEventListener('click', () => showScreen('home'));
+  if (editNavStats) editNavStats.addEventListener('click', () => { showScreen('home'); switchHomeTab('stats'); });
+  if (editNavSettings) editNavSettings.addEventListener('click', () => { showScreen('home'); switchHomeTab('settings'); });
+
+  // Preview Toolbar Quick Demo Shortcuts
+  if (btnDemoBeranda) btnDemoBeranda.addEventListener('click', () => showScreen('home'));
+  if (btnDemoProfil) btnDemoProfil.addEventListener('click', () => showScreen('profile'));
+  if (btnDemoEdit) btnDemoEdit.addEventListener('click', () => showScreen('edit-profile'));
+  if (btnToggleBiodataDemo) {
+    btnToggleBiodataDemo.addEventListener('click', () => {
+      const curr = getUserBiodataStatus(currentUser.email);
+      setUserBiodataStatus(currentUser.email, !curr);
+      updateReminderBannerVisibility();
+      showToast('Status Biodata Diubah', !curr ? 'Status profil diset menjadi LENGKAP (peringatan hilang)' : 'Status profil diset menjadi BELUM LENGKAP (peringatan muncul)');
     });
   }
 
@@ -2630,11 +3010,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Start the Splash sequence on initial load if splash screen exists
-  if (splashScreen) {
+  // Initial data load
+  loadUserProfile(currentUser.email);
+  updateReminderBannerVisibility();
+
+  // URL Hash Navigation / Direct Route Support
+  const initialHash = (window.location.hash || '').toLowerCase();
+  if (initialHash === '#profile' || initialHash === '#profil') {
+    clearAllTimers();
+    showScreen('profile');
+  } else if (initialHash === '#edit' || initialHash === '#edit-profile') {
+    clearAllTimers();
+    showScreen('edit-profile');
+  } else if (initialHash === '#home' || initialHash === '#beranda') {
+    clearAllTimers();
+    showScreen('home');
+  } else if (splashScreen) {
     runSplashAnimation();
   } else if (document.getElementById('tab-content-settings')) {
     switchSettingsSubpage('main');
   }
+
+  // Window hashchange listener
+  window.addEventListener('hashchange', () => {
+    const h = (window.location.hash || '').toLowerCase();
+    if (h === '#profile' || h === '#profil') showScreen('profile');
+    else if (h === '#edit' || h === '#edit-profile') showScreen('edit-profile');
+    else if (h === '#home' || h === '#beranda') showScreen('home');
+  });
 });
 
