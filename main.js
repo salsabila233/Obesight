@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const adminDash = document.getElementById('admin-dashboard-screen');
   const profileScreen = document.getElementById('profile-screen');
   const editProfileScreen = document.getElementById('edit-profile-screen');
+  const articleListScreen = document.getElementById('article-list-screen');
+  const articleDetailScreen = document.getElementById('article-detail-screen');
   const photoSheetBackdrop = document.getElementById('photo-sheet-backdrop');
   const cancelModalBackdrop = document.getElementById('modal-cancel-edit-backdrop');
   const statusBar = document.getElementById('phone-status-bar');
@@ -27,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const frameToggleLabel = document.getElementById('frame-toggle-label');
   const viewportWrapper = document.getElementById('viewport-wrapper');
   const btnDemoBeranda = document.getElementById('btn-demo-beranda');
+  const btnDemoArticles = document.getElementById('btn-demo-articles');
   const btnDemoProfil = document.getElementById('btn-demo-profil');
   const btnDemoEdit = document.getElementById('btn-demo-edit');
   const btnToggleBiodataDemo = document.getElementById('btn-toggle-biodata-demo');
@@ -461,10 +464,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  let previousScreenForArticle = 'home';
+
   function showScreen(screenName) {
     // Hide subpage overlays
     if (profileScreen) profileScreen.classList.add('hidden');
     if (editProfileScreen) editProfileScreen.classList.add('hidden');
+    if (articleListScreen) articleListScreen.classList.add('hidden');
+    if (articleDetailScreen) articleDetailScreen.classList.add('hidden');
     if (photoSheetBackdrop) photoSheetBackdrop.classList.add('hidden');
     if (cancelModalBackdrop) cancelModalBackdrop.classList.add('hidden');
 
@@ -494,6 +501,29 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editProfileScreen) editProfileScreen.classList.remove('hidden');
       if (statusBar) statusBar.classList.remove('dark-text');
       renderUserProfileUI();
+    } else if (screenName === 'article-list' || screenName === 'articles') {
+      if (splashScreen) splashScreen.style.display = 'none';
+      if (authScreen) authScreen.classList.add('hidden');
+      if (adminDash) adminDash.classList.add('hidden');
+      if (userDash) userDash.classList.add('hidden');
+      if (articleListScreen) {
+        articleListScreen.classList.remove('hidden');
+        const scrollContainer = document.getElementById('article-list-scroll-container');
+        if (scrollContainer) scrollContainer.scrollTop = 0;
+      }
+      if (statusBar) statusBar.classList.remove('dark-text');
+      renderArticleCards();
+    } else if (screenName === 'article-detail') {
+      if (splashScreen) splashScreen.style.display = 'none';
+      if (authScreen) authScreen.classList.add('hidden');
+      if (adminDash) adminDash.classList.add('hidden');
+      if (userDash) userDash.classList.add('hidden');
+      if (articleDetailScreen) {
+        articleDetailScreen.classList.remove('hidden');
+        const scrollContainer = document.getElementById('article-detail-scroll-view');
+        if (scrollContainer) scrollContainer.scrollTop = 0;
+      }
+      if (statusBar) statusBar.classList.remove('dark-text');
     }
     updateDemoBadge();
   }
@@ -2958,91 +2988,856 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Artikel Kesehatan Modal Handlers
+  // ========================================================
+  // HEALTH ARTICLES COMPREHENSIVE DATA ENGINE (8 ARTIKEL KESEHATAN)
+  // ========================================================
   const articlesData = {
     1: {
-      category: 'PANDUAN GIZI',
-      title: '5 Pola Makan Sehat Cegah Obesitas',
-      heroBg: 'linear-gradient(135deg, #7E96AC, #4A6572)',
-      content: `
-        <p>Menerapkan pola makan sehat merupakan fondasi utama dalam mencegah dan mengendalikan obesitas. Berikut adalah 5 prinsip utama yang direkomendasikan dokter spesialis gizi:</p><br>
-        <p><strong>1. Perbanyak Asupan Serat Alami:</strong> Konsumsi sayuran berdaun hijau dan buah utuh setiap kali makan untuk menjaga rasa kenyang lebih lama.</p><br>
-        <p><strong>2. Batasi Gula, Garam, dan Lemak (GGL):</strong> Ikuti anjuran Kemenkes: maksimal 4 sdm gula, 1 sdt garam, dan 5 sdm lemak per hari.</p><br>
-        <p><strong>3. Jangan Lewatkan Sarapan Bergizi:</strong> Pilih sarapan kaya protein seperti telur atau oatmeal untuk menstabilkan gula darah sepanjang hari.</p><br>
-        <p><strong>4. Minum Air Putih Cukup:</strong> Minum 2 liter air putih sehari dan hindari minuman berpemanis dalam kemasan.</p><br>
-        <p><strong>5. Mindful Eating:</strong> Makan secara perlahan tanpa terdistraksi gawai agar otak dapat mendeteksi sinyal kenyang tepat waktu.</p>
-      `
+      id: 1,
+      title: '5 Pola Makan Penyebab Obesitas',
+      category: 'Pola Makan & Nutrisi',
+      snippet: 'Kenali Kebiasaan makan yang tanpa disadari meningkatkan resiko berat badan berlebih',
+      author: 'Dr. Hendra Wijaya, Sp.GK',
+      date: '21 September 2026',
+      readTime: '4 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#7E96AC" />
+          <circle cx="65" cy="46" r="34" fill="#F8FAFC" />
+          <!-- Snack Table & Fastfood Illustration matching Mockup -->
+          <rect x="30" y="65" width="70" height="18" rx="4" fill="#CBD5E1" />
+          <!-- Fast food cup & burger -->
+          <rect x="42" y="52" width="12" height="16" rx="2" fill="#EF4444" />
+          <line x1="48" y1="46" x2="48" y2="52" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Burger -->
+          <ellipse cx="65" cy="58" rx="13" ry="5" fill="#EAB308" />
+          <ellipse cx="65" cy="62" rx="13" ry="4" fill="#78350F" />
+          <ellipse cx="65" cy="65" rx="14" ry="5" fill="#EAB308" />
+          <!-- Person eating -->
+          <circle cx="85" cy="38" r="8" fill="#FCD34D" />
+          <path d="M76 56C76 48 83 46 85 46C87 46 94 48 94 56Z" fill="#3B82F6" />
+          <!-- Overlay badge text -->
+          <rect x="6" y="6" width="118" height="22" rx="4" fill="#3B536B" fill-opacity="0.9" />
+          <text x="65" y="16" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">5 Pola Makan</text>
+          <text x="65" y="24" fill="#93C5FD" font-size="6.5" font-family="Poppins" font-weight="600" text-anchor="middle">Penyebab Obesitas</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad1)" />
+          <defs>
+            <linearGradient id="heroGrad1" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#4A6572" />
+              <stop offset="0.6" stop-color="#344955" />
+              <stop offset="1" stop-color="#232F34" />
+            </linearGradient>
+          </defs>
+          <circle cx="330" cy="90" r="80" fill="#FFFFFF" fill-opacity="0.08" />
+          <circle cx="70" cy="180" r="110" fill="#FFFFFF" fill-opacity="0.05" />
+          <!-- Healthy bowl vs Junk food elements -->
+          <g transform="translate(140, 45)">
+            <rect width="120" height="90" rx="16" fill="#FFFFFF" fill-opacity="0.92" filter="drop-shadow(0 6px 16px rgba(0,0,0,0.15))" />
+            <!-- Plate -->
+            <ellipse cx="60" cy="48" rx="40" ry="24" fill="#F1F5F9" />
+            <!-- Veggies & Healthy Bowl -->
+            <path d="M35 48C35 34 50 30 60 30C70 30 85 34 85 48Z" fill="#16A34A" />
+            <circle cx="48" cy="42" r="5" fill="#EF4444" />
+            <circle cx="72" cy="42" r="4.5" fill="#F59E0B" />
+            <circle cx="60" cy="38" r="4" fill="#84CC16" />
+            <text x="60" y="74" fill="#0F172A" font-size="9" font-family="Poppins" font-weight="700" text-anchor="middle">PANDUAN POLA MAKAN</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Banyak orang tidak menyadari bahwa kenaikan berat badan berlebih dan obesitas sering kali bukan disebabkan oleh porsi makan yang besar semata, melainkan kebiasaan atau pola makan harian yang salah dan dilakukan berulang-ulang tanpa disadari.</p>
+        
+        <h3>1. Konsumsi Minuman Manis & Tinggi Gula Tersembunyi</h3>
+        <p>Minuman kemasan, boba, kopi susu dengan sirup, soda, dan jus buah olahan mengandung kadar gula cair (fruktosa) yang sangat tinggi. Gula cair diserap tubuh dengan cepat tanpa memberikan rasa kenyang pada lambung, sehingga kalori berlebih langsung disimpan menjadi lemak visceral.</p>
+
+        <h3>2. Makan Terburu-buru (Mindless Eating)</h3>
+        <p>Otak membutuhkan waktu sekitar 15 hingga 20 menit sejak suapan pertama untuk menerima sinyal rasa kenyang dari hormon leptin di saluran pencernaan. Makan terburu-buru sambil menatap layar ponsel atau televisi membuat kita mengonsumsi 30-50% lebih banyak kalori sebelum otak menyadari bahwa tubuh sudah kenyang.</p>
+
+        <div class="article-callout-quote">
+          "Mengunyah makanan secara perlahan (20-30 kali kunyah per suapan) terbukti klinis membantu kerja enzim pencernaan dan mengurangi asupan kalori harian secara alami." — <strong>Dr. Hendra Wijaya, Sp.GK</strong>
+        </div>
+
+        <h3>3. Melewatkan Sarapan Bergizi</h3>
+        <p>Melewatkan sarapan sering memicu rasa lapar ekstrem saat jam makan siang. Akibatnya, seseorang cenderung memilih makanan padat karbohidrat sederhana dan lemak tinggi dengan porsi dobel karena penurunan kadar gula darah yang drastis di pagi hari.</p>
+
+        <h3>4. Kebiasaan Mengudap Larut Malam (Late-Night Snacking)</h3>
+        <p>Makan camilan tinggi garam dan gula setelah jam 8 malam saat tubuh minim aktivitas fisik menyebabkan kalori tidak terpakai sebagai energi, melainkan langsung diubah menjadi cadangan lemak tubuh saat tidur.</p>
+
+        <h3>5. Emotional Eating saat Stres</h3>
+        <p>Saat mengalami stres kerja atau emosional, hormon kortisol meningkat dan memicu rasa ngidam makanan manis atau berlemak (comfort food) sebagai mekanisme pelarian sementara.</p>
+
+        <div class="article-nutrition-tip-box">
+          <div class="tip-box-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B45309" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Tips Praktis Perubahan Kebiasaan:</span>
+          </div>
+          <p class="tip-box-desc">Ganti camilan manis dengan buah segar utuh (seperti apel atau pir) dan selalu minum segelas air putih 15 menit sebelum waktu makan utama.</p>
+        </div>
+      `,
+      takeaways: [
+        'Hindari kalori cair dari minuman manis dan bersoda.',
+        'Makan secara perlahan dan nikmati setiap suapan tanpa distraksi gadget.',
+        'Jaga jam makan tetap teratur untuk menstabilkan hormon lapar dan kenyang.',
+        'Kenali pemicu emosional sebelum memutuskan untuk mengambil camilan.'
+      ],
+      relatedIds: [3, 4, 2]
     },
+
     2: {
-      category: 'PANDUAN KEMENKES',
-      title: 'Porsi Piring Gizi Seimbang Kemenkes',
-      heroBg: 'linear-gradient(135deg, #E5BD87, #D97706)',
-      content: `
-        <p>Konsep <strong>Isi Piringku</strong> dari Kementerian Kesehatan RI membagi satu piring makan menjadi 4 bagian ideal:</p><br>
-        <p>• <strong>1/3 Piring Makanan Pokok:</strong> Sumber karbohidrat kompleks seperti nasi merah, jagung, atau ubi jalar.</p><br>
-        <p>• <strong>1/3 Piring Sayuran:</strong> Beraneka ragam sayur kaya vitamin, mineral, dan antioksidan.</p><br>
-        <p>• <strong>1/6 Piring Lauk Pauk:</strong> Sumber protein hewani atau nabati rendah lemak seperti ikan, tempe, tahu, atau ayam tanpa kulit.</p><br>
-        <p>• <strong>1/6 Piring Buah-buahan:</strong> Buah segar seperti pepaya, pisang, jeruk, atau apel sebagai camilan sehat.</p>
-      `
+      id: 2,
+      title: 'Obesitas Bukan Sekadar Masalah Penampilan',
+      category: 'Edukasi Kesehatan',
+      snippet: 'Pola hidup sehat sangat bermanfaat dimasa depan untuk mencegah risiko penyakit metabolik.',
+      author: 'dr. Nurul Aisyah, M.Kes',
+      date: '20 September 2026',
+      readTime: '5 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#E5BD87" />
+          <!-- Body Comparison & Healthy Icons matching Mockup -->
+          <circle cx="45" cy="48" r="28" fill="#FDF8F0" />
+          <!-- Woman Plus Silhouette -->
+          <ellipse cx="45" cy="42" rx="14" ry="18" fill="#D97706" fill-opacity="0.85" />
+          <circle cx="45" cy="22" r="6.5" fill="#B45309" />
+          <!-- Woman Slim Silhouette -->
+          <ellipse cx="88" cy="42" rx="9" ry="18" fill="#16A34A" fill-opacity="0.85" />
+          <circle cx="88" cy="22" r="6" fill="#15803D" />
+          <!-- Floating Veggies & Pizza -->
+          <circle cx="22" cy="22" r="7" fill="#EF4444" fill-opacity="0.3" />
+          <circle cx="108" cy="22" r="7" fill="#22C55E" fill-opacity="0.3" />
+          <rect x="6" y="68" width="118" height="20" rx="4" fill="#92400E" fill-opacity="0.85" />
+          <text x="65" y="81" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">MASA DEPAN SEHAT</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad2)" />
+          <defs>
+            <linearGradient id="heroGrad2" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#D97706" />
+              <stop offset="0.6" stop-color="#B45309" />
+              <stop offset="1" stop-color="#78350F" />
+            </linearGradient>
+          </defs>
+          <circle cx="310" cy="110" r="90" fill="#FFFFFF" fill-opacity="0.1" />
+          <circle cx="90" cy="50" r="60" fill="#FFFFFF" fill-opacity="0.06" />
+          <g transform="translate(130, 45)">
+            <rect width="140" height="90" rx="16" fill="#FFFFFF" fill-opacity="0.95" filter="drop-shadow(0 6px 16px rgba(0,0,0,0.2))" />
+            <!-- Health Vital Heart & Metric -->
+            <path d="M70 60C62 52 48 45 48 35C48 27 54 22 62 22C67 22 71 25 73 28C75 25 79 22 84 22C92 22 98 27 98 35C98 45 84 52 76 60L73 63L70 60Z" fill="#DC2626" />
+            <text x="70" y="76" fill="#78350F" font-size="9" font-family="Poppins" font-weight="700" text-anchor="middle">KESEHATAN ORGAN VITAL</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Stigma yang sering berkembang di masyarakat menganggap obesitas hanya sekadar persoalan estetika atau ukuran pakaian. Padahal secara medis, Organisasi Kesehatan Dunia (WHO) telah mengkategorikan obesitas sebagai penyakit kronis progresif yang kompleks.</p>
+
+        <h3>Dampak Obesitas pada Organ Dalam Tubuh</h3>
+        <p>Ketika lemak tubuh menumpuk secara berlebih, sel-sel lemak (adiposit) tidak hanya pasif menyimpan energi, melainkan aktif melepaskan zat sitokin pro-inflamasi yang menyebabkan peradangan kronis tingkat rendah di seluruh pembuluh darah dan organ:</p>
+
+        <ul>
+          <li><strong>Jantung & Pembuluh Darah:</strong> Beban kerja jantung meningkat untuk memompa darah ke jaringan tubuh yang lebih besar, memicu hipertensi dan aterosklerosis.</li>
+          <li><strong>Pankreas & Resistensi Insulin:</strong> Lemak visceral mengganggu reseptor insulin, memicu lonjakan gula darah dan Diabetes Melitus Tipe 2.</li>
+          <li><strong>Hati (Fatty Liver):</strong> Penumpukan lemak pada sel hati dapat berkembang menjadi peradangan hati (NASH) hingga sirosis.</li>
+          <li><strong>Sendi & Tulang:</strong> Sendi penopang berat badan seperti lutut dan pinggul mengalami keausan tulang rawan lebih cepat (Osteoartritis).</li>
+        </ul>
+
+        <div class="article-callout-quote">
+          "Menurunkan hanya 5-10% dari total berat badan berlebih sudah terbukti secara klinis mampu menurunkan tekanan darah, kadar kolesterol jahat (LDL), dan resistensi insulin secara signifikan."
+        </div>
+
+        <h3>Pentingnya Mengetahui IMT dan Lingkar Perut</h3>
+        <p>Selain Indeks Massa Tubuh (IMT), lingkar perut adalah indikator krusial lemak visceral. Batas aman lingkar perut untuk orang Asia adalah &le; 90 cm untuk pria dan &le; 80 cm untuk wanita.</p>
+      `,
+      takeaways: [
+        'Obesitas adalah kondisi medis metabolik, bukan sekadar masalah penampilan luar.',
+        'Penurunan berat badan bertahap (5-10%) memberikan proteksi kardiovaskular luar biasa.',
+        'Rutin ukur lingkar perut dan cek profil lipid darah secara berkala.'
+      ],
+      relatedIds: [5, 1, 4]
     },
+
     3: {
-      category: 'EDUKASI GIZI',
-      title: 'Isi Piringku: Pedoman Gizi Sehari-hari',
-      heroBg: 'linear-gradient(135deg, #58B29C, #0F766E)',
-      content: `
-        <p>Makan sehat tidak harus rumit atau mahal. Memahami keseimbangan nutrisi makro (karbohidrat, protein, lemak) dan mikro (vitamin, mineral) dalam menu sehari-hari membantu mengoptimalkan metabolisme dan menjaga berat badan tetap stabil.</p><br>
-        <p>Jadwalkan jam makan teratur dan kombinasikan dengan camilan sehat di antara waktu makan utama untuk mencegah makan berlebih saat malam hari.</p>
-      `
+      id: 3,
+      title: 'Isi Piringku: Cara Sederhana Mengatur Porsi Makan',
+      category: 'Panduan Kemenkes',
+      snippet: 'Konsep 4 Sehat 5 Sempurna vs Isi Piringku untuk panduan porsi gizi seimbang harian.',
+      author: 'Kementerian Kesehatan RI',
+      date: '19 September 2026',
+      readTime: '4 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#F472B6" />
+          <circle cx="65" cy="48" r="30" fill="#FFFFFF" />
+          <!-- Plate 4 quadrants -->
+          <path d="M65 48 L65 20 A28 28 0 0 1 93 48 Z" fill="#22C55E" />
+          <path d="M65 48 L93 48 A28 28 0 0 1 65 76 Z" fill="#F59E0B" />
+          <path d="M65 48 L65 76 A28 28 0 0 1 37 48 Z" fill="#EAB308" />
+          <path d="M65 48 L37 48 A28 28 0 0 1 65 20 Z" fill="#EC4899" />
+          <circle cx="65" cy="48" r="6" fill="#FFFFFF" />
+          <!-- Spoon illustration -->
+          <ellipse cx="110" cy="48" rx="4" ry="12" fill="#E2E8F0" />
+          <line x1="110" y1="60" x2="110" y2="78" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round" />
+          <rect x="6" y="6" width="118" height="20" rx="4" fill="#9D174D" fill-opacity="0.9" />
+          <text x="65" y="19" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">ISI PIRINGKU</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad3)" />
+          <defs>
+            <linearGradient id="heroGrad3" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#0F766E" />
+              <stop offset="0.6" stop-color="#0D9488" />
+              <stop offset="1" stop-color="#14B8A6" />
+            </linearGradient>
+          </defs>
+          <circle cx="80" cy="80" r="70" fill="#FFFFFF" fill-opacity="0.08" />
+          <circle cx="320" cy="140" r="90" fill="#FFFFFF" fill-opacity="0.08" />
+          <g transform="translate(130, 35)">
+            <rect width="140" height="110" rx="18" fill="#FFFFFF" fill-opacity="0.95" filter="drop-shadow(0 6px 18px rgba(0,0,0,0.15))" />
+            <circle cx="70" cy="55" r="36" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2" />
+            <path d="M70 55 L70 21 A34 34 0 0 1 104 55 Z" fill="#22C55E" />
+            <path d="M70 55 L104 55 A34 34 0 0 1 70 89 Z" fill="#F59E0B" />
+            <path d="M70 55 L70 89 A34 34 0 0 1 36 55 Z" fill="#EAB308" />
+            <path d="M70 55 L36 55 A34 34 0 0 1 70 21 Z" fill="#06B6D4" />
+            <circle cx="70" cy="55" r="8" fill="#FFFFFF" />
+            <text x="70" y="100" fill="#0F766E" font-size="8.5" font-family="Poppins" font-weight="700" text-anchor="middle">PEDOMAN GIZI SEIMBANG</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Sebagai pengganti slogan lama "4 Sehat 5 Sempurna", Kementerian Kesehatan Republik Indonesia kini menggalakkan pedoman visual baru bertajuk <strong>"Isi Piringku"</strong>. Pedoman ini menitikberatkan pada proporsi porsi setiap kelompok makanan dalam satu piring makan sekali saji.</p>
+
+        <h3>Pembagian 4 Kuadran Isi Piringku:</h3>
+        <ul>
+          <li><strong>1/3 Piring Makanan Pokok:</strong> Karbohidrat kompleks seperti nasi merah, jagung, kentang rebus, atau ubi jalar yang kaya serat dan memperlambat lonjakan insulin.</li>
+          <li><strong>1/3 Piring Sayur-Mayur:</strong> Berbagai jenis sayuran hijau dan berwarna seperti bayam, brokoli, wortel, dan buncis yang kaya vitamin, mineral, dan fitonutrien.</li>
+          <li><strong>1/6 Piring Lauk-Pauk:</strong> Sumber protein berkualitas rendah lemak jenuh seperti ikan laut, tempe, tahu, dada ayam tanpa kulit, atau telur rebus.</li>
+          <li><strong>1/6 Piring Buah-Buahan:</strong> Buah segar utuh seperti pepaya, pisang, apel, jeruk, atau melon sebagai sumber antioksidan alami.</li>
+        </ul>
+
+        <div class="article-nutrition-tip-box">
+          <div class="tip-box-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#B45309" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Batasan Konsumsi GGL (Gula, Garam, Lemak) per Hari:</span>
+          </div>
+          <p class="tip-box-desc"><strong>G4 - G1 - L5:</strong> Maksimal 4 sendok makan Gula (50 gram), 1 sendok teh Garam (5 gram / 2000 mg natrium), dan 5 sendok makan Lemak/Minyak (67 gram) per orang per hari.</p>
+        </div>
+
+        <h3>Kebiasaan Pelengkap yang Wajib Diterapkan:</h3>
+        <p>1. Cuci tangan pakai sabun dengan air mengalir sebelum makan.<br>
+        2. Minum air putih minimal 8 gelas (2 liter) setiap hari.<br>
+        3. Lakukan aktivitas fisik minimal 30 menit setiap hari.</p>
+      `,
+      takeaways: [
+        'Separuh piring diisi oleh sayuran dan buah-buahan (kaya serat dan mikronutrien).',
+        'Separuh piring lainnya dibagi seimbang antara karbohidrat kompleks dan lauk protein.',
+        'Patuhi anjuran G4-G1-L5 untuk membatasi risiko hipertensi dan obesitas.'
+      ],
+      relatedIds: [1, 4, 6]
     },
+
     4: {
-      category: 'GAYA HIDUP AKTIF',
+      id: 4,
+      title: 'Cegah Obesitas dengan Pola Hidup Sehat',
+      category: 'Gaya Hidup Sehat',
+      snippet: 'Kenali kebiasaan sederhana yang dapat menjaga berat badan ideal dan tubuh bugar.',
+      author: 'Tim Medis ObeSight',
+      date: '18 September 2026',
+      readTime: '4 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#86EFAC" />
+          <!-- Active Lifestyle Graphic matching Mockup -->
+          <circle cx="65" cy="46" r="32" fill="#F0FDF4" />
+          <!-- Runner girl silhouette -->
+          <circle cx="65" cy="30" r="5" fill="#15803D" />
+          <path d="M62 38L68 44L63 54L71 64M59 47L54 57M68 44L76 49" stroke="#15803D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <!-- Running shoe & fruit icon -->
+          <circle cx="34" cy="32" r="7" fill="#22C55E" />
+          <circle cx="96" cy="32" r="7" fill="#3B82F6" />
+          <rect x="6" y="68" width="118" height="20" rx="4" fill="#166534" />
+          <text x="65" y="81" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">POLA HIDUP SEHAT</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad4)" />
+          <defs>
+            <linearGradient id="heroGrad4" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#166534" />
+              <stop offset="0.6" stop-color="#15803D" />
+              <stop offset="1" stop-color="#22C55E" />
+            </linearGradient>
+          </defs>
+          <circle cx="90" cy="110" r="80" fill="#FFFFFF" fill-opacity="0.08" />
+          <circle cx="320" cy="60" r="70" fill="#FFFFFF" fill-opacity="0.08" />
+          <g transform="translate(130, 45)">
+            <rect width="140" height="90" rx="16" fill="#FFFFFF" fill-opacity="0.95" filter="drop-shadow(0 6px 16px rgba(0,0,0,0.15))" />
+            <!-- Active Person Icon -->
+            <circle cx="70" cy="40" r="10" fill="#22C55E" />
+            <path d="M50 72C50 58 60 54 70 54C80 54 90 58 90 72Z" fill="#15803D" />
+            <text x="70" y="78" fill="#14532D" font-size="9" font-family="Poppins" font-weight="700" text-anchor="middle">AKTIF & BUGAR</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Mencegah obesitas tidak memerlukan langkah ekstrem atau diet ketat yang menyiksa. Kunci utama keberhasilan terletak pada konsistensi menerapkan 5 pilar kebiasaan sehat dalam kehidupan sehari-hari.</p>
+
+        <h3>5 Pilar Pencegahan Obesitas:</h3>
+        <p><strong>1. Tingkatkan Aktivitas Fisik Harian (NEAT):</strong> Usahakan jalan kaki minimal 7.000 hingga 10.000 langkah setiap hari. Gunakan tangga ketimbang lift dan luangkan waktu berdiri setiap 45 menit duduk.</p>
+        
+        <p><strong>2. Olahraga Aerobik & Latihan Beban:</strong> Kombinasikan latihan kardio (jogging, bersepeda, senam) 150 menit per minggu dengan latihan kekuatan otot 2 kali seminggu untuk meningkatkan massa otot dan laju metabolisme basal (BMR).</p>
+        
+        <p><strong>3. Kualitas Tidur yang Terjaga:</strong> Tidur malam cukup selama 7-8 jam membantu meregulasi hormon leptin (penekan nafsu makan) dan menurunkan hormon ghrelin (pemicu lapar).</p>
+        
+        <p><strong>4. Manajemen Stres yang Efektif:</strong> Praktikkan teknik pernapasan dalam, yoga, meditasi, atau hobi santai untuk mencegah lonjakan kortisol yang memicu penumpukan lemak di area perut.</p>
+
+        <p><strong>5. Pemantauan Berkala (Self-Monitoring):</strong> Gunakan fitur monitoring ObeSight untuk mencatat asupan, aktivitas fisik, dan perkembangan berat badan secara teratur.</p>
+      `,
+      takeaways: [
+        'Konsistensi kebiasaan kecil jauh lebih efektif daripada diet ketat sementara.',
+        'Kombinasikan kardio dengan latihan beban untuk metabolisme optimal.',
+        'Tidur cukup 7-8 jam dan kelola stres dengan baik.'
+      ],
+      relatedIds: [6, 1, 3]
+    },
+
+    5: {
+      id: 5,
+      title: 'Obesitas Sebagai Pemicu Komplikasi',
+      category: 'Klinis & Medis',
+      snippet: 'Memahami bagaimana resistensi insulin dan peradangan kronis memicu berbagai komplikasi kesehatan.',
+      author: 'Dr. Hendra Wijaya, Sp.GK',
+      date: '17 September 2026',
+      readTime: '5 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#94A3B8" />
+          <!-- Medical & Heart Monitor Graphic matching Mockup -->
+          <circle cx="65" cy="48" r="30" fill="#F8FAFC" />
+          <!-- ECG line & heart -->
+          <path d="M42 48H52L56 36L62 60L68 42L72 52L76 48H88" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="6" y="6" width="118" height="20" rx="4" fill="#334155" />
+          <text x="65" y="19" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">PEMICU KOMPLIKASI</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad5)" />
+          <defs>
+            <linearGradient id="heroGrad5" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#334155" />
+              <stop offset="0.6" stop-color="#1E293B" />
+              <stop offset="1" stop-color="#0F172A" />
+            </linearGradient>
+          </defs>
+          <circle cx="330" cy="110" r="90" fill="#FFFFFF" fill-opacity="0.06" />
+          <g transform="translate(130, 45)">
+            <rect width="140" height="90" rx="16" fill="#FFFFFF" fill-opacity="0.95" filter="drop-shadow(0 6px 16px rgba(0,0,0,0.25))" />
+            <!-- Stethoscope & Shield -->
+            <path d="M70 30L90 40V60C90 75 70 85 70 85C70 85 50 75 50 60V40L70 30Z" fill="#38BDF8" fill-opacity="0.2" stroke="#0284C7" stroke-width="2" />
+            <path d="M62 55L68 61L78 51" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            <text x="70" y="78" fill="#0F172A" font-size="8.5" font-family="Poppins" font-weight="700" text-anchor="middle">DETEKSI DINI KOMPLIKASI</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Obesitas merupakan faktor risiko utama (independen) terhadap berkembangnya sindrom metabolik dan berbagai penyakit tidak menular (PTM) yang dapat menurunkan kualitas serta harapan hidup seseorang.</p>
+
+        <h3>Rantai Komplikasi Akibat Obesitas:</h3>
+        <p><strong>1. Diabetes Melitus Tipe 2:</strong> Penumpukan asam lemak bebas dalam darah menurunkan sensitivitas reseptor insulin pada otot dan hati. Hal ini memaksa pankreas memproduksi lebih banyak insulin hingga akhirnya mengalami kelelahan sel beta.</p>
+
+        <p><strong>2. Penyakit Jantung Koroner & Stroke:</strong> Kadar kolesterol LDL dan trigliserida yang tinggi memicu pembentukan plak aterosklerosis di dinding arteri, menyumbat aliran darah ke jantung dan otak.</p>
+
+        <p><strong>3. Obstructive Sleep Apnea (OSA):</strong> Penumpukan jaringan lemak di sekitar saluran pernapasan atas menyebabkan penyempitan jalan napas saat tidur, memicu dengkuran keras dan henti napas sesaat yang berbahaya.</p>
+
+        <p><strong>4. Gangguan Kesehatan Mental:</strong> Tekanan sosial dan penurunan mobilitas fisik sering memicu kecemasan, penurunan rasa percaya diri, dan depresi.</p>
+      `,
+      takeaways: [
+        'Komplikasi obesitas bersifat sistemik dan menyerang banyak organ vital.',
+        'Lakukan skrining risiko secara dini untuk intervensi sebelum komplikasi permanen.',
+        'Konsultasikan dengan dokter spesialis gizi untuk penanganan terstruktur.'
+      ],
+      relatedIds: [2, 1, 4]
+    },
+
+    6: {
+      id: 6,
+      title: 'Yuk, Kenali Pola Hidup Sehat untuk Cegah Obesitas',
+      category: 'Artikel Unggulan',
+      snippet: 'Temukan informasi risiko obesitas berdasarkan pola hidup dan kebiasaan sehari-hari.',
+      author: 'Tim Ahli Gizi & Medis ObeSight',
+      date: '21 September 2026',
+      readTime: '6 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#D4F1E4" />
+          <circle cx="65" cy="48" r="30" fill="#FFFFFF" />
+          <circle cx="65" cy="40" r="14" fill="#2E6B4F" />
+          <circle cx="85" cy="30" r="7" fill="#84CC16" />
+          <rect x="6" y="68" width="118" height="20" rx="4" fill="#2E6B4F" />
+          <text x="65" y="81" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">ARTIKEL UNGGULAN</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad6)" />
+          <defs>
+            <linearGradient id="heroGrad6" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#2E6B4F" />
+              <stop offset="0.6" stop-color="#1B4D36" />
+              <stop offset="1" stop-color="#0E2E1F" />
+            </linearGradient>
+          </defs>
+          <circle cx="340" cy="120" r="90" fill="#FFFFFF" fill-opacity="0.08" />
+          <circle cx="60" cy="60" r="60" fill="#FFFFFF" fill-opacity="0.05" />
+          <g transform="translate(120, 35)">
+            <rect width="160" height="110" rx="18" fill="#FFFFFF" fill-opacity="0.95" filter="drop-shadow(0 8px 22px rgba(0,0,0,0.2))" />
+            <!-- Star & Apple Ribbon -->
+            <circle cx="80" cy="48" r="24" fill="#E8F5EE" />
+            <circle cx="80" cy="48" r="14" fill="#22C55E" />
+            <text x="80" y="94" fill="#143728" font-size="9.5" font-family="Poppins" font-weight="700" text-anchor="middle">PANDUAN LENGKAP OBESIGHT</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Mencegah obesitas berakar dari kesadaran diri terhadap pola hidup yang dijalani setiap hari. Mulai dari apa yang Anda konsumsi di meja makan, berapa lama Anda bergerak, hingga bagaimana Anda beristirahat di malam hari—semuanya saling terhubung dalam menjaga keseimbangan energi tubuh.</p>
+
+        <h3>Kenali Sinyal Tubuh Anda</h3>
+        <p>Banyak dari kita terbiasa makan karena dorongan visual, aroma, atau kebiasaan jam tertentu, bukan karena rasa lapar fisiologis. Belajarlah membedakan rasa lapar fisik (yang timbul bertahap dan terasa di lambung) dengan lapar emosional (yang datang mendadak dan menuntut makanan tertentu seperti manis atau asin).</p>
+
+        <h3>Langkah Memulai Hidup Sehat Tanpa Beban:</h3>
+        <ul>
+          <li><strong>Mulai dari Air Putih:</strong> Ganti semua minuman berpemanis dengan air putih. Menghilangkan 1 botol soda per hari dapat memotong hingga 50.000 kalori dalam setahun.</li>
+          <li><strong>Jadwalkan Waktu Bergerak:</strong> Tidak perlu langsung ke gym berat. Cukup jalan cepat 30 menit setiap pagi atau sore.</li>
+          <li><strong>Siapkan Makanan Sendiri (Meal Prep):</strong> Memasak sendiri memberi Anda kendali penuh atas takaran minyak, garam, dan gula.</li>
+        </ul>
+      `,
+      takeaways: [
+        'Pola hidup sehat adalah perjalanan jangka panjang, bukan perlombaan kilat.',
+        'Fokus pada pembentukan kebiasaan baru yang berkelanjutan dan menyenangkan.',
+        'Gunakan aplikasi ObeSight untuk memantau kemajuan Anda setiap hari.'
+      ],
+      relatedIds: [1, 3, 4]
+    },
+
+    7: {
+      id: 7,
+      title: 'Pentingnya Kualitas Tidur untuk Metabolisme',
+      category: 'Gaya Hidup Sehat',
+      snippet: 'Kurang tidur mengacaukan hormon ghrelin dan leptin yang memicu nafsu makan berlebih.',
+      author: 'dr. Nurul Aisyah, M.Kes',
+      date: '16 September 2026',
+      readTime: '3 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#6366F1" />
+          <circle cx="65" cy="48" r="30" fill="#EEF2FF" />
+          <!-- Moon & Bed Icon -->
+          <path d="M72 32C64 32 58 38 58 46C58 54 64 60 72 60C76 60 80 58 82 55C75 55 69 49 69 42C69 37 72 33 76 32C74.5 32 73.2 32 72 32Z" fill="#4F46E5" />
+          <rect x="6" y="68" width="118" height="20" rx="4" fill="#3730A3" />
+          <text x="65" y="81" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">KUALITAS TIDUR</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad7)" />
+          <defs>
+            <linearGradient id="heroGrad7" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#3730A3" />
+              <stop offset="0.6" stop-color="#4F46E5" />
+              <stop offset="1" stop-color="#6366F1" />
+            </linearGradient>
+          </defs>
+          <circle cx="320" cy="110" r="80" fill="#FFFFFF" fill-opacity="0.1" />
+          <g transform="translate(130, 45)">
+            <rect width="140" height="90" rx="16" fill="#FFFFFF" fill-opacity="0.95" filter="drop-shadow(0 6px 16px rgba(0,0,0,0.2))" />
+            <path d="M70 28C62 28 56 34 56 42C56 50 62 56 70 56C74 56 78 54 80 51C73 51 67 45 67 38C67 33 70 29 74 28Z" fill="#4F46E5" />
+            <text x="70" y="76" fill="#312E81" font-size="9" font-family="Poppins" font-weight="700" text-anchor="middle">TIDUR & METABOLISME</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Banyak program penurunan berat badan gagal karena mengabaikan faktor tidur. Kurang tidur kronis (< 6 jam per malam) mengganggu keseimbangan dua hormon pengatur nafsu makan utama:</p>
+        <ul>
+          <li><strong>Hormon Ghrelin Meningkat:</strong> Hormon yang memberi sinyal lapar pada otak meningkat hingga 15-20%.</li>
+          <li><strong>Hormon Leptin Menurun:</strong> Hormon yang memberi sinyal kenyang menurun, membuat Anda selalu merasa ingin makan.</li>
+        </ul>
+        <p>Selain itu, kurang tidur meningkatkan hormon kortisol yang mendorong tubuh menimbun lemak di area perut dan menurunkan sensitivitas insulin.</p>
+      `,
+      takeaways: [
+        'Tidur 7-8 jam per malam adalah bagian krusial dari pencegahan obesitas.',
+        'Hindari penggunaan ponsel 30 menit sebelum tidur untuk kualitas tidur nyenyak.'
+      ],
+      relatedIds: [4, 1, 6]
+    },
+
+    8: {
+      id: 8,
       title: 'Aktivitas Fisik Ringan Pembakar Kalori',
-      heroBg: 'linear-gradient(135deg, #818CF8, #4338CA)',
-      content: `
-        <p>Aktivitas fisik tidak selalu berarti harus ke gym atau mengangkat beban berat. Rutinitas sederhana yang konsisten memberikan dampak besar:</p><br>
-        <p>• Jalan kaki cepat 30 menit setiap hari membakar hingga 150-200 kalori.</p><br>
-        <p>• Gunakan tangga daripada lift untuk melatih otot kaki dan kardiovaskular.</p><br>
-        <p>• Peregangan ringan setiap 1 jam duduk saat bekerja mencegah penumpukan lemak visceral.</p>
-      `
+      category: 'Kebugaran & Olahraga',
+      snippet: 'Aktivitas fisik tidak selalu harus berat, konsistensi jalan kaki dan peregangan harian efektif membakar energi.',
+      author: 'Fisioterapis ObeSight',
+      date: '15 September 2026',
+      readTime: '4 Menit Baca',
+      thumbSvg: `
+        <svg viewBox="0 0 130 95" fill="none" width="100%" height="100%">
+          <rect width="130" height="95" rx="10" fill="#38BDF8" />
+          <circle cx="65" cy="48" r="30" fill="#F0F9FF" />
+          <circle cx="65" cy="30" r="5" fill="#0284C7" />
+          <path d="M62 38L68 44L63 54L71 64M59 47L54 57M68 44L76 49" stroke="#0284C7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="6" y="68" width="118" height="20" rx="4" fill="#0369A1" />
+          <text x="65" y="81" fill="#FFFFFF" font-size="7.5" font-family="Poppins" font-weight="700" text-anchor="middle">AKTIVITAS FISIK</text>
+        </svg>
+      `,
+      heroSvg: `
+        <svg viewBox="0 0 400 220" fill="none" width="100%" height="100%">
+          <rect width="400" height="220" fill="url(#heroGrad8)" />
+          <defs>
+            <linearGradient id="heroGrad8" x1="0" y1="0" x2="400" y2="220" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#0284C7" />
+              <stop offset="0.6" stop-color="#0369A1" />
+              <stop offset="1" stop-color="#075985" />
+            </linearGradient>
+          </defs>
+          <circle cx="320" cy="110" r="80" fill="#FFFFFF" fill-opacity="0.1" />
+          <g transform="translate(130, 45)">
+            <rect width="140" height="90" rx="16" fill="#FFFFFF" fill-opacity="0.95" filter="drop-shadow(0 6px 16px rgba(0,0,0,0.2))" />
+            <circle cx="70" cy="36" r="8" fill="#0284C7" />
+            <path d="M60 66C60 52 70 48 70 48C70 48 80 52 80 66Z" fill="#0369A1" />
+            <text x="70" y="78" fill="#075985" font-size="9" font-family="Poppins" font-weight="700" text-anchor="middle">PEMBAKAR KALORI</text>
+          </g>
+        </svg>
+      `,
+      contentHtml: `
+        <p>Banyak orang mengira pembakaran kalori hanya terjadi saat berolahraga intens di gym. Faktanya, porsi terbesar energi harian di luar metabolisme basal dihabiskan melalui <strong>NEAT (Non-Exercise Activity Thermogenesis)</strong>—yaitu semua gerakan fisik selain tidur, makan, dan olahraga terstruktur.</p>
+
+        <h3>Contoh Aktivitas NEAT yang Efektif:</h3>
+        <ul>
+          <li>Memilih naik tangga daripada eskalator membakar 5-10 kalori per menit.</li>
+          <li>Membersihkan rumah dan menyapu selama 30 menit membakar hingga 100 kalori.</li>
+          <li>Berjalan saat menerima panggilan telepon menambah ratusan langkah tanpa terasa.</li>
+          <li>Peregangan ringan setiap jam kerja melancarkan peredaran darah dan mencegah kekakuan otot.</li>
+        </ul>
+      `,
+      takeaways: [
+        'Aktivitas bergerak sederhana sepanjang hari memberikan dampak kumulatif besar.',
+        'Jangan duduk diam lebih dari 60 menit berturut-turut.'
+      ],
+      relatedIds: [4, 6, 1]
     }
   };
 
-  const articleModal = document.getElementById('article-modal-backdrop');
-  const btnCloseArticleModal = document.getElementById('btn-close-article-modal');
+  // Article DOM elements
+  const articleCardsListContainer = document.getElementById('article-cards-list');
+  const inputArticleSearch = document.getElementById('input-article-search');
+  const btnClearArticleSearch = document.getElementById('btn-clear-article-search');
+  const articleEmptySearch = document.getElementById('article-empty-search');
+  const emptySearchQuery = document.getElementById('empty-search-query');
+  const btnResetSearch = document.getElementById('btn-reset-search');
+  const bannerFeaturedArticle = document.getElementById('banner-featured-article');
+
+  const btnBackFromArticleList = document.getElementById('btn-back-from-article-list');
+  const btnBackFromArticleDetail = document.getElementById('btn-back-from-article-detail');
+  const btnHeroFloatingBack = document.getElementById('btn-hero-floating-back');
+  const articleDetailScrollView = document.getElementById('article-detail-scroll-view');
+  const articleDetailStickyBar = document.getElementById('article-detail-sticky-bar');
+  const articleDetailStickyTitle = document.getElementById('article-detail-sticky-title');
+  const heroCanvasArt = document.getElementById('hero-canvas-art');
+  const articleDetailHeroCanvas = document.getElementById('article-detail-hero-canvas');
+
+  const btnBookmarkArticle = document.getElementById('btn-bookmark-article');
+  const btnShareArticle = document.getElementById('btn-share-article');
   const btnSeeAllArticles = document.getElementById('btn-see-all-articles');
-  const articleCards = document.querySelectorAll('.article-card');
+  const homeHorizontalArticleCards = document.querySelectorAll('.articles-horizontal-scroll .article-card');
 
-  function openArticleModal(id) {
-    const data = articlesData[id] || articlesData[1];
-    const catEl = document.getElementById('article-modal-category');
-    const titleEl = document.getElementById('article-modal-title');
-    const heroEl = document.getElementById('article-modal-hero');
-    const textEl = document.getElementById('article-modal-content-text');
+  // Bottom Navigation on Article List Screen
+  const articleNavHome = document.getElementById('article-nav-home');
+  const articleNavStats = document.getElementById('article-nav-stats');
+  const articleNavSettings = document.getElementById('article-nav-settings');
 
-    if (catEl) catEl.textContent = data.category;
-    if (titleEl) titleEl.textContent = data.title;
-    if (heroEl) heroEl.style.background = data.heroBg;
-    if (textEl) textEl.innerHTML = data.content;
+  let currentActiveArticleId = 1;
 
-    if (articleModal) articleModal.classList.remove('hidden');
+  /**
+   * Render Article Cards into List with Filter Query
+   */
+  function renderArticleCards(query = '') {
+    if (!articleCardsListContainer) return;
+
+    const cleanQuery = query.trim().toLowerCase();
+    const allArticleList = Object.values(articlesData);
+
+    const filtered = allArticleList.filter(art => {
+      if (!cleanQuery) return true;
+      const matchTitle = (art.title || '').toLowerCase().includes(cleanQuery);
+      const matchSnippet = (art.snippet || '').toLowerCase().includes(cleanQuery);
+      const matchCategory = (art.category || '').toLowerCase().includes(cleanQuery);
+      return matchTitle || matchSnippet || matchCategory;
+    });
+
+    if (filtered.length === 0) {
+      articleCardsListContainer.innerHTML = '';
+      if (articleEmptySearch) {
+        articleEmptySearch.classList.remove('hidden');
+        if (emptySearchQuery) emptySearchQuery.textContent = query;
+      }
+      return;
+    }
+
+    if (articleEmptySearch) articleEmptySearch.classList.add('hidden');
+
+    articleCardsListContainer.innerHTML = filtered.map(art => `
+      <div class="article-item-card" data-article-id="${art.id}" role="button" tabindex="0">
+        <div class="article-card-thumb-col">
+          ${art.thumbSvg}
+        </div>
+        <div class="article-card-info-col">
+          <div class="article-card-info-top">
+            <h4 class="article-card-title">${art.title}</h4>
+            <p class="article-card-snippet">${art.snippet}</p>
+          </div>
+          <div class="article-card-info-bottom">
+            <button type="button" class="btn-article-more" data-article-id="${art.id}">
+              <span>Selengkapnya</span>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Attach click listeners to each card and Selengkapnya button
+    const cardElements = articleCardsListContainer.querySelectorAll('.article-item-card');
+    cardElements.forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-article-id');
+        openArticleDetail(id, 'article-list');
+      });
+    });
+
+    const moreButtons = articleCardsListContainer.querySelectorAll('.btn-article-more');
+    moreButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-article-id');
+        openArticleDetail(id, 'article-list');
+      });
+    });
   }
 
-  articleCards.forEach(card => {
+  /**
+   * Open Article Detail Screen with Animation & Formatted Body
+   */
+  function openArticleDetail(articleId, sourceScreen = 'article-list') {
+    const art = articlesData[articleId] || articlesData[1];
+    currentActiveArticleId = art.id;
+    previousScreenForArticle = sourceScreen;
+
+    // Populate Detail Screen Elements
+    if (heroCanvasArt) heroCanvasArt.innerHTML = art.heroSvg;
+    const catEl = document.getElementById('article-detail-category');
+    if (catEl) catEl.textContent = art.category;
+    const readTimeEl = document.getElementById('article-detail-readtime');
+    if (readTimeEl) readTimeEl.textContent = `⏱️ ${art.readTime}`;
+    const mainTitleEl = document.getElementById('article-detail-main-title');
+    if (mainTitleEl) mainTitleEl.textContent = art.title;
+    if (articleDetailStickyTitle) articleDetailStickyTitle.textContent = art.title;
+    const authorEl = document.getElementById('article-detail-author');
+    if (authorEl) authorEl.textContent = art.author;
+    const dateEl = document.getElementById('article-detail-date');
+    if (dateEl) dateEl.textContent = art.date;
+    const bodyEl = document.getElementById('article-detail-body-content');
+    if (bodyEl) bodyEl.innerHTML = art.contentHtml;
+
+    // Takeaways list
+    const takeawaysList = document.getElementById('article-takeaways-list');
+    if (takeawaysList && art.takeaways) {
+      takeawaysList.innerHTML = art.takeaways.map(item => `<li>${item}</li>`).join('');
+    }
+
+    // Related Articles grid
+    const relatedGrid = document.getElementById('related-articles-grid');
+    if (relatedGrid) {
+      const relIds = art.relatedIds || [1, 2, 3];
+      relatedGrid.innerHTML = relIds.map(rid => {
+        const rArt = articlesData[rid];
+        if (!rArt) return '';
+        return `
+          <div class="related-mini-card" data-rel-id="${rArt.id}" role="button" tabindex="0">
+            <span class="related-mini-title">${rArt.title}</span>
+            <div class="related-mini-chevron">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      relatedGrid.querySelectorAll('.related-mini-card').forEach(item => {
+        item.addEventListener('click', () => {
+          const targetId = item.getAttribute('data-rel-id');
+          openArticleDetail(targetId, sourceScreen);
+        });
+      });
+    }
+
+    // Reset sticky header & floating button states
+    if (articleDetailStickyBar) articleDetailStickyBar.classList.remove('visible');
+    if (btnHeroFloatingBack) btnHeroFloatingBack.classList.remove('hidden-fade');
+    if (articleDetailHeroCanvas) articleDetailHeroCanvas.style.transform = 'translateY(0px)';
+
+    // Show Detail Screen
+    showScreen('article-detail');
+  }
+
+  // Live Search Input Listener
+  if (inputArticleSearch) {
+    inputArticleSearch.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (btnClearArticleSearch) {
+        btnClearArticleSearch.classList.toggle('hidden', !val);
+      }
+      renderArticleCards(val);
+    });
+  }
+
+  if (btnClearArticleSearch) {
+    btnClearArticleSearch.addEventListener('click', () => {
+      if (inputArticleSearch) {
+        inputArticleSearch.value = '';
+        inputArticleSearch.focus();
+      }
+      btnClearArticleSearch.classList.add('hidden');
+      renderArticleCards('');
+    });
+  }
+
+  if (btnResetSearch) {
+    btnResetSearch.addEventListener('click', () => {
+      if (inputArticleSearch) inputArticleSearch.value = '';
+      if (btnClearArticleSearch) btnClearArticleSearch.classList.add('hidden');
+      renderArticleCards('');
+    });
+  }
+
+  // Top Featured Banner Click -> Open Article 6 (Yuk, Kenali Pola Hidup Sehat untuk Cegah Obesitas)
+  if (bannerFeaturedArticle) {
+    bannerFeaturedArticle.addEventListener('click', () => {
+      openArticleDetail(6, 'article-list');
+    });
+  }
+
+  // Article Detail Parallax and Sticky Header Scroll Listener
+  if (articleDetailScrollView) {
+    articleDetailScrollView.addEventListener('scroll', () => {
+      const st = articleDetailScrollView.scrollTop;
+
+      // Parallax smooth translation on hero banner
+      if (articleDetailHeroCanvas) {
+        if (st >= 0 && st < 220) {
+          articleDetailHeroCanvas.style.transform = `translateY(${st * 0.35}px)`;
+        }
+      }
+
+      // Transition sticky header bar & floating back button
+      if (st > 110) {
+        if (articleDetailStickyBar) articleDetailStickyBar.classList.add('visible');
+        if (btnHeroFloatingBack) btnHeroFloatingBack.classList.add('hidden-fade');
+      } else {
+        if (articleDetailStickyBar) articleDetailStickyBar.classList.remove('visible');
+        if (btnHeroFloatingBack) btnHeroFloatingBack.classList.remove('hidden-fade');
+      }
+    });
+  }
+
+  // Back Navigation Handlers
+  if (btnBackFromArticleList) {
+    btnBackFromArticleList.addEventListener('click', () => {
+      showScreen('home');
+    });
+  }
+
+  if (btnBackFromArticleDetail) {
+    btnBackFromArticleDetail.addEventListener('click', () => {
+      showScreen(previousScreenForArticle || 'article-list');
+    });
+  }
+
+  if (btnHeroFloatingBack) {
+    btnHeroFloatingBack.addEventListener('click', () => {
+      showScreen(previousScreenForArticle || 'article-list');
+    });
+  }
+
+  // Connect Home screen "SELENGKAPNYA" button to Article List screen
+  if (btnSeeAllArticles) {
+    btnSeeAllArticles.addEventListener('click', () => {
+      showScreen('article-list');
+    });
+  }
+
+  // Connect Horizontal Article Cards on Home Screen to Detail Screen
+  homeHorizontalArticleCards.forEach(card => {
     card.addEventListener('click', () => {
       const id = card.getAttribute('data-article-id') || '1';
-      openArticleModal(id);
+      openArticleDetail(id, 'home');
     });
   });
 
-  if (btnSeeAllArticles) {
-    btnSeeAllArticles.addEventListener('click', () => {
-      openArticleModal(1);
+  // Preview Toolbar Shortcut
+  if (btnDemoArticles) {
+    btnDemoArticles.addEventListener('click', () => {
+      showScreen('article-list');
     });
   }
 
-  if (btnCloseArticleModal && articleModal) {
-    btnCloseArticleModal.addEventListener('click', () => {
-      articleModal.classList.add('hidden');
+  // Bottom Navigation on Article List Screen
+  if (articleNavHome) {
+    articleNavHome.addEventListener('click', () => showScreen('home'));
+  }
+  if (articleNavStats) {
+    articleNavStats.addEventListener('click', () => {
+      showScreen('home');
+      switchHomeTab('stats');
+    });
+  }
+  if (articleNavSettings) {
+    articleNavSettings.addEventListener('click', () => {
+      showScreen('home');
+      switchHomeTab('settings');
+    });
+  }
+
+  // Share & Bookmark Toast Actions
+  if (btnShareArticle) {
+    btnShareArticle.addEventListener('click', () => {
+      const art = articlesData[currentActiveArticleId] || articlesData[1];
+      if (navigator.share) {
+        navigator.share({
+          title: art.title,
+          text: art.snippet,
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        navigator.clipboard?.writeText(window.location.href);
+        showToast('Tautan Disalin', `Tautan artikel "${art.title}" berhasil disalin ke papan klip.`);
+      }
+    });
+  }
+
+  if (btnBookmarkArticle) {
+    btnBookmarkArticle.addEventListener('click', () => {
+      const art = articlesData[currentActiveArticleId] || articlesData[1];
+      showToast('Artikel Disimpan', `Artikel "${art.title}" telah ditambahkan ke daftar bacaan.`);
     });
   }
 
@@ -3101,6 +3896,9 @@ document.addEventListener('DOMContentLoaded', () => {
   } else if (initialHash === '#edit' || initialHash === '#edit-profile') {
     clearAllTimers();
     showScreen('edit-profile');
+  } else if (initialHash === '#articles' || initialHash === '#artikel' || initialHash === '#daftar-artikel') {
+    clearAllTimers();
+    showScreen('article-list');
   } else if (initialHash === '#home' || initialHash === '#beranda') {
     clearAllTimers();
     showScreen('home');
@@ -3115,6 +3913,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const h = (window.location.hash || '').toLowerCase();
     if (h === '#profile' || h === '#profil') showScreen('profile');
     else if (h === '#edit' || h === '#edit-profile') showScreen('edit-profile');
+    else if (h === '#articles' || h === '#artikel' || h === '#daftar-artikel') showScreen('article-list');
     else if (h === '#home' || h === '#beranda') showScreen('home');
   });
 });

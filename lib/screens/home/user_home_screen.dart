@@ -4,6 +4,8 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../auth/login_screen.dart';
+import 'health_article_list_screen.dart';
+import 'health_article_detail_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   final UserModel user;
@@ -1378,7 +1380,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => _showArticleDetail(articles[0]['title'] as String, articles[0]['content'] as String),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const HealthArticleListScreen(),
+                  ),
+                );
+              },
               child: Row(
                 children: [
                   Text(
