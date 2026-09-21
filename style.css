@@ -4405,18 +4405,41 @@ body.theme-dark .help-contact-value {
    PROGRESS SUITE (LANDING, RECOMMENDATION, DETAIL, TIMER)
    ======================================================== */
 
-/* Unified Progress Header */
+/* Unified Progress Header & Subview Layout */
+#monitoring-subpage-progress {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #529A7B;
+  overflow: hidden;
+}
+
+.progress-subview {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-subview.hidden {
+  display: none !important;
+}
+
 .progress-custom-header {
-  height: 56px;
   background: #529A7B;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 46px 16px 14px 16px; /* clears phone notch and status bar */
   position: sticky;
   top: 0;
   z-index: 20;
   color: #FFFFFF;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .btn-progress-back {
@@ -4452,9 +4475,11 @@ body.theme-dark .help-contact-value {
 }
 
 .progress-custom-body {
-  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 95px 16px;
   background: #FAFCFA;
-  min-height: calc(100% - 56px);
   box-sizing: border-box;
 }
 
@@ -4850,26 +4875,11 @@ body.theme-dark .help-contact-value {
   object-fit: cover;
 }
 
-/* Card HIIT Compact */
-.rec-activity-card.card-hiit-compact {
-  padding: 14px 14px;
-}
-
-.rec-activity-icon-left-box {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  background: #E8F5EE;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.hiit-icon-img {
-  width: 32px;
-  height: 32px;
+.rec-title-icon-img {
+  width: 18px;
+  height: 18px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .rec-activity-main {
@@ -4880,7 +4890,7 @@ body.theme-dark .help-contact-value {
 .rec-activity-title-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
@@ -4933,46 +4943,64 @@ body.theme-dark .help-contact-value {
 }
 
 /* ========================================================
-   DETAIL AKTIVITAS STYLES
+   DETAIL AKTIVITAS STYLES (SCROLLABLE FULL-VIEWPORT)
    ======================================================== */
 
-.activity-detail-viewport {
-  position: relative;
-  min-height: 100%;
+#progress-subview-detail {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: #FFFFFF;
+}
+
+.activity-detail-viewport {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
 }
 
 .activity-detail-hero-box {
   width: 100%;
-  height: 230px;
+  height: 250px;
   position: relative;
   overflow: hidden;
   background: #2D3748;
+  flex-shrink: 0;
 }
 
 .activity-detail-hero-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 25%;
   display: block;
 }
 
 .btn-detail-hero-back {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 46px; /* clears notch and status bar */
+  left: 16px;
   width: 38px;
   height: 38px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
   cursor: pointer;
-  z-index: 10;
+  z-index: 15;
   transition: transform 0.15s ease, background 0.15s ease;
 }
 
@@ -4983,7 +5011,7 @@ body.theme-dark .help-contact-value {
 
 .activity-hero-badge-overlay {
   position: absolute;
-  bottom: 26px;
+  bottom: 30px;
   left: 16px;
   display: flex;
   align-items: center;
@@ -5011,12 +5039,13 @@ body.theme-dark .help-contact-value {
 }
 
 .activity-detail-sheet {
-  margin-top: -20px;
+  margin-top: -24px;
   background: #FFFFFF;
-  border-radius: 22px 22px 0 0;
+  border-radius: 24px 24px 0 0;
   position: relative;
   z-index: 8;
-  padding: 20px 18px 80px 18px;
+  padding: 24px 18px 24px 18px;
+  flex: 1 0 auto;
 }
 
 .detail-section-block {
@@ -5207,18 +5236,13 @@ body.theme-dark .help-contact-value {
 }
 
 .detail-bottom-spacer {
-  height: 30px;
+  height: 20px;
 }
 
 .activity-detail-bottom-bar {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  padding: 14px 18px 48px 18px;
   background: #FFFFFF;
-  padding: 12px 18px;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
-  z-index: 30;
+  flex-shrink: 0;
 }
 
 .btn-detail-mulai {
@@ -5245,47 +5269,71 @@ body.theme-dark .help-contact-value {
 }
 
 /* ========================================================
-   TIMER COUNTDOWN STYLES
+   TIMER COUNTDOWN STYLES (SCROLLABLE & WHEEL PICKER)
    ======================================================== */
 
-.activity-timer-viewport {
-  position: relative;
-  min-height: 100%;
+#progress-subview-timer {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: #FFFFFF;
+}
+
+.activity-timer-viewport {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
 }
 
 .activity-timer-hero-box {
   width: 100%;
-  height: 170px;
+  height: 190px;
   position: relative;
   overflow: hidden;
   background: #2D3748;
+  flex-shrink: 0;
+}
+
+.activity-timer-hero-box .btn-detail-hero-back {
+  top: 46px; /* clears notch */
+  left: 16px;
 }
 
 .activity-timer-hero-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 25%;
   display: block;
 }
 
 .activity-timer-body {
-  margin-top: -16px;
+  margin-top: -20px;
   background: #FFFFFF;
-  border-radius: 20px 20px 0 0;
+  border-radius: 24px 24px 0 0;
   position: relative;
   z-index: 8;
-  padding: 16px 20px 40px 20px;
+  padding: 20px 20px 48px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1 0 auto;
 }
 
 .timer-target-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .timer-target-label {
@@ -5310,7 +5358,7 @@ body.theme-dark .help-contact-value {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 6px 0 20px 0;
+  margin: 4px 0 16px 0;
 }
 
 .timer-progress-svg {
@@ -5345,7 +5393,7 @@ body.theme-dark .help-contact-value {
 
 .timer-num-sub {
   font-family: var(--font-family);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #B8C8C0;
   line-height: 1.2;
@@ -5355,42 +5403,131 @@ body.theme-dark .help-contact-value {
   font-family: var(--font-family);
   font-size: 38px;
   font-weight: 800;
-  color: #222222;
+  color: #1F2937;
   line-height: 1.1;
   letter-spacing: 0.5px;
   margin: 2px 0;
 }
 
-.timer-duration-options {
+/* Vertical Wheel Scroll Picker */
+.timer-picker-section {
+  width: 100%;
+  max-width: 280px;
   display: flex;
-  gap: 14px;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-.timer-duration-btn {
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  border: 1.5px solid #D8DFDB;
+.timer-picker-label {
   font-family: var(--font-family);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #334155;
-  cursor: pointer;
+  color: #529A7B;
+  margin-bottom: 8px;
+  letter-spacing: -0.1px;
+}
+
+.timer-wheel-container {
+  position: relative;
+  width: 100%;
+  height: 126px; /* 3 slots @ 42px */
+  border-radius: 16px;
+  background: #F7FAF8;
+  border: 1px solid #E6EFEA;
+  overflow: hidden;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.timer-wheel-container.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.timer-wheel-highlight-lens {
+  position: absolute;
+  top: 42px;
+  left: 8px;
+  right: 8px;
+  height: 42px;
+  background: rgba(82, 154, 123, 0.12);
+  border-top: 1.5px solid rgba(82, 154, 123, 0.4);
+  border-bottom: 1.5px solid rgba(82, 154, 123, 0.4);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 48px;
+  box-sizing: border-box;
+}
+
+.wheel-unit-label {
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  color: #529A7B;
+}
+
+.timer-wheel-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 42px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.timer-wheel-overlay.top-fade {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(247, 250, 248, 0.95), rgba(247, 250, 248, 0.05));
+}
+
+.timer-wheel-overlay.bottom-fade {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(247, 250, 248, 0.95), rgba(247, 250, 248, 0.05));
+}
+
+.timer-wheel-scroller {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.timer-wheel-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.timer-wheel-spacer {
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.timer-wheel-item {
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.18s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 600;
+  color: #94A3B8;
+  scroll-snap-align: center;
+  cursor: pointer;
+  transition: color 0.15s ease, font-size 0.15s ease, transform 0.15s ease;
 }
 
-.timer-duration-btn.active {
-  border-color: #529A7B;
-  border-width: 2.5px;
-  color: #529A7B;
-  background: #F0F8F4;
-  box-shadow: 0 4px 12px rgba(82, 154, 123, 0.2);
+.timer-wheel-item.active {
+  color: #1A2E26;
+  font-size: 20px;
+  font-weight: 800;
+  transform: scale(1.05);
 }
 
 .timer-play-controls {

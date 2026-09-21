@@ -2291,13 +2291,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ========================================================
-  // TIMER COUNTDOWN ENGINE (100% BEBAS BUG)
+  // TIMER COUNTDOWN ENGINE (SCROLL PICKER & STACKED NUMBERS)
   // ========================================================
-  let timerDurationSec = 0;
-  let remainingSec = 0;
+  const WHEEL_ITEM_HEIGHT = 42;
+  const wheelMinutes = [];
+  for (let m = 5; m <= 90; m++) {
+    wheelMinutes.push(m);
+  }
+
+  let timerDurationSec = 1800; // default 30 menit
+  let remainingSec = 1800;
   let timerInterval = null;
   let isTimerRunning = false;
+  let isWheelPickerInit = false;
   const CIRCLE_CIRCUMFERENCE = 640.88; // 2 * Math.PI * 102
+
+  const timerWheelScroller = document.getElementById('timer-wheel-scroller');
+  const timerWheelContainer = document.getElementById('timer-wheel-container');
 
   function formatMMSS(totalSeconds) {
     const safeSec = Math.max(0, Math.floor(totalSeconds));
@@ -2313,14 +2323,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const circle = document.getElementById('timer-indicator-circle');
     const playIcon = document.getElementById('timer-play-icon');
 
-    if (numMain) {
-      numMain.textContent = formatMMSS(remainingSec);
-    }
+    // Rule 2: Baris atas selalu '59:59', baris bawah selalu '00:00' (batas visual dekoratif)
     if (numTop) {
       numTop.textContent = '59:59';
     }
     if (numBottom) {
-      numBottom.textContent = timerDurationSec > 0 ? formatMMSS(timerDurationSec) : '30:00';
+      numBottom.textContent = '00:00';
+    }
+
+    // Baris tengah (bold, hitam, paling jelas) = durasi terpilih / remaining countdown
+    if (numMain) {
+      const displaySec = isTimerRunning || remainingSec < timerDurationSec ? remainingSec : timerDurationSec;
+      numMain.textContent = formatMMSS(displaySec > 0 ? displaySec : timerDurationSec);
     }
 
     if (circle) {
@@ -2342,28 +2356,96 @@ document.addEventListener('DOMContentLoaded', () => {
         playIcon.innerHTML = '<polygon points="6 4 20 12 6 20 6 4"></polygon>';
       }
     }
+
+    if (timerWheelContainer) {
+      timerWheelContainer.classList.toggle('disabled', isTimerRunning);
+    }
   }
 
-  function selectTimerDuration(durationSec) {
-    if (isTimerRunning) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      isTimerRunning = false;
-    }
-    timerDurationSec = durationSec;
-    remainingSec = durationSec;
+  function initTimerWheelPicker() {
+    if (isWheelPickerInit || !timerWheelScroller) return;
+    isWheelPickerInit = true;
 
-    document.querySelectorAll('.timer-duration-btn').forEach(btn => {
-      const bSec = parseInt(btn.getAttribute('data-duration'), 10);
-      btn.classList.toggle('active', bSec === durationSec);
+    timerWheelScroller.innerHTML = '';
+
+    // Spacer atas agar item pertama bisa tepat berada di tengah
+    const topSpacer = document.createElement('div');
+    topSpacer.className = 'timer-wheel-spacer';
+    timerWheelScroller.appendChild(topSpacer);
+
+    wheelMinutes.forEach(m => {
+      const item = document.createElement('div');
+      item.className = 'timer-wheel-item';
+      item.dataset.minute = String(m);
+      item.textContent = String(m);
+
+      item.addEventListener('click', () => {
+        if (isTimerRunning) return;
+        selectWheelMinute(m, true);
+      });
+
+      timerWheelScroller.appendChild(item);
     });
 
+    // Spacer bawah agar item terakhir bisa tepat berada di tengah
+    const bottomSpacer = document.createElement('div');
+    bottomSpacer.className = 'timer-wheel-spacer';
+    timerWheelScroller.appendChild(bottomSpacer);
+
+    let scrollDebounceTimer = null;
+    timerWheelScroller.addEventListener('scroll', () => {
+      if (isTimerRunning) return;
+
+      const scrollTop = timerWheelScroller.scrollTop;
+      const activeIdx = Math.round(scrollTop / WHEEL_ITEM_HEIGHT);
+      const safeIdx = Math.max(0, Math.min(wheelMinutes.length - 1, activeIdx));
+      const activeMin = wheelMinutes[safeIdx];
+
+      const allItems = timerWheelScroller.querySelectorAll('.timer-wheel-item');
+      allItems.forEach((it, idx) => {
+        it.classList.toggle('active', idx === safeIdx);
+      });
+
+      timerDurationSec = activeMin * 60;
+      remainingSec = timerDurationSec;
+      updateTimerUI();
+
+      // Debounced magnetic alignment snap
+      clearTimeout(scrollDebounceTimer);
+      scrollDebounceTimer = setTimeout(() => {
+        if (!isTimerRunning && timerWheelScroller) {
+          const targetTop = safeIdx * WHEEL_ITEM_HEIGHT;
+          if (Math.abs(timerWheelScroller.scrollTop - targetTop) > 1) {
+            timerWheelScroller.scrollTo({ top: targetTop, behavior: 'smooth' });
+          }
+        }
+      }, 150);
+    });
+  }
+
+  function selectWheelMinute(minute, smooth = true) {
+    initTimerWheelPicker();
+    const idx = wheelMinutes.indexOf(minute);
+    if (idx === -1 || !timerWheelScroller) return;
+
+    timerWheelScroller.scrollTo({
+      top: idx * WHEEL_ITEM_HEIGHT,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+
+    const allItems = timerWheelScroller.querySelectorAll('.timer-wheel-item');
+    allItems.forEach((it, i) => {
+      it.classList.toggle('active', i === idx);
+    });
+
+    timerDurationSec = minute * 60;
+    remainingSec = timerDurationSec;
     updateTimerUI();
   }
 
   function startCountdown() {
-    if (timerDurationSec === 0) {
-      selectTimerDuration(1800); // default ke 30:00 jika belum memilih
+    if (timerDurationSec <= 0) {
+      selectWheelMinute(30, false);
     }
     if (remainingSec <= 0) {
       remainingSec = timerDurationSec;
@@ -2439,23 +2521,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetVal = document.getElementById('timer-target-duration-val');
     if (targetVal) targetVal.textContent = act.targetText;
 
-    // Reset ke kondisi awal 00:00 paused
+    // Reset ke kondisi awal paused
     pauseCountdown();
-    timerDurationSec = 0;
-    remainingSec = 0;
-    document.querySelectorAll('.timer-duration-btn').forEach(b => b.classList.remove('active'));
-    updateTimerUI();
 
+    initTimerWheelPicker();
+
+    // Default durasi berdasarkan rekomendasi aktivitas (misal HIIT 20 menit, yang lain 30 menit)
+    const defaultMin = activityId === 'hiit' ? 20 : 30;
+    setTimeout(() => {
+      selectWheelMinute(defaultMin, false);
+    }, 50);
+
+    updateTimerUI();
     showProgressSubView('timer');
   }
-
-  // Duration Options buttons (30:00, 45:00, 60:00)
-  document.querySelectorAll('.timer-duration-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const dur = parseInt(btn.getAttribute('data-duration'), 10);
-      if (dur) selectTimerDuration(dur);
-    });
-  });
 
   // Play / Pause Toggle button
   const btnTimerPlayToggle = document.getElementById('btn-timer-play-toggle');
