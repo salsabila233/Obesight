@@ -303,6 +303,9 @@ body {
 /* ========================================================
    1. SPLASH SCREEN LAYER & STAGED ANIMATIONS
    ======================================================== */
+/* ========================================================
+   1. SPLASH SCREEN (5 TAHAP ANIMASI MULUS OBESIGHT)
+   ======================================================== */
 .splash-screen {
   position: absolute;
   inset: 0;
@@ -311,7 +314,9 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
+  user-select: none;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .splash-screen.fade-out {
@@ -320,197 +325,183 @@ body {
   pointer-events: none;
 }
 
-/* Initial Green Background layer (Figma #529A7B) */
-.splash-green-bg {
+/* --- LAPISAN LATAR BELAKANG --- */
+/* Tahap 1: Latar Hijau Tua Khas ObeSight (#529A7B) */
+.splash-bg-green {
   position: absolute;
   inset: 0;
-  background-color: var(--color-splash-green);
+  background-color: var(--color-splash-green, #529A7B);
   z-index: 1;
-}
-
-/* Expanding White Ellipse */
-.splash-white-ellipse {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  background-color: #ffffff;
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  z-index: 2;
   opacity: 1;
-  transform-origin: center center;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Stage 2: Ellipse Zoom In / Expand */
-.splash-screen.stage-ellipse .splash-white-ellipse {
-  animation: ellipseZoomIn 1.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-@keyframes ellipseZoomIn {
-  0% {
-    transform: translate(-50%, -50%) scale(0.1);
-    opacity: 0.9;
-  }
-
-  40% {
-    opacity: 1;
-  }
-
-  100% {
-    transform: translate(-50%, -50%) scale(22);
-    opacity: 1;
-  }
-}
-
-/* Splash Branding Container (holds Logo and Text) */
-.splash-brand-container {
+/* Tahap 2, 3, 4, 5: Latar Putih Bersih (#FFFFFF) */
+.splash-bg-white {
   position: absolute;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 120px;
-}
-
-/* Splash Logo Wrapper */
-.splash-logo-wrapper {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(0.6);
+  inset: 0;
+  background-color: #ffffff;
+  z-index: 2;
   opacity: 0;
-  width: 96px;
-  height: 96px;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Kontrol Opacity Background Berdasarkan Tahap */
+.splash-screen.stage-1 .splash-bg-green {
+  opacity: 1;
+}
+.splash-screen.stage-1 .splash-bg-white {
+  opacity: 0;
+}
+
+.splash-screen.stage-2 .splash-bg-green,
+.splash-screen.stage-3 .splash-bg-green,
+.splash-screen.stage-4 .splash-bg-green,
+.splash-screen.stage-5 .splash-bg-green {
+  opacity: 0;
+}
+
+.splash-screen.stage-2 .splash-bg-white,
+.splash-screen.stage-3 .splash-bg-white,
+.splash-screen.stage-4 .splash-bg-white,
+.splash-screen.stage-5 .splash-bg-white {
+  opacity: 1;
+}
+
+/* --- KONTAINER UTAMA: LOGO & TULISAN PAS DI TENGAH LAYAR --- */
+.splash-brand-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+  /* Transisi posisi grup agar saat teks melebar, seluruh kesatuan tetap tepat di tengah layar */
+  transition: transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
+}
+
+/* --- BOX LOGO OBESIGHT (TRANSISI SKALA SUPER SMOOTH) --- */
+.splash-logo-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  will-change: transform, opacity;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  transform-origin: center center;
+  /* Kurva cubic-bezier (0.25, 1, 0.35, 1) memberikan transisi pembesaran dan pengecilan yang sangat halus dan mengalir */
+  transition: transform 1.1s cubic-bezier(0.25, 1, 0.35, 1),
+              filter 0.95s cubic-bezier(0.25, 1, 0.35, 1);
+  will-change: transform, filter;
 }
 
 .splash-logo-img {
-  width: 96px;
-  height: 96px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  border-radius: 50%;
-  filter: drop-shadow(0 8px 18px rgba(0, 135, 74, 0.18));
+  display: block;
 }
 
-/* Stage 1 initial small logo on green background (Image 1 in Figma) */
-.splash-screen.stage-init .splash-logo-wrapper {
-  opacity: 0.95;
-  transform: translate(-50%, -50%) scale(0.55);
-}
-
-/* Stage 3: Logo Fade-In 2 Seconds (Matching Figma specs) */
-.splash-screen.stage-logo-fadein .splash-logo-wrapper {
-  animation: logoFadeInCenter 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes logoFadeInCenter {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.75);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
-  }
-
-  50% {
-    opacity: 0.8;
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-    filter: drop-shadow(0 10px 22px rgba(0, 135, 74, 0.2));
-  }
-}
-
-/* Stage 4: Logo Shifts to the Left */
-.splash-screen.stage-logo-shift .splash-logo-wrapper {
-  animation: logoShiftToLeft 0.85s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
-}
-
-@keyframes logoShiftToLeft {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-
-  100% {
-    opacity: 1;
-    /* Shifts left: center was 50%, shift left by 72px so text fits on right */
-    transform: translate(calc(-50% - 68px), -50%) scale(0.92);
-  }
-}
-
-/* Splash Text Wrapper */
-.splash-text-wrapper {
-  position: absolute;
-  left: calc(50% - 10px);
-  top: 50%;
-  transform: translateY(-50%);
+/* --- BOX TEKS MEREK "ObeSight" (TIDAK AKAN KEPOTONG) --- */
+.splash-text-box {
+  max-width: 0;
   opacity: 0;
-  pointer-events: none;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-left: 0;
+  padding: 0;
+  transform: translateX(24px);
+  /* Transisi reveal teks yang anggun dan bebas kliping */
+  transition: max-width 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              padding 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.splash-brand-title {
+  font-family: var(--font-family, 'Poppins', sans-serif);
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--color-primary, #00874A);
+  letter-spacing: -0.3px;
+  display: inline-block;
+  line-height: 1.25;
+  vertical-align: middle;
+  padding-right: 10px; /* Jarak aman agar huruf 't' dan ekor huruf tidak pernah terpotong */
   white-space: nowrap;
 }
 
-.splash-brand-text {
-  font-size: 34px;
-  font-weight: 800;
-  color: var(--color-primary);
-  letter-spacing: -0.5px;
-  display: inline-block;
+/* ========================================================
+   SPESIFIKASI 5 TAHAP VISUAL (SESUAI URUTAN GAMBAR REFERENSI)
+   ======================================================== */
+
+/* --- TAHAP 1 (Gambar 4): Latar Hijau (#529A7B) & Logo Kecil di Tengah --- */
+.splash-screen.stage-1 .splash-logo-box {
+  transform: scale(0.68);
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
 }
-
-/* Stage 5: Text Reveals next to Logo */
-.splash-screen.stage-text-reveal .splash-text-wrapper {
-  animation: textSlideReveal 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes textSlideReveal {
-  0% {
-    opacity: 0;
-    transform: translateY(-50%) translateX(16px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
-}
-
-/* Skip Splash Button */
-.btn-skip-splash {
-  position: absolute;
-  bottom: 30px;
-  right: 24px;
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  z-index: 20;
+.splash-screen.stage-1 .splash-text-box {
+  max-width: 0;
   opacity: 0;
-  transition: all 0.3s ease;
+  margin-left: 0;
+  padding: 0;
+  transform: translateX(24px);
 }
 
-.splash-screen.stage-logo-fadein .btn-skip-splash,
-.splash-screen.stage-logo-shift .btn-skip-splash,
-.splash-screen.stage-text-reveal .btn-skip-splash {
-  opacity: 0.8;
+/* --- TAHAP 2 (Gambar 3): Latar Putih & Logo Sedang Pas di Tengah Layar --- */
+.splash-screen.stage-2 .splash-logo-box {
+  transform: scale(1.0);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.03));
+}
+.splash-screen.stage-2 .splash-text-box {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  padding: 0;
+  transform: translateX(24px);
 }
 
-.btn-skip-splash:hover {
+/* --- TAHAP 3 (Gambar 5): Zoom-In Besar Dramatis di Tengah Layar --- */
+.splash-screen.stage-3 .splash-logo-box {
+  transform: scale(1.88);
+  filter: drop-shadow(0 14px 26px rgba(0, 135, 74, 0.15));
+}
+.splash-screen.stage-3 .splash-text-box {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  padding: 0;
+  transform: translateX(24px);
+}
+
+/* --- TAHAP 4 (Gambar 2): Scale Down Kembali & Jeda Singkat dengan Subtle Drop Shadow --- */
+.splash-screen.stage-4 .splash-logo-box {
+  transform: scale(1.0);
+  filter: drop-shadow(0 10px 22px rgba(22, 101, 52, 0.22)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+}
+.splash-screen.stage-4 .splash-text-box {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  padding: 0;
+  transform: translateX(24px);
+}
+
+/* --- TAHAP 5 (Gambar 1): Logo & Tulisan ObeSight Berdampingan, Pas di Tengah Layar --- */
+.splash-screen.stage-5 .splash-logo-box {
+  transform: scale(0.92);
+  filter: drop-shadow(0 10px 22px rgba(22, 101, 52, 0.22)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+}
+.splash-screen.stage-5 .splash-text-box {
+  max-width: 280px; /* Ruang sangat longgar agar tidak terpotong */
   opacity: 1;
-  background: rgba(0, 135, 74, 0.1);
-  color: var(--color-primary);
+  margin-left: 14px;
+  padding: 4px 10px 6px 0; /* Ruang atas bawah untuk descender huruf 'g' */
+  transform: translateX(0);
 }
 
 /* ========================================================
@@ -1010,15 +1001,48 @@ body {
   background: linear-gradient(135deg, #10B981, #059669);
 }
 
+.avatar-blue {
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+}
+
 .google-acc-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+}
+
+.acc-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .acc-name {
   font-size: 13px;
   font-weight: 700;
   color: var(--color-text-main);
+}
+
+.acc-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+}
+
+.badge-user {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+}
+
+.badge-admin {
+  background: #DBEAFE;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
 }
 
 .acc-email {
@@ -1039,6 +1063,98 @@ body {
   font-weight: 600;
   cursor: pointer;
   padding: 8px 16px;
+}
+
+/* Google Real OAuth Modal Styles */
+.google-security-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.google-security-notice .notice-icon {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.google-security-notice .notice-text {
+  font-size: 11.5px;
+  color: #166534;
+  line-height: 1.45;
+}
+
+.field-helper-info {
+  display: block;
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+.field-helper-info code {
+  background: #F1F5F9;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 10.5px;
+  color: #0F172A;
+}
+
+.google-modal-btn-row {
+  margin-top: 14px;
+  margin-bottom: 10px;
+}
+
+.demo-google-box {
+  background: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.demo-google-label {
+  display: block;
+  font-size: 11px;
+  color: #64748B;
+  margin-bottom: 8px;
+}
+
+.btn-demo-google-prompt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid #94A3B8;
+  border-radius: var(--radius-sm);
+  color: #1E293B;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-demo-google-prompt:hover {
+  background: #F1F5F9;
+  border-color: #64748B;
+}
+
+.profile-avatar-img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #2D6A4F;
 }
 
 /* ========================================================

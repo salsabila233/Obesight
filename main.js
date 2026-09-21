@@ -121,20 +121,38 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * Run Splash Animation Sequence
-   * 1. Initial State: Green background (#529A7B), small logo centered
-   * 2. White Ellipse zooms in from center
-   * 3. Center Logo Fade-in
-   * 4. Logo shifts smoothly to the left
-   * 5. Brand text "ObeSight" reveals beside logo
-   * 6. Transition to Login Screen
+   * Set Specific Splash Screen Stage (1 - 5)
+   */
+  function setSplashStage(stageNum) {
+    if (!splashScreen) return;
+    splashScreen.className = `splash-screen stage-${stageNum}`;
+    splashScreen.style.display = 'flex';
+
+    // Status bar text color: light on stage 1 (green bg), dark on stages 2-5 (white bg)
+    if (statusBar) {
+      if (stageNum === 1) {
+        statusBar.classList.remove('dark-text');
+      } else {
+        statusBar.classList.add('dark-text');
+      }
+    }
+  }
+
+  /**
+   * Run Splash Animation Sequence (5 Tahap Mulus Sesuai Urutan Gambar)
+   * 1. Tahap 1 (Gambar 4): Latar Hijau Tua (#529A7B) + Logo Kecil di Tengah
+   * 2. Tahap 2 (Gambar 3): Latar Putih Bersih + Logo Ukuran Sedang Pas di Tengah
+   * 3. Tahap 3 (Gambar 5): Zoom-in Membesar Dramatis Menampilkan Logo ObeSight Besar di Tengah
+   * 4. Tahap 4 (Gambar 2): Logo Scale Down Kembali ke Ukuran Lencana + Jeda Singkat & Subtle Drop Shadow
+   * 5. Tahap 5 (Gambar 1): Teks "ObeSight" Muncul di Kanan Logo (Horizontal), Keduanya Pas di Tengah Layar
+   * 6. Transisi Mulus ke Layar Login Utama
    */
   function runSplashAnimation() {
     clearAllTimers();
 
     // Reset visual states
-    splashScreen.className = 'splash-screen stage-init';
     splashScreen.style.display = 'flex';
+    splashScreen.classList.remove('fade-out');
     authScreen.classList.add('hidden');
     if (registerScreen) registerScreen.classList.add('hidden');
     if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
@@ -142,41 +160,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (forgotResetScreen) forgotResetScreen.classList.add('hidden');
     if (userDash) userDash.classList.add('hidden');
     if (adminDash) adminDash.classList.add('hidden');
-    statusBar.classList.remove('dark-text');
 
-    // Stage 2: Ellipse Zoom-In begins (at 700ms)
+    // Tahap 1 (Gambar 4): Dimulai seketika (0ms)
+    setSplashStage(1);
+
+    // Tahap 2 (Gambar 3): Latar berubah jadi putih, logo lencana sedang di tengah (setelah 1300ms)
     animationTimers.push(setTimeout(() => {
-      splashScreen.classList.add('stage-ellipse');
-    }, 700));
+      setSplashStage(2);
+    }, 1300));
 
-    // Stage 3: Logo Fade-In (at 1400ms)
+    // Tahap 3 (Gambar 5): Zoom-in besar dramatis di tengah layar (setelah 2600ms)
     animationTimers.push(setTimeout(() => {
-      splashScreen.classList.add('stage-logo-fadein');
-      statusBar.classList.add('dark-text');
-    }, 1400));
+      setSplashStage(3);
+    }, 2600));
 
-    // Stage 4: Logo Shifts Left (at 3200ms)
+    // Tahap 4 (Gambar 2): Scale down kembali & jeda singkat dengan subtle drop shadow (setelah 3900ms)
     animationTimers.push(setTimeout(() => {
-      splashScreen.classList.add('stage-logo-shift');
-    }, 3200));
+      setSplashStage(4);
+    }, 3900));
 
-    // Stage 5: "ObeSight" Text Reveals beside Logo (at 3800ms)
+    // Tahap 5 (Gambar 1): Teks ObeSight muncul di kanan logo, keduanya pas di tengah (setelah 5200ms)
     animationTimers.push(setTimeout(() => {
-      splashScreen.classList.add('stage-text-reveal');
-    }, 3800));
+      setSplashStage(5);
+    }, 5200));
 
-    // Stage 6: Transition to Login Screen (at 5200ms)
+    // Selesai: Transisi crossfade ke Layar Login Utama (setelah 7000ms)
     animationTimers.push(setTimeout(() => {
       transitionToLogin();
-    }, 5200));
+    }, 7000));
   }
 
   function transitionToLogin() {
     clearAllTimers();
+    if (!splashScreen) return;
     splashScreen.classList.add('fade-out');
 
     setTimeout(() => {
       splashScreen.style.display = 'none';
+      if (statusBar) statusBar.classList.add('dark-text');
       authScreen.classList.remove('hidden');
       if (registerScreen) registerScreen.classList.add('hidden');
       if (forgotEmailScreen) forgotEmailScreen.classList.add('hidden');
@@ -184,17 +205,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (forgotResetScreen) forgotResetScreen.classList.add('hidden');
       if (userDash) userDash.classList.add('hidden');
       if (adminDash) adminDash.classList.add('hidden');
-    }, 400);
+    }, 500);
   }
 
-  // Skip Splash Button
-  if (btnSkipSplash) {
-    btnSkipSplash.addEventListener('click', transitionToLogin);
-  }
-
-  // Replay Animation Button
+  // Replay Animation Button in Toolbar
   if (btnReplay) {
-    btnReplay.addEventListener('click', runSplashAnimation);
+    btnReplay.addEventListener('click', () => {
+      runSplashAnimation();
+    });
   }
 
   // Toggle Frame / Fullscreen Mode
@@ -1768,12 +1786,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Google Sign In Modal
   if (btnGoogleAuth) {
     btnGoogleAuth.addEventListener('click', () => {
-      googleModalBackdrop.classList.remove('hidden');
+      if (googleModalBackdrop) {
+        googleModalBackdrop.classList.remove('hidden');
+      }
     });
   }
 
   function closeGoogleModal() {
-    googleModalBackdrop.classList.add('hidden');
+    if (googleModalBackdrop) {
+      googleModalBackdrop.classList.add('hidden');
+    }
   }
 
   if (btnCloseGoogleModal) btnCloseGoogleModal.addEventListener('click', closeGoogleModal);
@@ -1785,11 +1807,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Google Account Select
-  googleAccountItems.forEach(item => {
+  const currentGoogleAccountItems = document.querySelectorAll('.google-account-item');
+  currentGoogleAccountItems.forEach(item => {
     item.addEventListener('click', () => {
+<<<<<<< HEAD
       const role = item.getAttribute('data-role');
       const name = item.getAttribute('data-name');
       const email = item.getAttribute('data-email');
+=======
+      const role = item.getAttribute('data-role') || 'user';
+      const name = item.getAttribute('data-name') || 'Zahra Fitriana';
+>>>>>>> f74f72e4e6d01a8643e96f147bbd4f6a216debff
       closeGoogleModal();
       navigateToDashboard(role, name, email);
     });
