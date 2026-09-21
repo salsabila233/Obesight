@@ -1106,178 +1106,452 @@
                 </div>
               </div>
 
-              <!-- Sub-halaman 2: PROGRESS HARIAN -->
+              <!-- Sub-halaman 2: PROGRESS (TERPADU UNTUK BERANDA & MONITORING) -->
               <div class="monitoring-subpage hidden" id="monitoring-subpage-progress">
-                <!-- Header Hijau -->
-                <header class="monitoring-header">
-                  <button type="button" class="btn-monitoring-back" id="btn-back-from-progress" title="Kembali ke Monitoring">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                  </button>
-                  <h2 class="monitoring-header-title">Progress</h2>
-                  <div class="monitoring-header-spacer"></div>
-                </header>
 
-                <!-- Scrollable Body -->
-                <div class="monitoring-body">
-                  <!-- Horizontal Date Scroller -->
-                  <div class="date-scroller-wrap">
-                    <div class="date-scroller-container" id="progress-date-scroller">
-                      <!-- Dynamically filled by JS -->
+                <!-- VIEW 1: LANDING PROGRESS (SESUAI FIGMA / SCREENSHOT) -->
+                <div class="progress-subview" id="progress-subview-landing">
+                  <!-- Header Hijau -->
+                  <header class="progress-custom-header">
+                    <button type="button" class="btn-progress-back" id="btn-back-from-progress" title="Kembali">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <h2 class="progress-header-title">Progress</h2>
+                    <div class="progress-header-spacer"></div>
+                  </header>
+
+                  <!-- Scrollable Body -->
+                  <div class="progress-custom-body">
+                    <!-- Motivation Card with Character & Shield Watermark -->
+                    <div class="progress-motivation-card">
+                      <div class="motivation-char-box">
+                        <img src="./assets/progress/clean/character_woman.png" alt="Karakter Sehat" class="motivation-char-img" />
+                      </div>
+                      <div class="motivation-text-box">
+                        <h3 class="motivation-title">Konsistensi hari ini,<br><span class="highlight-title">kunci hasil yang terbaik!</span></h3>
+                        <p class="motivation-desc">Terus pantau aktivitas dan pola hidup sehatmu.</p>
+                      </div>
+                      <div class="motivation-watermark">
+                        <svg viewBox="0 0 24 24" width="68" height="68" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="#529A7B" fill-opacity="0.1" />
+                          <polyline points="9 12 11 14 15 10" />
+                        </svg>
+                      </div>
                     </div>
+
+                    <!-- 2 Cards Horizontal (Makananku & Minumanku) -->
+                    <div class="progress-quick-cards-grid">
+                      <div class="progress-quick-card card-food" id="btn-quick-makananku" role="button" tabindex="0">
+                        <div class="quick-card-img-wrap">
+                          <img src="./assets/progress/clean/food_oatmeal.png" alt="Makananku" class="quick-card-img" />
+                        </div>
+                        <span class="quick-card-label">Makananku</span>
+                      </div>
+                      <div class="progress-quick-card card-drink" id="btn-quick-minumanku" role="button" tabindex="0">
+                        <div class="quick-card-img-wrap">
+                          <img src="./assets/progress/clean/drink_lemon.png" alt="Minumanku" class="quick-card-img" />
+                        </div>
+                        <span class="quick-card-label">Minumanku</span>
+                      </div>
+                    </div>
+
+                    <!-- Heading Pantau Kesehatanmu -->
+                    <h3 class="progress-section-heading">Pantau Kesehatanmu</h3>
+
+                    <!-- 3 Menu Cards Vertikal Full-Width -->
+                    <div class="progress-menu-cards-list">
+                      <!-- 1. Makanan & Minuman -->
+                      <div class="progress-feature-card card-green-theme" id="btn-progress-menu-makanan" role="button" tabindex="0">
+                        <div class="feature-card-icon-wrap icon-theme-green">
+                          <img src="./assets/progress/clean/icon_salad.png" alt="Makanan & Minuman" class="feature-card-icon-img" />
+                        </div>
+                        <div class="feature-card-content">
+                          <h4 class="feature-card-title">Makanan &amp; Minuman</h4>
+                          <p class="feature-card-desc">Lihat dan atur pola makan serta asupan minumanmu</p>
+                        </div>
+                        <div class="feature-card-chevron chevron-theme-green">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <!-- 2. Aktivitas Fisik -->
+                      <div class="progress-feature-card card-blue-theme" id="btn-progress-menu-aktivitas" role="button" tabindex="0">
+                        <div class="feature-card-icon-wrap icon-theme-blue">
+                          <img src="./assets/progress/clean/icon_shoe.png" alt="Aktivitas Fisik" class="feature-card-icon-img" />
+                        </div>
+                        <div class="feature-card-content">
+                          <h4 class="feature-card-title">Aktivitas Fisik</h4>
+                          <p class="feature-card-desc">Pantau aktivitas harian dan tingkat gerakmu</p>
+                        </div>
+                        <div class="feature-card-chevron chevron-theme-blue">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <!-- 3. Waktu Istirahat -->
+                      <div class="progress-feature-card card-purple-theme" id="btn-progress-menu-istirahat" role="button" tabindex="0">
+                        <div class="feature-card-icon-wrap icon-theme-purple">
+                          <img src="./assets/progress/clean/icon_bed.png" alt="Waktu Istirahat" class="feature-card-icon-img" />
+                        </div>
+                        <div class="feature-card-content">
+                          <h4 class="feature-card-title">Waktu Istirahat</h4>
+                          <p class="feature-card-desc">Cek kualitas tidur dan durasi istirahatmu.</p>
+                        </div>
+                        <div class="feature-card-chevron chevron-theme-purple">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="home-bottom-spacer"></div>
                   </div>
-
-                  <!-- Activity Checklist Categories List -->
-                  <div class="progress-categories-list">
-                    <!-- Kategori 1: Makanan -->
-                    <div class="activity-cat-card" data-cat="makanan">
-                      <div class="activity-cat-header">
-                        <div class="activity-cat-icon-title">
-                          <div class="activity-cat-icon icon-bg-makanan">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M12 2a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9A9 9 0 0 1 3 11a9 9 0 0 1 9-9z" />
-                              <path d="M12 6v6l4 2" />
-                              <path d="M8 14c1.5 1.5 4 1.5 5.5 0" />
-                            </svg>
-                          </div>
-                          <h4 class="activity-cat-name">Makanan</h4>
-                        </div>
-                        <span class="activity-status-badge badge-pending" id="badge-cat-makanan">0/3 Selesai</span>
-                      </div>
-                      <div class="activity-checklist-items">
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="makanan" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Sarapan: Oatmeal + Pisang</span>
-                        </label>
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="makanan" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Makan Siang: Nasi Merah + Dada Ayam</span>
-                        </label>
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="makanan" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Makan Malam: Kentang rebus + Tahu Rebus</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <!-- Kategori 2: Aktifitas Fisik -->
-                    <div class="activity-cat-card" data-cat="fisik">
-                      <div class="activity-cat-header">
-                        <div class="activity-cat-icon-title">
-                          <div class="activity-cat-icon icon-bg-fisik">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <circle cx="12" cy="5" r="2" />
-                              <path d="M9 20l3-6 3 2 3 4" />
-                              <path d="M6 16l4-3 2 2 3-5" />
-                            </svg>
-                          </div>
-                          <h4 class="activity-cat-name">Aktifitas Fisik</h4>
-                        </div>
-                        <span class="activity-status-badge badge-pending" id="badge-cat-fisik">0/3 Selesai</span>
-                      </div>
-                      <div class="activity-checklist-items">
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="fisik" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Peregangan 5 menit</span>
-                        </label>
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="fisik" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Jalan cepat 15 menit</span>
-                        </label>
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="fisik" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Workout ringan 15 menit</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <!-- Kategori 3: Hidrasi -->
-                    <div class="activity-cat-card" data-cat="hidrasi">
-                      <div class="activity-cat-header">
-                        <div class="activity-cat-icon-title">
-                          <div class="activity-cat-icon icon-bg-hidrasi">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-                            </svg>
-                          </div>
-                          <h4 class="activity-cat-name">Hidrasi</h4>
-                        </div>
-                        <span class="activity-status-badge badge-pending" id="badge-cat-hidrasi">0/2 Selesai</span>
-                      </div>
-                      <div class="activity-checklist-items">
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="hidrasi" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Minum air putih 8 gelas/hari</span>
-                        </label>
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="hidrasi" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Hindari minuman tinggi gula & alkohol</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <!-- Kategori 4: Istirahat Cukup -->
-                    <div class="activity-cat-card" data-cat="istirahat">
-                      <div class="activity-cat-header">
-                        <div class="activity-cat-icon-title">
-                          <div class="activity-cat-icon icon-bg-istirahat">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9" />
-                            </svg>
-                          </div>
-                          <h4 class="activity-cat-name">Istirahat Cukup</h4>
-                        </div>
-                        <span class="activity-status-badge badge-pending" id="badge-cat-istirahat">0/2 Selesai</span>
-                      </div>
-                      <div class="activity-checklist-items">
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="istirahat" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Tidur 7–8 jam pada malam hari</span>
-                        </label>
-                        <label class="activity-check-item">
-                          <input type="checkbox" class="activity-checkbox" data-cat="istirahat" />
-                          <span class="custom-checkbox">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </span>
-                          <span class="activity-item-text">Batasi penggunaan gadget 1–2 jam sebelum tidur</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Tombol Simpan -->
-                  <button type="button" class="btn-progress-save" id="btn-save-progress">Simpan</button>
-
-                  <div class="home-bottom-spacer"></div>
                 </div>
+
+                <!-- VIEW 2: REKOMENDASI AKTIVITAS FISIK -->
+                <div class="progress-subview hidden" id="progress-subview-recommendation">
+                  <!-- Header Hijau -->
+                  <header class="progress-custom-header">
+                    <button type="button" class="btn-progress-back" id="btn-back-from-recommendation" title="Kembali ke Landing Progress">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <h2 class="progress-header-title">Rekomendasi Aktivitas Fisik</h2>
+                    <div class="progress-header-spacer"></div>
+                  </header>
+
+                  <!-- Scrollable Body -->
+                  <div class="progress-custom-body">
+                    <!-- Real-Time Date Scroller -->
+                    <div class="rec-date-scroller-wrap">
+                      <div class="rec-date-scroller-container" id="recommendation-date-scroller">
+                        <!-- Populated by JS based on real-time new Date() -->
+                      </div>
+                    </div>
+
+                    <!-- 5 Activity Cards List -->
+                    <div class="rec-activity-cards-list" id="rec-activity-cards-list">
+                      <!-- 1. Jogging -->
+                      <div class="rec-activity-card" data-activity-id="jogging" role="button" tabindex="0">
+                        <div class="rec-activity-thumb-box">
+                          <img src="./assets/progress/clean/thumb_jogging.png" alt="Jogging" class="rec-activity-thumb" />
+                        </div>
+                        <div class="rec-activity-main">
+                          <div class="rec-activity-title-row">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22l4-8 2 2 3 4"/><path d="M4 17l5-4 3 2 4-6"/></svg>
+                            <h4 class="rec-activity-name">Jogging</h4>
+                          </div>
+                          <p class="rec-activity-desc">Membantu meningkatkan daya tahan tubuh, membakar kalori dan menjaga kesehatan jantung.</p>
+                          <div class="rec-activity-pills">
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 30-60 menit</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 3-5x/minggu</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> 200-400 kkal</span>
+                          </div>
+                        </div>
+                        <div class="rec-activity-arrow">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        </div>
+                      </div>
+
+                      <!-- 2. Latihan Kekuatan (Bodyweight/Gym) -->
+                      <div class="rec-activity-card" data-activity-id="bodyweight" role="button" tabindex="0">
+                        <div class="rec-activity-thumb-box">
+                          <img src="./assets/progress/clean/thumb_bodyweight.png" alt="Latihan Kekuatan" class="rec-activity-thumb" />
+                        </div>
+                        <div class="rec-activity-main">
+                          <div class="rec-activity-title-row">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/></svg>
+                            <h4 class="rec-activity-name">Latihan Kekuatan (Bodyweight/Gym)</h4>
+                          </div>
+                          <p class="rec-activity-desc">Meningkatkan masa otot, memperkuat tulang, serta meningkatkan metabolisme.</p>
+                          <div class="rec-activity-pills">
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 20-45 menit</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2-4x/minggu</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> 150-350 kkal</span>
+                          </div>
+                        </div>
+                        <div class="rec-activity-arrow">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        </div>
+                      </div>
+
+                      <!-- 3. Bersepeda -->
+                      <div class="rec-activity-card" data-activity-id="cycling" role="button" tabindex="0">
+                        <div class="rec-activity-thumb-box">
+                          <img src="./assets/progress/clean/thumb_cycling.png" alt="Bersepeda" class="rec-activity-thumb" />
+                        </div>
+                        <div class="rec-activity-main">
+                          <div class="rec-activity-title-row">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L9 9l3-3 3 4 3.5 2"/></svg>
+                            <h4 class="rec-activity-name">Bersepeda</h4>
+                          </div>
+                          <p class="rec-activity-desc">Melatih daya tahan kardiovaskular, memperkuat otot kaki dan membakar kalori</p>
+                          <div class="rec-activity-pills">
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 30-60 menit</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 3-5x/minggu</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> 200-400 kkal</span>
+                          </div>
+                        </div>
+                        <div class="rec-activity-arrow">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        </div>
+                      </div>
+
+                      <!-- 4. Yoga/Stretching -->
+                      <div class="rec-activity-card" data-activity-id="yoga" role="button" tabindex="0">
+                        <div class="rec-activity-thumb-box">
+                          <img src="./assets/progress/clean/thumb_yoga.png" alt="Yoga/Stretching" class="rec-activity-thumb" />
+                        </div>
+                        <div class="rec-activity-main">
+                          <div class="rec-activity-title-row">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M5 20l4-7 3 2 3-2 4 7"/><path d="M4 12l5-2 3 3 3-3 5 2"/></svg>
+                            <h4 class="rec-activity-name">Yoga/Stretching</h4>
+                          </div>
+                          <p class="rec-activity-desc">Meningkatkan fleksibilitas, mengurangi stres, dan memperbaiki postur tubuh.</p>
+                          <div class="rec-activity-pills">
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 20-40 menit</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 3-5x/minggu</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> 100-200 kkal</span>
+                          </div>
+                        </div>
+                        <div class="rec-activity-arrow">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        </div>
+                      </div>
+
+                      <!-- 5. HIIT (Tanpa foto, card lebih pendek, hanya ikon di kiri) -->
+                      <div class="rec-activity-card card-hiit-compact" data-activity-id="hiit" role="button" tabindex="0">
+                        <div class="rec-activity-icon-left-box">
+                          <img src="./assets/progress/clean/thumb_hiit.png" alt="HIIT" class="hiit-icon-img" />
+                        </div>
+                        <div class="rec-activity-main">
+                          <div class="rec-activity-title-row">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <h4 class="rec-activity-name">HIIT (High Intensity Interval Training)</h4>
+                          </div>
+                          <p class="rec-activity-desc">Membakar kalori lebih banyak dalam waktu singkat, meningkatkan kebugaran, dan mempercepat metabolisme.</p>
+                          <div class="rec-activity-pills">
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 15-30 menit</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 2-4x/minggu</span>
+                            <span class="rec-info-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> 250-450 kkal</span>
+                          </div>
+                        </div>
+                        <div class="rec-activity-arrow">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="home-bottom-spacer"></div>
+                  </div>
+                </div>
+
+                <!-- VIEW 3: DETAIL AKTIVITAS (REUSABLE TEMPLATE) -->
+                <div class="progress-subview hidden" id="progress-subview-detail">
+                  <div class="activity-detail-viewport">
+                    <!-- Hero Image Banner -->
+                    <div class="activity-detail-hero-box">
+                      <img src="./assets/progress/clean/hero_jogging.png" alt="Detail Hero" class="activity-detail-hero-img" id="activity-detail-hero-img" />
+                      <button type="button" class="btn-detail-hero-back" id="btn-back-from-detail" title="Kembali">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                      </button>
+                      <!-- Badge Overlay -->
+                      <div class="activity-hero-badge-overlay">
+                        <div class="hero-badge-icon" id="activity-detail-badge-icon">
+                          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22l4-8 2 2 3 4"/><path d="M4 17l5-4 3 2 4-6"/></svg>
+                        </div>
+                        <h2 class="hero-badge-title" id="activity-detail-badge-title">Jogging</h2>
+                      </div>
+                    </div>
+
+                    <!-- White Rounded Sheet -->
+                    <div class="activity-detail-sheet">
+                      <!-- Section: Tentang -->
+                      <div class="detail-section-block">
+                        <div class="detail-section-heading">
+                          <div class="detail-heading-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                              <polyline points="14 2 14 8 20 8"/>
+                              <line x1="16" y1="13" x2="8" y2="13"/>
+                              <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                          </div>
+                          <h3 class="detail-section-title" id="activity-detail-about-title">Tentang Jogging</h3>
+                        </div>
+                        <p class="detail-text-paragraph" id="activity-detail-about-desc"></p>
+                      </div>
+
+                      <!-- Kutipan Referensi Ilmiah -->
+                      <div class="detail-quote-box">
+                        <div class="quote-icon">
+                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                          </svg>
+                        </div>
+                        <p class="quote-text" id="activity-detail-quote-text"></p>
+                      </div>
+
+                      <!-- Section: Manfaat Utama -->
+                      <div class="detail-section-block">
+                        <div class="detail-section-heading">
+                          <div class="detail-heading-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 7.65l.77.78L12 20.66l7.65-7.65.77-.78a5.4 5.4 0 0 0 0-7.65z"/>
+                              <path d="M3.5 12h4l2-3 3 6 2-3h6"/>
+                            </svg>
+                          </div>
+                          <h3 class="detail-section-title">Manfaat Utama</h3>
+                        </div>
+                        <!-- 4 Benefits Grid -->
+                        <div class="detail-benefits-grid" id="activity-detail-benefits-grid"></div>
+                      </div>
+
+                      <!-- 4-Column Spec Box -->
+                      <div class="detail-spec-box">
+                        <div class="detail-spec-col">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          <span class="spec-label">Durasi</span>
+                          <span class="spec-value" id="spec-duration">30-60 menit</span>
+                        </div>
+                        <div class="detail-spec-col">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          <span class="spec-label">Frekuensi</span>
+                          <span class="spec-value" id="spec-frequency">3-5 kali/minggu</span>
+                        </div>
+                        <div class="detail-spec-col">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                          <span class="spec-label">Intensitas</span>
+                          <span class="spec-value" id="spec-intensity">Sedang</span>
+                        </div>
+                        <div class="detail-spec-col">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                          <span class="spec-label">Estimasi Kalori</span>
+                          <span class="spec-value" id="spec-calories">200-400 kkal</span>
+                        </div>
+                      </div>
+
+                      <!-- Section: Tips Melakukan -->
+                      <div class="detail-section-block">
+                        <div class="detail-section-heading">
+                          <div class="detail-heading-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/>
+                              <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+                            </svg>
+                          </div>
+                          <h3 class="detail-section-title" id="activity-detail-tips-title">Tips Melakukan Jogging</h3>
+                        </div>
+                        <div class="detail-tips-box">
+                          <ul class="detail-tips-list" id="activity-detail-tips-list"></ul>
+                        </div>
+                      </div>
+
+                      <!-- Section: Sumber Referensi -->
+                      <div class="detail-section-block" id="activity-detail-ref-section">
+                        <div class="detail-section-heading">
+                          <div class="detail-heading-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#529A7B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                          </div>
+                          <h3 class="detail-section-title">Sumber Referensi</h3>
+                        </div>
+                        <div class="detail-ref-link-box">
+                          <a href="#" target="_blank" rel="noopener noreferrer" class="detail-ref-link" id="activity-detail-ref-link"></a>
+                        </div>
+                      </div>
+
+                      <div class="detail-bottom-spacer"></div>
+                    </div>
+
+                    <!-- Fixed Bottom Bar -->
+                    <div class="activity-detail-bottom-bar">
+                      <button type="button" class="btn-detail-mulai" id="btn-start-activity-timer">Mulai</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- VIEW 4: TIMER COUNTDOWN (REUSABLE UNTUK 5 AKTIVITAS) -->
+                <div class="progress-subview hidden" id="progress-subview-timer">
+                  <div class="activity-timer-viewport">
+                    <!-- Top Hero Header -->
+                    <div class="activity-timer-hero-box">
+                      <img src="./assets/progress/clean/hero_jogging.png" alt="Hero Timer" class="activity-timer-hero-img" id="activity-timer-hero-img" />
+                      <button type="button" class="btn-detail-hero-back" id="btn-back-from-timer" title="Kembali ke Detail">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                      </button>
+                      <div class="activity-hero-badge-overlay">
+                        <div class="hero-badge-icon" id="activity-timer-badge-icon">
+                          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22l4-8 2 2 3 4"/><path d="M4 17l5-4 3 2 4-6"/></svg>
+                        </div>
+                        <h2 class="hero-badge-title" id="activity-timer-badge-title">Jogging</h2>
+                      </div>
+                    </div>
+
+                    <!-- Timer Body Content -->
+                    <div class="activity-timer-body">
+                      <!-- Target Section -->
+                      <div class="timer-target-section">
+                        <span class="timer-target-label">Target</span>
+                        <span class="timer-target-value" id="timer-target-duration-val">30-60 menit</span>
+                      </div>
+
+                      <!-- Big Circular Timer with Animated SVG Ring & 3 Stacked Numbers -->
+                      <div class="timer-circle-wrapper">
+                        <svg class="timer-progress-svg" viewBox="0 0 240 240">
+                          <circle class="timer-track-circle" cx="120" cy="120" r="102" />
+                          <circle class="timer-indicator-circle" id="timer-indicator-circle" cx="120" cy="120" r="102" />
+                        </svg>
+                        <div class="timer-stacked-numbers">
+                          <span class="timer-num-sub top" id="timer-num-top">59:59</span>
+                          <span class="timer-num-main" id="timer-num-main">00:00</span>
+                          <span class="timer-num-sub bottom" id="timer-num-bottom">30:00</span>
+                        </div>
+                      </div>
+
+                      <!-- 3 Duration Buttons -->
+                      <div class="timer-duration-options">
+                        <button type="button" class="timer-duration-btn" data-duration="1800" id="btn-timer-dur-30">30:00</button>
+                        <button type="button" class="timer-duration-btn" data-duration="2700" id="btn-timer-dur-45">45:00</button>
+                        <button type="button" class="timer-duration-btn" data-duration="3600" id="btn-timer-dur-60">60:00</button>
+                      </div>
+
+                      <!-- Play/Pause Button -->
+                      <div class="timer-play-controls">
+                        <button type="button" class="btn-timer-play" id="btn-timer-play-toggle" title="Mulai / Jeda Timer">
+                          <svg class="timer-play-icon" id="timer-play-icon" viewBox="0 0 24 24" width="34" height="34" fill="#529A7B">
+                            <polygon points="6 4 20 12 6 20 6 4"></polygon>
+                          </svg>
+                        </button>
+                      </div>
+
+                      <!-- Finish & Cancel Actions -->
+                      <div class="timer-actions-group">
+                        <button type="button" class="btn-timer-finish" id="btn-timer-finish-action">Selesaikan Aktivitas</button>
+                        <button type="button" class="btn-timer-cancel" id="btn-timer-cancel-action">Batal</button>
+                      </div>
+
+                      <div class="home-bottom-spacer"></div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
               <!-- Sub-halaman 3: RIWAYAT SKRINING -->

@@ -1618,11 +1618,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // ========================================================
   // MONITORING SUBPAGE NAVIGATION & INTERACTIONS
   // ========================================================
+  // UNIFIED PROGRESS & MONITORING SUBPAGE CONTROLLER
+  // ========================================================
   const monitoringSubpages = {
     main: document.getElementById('monitoring-subpage-main'),
     progress: document.getElementById('monitoring-subpage-progress'),
     riwayat: document.getElementById('monitoring-subpage-riwayat')
   };
+
+  const progressSubviews = {
+    landing: document.getElementById('progress-subview-landing'),
+    recommendation: document.getElementById('progress-subview-recommendation'),
+    detail: document.getElementById('progress-subview-detail'),
+    timer: document.getElementById('progress-subview-timer')
+  };
+
+  let progressEntryOrigin = 'monitoring'; // 'home' | 'monitoring'
+  let activeActivityId = 'jogging';
 
   function switchMonitoringSubpage(targetSubpage) {
     Object.keys(monitoringSubpages).forEach(key => {
@@ -1633,14 +1645,56 @@ document.addEventListener('DOMContentLoaded', () => {
       page.classList.toggle('active', isTarget);
     });
 
-    if (targetSubpage === 'progress') {
-      setTimeout(() => {
-        const todayPill = document.querySelector('.date-pill.pill-today');
-        if (todayPill) {
-          todayPill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-      }, 80);
+    if (targetSubpage !== 'progress' && userDash) {
+      userDash.classList.remove('hide-floating-nav');
     }
+  }
+
+  function showProgressSubView(targetView) {
+    if (targetView !== 'timer' && isTimerRunning) {
+      pauseCountdown();
+    }
+
+    Object.keys(progressSubviews).forEach(key => {
+      const v = progressSubviews[key];
+      if (!v) return;
+      const isTarget = key === targetView;
+      v.classList.toggle('hidden', !isTarget);
+    });
+
+    // Hide bottom nav on detail & timer screens for full-screen focus
+    const shouldHideNav = (targetView === 'detail' || targetView === 'timer');
+    if (userDash) {
+      userDash.classList.toggle('hide-floating-nav', shouldHideNav);
+    }
+
+    if (targetView === 'recommendation') {
+      initRecommendationDateScroller();
+    }
+  }
+
+  function openProgressFeature(origin = 'monitoring') {
+    progressEntryOrigin = origin;
+
+    if (userDash) {
+      userDash.classList.add('in-monitoring');
+      userDash.classList.remove('in-settings');
+      userDash.classList.remove('hide-floating-nav');
+    }
+    if (statusBar) {
+      statusBar.classList.remove('dark-text');
+    }
+
+    navBtns.forEach(item => {
+      if (!item.btn || !item.content) return;
+      const isActive = item.tab === 'stats';
+      item.btn.classList.toggle('active', isActive);
+      item.content.classList.toggle('hidden', !isActive);
+      item.content.classList.toggle('active', isActive);
+    });
+
+    switchMonitoringSubpage('progress');
+    showProgressSubView('landing');
   }
 
   // Header Back Buttons
@@ -1651,7 +1705,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnBackFromProgress = document.getElementById('btn-back-from-progress');
   if (btnBackFromProgress) {
-    btnBackFromProgress.addEventListener('click', () => switchMonitoringSubpage('main'));
+    btnBackFromProgress.addEventListener('click', () => {
+      if (progressEntryOrigin === 'home') {
+        switchHomeTab('home');
+      } else {
+        switchMonitoringSubpage('main');
+      }
+    });
+  }
+
+  const btnBackFromRecommendation = document.getElementById('btn-back-from-recommendation');
+  if (btnBackFromRecommendation) {
+    btnBackFromRecommendation.addEventListener('click', () => {
+      showProgressSubView('landing');
+    });
+  }
+
+  const btnBackFromDetail = document.getElementById('btn-back-from-detail');
+  if (btnBackFromDetail) {
+    btnBackFromDetail.addEventListener('click', () => {
+      showProgressSubView('recommendation');
+    });
+  }
+
+  const btnBackFromTimer = document.getElementById('btn-back-from-timer');
+  if (btnBackFromTimer) {
+    btnBackFromTimer.addEventListener('click', () => {
+      cancelTimer();
+    });
   }
 
   const btnBackFromRiwayat = document.getElementById('btn-back-from-riwayat');
@@ -1659,10 +1740,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btnBackFromRiwayat.addEventListener('click', () => switchMonitoringSubpage('main'));
   }
 
-  // Menu Navigation Cards
+  // Monitoring Main Menu Cards
   const btnOpenProgress = document.getElementById('btn-open-progress');
   if (btnOpenProgress) {
-    btnOpenProgress.addEventListener('click', () => switchMonitoringSubpage('progress'));
+    btnOpenProgress.addEventListener('click', () => openProgressFeature('monitoring'));
   }
 
   const btnOpenRiwayat = document.getElementById('btn-open-riwayat');
@@ -1670,115 +1751,540 @@ document.addEventListener('DOMContentLoaded', () => {
     btnOpenRiwayat.addEventListener('click', () => switchMonitoringSubpage('riwayat'));
   }
 
-  // Horizontal Date Scroller (31 days of August 2026, 15 is Hari ini)
-  const dateScrollerContainer = document.getElementById('progress-date-scroller');
-  function initDateScroller() {
-    if (!dateScrollerContainer) return;
-    dateScrollerContainer.innerHTML = '';
+  // Landing Progress Cards & Buttons
+  const btnQuickMakananku = document.getElementById('btn-quick-makananku');
+  if (btnQuickMakananku) {
+    btnQuickMakananku.addEventListener('click', () => {
+      showToast('Fitur Segera Hadir', 'Fitur Makananku sedang dalam tahap pengembangan.');
+    });
+  }
 
-    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
+  const btnQuickMinumanku = document.getElementById('btn-quick-minumanku');
+  if (btnQuickMinumanku) {
+    btnQuickMinumanku.addEventListener('click', () => {
+      showToast('Fitur Segera Hadir', 'Fitur Minumanku sedang dalam tahap pengembangan.');
+    });
+  }
 
-    for (let dayNum = 1; dayNum <= 31; dayNum++) {
-      const d = new Date(2026, 7, dayNum);
+  const btnProgressMenuMakanan = document.getElementById('btn-progress-menu-makanan');
+  if (btnProgressMenuMakanan) {
+    btnProgressMenuMakanan.addEventListener('click', () => {
+      showToast('Fitur Segera Hadir', 'Fitur Makanan & Minuman sedang dalam tahap pengembangan.');
+    });
+  }
+
+  const btnProgressMenuAktivitas = document.getElementById('btn-progress-menu-aktivitas');
+  if (btnProgressMenuAktivitas) {
+    btnProgressMenuAktivitas.addEventListener('click', () => {
+      showProgressSubView('recommendation');
+    });
+  }
+
+  const btnProgressMenuIstirahat = document.getElementById('btn-progress-menu-istirahat');
+  if (btnProgressMenuIstirahat) {
+    btnProgressMenuIstirahat.addEventListener('click', () => {
+      showToast('Fitur Segera Hadir', 'Fitur Waktu Istirahat sedang dalam tahap pengembangan.');
+    });
+  }
+
+  // ========================================================
+  // REAL-TIME DATE SCROLLER (AUTO-GENERATED BASED ON NEW DATE)
+  // ========================================================
+  const recDateScrollerContainer = document.getElementById('recommendation-date-scroller');
+  function initRecommendationDateScroller() {
+    if (!recDateScrollerContainer) return;
+    recDateScrollerContainer.innerHTML = '';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu'];
+
+    // Menampilkan 7 hari sebelum hari ini, hari ini, dan 13 hari setelah hari ini
+    for (let offset = -7; offset <= 13; offset++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + offset);
+
       const dayOfWeek = dayNames[d.getDay()];
-      const dateStr = `${dayNum}/8/26`;
+      const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${String(d.getFullYear()).slice(-2)}`;
 
       const pill = document.createElement('div');
-      pill.className = 'date-pill';
+      pill.className = 'rec-date-pill';
       pill.dataset.date = dateStr;
 
-      if (dayNum < 15) {
-        pill.classList.add('pill-past');
+      if (offset < 0) {
+        // Tanggal yang sudah lewat (kemarin dan sebelumnya) -> Merah, Teks Putih
+        pill.classList.add('pill-past-red');
         pill.innerHTML = `
-          <span class="date-pill-day">${dayOfWeek}</span>
-          <span class="date-pill-num">${dateStr}</span>
+          <span class="rec-date-pill-day">${dayOfWeek}</span>
+          <span class="rec-date-pill-num">${dateStr}</span>
         `;
-      } else if (dayNum === 15) {
-        pill.classList.add('pill-today');
+      } else if (offset === 0) {
+        // Tanggal hari ini -> Hijau Pastel
+        pill.classList.add('pill-today-green');
         pill.classList.add('selected');
         pill.innerHTML = `
-          <span class="date-pill-day">Hari ini</span>
-          <span class="date-pill-num">${dateStr}</span>
+          <span class="rec-date-pill-day">Hari ini</span>
+          <span class="rec-date-pill-num">${dateStr}</span>
         `;
       } else {
-        pill.classList.add('pill-future');
+        // Tanggal besok dan seterusnya -> Putih dengan Border Tipis Abu-abu
+        pill.classList.add('pill-future-white');
         pill.innerHTML = `
-          <span class="date-pill-day">${dayOfWeek}</span>
-          <span class="date-pill-num">${dateStr}</span>
+          <span class="rec-date-pill-day">${dayOfWeek}</span>
+          <span class="rec-date-pill-num">${dateStr}</span>
         `;
       }
 
       pill.addEventListener('click', () => {
-        document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('selected'));
+        document.querySelectorAll('.rec-date-pill').forEach(p => p.classList.remove('selected'));
         pill.classList.add('selected');
       });
 
-      dateScrollerContainer.appendChild(pill);
+      recDateScrollerContainer.appendChild(pill);
     }
+
+    setTimeout(() => {
+      const todayPill = recDateScrollerContainer.querySelector('.rec-date-pill.pill-today-green');
+      if (todayPill) {
+        todayPill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }, 120);
   }
-  initDateScroller();
 
-  // Activity Checklist & Badges
-  const activityCheckboxes = document.querySelectorAll('.activity-checkbox');
-  function updateCategoryProgress(cat) {
-    const catCheckboxes = document.querySelectorAll(`.activity-checkbox[data-cat="${cat}"]`);
-    const total = catCheckboxes.length;
-    let checked = 0;
-    catCheckboxes.forEach(cb => {
-      if (cb.checked) checked++;
-    });
+  // ========================================================
+  // DATA DICTIONARY 5 AKTIVITAS FISIK
+  // ========================================================
+  const activitiesData = {
+    jogging: {
+      id: 'jogging',
+      title: 'Jogging',
+      targetText: '30-60 menit',
+      heroImg: './assets/progress/clean/hero_jogging.png',
+      thumbImg: './assets/progress/clean/thumb_jogging.png',
+      iconSvg: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22l4-8 2 2 3 4"/><path d="M4 17l5-4 3 2 4-6"/></svg>',
+      aboutTitle: 'Tentang Jogging',
+      aboutDesc: 'Jogging merupakan salah satu jenis latihan aerobik yang dapat meningkatkan kebugaran kardiorespirasi, membantu pembakaran kalori, serta mendukung penurunan berat badan. Aktivitas ini juga berkontribusi pada peningkatan kesehatan jantung dan metabolisme tubuh.',
+      quote: 'Berdasarkan penilitan Komala, Riyadi, & Setiawan (2016), latihan aerobik seperti jogging dengan intesntias sedang hingga berat terbukti dapat memperbaiki VO2max, indeks masa tubuh (IMT), dan presentase lemak tubuh pada remaja obesitas',
+      benefits: [
+        'Meningkatkan kebugaran jantung dan paru-paru',
+        'Membantu pembakaran kalori dan lemak tubuh',
+        'Menurunkan berat badan',
+        'Meningkatkan suasana hati dan mengurangi stres'
+      ],
+      specs: {
+        duration: '30-60 menit',
+        frequency: '3-5 kali/minggu',
+        intensity: 'Sedang (60-70% HRmax)',
+        calories: '200-400 kkal'
+      },
+      tipsTitle: 'Tips Melakukan Jogging',
+      tips: [
+        'Lakukan pemanasan selama 5-10 menit sebelum mulai.',
+        'Gunakan sepatu yang nyaman dan sesuai',
+        'Jaga postur tubuh tetap tegak dan rileks',
+        'Tingkatkan durasi dan intensitas secara bertahap',
+        'Pastikan tubuh tetap terhidrasi'
+      ],
+      refLink: 'https://doi.org/10.25182/jgp.2016.11.3.%25p'
+    },
+    bodyweight: {
+      id: 'bodyweight',
+      title: 'Latihan Bodyweight',
+      targetText: '20-45 menit',
+      heroImg: './assets/progress/clean/hero_bodyweight.png',
+      thumbImg: './assets/progress/clean/thumb_bodyweight.png',
+      iconSvg: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/></svg>',
+      aboutTitle: 'Tentang Latihan Bodyweight',
+      aboutDesc: 'Latihan kekuatan (strength training) adalah aktivitas fisik yang melibatkan kontraksi otot untuk meningkatkan massa otot, kekuatan, dan daya tahan tubuh. Latihan ini dapat dilakukan dengan menggunakan berat badan sendiri (bodyweight) atau alat beban (gym/fitness). Selain membantu membentuk tubuh, latihan kekuatan juga berperan dalam meningkatkan metabolisme istirahat dan menjaga kesehatan tulang.',
+      quote: 'Berdasarkan pedoman WHO, latihan penguatan otot sebaiknya dilakukan minimal 2 hari per minggu untuk semua kelompok usia dewasa bersama dengan aktivitas aerobik. (World Health Organization, 2020)',
+      benefits: [
+        'Meningkatkan massa dan kekuatan otot',
+        'Mempercepat metabolisme tubuh',
+        'Meningkatkan kepadatan tulang',
+        'Memperbaiki postur tubuh dan keseimbangan'
+      ],
+      specs: {
+        duration: '20-45 menit',
+        frequency: '2-4 kali/minggu',
+        intensity: 'Sedang-Tinggi (60-80% HRmax)',
+        calories: '150-350 kkal'
+      },
+      tipsTitle: 'Tips Melakukan Bodyweight',
+      tips: [
+        'Lakukan pemanasan selama 5-10 menit sebelum mulai.',
+        'Fokus pada gerakan yang benar dan kontrol penuh',
+        'Mulai dengan beban atau intensitas yang sesuai kemampuan',
+        'Istirahat antar set 30-60 detik',
+        'Lakukan pendinginan dan peregangan setelah latihan'
+      ],
+      refLink: 'https://doi.org/10.21831/jk.v8i1.31208'
+    },
+    cycling: {
+      id: 'cycling',
+      title: 'Bersepeda',
+      targetText: '30-60 menit',
+      heroImg: './assets/progress/clean/hero_cycling.png',
+      thumbImg: './assets/progress/clean/thumb_cycling.png',
+      iconSvg: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L9 9l3-3 3 4 3.5 2"/></svg>',
+      aboutTitle: 'Tentang Bersepeda',
+      aboutDesc: 'Bersepeda merupakan salah satu bentuk aktivitas aerobik yang dapat membantu meningkatkan kebugaran kardiorespirasi. Aktivitas ini melibatkan kerja otot tubuh secara berulang dan dapat dilakukan dengan berbagai tingkat intensitas. Penelitian pada atlet balap sepeda menunjukkan bahwa intensitas latihan berkaitan dengan perubahan berat badan dan persentase lemak tubuh.',
+      quote: 'Pribadi (2015) membahas program latihan aerobik untuk kebugaran paru dan jantung. Bersepeda termasuk salah satu jenis latihan aerobik yang direkomendasikan dalam artikel tersebut.',
+      benefits: [
+        'Meningkatkan kebugaran jantung dan paru',
+        'Membantu pembakaran energi dan lemak tubuh',
+        'Melatih kekuatan dan daya tahan otot tungkai',
+        'Meningkatkan kapasitas kardiorespirasi'
+      ],
+      specs: {
+        duration: '30-60 menit',
+        frequency: '3-5 kali/minggu',
+        intensity: 'Sedang (50-70% HRmax)',
+        calories: '200-400 kkal'
+      },
+      tipsTitle: 'Tips Melakukan Bersepeda',
+      tips: [
+        'Pastikan sepeda dalam posisi baik dan sesuai ukuran tubuh.',
+        'Gunakan perlengkapan keselamatan seperti helm',
+        'Mulai dengan intensitas ringan, lalu tingkatkan secara bertahap',
+        'Jaga postur tubuh tetap tegak dan rileks',
+        'Pilih rute yang aman dan hindari jalan yang terlalu ramai'
+      ],
+      refLink: 'https://doi.org/10.21831/medikora.v14i2.7937'
+    },
+    yoga: {
+      id: 'yoga',
+      title: 'Yoga',
+      targetText: '20-40 menit',
+      heroImg: './assets/progress/clean/hero_yoga.png',
+      thumbImg: './assets/progress/clean/thumb_yoga.png',
+      iconSvg: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M5 20l4-7 3 2 3-2 4 7"/><path d="M4 12l5-2 3 3 3-3 5 2"/></svg>',
+      aboutTitle: 'Tentang Yoga',
+      aboutDesc: 'Yoga dan stretching merupakan bentuk aktivitas fisik yang menggabungkan latihan pernapasan, gerakan tubuh, dan relaksasi. Aktivitas ini membantu meningkatkan fleksibilitas, keseimbangan, serta kekuatan otot, sekaligus dapat berkontribusi dalam mengurangi stres dan meningkatkan kesehatan mental.',
+      quote: 'Penelitian di Indonesia menunjukkan bahwa senam yoga dapat membantu menurunkan tingkat stres pada remaja serta memberikan manfaat terhadap kesejahteraan psikologis. (Aini et al., 2020; Widiastuti et al., 2022)',
+      benefits: [
+        'Meningkatkan fleksibilitas dan keseimbangan',
+        'Mendukung kesehatan mental dan emosional',
+        'Mengurangi stres dan kecemasan',
+        'Memperkuat otot dan tulang'
+      ],
+      specs: {
+        duration: '20-40 menit',
+        frequency: '3-5 kali/minggu',
+        intensity: 'Ringan-Sedang (40-60% HRmax)',
+        calories: '150-300 kkal'
+      },
+      tipsTitle: 'Tips Melakukan Yoga',
+      tips: [
+        'Lakukan gerakan secara perlahan dan fokus pada pernapasan.',
+        'Gunakan pakaian yang nyaman dan tidak membatasi gerak.',
+        'Pilih tempat yang tenang dan aman.',
+        'Lakukan secara rutin agar manfaatnya lebih optimal.',
+        'Jika baru pertama kali melakukan yoga, ikuti panduan instruktur atau sumber yang terpercaya.'
+      ],
+      refLink: 'https://doi.org/10.48144/jiks.v9i2.56'
+    },
+    hiit: {
+      id: 'hiit',
+      title: 'High-Intensity Interval Training',
+      targetText: '15-30 menit',
+      heroImg: './assets/progress/clean/hero_hiit.png',
+      thumbImg: './assets/progress/clean/thumb_hiit.png',
+      iconSvg: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+      aboutTitle: 'Tentang HIIT',
+      aboutDesc: 'High-Intensity Interval Training (HIIT) merupakan metode latihan yang menggabungkan periode aktivitas dengan intensitas tinggi dan periode pemulihan secara bergantian. Latihan ini dapat dilakukan menggunakan berbagai gerakan seperti lari, jumping jack, squat, mountain climber, atau burpee. HIIT dapat menjadi salah satu pilihan aktivitas fisik bagi orang yang memiliki waktu terbatas karena latihan dilakukan dalam interval dengan intensitas yang lebih tinggi.',
+      quote: 'Penelitian pada remaja dengan kategori overweight menunjukkan bahwa running high-intensity interval training yang dilakukan 3 kali seminggu selama 4 minggu dapat menurunkan persentase lemak tubuh secara signifikan.',
+      benefits: [
+        'Membantu meningkatkan kebugaran kardiorespirasi',
+        'Membantu meningkatkan pembakaran energi',
+        'Membantu menurunkan persentase lemak tubuh',
+        'Meningkatkan daya tahan tubuh'
+      ],
+      specs: {
+        duration: '15-30 menit',
+        frequency: '2-4 kali/minggu',
+        intensity: 'Tinggi (70-90% HRmax)',
+        calories: '250-450 kkal'
+      },
+      tipsTitle: 'Tips Melakukan HIIT',
+      tips: [
+        'Lakukan pemanasan selama 5–10 menit sebelum memulai latihan.',
+        'Mulai dengan gerakan dan intensitas yang sesuai dengan kemampuan tubuh.',
+        'Berikan waktu pemulihan di antara interval latihan.',
+        'Pertahankan teknik gerakan yang benar untuk mengurangi risiko cedera.',
+        'Tingkatkan intensitas latihan secara bertahap.'
+      ],
+      refLink: 'https://doi.org/10.12928/dpphj.v17i2.8469'
+    }
+  };
 
-    const badge = document.getElementById(`badge-cat-${cat}`);
-    if (badge) {
-      badge.textContent = `${checked}/${total} Selesai`;
-      if (checked === total && total > 0) {
-        badge.classList.remove('badge-pending');
-        badge.classList.add('badge-done');
+  function openActivityDetail(activityId) {
+    const act = activitiesData[activityId];
+    if (!act) return;
+    activeActivityId = activityId;
+
+    const heroImg = document.getElementById('activity-detail-hero-img');
+    if (heroImg) heroImg.src = act.heroImg;
+
+    const badgeIcon = document.getElementById('activity-detail-badge-icon');
+    if (badgeIcon) badgeIcon.innerHTML = act.iconSvg;
+
+    const badgeTitle = document.getElementById('activity-detail-badge-title');
+    if (badgeTitle) badgeTitle.textContent = act.title;
+
+    const aboutTitle = document.getElementById('activity-detail-about-title');
+    if (aboutTitle) aboutTitle.textContent = act.aboutTitle;
+
+    const aboutDesc = document.getElementById('activity-detail-about-desc');
+    if (aboutDesc) aboutDesc.textContent = act.aboutDesc;
+
+    const quoteText = document.getElementById('activity-detail-quote-text');
+    if (quoteText) quoteText.textContent = act.quote;
+
+    const benefitsGrid = document.getElementById('activity-detail-benefits-grid');
+    if (benefitsGrid) {
+      benefitsGrid.innerHTML = act.benefits.map(b => `
+        <div class="detail-benefit-item">
+          <div class="detail-benefit-icon">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="detail-benefit-text">${b}</span>
+        </div>
+      `).join('');
+    }
+
+    const specDur = document.getElementById('spec-duration');
+    if (specDur) specDur.textContent = act.specs.duration;
+    const specFreq = document.getElementById('spec-frequency');
+    if (specFreq) specFreq.textContent = act.specs.frequency;
+    const specIntens = document.getElementById('spec-intensity');
+    if (specIntens) specIntens.textContent = act.specs.intensity;
+    const specCal = document.getElementById('spec-calories');
+    if (specCal) specCal.textContent = act.specs.calories;
+
+    const tipsTitle = document.getElementById('activity-detail-tips-title');
+    if (tipsTitle) tipsTitle.textContent = act.tipsTitle;
+
+    const tipsList = document.getElementById('activity-detail-tips-list');
+    if (tipsList) {
+      tipsList.innerHTML = act.tips.map(t => `<li class="detail-tips-item">${t}</li>`).join('');
+    }
+
+    const refSection = document.getElementById('activity-detail-ref-section');
+    const refLink = document.getElementById('activity-detail-ref-link');
+    if (refLink) {
+      if (act.refLink) {
+        refLink.href = act.refLink;
+        refLink.textContent = act.refLink;
+        if (refSection) refSection.style.display = 'block';
       } else {
-        badge.classList.remove('badge-done');
-        badge.classList.add('badge-pending');
+        if (refSection) refSection.style.display = 'none';
       }
     }
+
+    showProgressSubView('detail');
   }
 
-  activityCheckboxes.forEach(cb => {
-    cb.addEventListener('change', () => {
-      const cat = cb.getAttribute('data-cat');
-      if (cat) updateCategoryProgress(cat);
+  // Click listeners on 5 Activity Cards in Recommendation View
+  const recActivityCards = document.querySelectorAll('.rec-activity-card');
+  recActivityCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const actId = card.getAttribute('data-activity-id');
+      if (actId) openActivityDetail(actId);
     });
   });
 
-  // Simpan Progress & Confirmation Modal
-  const btnSaveProgress = document.getElementById('btn-save-progress');
-  const progressConfirmModal = document.getElementById('progress-confirm-modal');
-  const btnCancelProgressModal = document.getElementById('btn-cancel-progress-modal');
-  const btnYesProgressModal = document.getElementById('btn-yes-progress-modal');
-
-  if (btnSaveProgress && progressConfirmModal) {
-    btnSaveProgress.addEventListener('click', () => {
-      progressConfirmModal.classList.remove('hidden');
+  // Click listener for "Mulai" button on Detail Page -> opens Timer
+  const btnStartActivityTimer = document.getElementById('btn-start-activity-timer');
+  if (btnStartActivityTimer) {
+    btnStartActivityTimer.addEventListener('click', () => {
+      openActivityTimer(activeActivityId);
     });
   }
 
-  if (btnCancelProgressModal && progressConfirmModal) {
-    btnCancelProgressModal.addEventListener('click', () => {
-      progressConfirmModal.classList.add('hidden');
-    });
+  // ========================================================
+  // TIMER COUNTDOWN ENGINE (100% BEBAS BUG)
+  // ========================================================
+  let timerDurationSec = 0;
+  let remainingSec = 0;
+  let timerInterval = null;
+  let isTimerRunning = false;
+  const CIRCLE_CIRCUMFERENCE = 640.88; // 2 * Math.PI * 102
+
+  function formatMMSS(totalSeconds) {
+    const safeSec = Math.max(0, Math.floor(totalSeconds));
+    const m = Math.floor(safeSec / 60);
+    const s = safeSec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  if (progressConfirmModal) {
-    progressConfirmModal.addEventListener('click', (e) => {
-      if (e.target === progressConfirmModal) {
-        progressConfirmModal.classList.add('hidden');
+  function updateTimerUI() {
+    const numTop = document.getElementById('timer-num-top');
+    const numMain = document.getElementById('timer-num-main');
+    const numBottom = document.getElementById('timer-num-bottom');
+    const circle = document.getElementById('timer-indicator-circle');
+    const playIcon = document.getElementById('timer-play-icon');
+
+    if (numMain) {
+      numMain.textContent = formatMMSS(remainingSec);
+    }
+    if (numTop) {
+      numTop.textContent = '59:59';
+    }
+    if (numBottom) {
+      numBottom.textContent = timerDurationSec > 0 ? formatMMSS(timerDurationSec) : '30:00';
+    }
+
+    if (circle) {
+      if (timerDurationSec > 0) {
+        const fraction = remainingSec / timerDurationSec;
+        const offset = CIRCLE_CIRCUMFERENCE * (1 - fraction);
+        circle.style.strokeDashoffset = offset;
+      } else {
+        circle.style.strokeDashoffset = 0;
       }
-    });
+    }
+
+    if (playIcon) {
+      if (isTimerRunning) {
+        // Pause Icon
+        playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+      } else {
+        // Play Icon
+        playIcon.innerHTML = '<polygon points="6 4 20 12 6 20 6 4"></polygon>';
+      }
+    }
   }
 
-  if (btnYesProgressModal && progressConfirmModal) {
-    btnYesProgressModal.addEventListener('click', () => {
-      progressConfirmModal.classList.add('hidden');
-      showToast('Berhasil!', 'Rekomendasi berhasil disimpan!');
+  function selectTimerDuration(durationSec) {
+    if (isTimerRunning) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      isTimerRunning = false;
+    }
+    timerDurationSec = durationSec;
+    remainingSec = durationSec;
+
+    document.querySelectorAll('.timer-duration-btn').forEach(btn => {
+      const bSec = parseInt(btn.getAttribute('data-duration'), 10);
+      btn.classList.toggle('active', bSec === durationSec);
     });
+
+    updateTimerUI();
+  }
+
+  function startCountdown() {
+    if (timerDurationSec === 0) {
+      selectTimerDuration(1800); // default ke 30:00 jika belum memilih
+    }
+    if (remainingSec <= 0) {
+      remainingSec = timerDurationSec;
+    }
+    isTimerRunning = true;
+    updateTimerUI();
+
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (remainingSec > 0) {
+        remainingSec--;
+        updateTimerUI();
+        if (remainingSec <= 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          isTimerRunning = false;
+          updateTimerUI();
+          onTimerComplete();
+        }
+      }
+    }, 1000);
+  }
+
+  function pauseCountdown() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    isTimerRunning = false;
+    updateTimerUI();
+  }
+
+  function toggleTimerPlay() {
+    if (isTimerRunning) {
+      pauseCountdown();
+    } else {
+      startCountdown();
+    }
+  }
+
+  function onTimerComplete() {
+    const act = activitiesData[activeActivityId];
+    showToast('Selamat!', `Aktivitas ${act ? act.title : ''} selesai! Tetap konsisten menjaga pola hidup sehat.`);
+    showProgressSubView('recommendation');
+  }
+
+  function finishTimerEarly() {
+    pauseCountdown();
+    const act = activitiesData[activeActivityId];
+    showToast('Aktivitas Disimpan', `Sesi ${act ? act.title : 'aktivitas'} berhasil diselesaikan.`);
+    showProgressSubView('recommendation');
+  }
+
+  function cancelTimer() {
+    pauseCountdown();
+    showProgressSubView('detail');
+  }
+
+  function openActivityTimer(activityId) {
+    const act = activitiesData[activityId];
+    if (!act) return;
+    activeActivityId = activityId;
+
+    const timerHeroImg = document.getElementById('activity-timer-hero-img');
+    if (timerHeroImg) timerHeroImg.src = act.heroImg;
+
+    const timerBadgeIcon = document.getElementById('activity-timer-badge-icon');
+    if (timerBadgeIcon) timerBadgeIcon.innerHTML = act.iconSvg;
+
+    const timerBadgeTitle = document.getElementById('activity-timer-badge-title');
+    if (timerBadgeTitle) timerBadgeTitle.textContent = act.title;
+
+    const targetVal = document.getElementById('timer-target-duration-val');
+    if (targetVal) targetVal.textContent = act.targetText;
+
+    // Reset ke kondisi awal 00:00 paused
+    pauseCountdown();
+    timerDurationSec = 0;
+    remainingSec = 0;
+    document.querySelectorAll('.timer-duration-btn').forEach(b => b.classList.remove('active'));
+    updateTimerUI();
+
+    showProgressSubView('timer');
+  }
+
+  // Duration Options buttons (30:00, 45:00, 60:00)
+  document.querySelectorAll('.timer-duration-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dur = parseInt(btn.getAttribute('data-duration'), 10);
+      if (dur) selectTimerDuration(dur);
+    });
+  });
+
+  // Play / Pause Toggle button
+  const btnTimerPlayToggle = document.getElementById('btn-timer-play-toggle');
+  if (btnTimerPlayToggle) {
+    btnTimerPlayToggle.addEventListener('click', toggleTimerPlay);
+  }
+
+  // Finish Activity button
+  const btnTimerFinishAction = document.getElementById('btn-timer-finish-action');
+  if (btnTimerFinishAction) {
+    btnTimerFinishAction.addEventListener('click', finishTimerEarly);
+  }
+
+  // Cancel button
+  const btnTimerCancelAction = document.getElementById('btn-timer-cancel-action');
+  if (btnTimerCancelAction) {
+    btnTimerCancelAction.addEventListener('click', cancelTimer);
   }
 
   // Skrining Obesitas Modal Handlers
@@ -1982,8 +2488,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (menuBtnProgress) {
     menuBtnProgress.addEventListener('click', () => {
-      switchHomeTab('stats');
-      switchMonitoringSubpage('progress');
+      openProgressFeature('home');
     });
   }
 
