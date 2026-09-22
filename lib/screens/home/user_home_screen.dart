@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
+import '../../models/article_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/article_service.dart';
 import '../auth/login_screen.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
@@ -1183,50 +1185,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // 6. Section Artikel Kesehatan (Horizontal Scroll Bar)
   Widget _buildArticlesSection() {
-    final articles = [
-      {
-        'title': '5 Pola Makan Sehat Cegah Obesitas',
-        'color': const Color(0xFF7E96AC),
-        'icon': Icons.restaurant_menu_rounded,
-        'content':
-            'Menerapkan pola makan sehat merupakan fondasi utama dalam mencegah obesitas: perbanyak serat sayuran, batasi gula-garam-lemak (GGL), sarapan bergizi, minum 2 liter air, dan mindful eating.',
-      },
-      {
-        'title': 'Porsi Piring Gizi Seimbang Kemenkes',
-        'color': const Color(0xFFE5BD87),
-        'icon': Icons.pie_chart_outline_rounded,
-        'content':
-            'Konsep Isi Piringku Kemenkes: 1/3 makanan pokok karbohidrat, 1/3 aneka ragam sayuran, 1/6 lauk pauk protein, dan 1/6 buah-buahan segar.',
-      },
-      {
-        'title': 'Isi Piringku: Pedoman Sehari-hari',
-        'color': const Color(0xFF58B29C),
-        'icon': Icons.eco_outlined,
-        'content':
-            'Keseimbangan nutrisi makro dan mikro sehari-hari membantu mengoptimalkan metabolisme dan menjaga berat badan tetap stabil.',
-      },
-      {
-        'title': 'Aktivitas Fisik Ringan Pembakar Kalori',
-        'color': const Color(0xFF818CF8),
-        'icon': Icons.directions_run_rounded,
-        'content':
-            'Jalan kaki 30 menit per hari membakar hingga 200 kalori. Kombinasikan naik tangga dan peregangan berkala.',
-      },
-      {
-        'title': 'Obesitas Sebagai Pemicu Komplikasi',
-        'color': const Color(0xFF94A3B8),
-        'icon': Icons.medical_services_outlined,
-        'content':
-            'Deteksi dini dan skrining berkala mencegah komplikasi fatal akibat obesitas pada jantung dan metabolisme.',
-      },
-      {
-        'title': 'Yuk, Kenali Pola Hidup Sehat',
-        'color': const Color(0xFF489874),
-        'icon': Icons.favorite_outline_rounded,
-        'content':
-            'Pola hidup sehat adalah investasi jangka panjang untuk kualitas hidup terbaik dan kebugaran tubuh harian.',
-      },
-    ];
+    final articles = ArticleService().getArticles();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1281,9 +1240,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           child: Row(
             children: articles.map((art) {
               return GestureDetector(
-                onTap: () => _showArticleDetail(art['title'] as String, art['content'] as String),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => HealthArticleDetailScreen(article: art),
+                    ),
+                  );
+                },
                 child: Container(
-                  width: 140,
+                  width: 148,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -1301,16 +1266,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        height: 80,
+                        height: 85,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: art['color'] as Color,
+                          gradient: LinearGradient(
+                            colors: [art.headerColor, art.headerColor.withValues(alpha: 0.75)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                         ),
                         child: Center(
                           child: Icon(
-                            art['icon'] as IconData,
-                            size: 34,
+                            art.icon,
+                            size: 36,
                             color: Colors.white,
                           ),
                         ),
@@ -1321,7 +1290,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              art['title'] as String,
+                              art.title,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
@@ -1332,20 +1301,33 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE2F1E8),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                'Edukasi',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2E6B4F),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE2F1E8),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    art.category.split(' ').first,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF2E6B4F),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  art.readTime.split(' ').first + 'm',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 9.5,
+                                    color: const Color(0xFF94A3B8),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
