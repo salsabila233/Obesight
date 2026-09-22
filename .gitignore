@@ -1,3 +1,13 @@
-node_modules/
-dist/
+# Flutter/Dart/Pub specific
+.dart_tool/
+.packages
+build/
+.pub/
+
+# IDE specific
+.vscode/
+.idea/
+*.iml
+
+# Miscellaneous
 .DS_Store
