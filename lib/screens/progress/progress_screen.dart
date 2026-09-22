@@ -182,7 +182,7 @@ class ProgressScreen extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            // 2. Quick Cards Grid (Makananku & Minumanku)
+            // 2. Quick Cards Grid (Makananku & Minumanku) - Perbesar Ukuran Gambar
             Row(
               children: [
                 // Makananku
@@ -194,11 +194,11 @@ class ProgressScreen extends StatelessWidget {
                       'Fitur pencatatan menu makan dan penghitung kalori harian untuk mendukung pola makan bergizi seimbang.',
                     ),
                     child: Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFFFFF5EB),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: const Color(0xFFFFE7D4)),
                         boxShadow: [
                           BoxShadow(
                             color: const Color(0xFF0F172A).withValues(alpha: 0.04),
@@ -210,41 +210,54 @@ class ProgressScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Image.asset(
-                                  'assets/progress/clean/food_oatmeal.png',
-                                  width: 28,
-                                  height: 28,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.restaurant, size: 24, color: Color(0xFFD97706)),
+                          // Foto Besar Makananku
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              height: 95,
+                              width: double.infinity,
+                              color: const Color(0xFFFEF3C7),
+                              child: Image.asset(
+                                'assets/progress/clean/food_oatmeal.png',
+                                width: double.infinity,
+                                height: 95,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => const Center(
+                                  child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Makananku',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Target: 1.800 kkal',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFFD97706),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Makananku',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFF94A3B8)),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Target: 1.800 kkal',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFFD97706),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -263,11 +276,11 @@ class ProgressScreen extends StatelessWidget {
                       'Fitur pengingat minum air putih dan pencatatan hidrasi 2 liter per hari agar tubuh tetap segar dan bugar.',
                     ),
                     child: Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFFFEFBEA),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: const Color(0xFFFDF5CF)),
                         boxShadow: [
                           BoxShadow(
                             color: const Color(0xFF0F172A).withValues(alpha: 0.04),
@@ -279,41 +292,54 @@ class ProgressScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE0F2FE),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Image.asset(
-                                  'assets/progress/clean/drink_lemon.png',
-                                  width: 28,
-                                  height: 28,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_drink, size: 24, color: Color(0xFF0284C7)),
+                          // Foto Besar Minumanku
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              height: 95,
+                              width: double.infinity,
+                              color: const Color(0xFFE0F2FE),
+                              child: Image.asset(
+                                'assets/progress/clean/drink_lemon.png',
+                                width: double.infinity,
+                                height: 95,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => const Center(
+                                  child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Minumanku',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Target: 2.000 ml',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF0284C7),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Minumanku',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFF94A3B8)),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Target: 2.000 ml',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF0284C7),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],

@@ -2,42 +2,109 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'activity_timer_screen.dart';
 
-class ActivityDetailScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'activity_timer_screen.dart';
+
+class ActivityDetailScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
 
   const ActivityDetailScreen({super.key, required this.activity});
 
   @override
+  State<ActivityDetailScreen> createState() => _ActivityDetailScreenState();
+}
+
+class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isSticky = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      final offset = _scrollController.offset;
+      if (offset > 130 && !_isSticky) {
+        setState(() => _isSticky = true);
+      } else if (offset <= 130 && _isSticky) {
+        setState(() => _isSticky = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final title = activity['title'] as String? ?? 'Aktivitas Fisik';
-    final heroImg = activity['heroImg'] as String? ?? 'assets/progress/clean/hero_jogging.png';
-    final aboutTitle = activity['aboutTitle'] as String? ?? 'Tentang Latihan';
-    final aboutDesc = activity['aboutDesc'] as String? ?? '';
-    final quote = activity['quote'] as String? ?? '';
-    final benefits = (activity['benefits'] as List<dynamic>?)?.cast<String>() ?? [];
-    final specs = activity['specs'] as Map<String, dynamic>? ?? {};
-    final tipsTitle = activity['tipsTitle'] as String? ?? 'Tips Melakukan Latihan';
-    final tips = (activity['tips'] as List<dynamic>?)?.cast<String>() ?? [];
-    final refLink = activity['refLink'] as String? ?? '';
+    final title = widget.activity['title'] as String? ?? 'Aktivitas Fisik';
+    final heroImg = widget.activity['heroImg'] as String? ?? 'assets/progress/clean/hero_jogging.png';
+    final iconImg = widget.activity['icon'] as String? ?? 'assets/progress/clean/rec_icon_jogging.png';
+    final aboutTitle = widget.activity['aboutTitle'] as String? ?? 'Tentang Latihan';
+    final aboutDesc = widget.activity['aboutDesc'] as String? ?? '';
+    final benefits = (widget.activity['benefits'] as List<dynamic>?)?.cast<String>() ?? [];
+    final specs = widget.activity['specs'] as Map<String, dynamic>? ?? {};
+    final tipsTitle = widget.activity['tipsTitle'] as String? ?? 'Tips Melakukan Latihan';
+    final tips = (widget.activity['tips'] as List<dynamic>?)?.cast<String>() ?? [];
+    final refLink = widget.activity['refLink'] as String? ?? '';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F6F8),
       body: Stack(
         children: [
-          // Scrollable Content
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 90),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Top Hero Banner
-                Stack(
-                  children: [
-                    Container(
-                      height: 250,
-                      width: double.infinity,
-                      color: const Color(0xFF2D6A4F),
-                      child: Image.asset(
+          // 1. Scrollable Content with Parallax Hero & Collapsing Toolbar
+          CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Sticky Collapsing SliverAppBar
+              SliverAppBar(
+                expandedHeight: 250,
+                pinned: true,
+                elevation: _isSticky ? 3 : 0,
+                backgroundColor: const Color(0xFF36785A),
+                leading: IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: _isSticky ? Colors.transparent : Colors.black.withValues(alpha: 0.38),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                // Sticky Header Title (visible only when collapsed / scrolled down)
+                title: AnimatedOpacity(
+                  opacity: _isSticky ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                centerTitle: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  collapseMode: CollapseMode.parallax,
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Full Hero Photo
+                      Image.asset(
                         heroImg,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
@@ -45,120 +112,133 @@ class ActivityDetailScreen extends StatelessWidget {
                           child: const Icon(Icons.fitness_center_rounded, size: 72, color: Colors.white),
                         ),
                       ),
-                    ),
-                    Container(
-                      height: 250,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withValues(alpha: 0.55),
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.8),
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+
+                      // Gradient Overlay for readability
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black.withValues(alpha: 0.5),
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.8),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
                         ),
                       ),
-                    ),
-                    // Floating Back Button
-                    SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: IconButton(
-                          icon: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ),
-                    ),
-                    // Bottom Title Overlay
-                    Positioned(
-                      bottom: 18,
-                      left: 20,
-                      right: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF36785A),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'PANDUAN LATIHAN',
-                              style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            title,
-                            style: GoogleFonts.poppins(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
 
-                // 2. Main Body Content
-                Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // About Section
-                      Text(
-                        aboutTitle,
-                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        aboutDesc,
-                        style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF475569), height: 1.5),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // Research Quote Card
-                      if (quote.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE6F7F0),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFC4ECDA)),
-                          ),
+                      // Bottom Overlay: Icon + Nama Aktivitas (Posisi Awal)
+                      Positioned(
+                        bottom: 22,
+                        left: 20,
+                        right: 20,
+                        child: AnimatedOpacity(
+                          opacity: _isSticky ? 0.0 : 1.0,
+                          duration: const Duration(milliseconds: 150),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Icon(Icons.format_quote_rounded, color: Color(0xFF36785A), size: 26),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  quote,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.italic,
-                                    color: const Color(0xFF1E3A2F),
-                                    height: 1.45,
+                              // Icon Circle Badge
+                              Container(
+                                width: 44,
+                                height: 44,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF36785A).withValues(alpha: 0.85),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.2),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Image.asset(
+                                  iconImg,
+                                  width: 24,
+                                  height: 24,
+                                  color: Colors.white,
+                                  errorBuilder: (context, error, stackTrace) => const Icon(
+                                    Icons.directions_run_rounded,
+                                    size: 20,
+                                    color: Colors.white,
                                   ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Activity Name
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF36785A),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'PANDUAN LATIHAN',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      title,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Content Sliver
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Section: Tentang Aktivitas
+                      Text(
+                        aboutTitle,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        aboutDesc,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: const Color(0xFF475569),
+                          height: 1.55,
+                        ),
+                      ),
 
                       const SizedBox(height: 20),
 
@@ -189,10 +269,14 @@ class ActivityDetailScreen extends StatelessWidget {
 
                       const SizedBox(height: 22),
 
-                      // Manfaat Utama
+                      // Section: Manfaat Utama
                       Text(
                         'Manfaat Utama',
-                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
                       ),
                       const SizedBox(height: 10),
                       ...benefits.map((b) => Padding(
@@ -212,7 +296,11 @@ class ActivityDetailScreen extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     b,
-                                    style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF334155), height: 1.4),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      color: const Color(0xFF334155),
+                                      height: 1.4,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -221,10 +309,14 @@ class ActivityDetailScreen extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Tips Melakukan
+                      // Section: Tips Melakukan
                       Text(
                         tipsTitle,
-                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Container(
@@ -245,7 +337,11 @@ class ActivityDetailScreen extends StatelessWidget {
                                         Expanded(
                                           child: Text(
                                             t,
-                                            style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF475569), height: 1.4),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12.5,
+                                              color: const Color(0xFF475569),
+                                              height: 1.4,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -255,26 +351,74 @@ class ActivityDetailScreen extends StatelessWidget {
                         ),
                       ),
 
+                      // Section: Sumber Referensi (Dipertahankan)
                       if (refLink.isNotEmpty) ...[
-                        const SizedBox(height: 18),
-                        Text(
-                          'Sumber Referensi Ilmiah',
-                          style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF0F172A)),
+                        const SizedBox(height: 22),
+                        Row(
+                          children: [
+                            const Icon(Icons.link_rounded, size: 18, color: Color(0xFF36785A)),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Sumber Referensi',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          refLink,
-                          style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF0284C7), decoration: TextDecoration.underline),
+                        const SizedBox(height: 8),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: refLink));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Tautan referensi berhasil disalin', style: GoogleFonts.poppins()),
+                                backgroundColor: const Color(0xFF36785A),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0FDF4),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFBBF7D0)),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    refLink,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: const Color(0xFF15803D),
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.copy_rounded, size: 16, color: Color(0xFF15803D)),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
-          // Fixed Bottom Button: "Mulai"
+          // 2. Fixed Bottom Button: "Mulai"
           Positioned(
             left: 0,
             right: 0,
@@ -306,7 +450,7 @@ class ActivityDetailScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => ActivityTimerScreen(activity: activity),
+                          builder: (_) => ActivityTimerScreen(activity: widget.activity),
                         ),
                       );
                     },
@@ -348,3 +492,4 @@ class ActivityDetailScreen extends StatelessWidget {
     );
   }
 }
+

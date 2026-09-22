@@ -7,6 +7,7 @@ import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../progress/progress_screen.dart';
 import '../progress/physical_activity_screen.dart';
+import '../progress/screening_history_screen.dart';
 import 'health_article_list_screen.dart';
 import 'health_article_detail_screen.dart';
 import 'bmi_calculation_screen.dart';
@@ -886,9 +887,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         'title': 'Riwayat\nSkrining',
         'icon': Icons.monitor_heart_outlined,
         'action': () {
-          setState(() {
-            _selectedTabIndex = 1;
-          });
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const ScreeningHistoryScreen(),
+            ),
+          );
         },
       },
     ];
@@ -1544,6 +1547,59 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     ),
                   ),
                   const Icon(Icons.chevron_right_rounded, color: Color(0xFF36785A)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ScreeningHistoryScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.monitor_heart_rounded, color: Color(0xFFD97706), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Lihat Riwayat Skrining',
+                          style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+                        ),
+                        Text(
+                          'Linimasa hasil skrining risiko & IMT berkala',
+                          style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
                 ],
               ),
             ),
