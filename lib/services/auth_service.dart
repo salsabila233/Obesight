@@ -62,9 +62,33 @@ class AuthService {
   };
 
   final Map<String, Map<String, dynamic>> _userBmiCache = {
-    'usr_001': {'bmi': 22.8, 'category': 'Normal', 'risk': 'Rendah'},
-    'usr_002': {'bmi': 22.8, 'category': 'Normal', 'risk': 'Rendah'},
-    'adm_001': {'bmi': 23.5, 'category': 'Kelebihan Berat Badan', 'risk': 'Sedang'},
+    'usr_001': {
+      'bmi': 22.8,
+      'category': 'Normal',
+      'risk': 'Rendah',
+      'weight': 58.0,
+      'height': 165.0,
+      'gender': 'Perempuan',
+      'age': 22,
+    },
+    'usr_002': {
+      'bmi': 22.8,
+      'category': 'Normal',
+      'risk': 'Rendah',
+      'weight': 58.0,
+      'height': 165.0,
+      'gender': 'Perempuan',
+      'age': 22,
+    },
+    'adm_001': {
+      'bmi': 23.5,
+      'category': 'Kelebihan Berat Badan',
+      'risk': 'Sedang',
+      'weight': 68.0,
+      'height': 170.0,
+      'gender': 'Laki-laki',
+      'age': 35,
+    },
   };
 
   bool isBiodataCompleted(String userId) {
@@ -76,6 +100,10 @@ class AuthService {
       'bmi': 22.8,
       'category': 'Normal',
       'risk': 'Rendah',
+      'weight': 58.0,
+      'height': 165.0,
+      'gender': 'Perempuan',
+      'age': 22,
     };
   }
 
@@ -84,12 +112,22 @@ class AuthService {
     required double bmi,
     required String category,
     required String risk,
+    double? weight,
+    double? height,
+    String? gender,
+    int? age,
   }) {
-    _userBmiCache[userId] = {
-      'bmi': bmi,
-      'category': category,
-      'risk': risk,
-    };
+    final existing = _userBmiCache[userId] ?? {};
+    final updated = Map<String, dynamic>.from(existing);
+    updated['bmi'] = bmi;
+    updated['category'] = category;
+    updated['risk'] = risk;
+    if (weight != null) updated['weight'] = weight;
+    if (height != null) updated['height'] = height;
+    if (gender != null) updated['gender'] = gender;
+    if (age != null) updated['age'] = age;
+    _userBmiCache[userId] = updated;
+
     if (_currentUser != null && _currentUser!.id == userId) {
       _currentUser = _currentUser!.copyWith(
         bmiScore: bmi,

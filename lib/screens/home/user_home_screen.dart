@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
-import '../../theme/app_colors.dart';
 import '../auth/login_screen.dart';
 import 'health_article_list_screen.dart';
-import 'health_article_detail_screen.dart';
+import 'bmi_calculation_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   final UserModel user;
@@ -56,17 +55,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return const Color(0xFFDC2626);
   }
 
-  Map<String, String> _classifyBmi(double bmi) {
-    if (bmi < 18.5) {
-      return {'category': 'Kurus (Kekurangan Berat)', 'risk': 'Rendah'};
-    } else if (bmi <= 22.9) {
-      return {'category': 'Normal (Berat Ideal)', 'risk': 'Rendah'};
-    } else if (bmi <= 24.9) {
-      return {'category': 'Kelebihan Berat Badan', 'risk': 'Sedang'};
-    } else {
-      return {'category': 'Obesitas', 'risk': 'Tinggi'};
-    }
-  }
+
 
   String get _userFirstName {
     final name = _currentUserName.trim();
@@ -195,7 +184,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     child: Container(
                       width: 40,
                       height: 4,
-                      margin: const EdgeInsets.bottom: 16,
+                      margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(2),
@@ -324,167 +313,23 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  void _showBmiCalculatorModal() {
-    final heightController = TextEditingController(text: '165');
-    final weightController = TextEditingController(text: '58');
-    double calculatedBmi = _currentBmi;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+  void _openBmiCalculationScreen() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BmiCalculationScreen(user: widget.user),
       ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final classification = _classifyBmi(calculatedBmi);
-            final statusColor = _getBmiStatusColor(calculatedBmi);
-
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Kalkulator IMT',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: heightController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Tinggi Badan (cm)',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: weightController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Berat Badan (kg)',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          calculatedBmi.toStringAsFixed(1),
-                          style: GoogleFonts.poppins(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            color: statusColor,
-                          ),
-                        ),
-                        Text(
-                          classification['category']!,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: statusColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Risiko Obesitas: ${classification['risk']!}',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF374151),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00874A),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () {
-                      final h = double.tryParse(heightController.text) ?? 165;
-                      final w = double.tryParse(weightController.text) ?? 58;
-                      final hM = h / 100;
-                      final newBmi = double.parse((w / (hM * hM)).toStringAsFixed(1));
-                      final c = _classifyBmi(newBmi);
-                      final cat = c['category']!;
-                      final risk = c['risk']!;
-
-                      setModalState(() {
-                        calculatedBmi = newBmi;
-                      });
-
-                      AuthService().updateUserBmi(
-                        userId: widget.user.id,
-                        bmi: newBmi,
-                        category: cat.contains('Normal') ? 'Normal' : (cat.contains('Kurus') ? 'Kurus' : (cat.contains('Kelebihan') ? 'Overweight' : 'Obesitas')),
-                        risk: risk,
-                      );
-
-                      setState(() {
-                        _currentBmi = newBmi;
-                        _currentBmiCategory = cat.contains('Normal') ? 'Normal' : (cat.contains('Kurus') ? 'Kurus' : (cat.contains('Kelebihan') ? 'Overweight' : 'Obesitas'));
-                        _currentObesityRisk = risk;
-                      });
-                    },
-                    child: Text(
-                      'Hitung Ulang & Terapkan',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
     );
+    if (mounted) {
+      final bmiInfo = AuthService().getUserBmi(widget.user.id);
+      setState(() {
+        _currentBmi = (bmiInfo['bmi'] as num?)?.toDouble() ?? _currentBmi;
+        _currentBmiCategory = (bmiInfo['category'] as String?) ?? _currentBmiCategory;
+        _currentObesityRisk = (bmiInfo['risk'] as String?) ?? _currentObesityRisk;
+      });
+    }
   }
+
+
 
   void _showBiodataModal() {
     final nameCtrl = TextEditingController(text: _currentUserName);
@@ -671,7 +516,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     child: Container(
                       width: 40,
                       height: 4,
-                      margin: const EdgeInsets.bottom: 16,
+                      margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(2),
@@ -869,12 +714,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           // 6. Section Artikel Kesehatan (Horizontal Scroll Bar)
           _buildArticlesSection(),
 
-          // Space for floating bottom nav
           const SizedBox(height: 90),
         ],
       ),
-    ));
-  }
+    ),
+  ],
+);
+}
 
   // 1. Greeting Section
   Widget _buildGreetingSection() {
@@ -1116,7 +962,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       {
         'title': 'Kalkulator\nIMT',
         'icon': Icons.calculate_outlined,
-        'action': _showBmiCalculatorModal,
+        'action': _openBmiCalculationScreen,
       },
       {
         'title': 'Progress',
@@ -1188,7 +1034,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // 5. Section Status Kesehatan
   Widget _buildHealthStatusCard() {
-    return Container(
+    return GestureDetector(
+      onTap: _openBmiCalculationScreen,
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -1329,7 +1177,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   // 6. Section Artikel Kesehatan (Horizontal Scroll Bar)
@@ -1385,14 +1234,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Artikel Kesehatan',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+            Expanded(
+              child: Text(
+                'Artikel Kesehatan',
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                ),
               ),
             ),
+            const SizedBox(width: 8),
             GestureDetector(
               onTap: () {
                 Navigator.of(context).push(
@@ -1402,6 +1255,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 );
               },
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'Selengkapnya',

@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const articleDetailScreen = document.getElementById('article-detail-screen');
   const photoSheetBackdrop = document.getElementById('photo-sheet-backdrop');
   const cancelModalBackdrop = document.getElementById('modal-cancel-edit-backdrop');
+  const bmiCalcScreen = document.getElementById('bmi-calculator-screen');
+  const bmiResultScreen = document.getElementById('bmi-result-screen');
+  const modalBmiConfirm = document.getElementById('modal-bmi-confirm-backdrop');
   const statusBar = document.getElementById('phone-status-bar');
 
   // Controls & Toolbar
@@ -29,9 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const frameToggleLabel = document.getElementById('frame-toggle-label');
   const viewportWrapper = document.getElementById('viewport-wrapper');
   const btnDemoBeranda = document.getElementById('btn-demo-beranda');
+  const btnDemoBmi = document.getElementById('btn-demo-bmi');
+  const btnDemoBmiResult = document.getElementById('btn-demo-bmi-result');
   const btnDemoArticles = document.getElementById('btn-demo-articles');
   const btnDemoProfil = document.getElementById('btn-demo-profil');
   const btnDemoEdit = document.getElementById('btn-demo-edit');
+  const homeHealthStatusCard = document.getElementById('home-health-status-card');
   const btnToggleBiodataDemo = document.getElementById('btn-toggle-biodata-demo');
   const badgeBiodataStatus = document.getElementById('badge-biodata-status');
 
@@ -472,6 +478,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editProfileScreen) editProfileScreen.classList.add('hidden');
     if (articleListScreen) articleListScreen.classList.add('hidden');
     if (articleDetailScreen) articleDetailScreen.classList.add('hidden');
+    if (bmiCalcScreen) bmiCalcScreen.classList.add('hidden');
+    if (bmiResultScreen) bmiResultScreen.classList.add('hidden');
+    if (modalBmiConfirm) modalBmiConfirm.classList.add('hidden');
     if (photoSheetBackdrop) photoSheetBackdrop.classList.add('hidden');
     if (cancelModalBackdrop) cancelModalBackdrop.classList.add('hidden');
 
@@ -501,6 +510,26 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editProfileScreen) editProfileScreen.classList.remove('hidden');
       if (statusBar) statusBar.classList.remove('dark-text');
       renderUserProfileUI();
+    } else if (screenName === 'bmi-calc' || screenName === 'kalkulator-imt') {
+      if (splashScreen) splashScreen.style.display = 'none';
+      if (authScreen) authScreen.classList.add('hidden');
+      if (adminDash) adminDash.classList.add('hidden');
+      if (userDash) userDash.classList.add('hidden');
+      if (bmiCalcScreen) {
+        bmiCalcScreen.classList.remove('hidden');
+        initBmiCalcForm();
+      }
+      if (statusBar) statusBar.classList.remove('dark-text');
+    } else if (screenName === 'bmi-result' || screenName === 'hasil-imt') {
+      if (splashScreen) splashScreen.style.display = 'none';
+      if (authScreen) authScreen.classList.add('hidden');
+      if (adminDash) adminDash.classList.add('hidden');
+      if (userDash) userDash.classList.add('hidden');
+      if (bmiResultScreen) {
+        bmiResultScreen.classList.remove('hidden');
+        renderBmiResultUI();
+      }
+      if (statusBar) statusBar.classList.remove('dark-text');
     } else if (screenName === 'article-list' || screenName === 'articles') {
       if (splashScreen) splashScreen.style.display = 'none';
       if (authScreen) authScreen.classList.add('hidden');
@@ -534,13 +563,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const stored = localStorage.getItem(key);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        return {
+          bmi: parsed.bmi || '22.8',
+          category: parsed.category || 'Normal',
+          risk: parsed.risk || 'Rendah',
+          weight: parsed.weight !== undefined ? parsed.weight : 58,
+          height: parsed.height !== undefined ? parsed.height : 165,
+          age: parsed.age !== undefined ? parsed.age : 22,
+          gender: parsed.gender || 'Perempuan'
+        };
       } catch (e) { }
     }
     return {
       bmi: '22.8',
       category: 'Normal',
-      risk: 'Rendah'
+      risk: 'Rendah',
+      weight: 58,
+      height: 165,
+      age: 22,
+      gender: 'Perempuan'
     };
   }
 
@@ -2641,7 +2683,307 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Kalkulator IMT Modal Handlers
+  // ========================================================
+  // COMPREHENSIVE BMI CALCULATOR & RESULT SCREEN ENGINE
+  // ========================================================
+  let selectedBmiGender = 'Perempuan';
+
+  const bmiRecommendations = {
+    kurus: [
+      {
+        title: 'Pola Makan Padat Nutrisi',
+        desc: 'Tingkatkan asupan kalori sehat dari protein (telur, ikan, tahu/tempe) dan karbohidrat kompleks berkualitas.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>'
+      },
+      {
+        title: 'Latihan Penguatan Otot',
+        desc: 'Lakukan latihan beban atau resistensi teratur 2-3 kali seminggu untuk menstimulasi massa otot tanpa lemak.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/></svg>'
+      },
+      {
+        title: 'Camilan Sehat Teratur',
+        desc: 'Konsumsi camilan padat gizi seperti alpukat, kacang almond, atau yogurt di antara jam makan utama.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'
+      }
+    ],
+    normal: [
+      {
+        title: 'Pola Gizi Seimbang',
+        desc: 'Terapkan konsep "Isi Piringku": 1/3 karbohidrat, 1/3 sayuran, 1/6 lauk pauk, dan 1/6 buah-buahan segar.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>'
+      },
+      {
+        title: 'Aktivitas Fisik Rutin',
+        desc: 'Pertahankan olahraga aerobik (jalan cepat, jogging, bersepeda) minimal 150 menit per minggu.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/></svg>'
+      },
+      {
+        title: 'Hidrasi & Tidur Berkualitas',
+        desc: 'Konsumsi minimal 2 liter air putih sehari dan cukupi tidur 7-8 jam per malam untuk menjaga ritme metabolisme.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'
+      }
+    ],
+    overweight: [
+      {
+        title: 'Batasi Gula, Garam, & Lemak',
+        desc: 'Ikuti anjuran Kemenkes (G4-G1-L5): maksimal 4 sdm gula, 1 sdt garam, dan 5 sdm minyak/lemak sehari.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>'
+      },
+      {
+        title: 'Tingkatkan Gerak Harian (NEAT)',
+        desc: 'Targetkan 7.000-10.000 langkah setiap hari dan perbanyak bergerak aktif di sela-sela aktivitas duduk.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/></svg>'
+      },
+      {
+        title: 'Hindari Minuman Manis Berkalori',
+        desc: 'Ganti minuman boba, soda, dan kopi kemasan dengan air putih atau infused water segar tanpa pemanis.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'
+      }
+    ],
+    obesitas: [
+      {
+        title: 'Pengaturan Defisit Kalori Sehat',
+        desc: 'Kurangi porsi karbohidrat sederhana, hindari gorengan, dan perbanyak porsi sayuran hijau kaya serat.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>'
+      },
+      {
+        title: 'Olahraga Ramah Sendi (Low-Impact)',
+        desc: 'Mulai dengan jalan santai di permukaan rata, renang, atau sepeda statis 30 menit per hari untuk menjaga sendi.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/></svg>'
+      },
+      {
+        title: 'Konsultasi Tim Medis & Gizi',
+        desc: 'Lakukan pemeriksaan profil metabolik dan konsultasikan program penurunan berat badan dengan dokter/ahli gizi.',
+        icon: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>'
+      }
+    ]
+  };
+
+  const inputBmiWeight = document.getElementById('input-bmi-weight');
+  const inputBmiHeight = document.getElementById('input-bmi-height');
+  const inputBmiAge = document.getElementById('input-bmi-age');
+  const genderCardMale = document.getElementById('gender-card-male');
+  const genderCardFemale = document.getElementById('gender-card-female');
+  const liveBmiBadge = document.getElementById('live-bmi-badge');
+  const liveBmiNumber = document.getElementById('live-bmi-number');
+  const liveBmiRisk = document.getElementById('live-bmi-risk');
+  const bmiCalcErrorBanner = document.getElementById('bmi-calc-error-banner');
+  const bmiCalcErrorText = document.getElementById('bmi-calc-error-text');
+  const btnSaveBmiCalc = document.getElementById('btn-save-bmi-calc');
+  const btnCancelBmiConfirm = document.getElementById('btn-cancel-bmi-confirm');
+  const btnConfirmSaveBmi = document.getElementById('btn-confirm-save-bmi');
+  const btnBackFromBmiCalc = document.getElementById('btn-back-from-bmi-calc');
+  const btnBackFromBmiResult = document.getElementById('btn-back-from-bmi-result');
+  const btnBmiResultRecalc = document.getElementById('btn-bmi-result-recalc');
+  const btnBmiResultHome = document.getElementById('btn-bmi-result-home');
+
+  function initBmiCalcForm() {
+    const data = getUserBmiData(currentUser.email);
+    if (inputBmiWeight) inputBmiWeight.value = data.weight || 58;
+    if (inputBmiHeight) inputBmiHeight.value = data.height || 165;
+    if (inputBmiAge) inputBmiAge.value = data.age || 22;
+    selectedBmiGender = data.gender || 'Perempuan';
+
+    if (selectedBmiGender === 'Laki-laki') {
+      if (genderCardMale) genderCardMale.classList.add('active');
+      if (genderCardFemale) genderCardFemale.classList.remove('active');
+    } else {
+      if (genderCardFemale) genderCardFemale.classList.add('active');
+      if (genderCardMale) genderCardMale.classList.remove('active');
+    }
+
+    if (bmiCalcErrorBanner) bmiCalcErrorBanner.classList.add('hidden');
+
+    const scrollCont = document.querySelector('#bmi-calculator-screen .bmi-scroll-container');
+    if (scrollCont) scrollCont.scrollTop = 0;
+  }
+
+  if (genderCardMale) {
+    genderCardMale.addEventListener('click', () => {
+      selectedBmiGender = 'Laki-laki';
+      genderCardMale.classList.add('active');
+      if (genderCardFemale) genderCardFemale.classList.remove('active');
+    });
+  }
+
+  if (genderCardFemale) {
+    genderCardFemale.addEventListener('click', () => {
+      selectedBmiGender = 'Perempuan';
+      genderCardFemale.classList.add('active');
+      if (genderCardMale) genderCardMale.classList.remove('active');
+    });
+  }
+
+  if (btnSaveBmiCalc) {
+    btnSaveBmiCalc.addEventListener('click', () => {
+      const w = parseFloat(inputBmiWeight?.value);
+      const h = parseFloat(inputBmiHeight?.value);
+      const a = parseInt(inputBmiAge?.value, 10) || 22;
+
+      if (!w || w < 20 || w > 350) {
+        if (bmiCalcErrorBanner && bmiCalcErrorText) {
+          bmiCalcErrorText.textContent = 'Harap masukkan berat badan yang valid (20 - 350 kg)';
+          bmiCalcErrorBanner.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (!h || h < 50 || h > 260) {
+        if (bmiCalcErrorBanner && bmiCalcErrorText) {
+          bmiCalcErrorText.textContent = 'Harap masukkan tinggi badan yang valid (50 - 260 cm)';
+          bmiCalcErrorBanner.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (bmiCalcErrorBanner) bmiCalcErrorBanner.classList.add('hidden');
+
+      // Langsung hitung nilai estimasi IMT dan simpan tanpa popup konfirmasi
+      const hM = h / 100;
+      const bmi = (w / (hM * hM)).toFixed(1);
+      const bmiVal = parseFloat(bmi);
+
+      let category = 'Normal';
+      let risk = 'Rendah';
+
+      if (bmiVal < 18.5) {
+        category = 'Kurus';
+        risk = 'Rendah';
+      } else if (bmiVal <= 22.9) {
+        category = 'Normal';
+        risk = 'Rendah';
+      } else if (bmiVal <= 24.9) {
+        category = 'Overweight';
+        risk = 'Sedang';
+      } else {
+        category = 'Obesitas';
+        risk = 'Tinggi';
+      }
+
+      const updatedData = {
+        bmi: bmi,
+        category: category,
+        risk: risk,
+        weight: w,
+        height: h,
+        age: a,
+        gender: selectedBmiGender
+      };
+
+      setUserBmiData(currentUser.email, updatedData);
+      updateHealthStatusCard(updatedData);
+
+      // Langsung pindah ke halaman Hasil IMT
+      showScreen('bmi-result');
+      showToast('Perubahan Disimpan', `Estimasi IMT Anda: ${bmi} (${category}).`);
+    });
+  }
+
+  function renderBmiResultUI() {
+    const data = getUserBmiData(currentUser.email);
+    const bmiVal = parseFloat(data.bmi) || 22.8;
+
+    const badge = document.getElementById('bmi-result-category-badge');
+    const scoreBig = document.getElementById('bmi-result-score-big');
+    const riskText = document.getElementById('bmi-result-risk-text');
+    const desc = document.getElementById('bmi-result-description');
+    const pointerWrap = document.getElementById('bmi-gauge-pointer-wrap');
+    const pointerText = document.getElementById('bmi-gauge-pointer-text');
+    const summaryGender = document.getElementById('bmi-summary-gender');
+    const summaryAge = document.getElementById('bmi-summary-age');
+    const summaryWeight = document.getElementById('bmi-summary-weight');
+    const summaryHeight = document.getElementById('bmi-summary-height');
+    const recsList = document.getElementById('bmi-recommendations-list');
+
+    let key = 'normal';
+    let catClass = 'normal';
+    let catTitle = 'Normal';
+    let descText = 'Selamat! Berat badan Anda berada dalam kategori normal dan sehat. Pertahankan pola makan bergizi serta aktivitas fisik minimal 30 menit per hari.';
+
+    if (bmiVal < 18.5) {
+      key = 'kurus';
+      catClass = 'kurus';
+      catTitle = 'Kurus';
+      descText = 'Berat badan Anda berada di bawah rentang ideal. Disarankan untuk meningkatkan asupan makanan bergizi seimbang serta berkonsultasi dengan ahli gizi.';
+    } else if (bmiVal <= 22.9) {
+      key = 'normal';
+      catClass = 'normal';
+      catTitle = 'Normal';
+      descText = 'Selamat! Berat badan Anda berada dalam kategori normal dan sehat. Pertahankan pola makan bergizi serta aktivitas fisik minimal 30 menit per hari.';
+    } else if (bmiVal <= 24.9) {
+      key = 'overweight';
+      catClass = 'overweight';
+      catTitle = 'Kelebihan Berat Badan';
+      descText = 'Berat badan Anda sedikit di atas batas normal. Kurangi konsumsi makanan tinggi gula, garam, lemak serta tingkatkan aktivitas fisik harian.';
+    } else {
+      key = 'obesitas';
+      catClass = 'obesitas';
+      catTitle = 'Obesitas';
+      descText = 'Berat badan Anda tergolong obesitas. Disarankan untuk menerapkan defisit kalori sehat, aktivitas fisik teratur, serta konsultasi dengan dokter spesialis gizi.';
+    }
+
+    if (badge) {
+      badge.textContent = catTitle;
+      badge.className = `bmi-result-tag ${catClass}`;
+    }
+
+    if (scoreBig) {
+      scoreBig.textContent = data.bmi;
+      if (catClass === 'kurus') scoreBig.style.color = '#0284C7';
+      else if (catClass === 'normal') scoreBig.style.color = '#16A34A';
+      else if (catClass === 'overweight') scoreBig.style.color = '#D97706';
+      else scoreBig.style.color = '#DC2626';
+    }
+
+    if (riskText) {
+      riskText.textContent = `Risiko Obesitas: ${data.risk}`;
+    }
+
+    if (desc) {
+      desc.textContent = descText;
+    }
+
+    // Gauge pointer positioning (Min BMI 15 -> 4%, Max BMI 35 -> 96%)
+    if (pointerWrap && pointerText) {
+      pointerText.textContent = data.bmi;
+      const minB = 15;
+      const maxB = 35;
+      const pct = Math.min(Math.max(((bmiVal - minB) / (maxB - minB)) * 100, 4), 96);
+      pointerWrap.style.left = `${pct}%`;
+    }
+
+    // Physical summary
+    if (summaryGender) summaryGender.textContent = data.gender || 'Perempuan';
+    if (summaryAge) summaryAge.textContent = `${data.age || 22} Tahun`;
+    if (summaryWeight) summaryWeight.textContent = `${data.weight || 58} kg`;
+    if (summaryHeight) summaryHeight.textContent = `${data.height || 165} cm`;
+
+    // Recommendations list
+    if (recsList) {
+      const recs = bmiRecommendations[key] || bmiRecommendations.normal;
+      recsList.innerHTML = recs.map(r => `
+        <div class="bmi-rec-card">
+          <div class="bmi-rec-icon-box">
+            ${r.icon}
+          </div>
+          <div class="bmi-rec-content">
+            <h5>${r.title}</h5>
+            <p>${r.desc}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    const scrollCont = document.querySelector('#bmi-result-screen .bmi-scroll-container');
+    if (scrollCont) scrollCont.scrollTop = 0;
+  }
+
+  if (btnBackFromBmiCalc) btnBackFromBmiCalc.addEventListener('click', () => showScreen('home'));
+  if (btnBackFromBmiResult) btnBackFromBmiResult.addEventListener('click', () => showScreen('bmi-calc'));
+  if (btnBmiResultRecalc) btnBmiResultRecalc.addEventListener('click', () => showScreen('bmi-calc'));
+  if (btnBmiResultHome) btnBmiResultHome.addEventListener('click', () => showScreen('home'));
+
+  // Legacy Modal Handlers (kept for fallback)
   const btnOpenBmiCalc = document.getElementById('btn-open-bmi-calc');
   const bmiModal = document.getElementById('bmi-modal-backdrop');
   const btnCloseBmiModal = document.getElementById('btn-close-bmi-modal');
@@ -2653,70 +2995,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const bmiCalcAdvice = document.getElementById('bmi-calc-advice');
 
   function calculateBmi() {
-    const heightCm = parseFloat(bmiInputHeight?.value || '165');
-    const weightKg = parseFloat(bmiInputWeight?.value || '58');
-
-    if (!heightCm || !weightKg || heightCm <= 0 || weightKg <= 0) return;
-
-    const heightM = heightCm / 100;
-    const bmi = (weightKg / (heightM * heightM)).toFixed(1);
-    if (bmiCalcScore) bmiCalcScore.textContent = bmi;
-
-    const bmiVal = parseFloat(bmi);
-    let category = 'Normal';
-    let risk = 'Rendah';
-
-    if (bmiVal < 18.5) {
-      category = 'Kurus';
-      risk = 'Rendah';
-      if (bmiCalcCategory) bmiCalcCategory.textContent = 'Kurus (Kekurangan Berat)';
-      if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Tingkatkan asupan kalori bernutrisi dan protein untuk mencapai berat badan ideal.';
-      if (bmiCalcScore) bmiCalcScore.style.color = '#0284C7';
-    } else if (bmiVal <= 22.9) {
-      category = 'Normal';
-      risk = 'Rendah';
-      if (bmiCalcCategory) bmiCalcCategory.textContent = 'Normal (Berat Ideal)';
-      if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Selamat! Berat badan Anda ideal. Pertahankan dengan pola makan bergizi dan olahraga teratur.';
-      if (bmiCalcScore) bmiCalcScore.style.color = '#15803D';
-    } else if (bmiVal <= 24.9) {
-      category = 'Overweight';
-      risk = 'Sedang';
-      if (bmiCalcCategory) bmiCalcCategory.textContent = 'Kelebihan Berat Badan (Overweight)';
-      if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Waspada peningkatan berat badan. Kurangi karbohidrat olahan dan gula tambahan.';
-      if (bmiCalcScore) bmiCalcScore.style.color = '#D97706';
-    } else {
-      category = 'Obesitas';
-      risk = 'Tinggi';
-      if (bmiCalcCategory) bmiCalcCategory.textContent = 'Obesitas';
-      if (bmiCalcAdvice) bmiCalcAdvice.textContent = 'Disarankan untuk melakukan penyesuaian defisit kalori sehat dan konsultasi medis.';
-      if (bmiCalcScore) bmiCalcScore.style.color = '#DC2626';
-    }
-
-    // Automatically persist latest BMI calculation and synchronize Status Kesehatan card
-    const currentBmiData = {
-      bmi: bmi,
-      category: category,
-      risk: risk
-    };
-    setUserBmiData(currentUser.email, currentBmiData);
-    updateHealthStatusCard(currentBmiData);
+    initBmiCalcForm();
+    showScreen('bmi-calc');
   }
 
-  if (btnOpenBmiCalc && bmiModal) {
-    btnOpenBmiCalc.addEventListener('click', () => {
-      bmiModal.classList.remove('hidden');
-      calculateBmi();
-    });
+  if (btnOpenBmiCalc) {
+    btnOpenBmiCalc.addEventListener('click', () => showScreen('bmi-calc'));
   }
-
   if (btnCloseBmiModal && bmiModal) {
-    btnCloseBmiModal.addEventListener('click', () => {
-      bmiModal.classList.add('hidden');
-    });
+    btnCloseBmiModal.addEventListener('click', () => bmiModal.classList.add('hidden'));
   }
-
   if (btnRecalcBmi) {
-    btnRecalcBmi.addEventListener('click', calculateBmi);
+    btnRecalcBmi.addEventListener('click', () => showScreen('bmi-calc'));
   }
   if (bmiInputHeight) bmiInputHeight.addEventListener('input', calculateBmi);
   if (bmiInputWeight) bmiInputWeight.addEventListener('input', calculateBmi);
@@ -2940,6 +3230,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Preview Toolbar Quick Demo Shortcuts
   if (btnDemoBeranda) btnDemoBeranda.addEventListener('click', () => showScreen('home'));
+  if (btnDemoBmi) btnDemoBmi.addEventListener('click', () => showScreen('bmi-calc'));
+  if (btnDemoBmiResult) btnDemoBmiResult.addEventListener('click', () => showScreen('bmi-result'));
+  if (btnDemoArticles) btnDemoArticles.addEventListener('click', () => showScreen('article-list'));
   if (btnDemoProfil) btnDemoProfil.addEventListener('click', () => showScreen('profile'));
   if (btnDemoEdit) btnDemoEdit.addEventListener('click', () => showScreen('edit-profile'));
   if (btnToggleBiodataDemo) {
@@ -2968,10 +3261,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (menuBtnBmi) {
     menuBtnBmi.addEventListener('click', () => {
-      if (bmiModal) {
-        bmiModal.classList.remove('hidden');
-        calculateBmi();
-      }
+      showScreen('bmi-calc');
+    });
+  }
+
+  if (homeHealthStatusCard) {
+    homeHealthStatusCard.addEventListener('click', () => {
+      showScreen('bmi-calc');
     });
   }
 

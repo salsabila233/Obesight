@@ -26,6 +26,12 @@
       <button type="button" class="btn-tool" id="btn-demo-beranda" title="Buka Beranda">
         <span>🏠 Beranda</span>
       </button>
+      <button type="button" class="btn-tool" id="btn-demo-bmi" title="Buka Kalkulator IMT">
+        <span>⚖️ Kalkulator IMT</span>
+      </button>
+      <button type="button" class="btn-tool" id="btn-demo-bmi-result" title="Buka Hasil IMT">
+        <span>📊 Hasil IMT</span>
+      </button>
       <button type="button" class="btn-tool" id="btn-demo-articles" title="Buka Daftar Artikel Kesehatan">
         <span>📰 Artikel</span>
       </button>
@@ -850,7 +856,7 @@
 
               <!-- Section Status Kesehatan -->
               <section class="home-section health-status-section">
-                <div class="health-status-card">
+                <div class="health-status-card clickable-card" id="home-health-status-card" role="button" tabindex="0" title="Klik untuk membuka Kalkulator IMT">
                   <h3 class="health-status-heading">Status Kesehatan</h3>
                   <div class="health-status-content-box">
                     <div class="health-status-col">
@@ -2864,6 +2870,268 @@
           </div>
         </section>
 
+        <!-- 9. PERHITUNGAN IMT SCREEN (1:1 DENGAN FLUTTER BMI CALCULATION SCREEN) -->
+        <section class="mobile-subpage-screen hidden" id="bmi-calculator-screen" aria-label="Halaman Perhitungan IMT">
+          <!-- Top Forest Green App Bar -->
+          <header class="mobile-subpage-header">
+            <button type="button" class="btn-subpage-back" id="btn-back-from-bmi-calc" title="Kembali ke Beranda">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <h2 class="mobile-subpage-title">Perhitungan IMT</h2>
+            <div class="header-spacer"></div>
+          </header>
+
+          <!-- Scroll Container -->
+          <div class="bmi-scroll-container">
+            <div class="bmi-content-padding">
+
+              <!-- Top Banner Card with Illustration -->
+              <div class="bmi-top-banner">
+                <div class="bmi-banner-text">
+                  <h3 class="bmi-banner-title">Hitung Indeks Massa<br>Tubuhmu</h3>
+                  <p class="bmi-banner-desc">Ketahui status berat badan dan risiko kesehatan berdasarkan tinggi dan berat badanmu.</p>
+                </div>
+                <div class="bmi-banner-img-box">
+                  <img src="./assets/illustration_woman.png" alt="Ilustrasi Kesehatan" class="bmi-banner-img" onerror="this.style.display='none'" />
+                </div>
+              </div>
+
+              <!-- Error Banner -->
+              <div class="bmi-error-banner hidden" id="bmi-calc-error-banner">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="bmi-calc-error-text">Harap masukkan data yang valid</span>
+              </div>
+
+              <!-- Section: Data Fisik Pengguna -->
+              <div class="bmi-section-head">
+                <h4 class="bmi-section-title">Data Fisik Pengguna</h4>
+              </div>
+
+              <!-- Gender Selection -->
+              <div class="bmi-field-block">
+                <label class="bmi-field-label">Jenis Kelamin</label>
+                <div class="bmi-gender-toggle-grid">
+                  <div class="bmi-gender-card" id="gender-card-male" role="button" tabindex="0">
+                    <div class="gender-card-icon-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="10" cy="14" r="5" />
+                        <line x1="19" y1="5" x2="13.6" y2="10.4" />
+                        <polyline points="15 5 19 5 19 9" />
+                      </svg>
+                    </div>
+                    <span class="gender-card-label">Laki-laki</span>
+                  </div>
+                  <div class="bmi-gender-card active" id="gender-card-female" role="button" tabindex="0">
+                    <div class="gender-card-icon-wrap">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="9" r="5" />
+                        <line x1="12" y1="14" x2="12" y2="21" />
+                        <line x1="9" y1="18" x2="15" y2="18" />
+                      </svg>
+                    </div>
+                    <span class="gender-card-label">Perempuan</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Inputs: Berat, Tinggi, Usia -->
+              <div class="bmi-inputs-list">
+                <!-- Berat Badan -->
+                <div class="bmi-input-card">
+                  <div class="bmi-input-header">
+                    <div class="bmi-input-icon-box">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="4" />
+                        <circle cx="12" cy="9" r="3" />
+                        <line x1="12" y1="9" x2="13" y2="7.5" />
+                        <line x1="7" y1="16" x2="17" y2="16" />
+                      </svg>
+                    </div>
+                    <span class="bmi-input-title">Berat Badan</span>
+                  </div>
+                  <div class="bmi-input-row">
+                    <input type="number" id="input-bmi-weight" class="bmi-clean-input" placeholder="60" value="58" min="20" max="350" step="0.5" />
+                    <span class="bmi-input-unit">kg</span>
+                  </div>
+                </div>
+
+                <!-- Tinggi Badan -->
+                <div class="bmi-input-card">
+                  <div class="bmi-input-header">
+                    <div class="bmi-input-icon-box">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="2" x2="12" y2="22" />
+                        <polyline points="7 6 12 2 17 6" />
+                        <polyline points="7 18 12 22 17 18" />
+                      </svg>
+                    </div>
+                    <span class="bmi-input-title">Tinggi Badan</span>
+                  </div>
+                  <div class="bmi-input-row">
+                    <input type="number" id="input-bmi-height" class="bmi-clean-input" placeholder="165" value="165" min="50" max="260" step="1" />
+                    <span class="bmi-input-unit">cm</span>
+                  </div>
+                </div>
+
+                <!-- Usia -->
+                <div class="bmi-input-card">
+                  <div class="bmi-input-header">
+                    <div class="bmi-input-icon-box">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2E6B4F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                    </div>
+                    <span class="bmi-input-title">Usia</span>
+                  </div>
+                  <div class="bmi-input-row">
+                    <input type="number" id="input-bmi-age" class="bmi-clean-input" placeholder="22" value="22" min="10" max="120" step="1" />
+                    <span class="bmi-input-unit">Tahun</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Note Info Box -->
+              <div class="bmi-note-box">
+                <div class="bmi-note-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#36785A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                </div>
+                <div class="bmi-note-text">
+                  <h5>Catatan Penting</h5>
+                  <p>IMT dihitung berdasarkan rumus berat badan (kg) dibagi kuadrat tinggi badan (m²). Pastikan data yang Anda masukkan akurat.</p>
+                </div>
+              </div>
+
+              <div class="home-bottom-spacer"></div>
+            </div>
+          </div>
+
+          <!-- Bottom Sticky Action Bar -->
+          <footer class="bmi-bottom-action-bar">
+            <button type="button" class="btn-save-bmi-action" id="btn-save-bmi-calc">
+              <span>Simpan Perubahan</span>
+            </button>
+          </footer>
+        </section>
+
+        <!-- 10. HASIL PERHITUNGAN IMT SCREEN (1:1 DENGAN FLUTTER BMI RESULT SCREEN) -->
+        <section class="mobile-subpage-screen hidden" id="bmi-result-screen" aria-label="Halaman Hasil IMT">
+          <!-- Top Forest Green App Bar -->
+          <header class="mobile-subpage-header">
+            <button type="button" class="btn-subpage-back" id="btn-back-from-bmi-result" title="Kembali ke Kalkulator IMT">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <h2 class="mobile-subpage-title">Hasil &amp; Estimasi IMT</h2>
+            <div class="header-spacer"></div>
+          </header>
+
+          <!-- Scroll Container -->
+          <div class="bmi-scroll-container">
+            <div class="bmi-content-padding">
+
+              <!-- Main Result Card (Gabungan Estimasi & Hasil IMT) -->
+              <div class="bmi-result-card" id="bmi-result-card">
+                <div class="result-badge-wrap">
+                  <span class="bmi-result-tag normal" id="bmi-result-category-badge">Normal</span>
+                </div>
+                <div class="result-card-subtitle">Estimasi Indeks Massa Tubuh</div>
+                <div class="bmi-result-score" id="bmi-result-score-big">22.8</div>
+                <div class="bmi-result-risk-pill" id="bmi-result-risk-badge">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span id="bmi-result-risk-text">Risiko Obesitas: Rendah</span>
+                </div>
+
+                <!-- Visual Spectrum Gauge Bar -->
+                <div class="bmi-gauge-section">
+                  <div class="bmi-gauge-pointer-wrap" id="bmi-gauge-pointer-wrap" style="left: 45%;">
+                    <div class="bmi-gauge-pointer-bubble" id="bmi-gauge-pointer-text">22.8</div>
+                    <div class="bmi-gauge-pointer-arrow"></div>
+                  </div>
+                  <div class="bmi-gauge-track">
+                    <div class="gauge-segment kurus" title="Kurus (< 18.5)"></div>
+                    <div class="gauge-segment normal" title="Normal (18.5 - 22.9)"></div>
+                    <div class="gauge-segment overweight" title="Overweight (23.0 - 24.9)"></div>
+                    <div class="gauge-segment obesitas" title="Obesitas (>= 25.0)"></div>
+                  </div>
+                  <div class="bmi-gauge-labels">
+                    <span class="gauge-lbl">Kurus</span>
+                    <span class="gauge-lbl">Normal</span>
+                    <span class="gauge-lbl">Gemuk</span>
+                    <span class="gauge-lbl">Obesitas</span>
+                  </div>
+                </div>
+
+                <p class="bmi-result-desc" id="bmi-result-description">
+                  Selamat! Berat badan Anda berada dalam kategori normal dan sehat. Pertahankan pola makan bergizi serta aktivitas fisik minimal 30 menit per hari.
+                </p>
+              </div>
+
+              <!-- Physical Data Summary Grid -->
+              <div class="bmi-summary-card">
+                <h4 class="bmi-summary-title">Ringkasan Data Fisik</h4>
+                <div class="bmi-summary-grid">
+                  <div class="summary-grid-item">
+                    <span class="summary-item-lbl">Jenis Kelamin</span>
+                    <span class="summary-item-val" id="bmi-summary-gender">Perempuan</span>
+                  </div>
+                  <div class="summary-grid-item">
+                    <span class="summary-item-lbl">Usia</span>
+                    <span class="summary-item-val" id="bmi-summary-age">22 Tahun</span>
+                  </div>
+                  <div class="summary-grid-item">
+                    <span class="summary-item-lbl">Berat Badan</span>
+                    <span class="summary-item-val" id="bmi-summary-weight">58 kg</span>
+                  </div>
+                  <div class="summary-grid-item">
+                    <span class="summary-item-lbl">Tinggi Badan</span>
+                    <span class="summary-item-val" id="bmi-summary-height">165 cm</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendations Section -->
+              <div class="bmi-recommendation-section">
+                <h4 class="bmi-rec-title">Rekomendasi Gaya Hidup & Aktivitas</h4>
+                <div class="bmi-rec-list" id="bmi-recommendations-list">
+                  <!-- Dynamic cards injected via JS -->
+                </div>
+              </div>
+
+              <div class="home-bottom-spacer"></div>
+            </div>
+          </div>
+
+          <!-- Bottom Sticky Action Bar with 2 Buttons -->
+          <footer class="bmi-result-action-bar">
+            <button type="button" class="btn-bmi-secondary" id="btn-bmi-result-recalc">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 4v6h6"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+              </svg>
+              <span>Hitung Ulang</span>
+            </button>
+            <button type="button" class="btn-bmi-primary" id="btn-bmi-result-home">
+              <span>Kembali ke Beranda</span>
+            </button>
+          </footer>
+        </section>
+
         <!-- 4. ADMIN HOME SCREEN (PANEL ADMINISTRATOR) -->
         <section class="dashboard-screen hidden" id="admin-dashboard-screen">
           <div class="dash-appbar admin-appbar">
@@ -2957,6 +3225,22 @@
               <div class="modal-action-row">
                 <button type="button" class="btn-modal-primary" id="btn-calc-screening">Lihat Hasil Skrining</button>
               </div>
+            </div>
+          </div>
+        <!-- MODAL KONFIRMASI SIMPAN IMT (1:1 DENGAN FLUTTER BmiSaveConfirmationDialog) -->
+        <div class="modal-backdrop hidden" id="modal-bmi-confirm-backdrop">
+          <div class="bmi-confirm-modal-card">
+            <div class="confirm-modal-icon-badge">
+              <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#489874" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <h3 class="confirm-modal-heading">Apakah Anda ingin menyimpan perubahan?</h3>
+            <p class="confirm-modal-desc">Data tinggi dan berat badan Anda akan diperbarui untuk menghitung status IMT serta profil kesehatan terbaru.</p>
+            <div class="confirm-modal-actions">
+              <button type="button" class="btn-confirm-cancel" id="btn-cancel-bmi-confirm">Batal</button>
+              <button type="button" class="btn-confirm-save" id="btn-confirm-save-bmi">Ya, Simpan</button>
             </div>
           </div>
         </div>
