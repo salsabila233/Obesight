@@ -214,11 +214,22 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                       ),
                       const SizedBox(height: 8),
 
-                      // Publish Date directly under title
+                      // Author and Publish Date directly under title
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF64748B)),
-                          const SizedBox(width: 6),
+                          const Icon(Icons.person_outline_rounded, size: 15, color: Color(0xFF36785A)),
+                          const SizedBox(width: 4),
+                          Text(
+                            author,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF36785A),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFF64748B)),
+                          const SizedBox(width: 4),
                           Text(
                             date,
                             style: GoogleFonts.poppins(

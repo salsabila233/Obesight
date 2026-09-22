@@ -61,6 +61,75 @@ class AuthService {
     'adm_001': true,
   };
 
+  final Map<String, Map<String, String>> _userProfileCache = {
+    'usr_001': {
+      'name': 'Zahra Fitriana',
+      'dob': '12 Juli 2003',
+      'gender': 'Perempuan',
+      'email': 'zahraafitriana@gmail.com',
+      'phone': '089334212098',
+      'joined': 'Bergabung sejak Agustus 2025',
+      'avatar': 'assets/avatar_zahra.png',
+    },
+    'usr_002': {
+      'name': 'Zahra Fitrie',
+      'dob': '15 Mei 2002',
+      'gender': 'Perempuan',
+      'email': 'zahrafitrie@gmail.com',
+      'phone': '081234567890',
+      'joined': 'Bergabung sejak Januari 2025',
+      'avatar': 'assets/avatar_zahra.png',
+    },
+    'adm_001': {
+      'name': 'Dr. Hendra Wijaya, Sp.GK',
+      'dob': '20 November 1988',
+      'gender': 'Laki-laki',
+      'email': 'admin@obesight.com',
+      'phone': '081198765432',
+      'joined': 'Bergabung sejak Januari 2024',
+      'avatar': 'assets/avatar_zahra.png',
+    },
+  };
+
+  Map<String, String> getUserProfile(String userId) {
+    return _userProfileCache[userId] ?? {
+      'name': 'Zahra Fitriana',
+      'dob': '12 Juli 2003',
+      'gender': 'Perempuan',
+      'email': 'zahraafitriana@gmail.com',
+      'phone': '089334212098',
+      'joined': 'Bergabung sejak Agustus 2025',
+      'avatar': 'assets/avatar_zahra.png',
+    };
+  }
+
+  void updateUserProfile({
+    required String userId,
+    String? name,
+    String? dob,
+    String? gender,
+    String? email,
+    String? phone,
+    String? avatar,
+  }) {
+    final current = getUserProfile(userId);
+    _userProfileCache[userId] = {
+      'name': name ?? current['name'] ?? 'User',
+      'dob': dob ?? current['dob'] ?? '',
+      'gender': gender ?? current['gender'] ?? 'Perempuan',
+      'email': email ?? current['email'] ?? '',
+      'phone': phone ?? current['phone'] ?? '',
+      'joined': current['joined'] ?? 'Bergabung sejak Agustus 2025',
+      'avatar': avatar ?? current['avatar'] ?? 'assets/avatar_zahra.png',
+    };
+    if (_currentUser != null && _currentUser!.id == userId) {
+      _currentUser = _currentUser!.copyWith(
+        name: name ?? _currentUser!.name,
+        email: email ?? _currentUser!.email,
+      );
+    }
+  }
+
   final Map<String, Map<String, dynamic>> _userBmiCache = {
     'usr_001': {
       'bmi': 22.8,

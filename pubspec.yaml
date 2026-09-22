@@ -66,6 +66,9 @@ flutter:
     - assets/brand_lockup.png
     - assets/google_icon.svg
     - assets/illustration_woman.png
+    - assets/avatar_zahra.png
+    - assets/progress/clean/
+    - assets/progress/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

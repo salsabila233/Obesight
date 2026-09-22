@@ -3,7 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import '../profile/profile_screen.dart';
+import '../settings/settings_screen.dart';
+import '../progress/progress_screen.dart';
+import '../progress/physical_activity_screen.dart';
 import 'health_article_list_screen.dart';
+import 'health_article_detail_screen.dart';
 import 'bmi_calculation_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
@@ -48,6 +53,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     });
   }
 
+  void _syncUserData() {
+    final profile = AuthService().getUserProfile(widget.user.id);
+    final bmiInfo = AuthService().getUserBmi(widget.user.id);
+    if (mounted) {
+      setState(() {
+        _currentUserName = profile['name'] ?? widget.user.name;
+        _currentBmi = (bmiInfo['bmi'] as num?)?.toDouble() ?? _currentBmi;
+        _currentBmiCategory = (bmiInfo['category'] as String?) ?? _currentBmiCategory;
+        _currentObesityRisk = (bmiInfo['risk'] as String?) ?? _currentObesityRisk;
+        _isBiodataComplete = AuthService().isBiodataCompleted(widget.user.id);
+      });
+    }
+  }
+
   Color _getBmiStatusColor(double bmi) {
     if (bmi < 18.5) return const Color(0xFF0284C7);
     if (bmi <= 22.9) return const Color(0xFF16A34A);
@@ -68,95 +87,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
-    );
-  }
-
-  void _showProfileModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: const Color(0xFF4EA07E),
-                      child: Text(
-                        _userFirstName.isNotEmpty ? _userFirstName[0].toUpperCase() : 'Z',
-                        style: GoogleFonts.poppins(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.user.name,
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
-                            ),
-                          ),
-                          Text(
-                            widget.user.email,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.person_outline_rounded, color: Color(0xFF334155)),
-                  title: Text(
-                    'Lengkapi Biodata',
-                    style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _showBiodataModal();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
-                  title: Text(
-                    'Keluar Akun',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFFDC2626),
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _handleLogout(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -493,64 +423,23 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   void _showArticleDetail(String title, String content) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.75,
-          maxChildSize: 0.95,
-          minChildSize: 0.4,
-          expand: false,
-          builder: (_, scrollCtrl) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: ListView(
-                controller: scrollCtrl,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '⏱️ 3 Menit Baca',
-                    style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B)),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    content,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      height: 1.6,
-                      color: const Color(0xFF334155),
-                    ),
-                  ),
-                ],
-              ),
-            );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HealthArticleDetailScreen(
+          article: {
+            'title': title,
+            'content': content,
+            'category': 'Edukasi Kesehatan',
+            'readTime': '3 Menit Baca',
+            'author': 'Tim Medis ObeSight',
+            'date': '22 September 2026',
+            'takeaways': [
+              'Pola hidup sehat adalah investasi jangka panjang untuk kualitas hidup terbaik.',
+              'Gunakan aplikasi ObeSight untuk memantau kemajuan Anda secara berkala.',
+            ],
           },
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -621,7 +510,14 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
           // Profile Avatar Icon Button
           GestureDetector(
-            onTap: _showProfileModal,
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ProfileScreen(user: widget.user),
+                ),
+              );
+              _syncUserData();
+            },
             child: Container(
               width: 36,
               height: 36,
@@ -630,10 +526,16 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 border: Border.all(color: const Color(0xFF2D6A4F), width: 2),
                 color: Colors.white,
               ),
-              child: const Icon(
-                Icons.person_rounded,
-                size: 24,
-                color: Color(0xFF2D6A4F),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/avatar_zahra.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.person_rounded,
+                    size: 22,
+                    color: Color(0xFF2D6A4F),
+                  ),
+                ),
               ),
             ),
           ),
@@ -708,6 +610,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
           // 5. Section Status Kesehatan (IMT & Risiko Obesitas)
           _buildHealthStatusCard(),
+
+          const SizedBox(height: 20),
+
+          // Section Rekomendasi Aktivitas Fisik (5 Latihan)
+          _buildPhysicalActivityBanner(),
 
           const SizedBox(height: 22),
 
@@ -968,9 +875,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         'title': 'Progress',
         'icon': Icons.history_rounded,
         'action': () {
-          setState(() {
-            _selectedTabIndex = 1;
-          });
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ProgressScreen(user: widget.user),
+            ),
+          );
         },
       },
       {
@@ -1179,6 +1088,94 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       ),
     ),
   );
+  }
+
+  // Rekomendasi Aktivitas Fisik Banner
+  Widget _buildPhysicalActivityBanner() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PhysicalActivityScreen()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F2FE),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.all(10),
+              child: Image.asset(
+                'assets/progress/clean/icon_shoe.png',
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.directions_run_rounded, color: Color(0xFF0284C7), size: 26),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    children: [
+                      Text(
+                        'Aktivitas Fisik',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE2F1E8),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '5 Latihan',
+                          style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF2E6B4F)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Jogging, Sepeda, Gym, Yoga & HIIT.',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF36785A)),
+          ],
+        ),
+      ),
+    );
   }
 
   // 6. Section Artikel Kesehatan (Horizontal Scroll Bar)
@@ -1412,9 +1409,23 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     final isActive = _selectedTabIndex == index;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedTabIndex = index;
-        });
+        if (index == 1) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ProgressScreen(user: widget.user),
+            ),
+          );
+        } else if (index == 2) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => SettingsScreen(user: widget.user),
+            ),
+          );
+        } else {
+          setState(() {
+            _selectedTabIndex = 0;
+          });
+        }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -1489,6 +1500,54 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => ProgressScreen(user: widget.user)),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE6F7F0), Color(0xFFD4F1E4)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFC4ECDA)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF36785A),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.directions_run_rounded, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pantau Progres & Aktivitas',
+                          style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF112A1F)),
+                        ),
+                        Text(
+                          'Rekomendasi 5 aktivitas fisik harian',
+                          style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF375347)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: Color(0xFF36785A)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1521,14 +1580,39 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               side: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             tileColor: Colors.white,
+            leading: const Icon(Icons.settings_outlined, color: Color(0xFF36785A)),
+            title: Text(
+              'Pengaturan Lengkap',
+              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text('Keamanan, sandi, email & info aplikasi', style: GoogleFonts.poppins(fontSize: 11.5)),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => SettingsScreen(user: widget.user)),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            tileColor: Colors.white,
             leading: const Icon(Icons.person_outline_rounded, color: Color(0xFF36785A)),
             title: Text(
               'Profil & Biodata',
               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
             ),
-            subtitle: Text('Edit tinggi, berat & usia', style: GoogleFonts.poppins(fontSize: 11.5)),
+            subtitle: Text('Edit data pribadi & status biodata', style: GoogleFonts.poppins(fontSize: 11.5)),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: _showBiodataModal,
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => ProfileScreen(user: widget.user)),
+              );
+              _syncUserData();
+            },
           ),
           const SizedBox(height: 12),
           ListTile(

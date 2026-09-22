@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/bmi_save_confirmation_dialog.dart';
 import 'bmi_result_screen.dart';
 
 class BmiCalculationScreen extends StatefulWidget {
