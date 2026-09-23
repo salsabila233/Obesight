@@ -5516,28 +5516,29 @@ body.theme-dark .help-contact-value {
 
 .timer-stacked-numbers {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  pointer-events: none;
 }
 
 .timer-num-sub {
-  font-family: var(--font-family);
-  font-size: 18px;
-  font-weight: 600;
-  color: #B8C8C0;
-  line-height: 1.2;
+  display: none !important;
 }
 
 .timer-num-main {
   font-family: var(--font-family);
-  font-size: 38px;
-  font-weight: 800;
-  color: #1F2937;
-  line-height: 1.1;
-  letter-spacing: 0.5px;
-  margin: 2px 0;
+  font-size: 48px;
+  font-weight: 700;
+  color: #1A1A2E;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  margin: 0;
+  text-align: center;
 }
 
 /* Vertical Wheel Scroll Picker */

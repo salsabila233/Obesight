@@ -2400,21 +2400,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateTimerUI() {
-    const numTop = document.getElementById('timer-num-top');
     const numMain = document.getElementById('timer-num-main');
-    const numBottom = document.getElementById('timer-num-bottom');
     const circle = document.getElementById('timer-indicator-circle');
     const playIcon = document.getElementById('timer-play-icon');
 
-    // Rule 2: Baris atas selalu '59:59', baris bawah selalu '00:00' (batas visual dekoratif)
-    if (numTop) {
-      numTop.textContent = '59:59';
-    }
-    if (numBottom) {
-      numBottom.textContent = '00:00';
-    }
-
-    // Baris tengah (bold, hitam, paling jelas) = durasi terpilih / remaining countdown
+    // Angka utama timer (bold, ukuran 48, #1A1A2E, centered)
     if (numMain) {
       const displaySec = isTimerRunning || remainingSec < timerDurationSec ? remainingSec : timerDurationSec;
       numMain.textContent = formatMMSS(displaySec > 0 ? displaySec : timerDurationSec);
