@@ -116,8 +116,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Future<void> _handleGoogleSignIn() async {
+    _clearAuthError();
+    final typedId = _identifierController.text.trim();
+    final isEmail = typedId.contains('@');
+
     // Open Google Account Picker Bottom Sheet
-    final selectedAccount = await GoogleAccountPickerSheet.show(context);
+    final selectedAccount = await GoogleAccountPickerSheet.show(
+      context,
+      suggestedEmail: isEmail ? typedId : null,
+      suggestedName: !isEmail && typedId.isNotEmpty ? typedId : null,
+    );
     if (selectedAccount != null) {
       setState(() {
         _isLoading = true;
@@ -132,6 +140,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
       if (response.isSuccess && response.user != null) {
         _navigateToDashboard(response.user!);
+      } else {
+        setState(() {
+          _authErrorMessage = response.errorMessage ?? 'Gagal masuk dengan akun Google';
+        });
       }
     }
   }
@@ -375,7 +387,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                         const SizedBox(height: 18),
 
-                        // Button: "Lanjutkan dengan Google"
+                        // Button: "Masuk dengan Google"
                         SizedBox(
                           width: double.infinity,
                           height: 48,
@@ -402,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 const SizedBox(width: 10),
                                 Flexible(
                                   child: Text(
-                                    'Lanjutkan dengan Google',
+                                    'Masuk dengan Google',
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,

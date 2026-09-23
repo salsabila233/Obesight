@@ -37,7 +37,7 @@ void main() {
     expect(find.text('Lupa kata sandi?'), findsOneWidget);
     expect(find.text('Masuk'), findsOneWidget);
     expect(find.text('atau'), findsOneWidget);
-    expect(find.text('Lanjutkan dengan Google'), findsOneWidget);
+    expect(find.text('Masuk dengan Google'), findsOneWidget);
     expect(find.text('Daftar'), findsOneWidget);
   });
 
@@ -176,15 +176,58 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    // Tap "Lanjutkan dengan Google"
-    await tester.tap(find.text('Lanjutkan dengan Google'));
+    // Tap "Masuk dengan Google"
+    await tester.tap(find.text('Masuk dengan Google'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
     // Expect Google Account Picker BottomSheet
-    expect(find.text('Pilih akun Google'), findsOneWidget);
+    expect(find.text('Masuk dengan Google'), findsWidgets);
     expect(find.text('Zahra Fitriana'), findsOneWidget);
-    expect(find.text('Dr. Hendra Wijaya, Sp.GK'), findsOneWidget);
+    expect(find.text('Zahra Cantik'), findsOneWidget);
+    expect(find.text('Aku Zahra'), findsOneWidget);
+    expect(find.text('Gunakan akun lain'), findsOneWidget);
+    expect(find.text('Kembali'), findsOneWidget);
+
+    // Tap "Kembali" to dismiss
+    await tester.tap(find.text('Kembali'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Verify user is back on login screen without error
+    expect(find.text('Masuk'), findsOneWidget);
+    expect(find.text('Email atau kata sandi salah'), findsNothing);
+  });
+
+  testWidgets('Google sign in selecting an account successfully enters UserHomeScreen', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: const LoginScreen(),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Tap "Masuk dengan Google"
+    await tester.tap(find.text('Masuk dengan Google'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Tap Zahra Fitriana account
+    await tester.tap(find.text('Zahra Fitriana'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Verify UserHomeScreen is displayed
+    expect(find.textContaining('Halo, Zahra'), findsOneWidget);
+    expect(find.text('Status Kesehatan'), findsOneWidget);
   });
 
   testWidgets('Invalid credentials error banner only appears when credentials are wrong, and auto-dismisses on typing', (WidgetTester tester) async {

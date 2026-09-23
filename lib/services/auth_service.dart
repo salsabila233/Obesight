@@ -55,9 +55,31 @@ class AuthService {
     isBiodataComplete: true,
   );
 
+  static const UserModel zahraCantikAccount = UserModel(
+    id: 'usr_003',
+    name: 'Zahra Cantik',
+    email: 'zahraaaaa123@gmail.com',
+    username: 'zahracantik',
+    role: UserRole.user,
+    title: 'Anggota Baru ObeSight',
+    isBiodataComplete: false,
+  );
+
+  static const UserModel akuZahraAccount = UserModel(
+    id: 'usr_004',
+    name: 'Aku Zahra',
+    email: 'zahrafitri@gmail.com',
+    username: 'akuzahra',
+    role: UserRole.user,
+    title: 'Anggota Baru ObeSight',
+    isBiodataComplete: false,
+  );
+
   final Map<String, bool> _biodataStatusCache = {
     'usr_001': false,
     'usr_002': true,
+    'usr_003': false,
+    'usr_004': false,
     'adm_001': true,
   };
 
@@ -89,10 +111,42 @@ class AuthService {
       'joined': 'Bergabung sejak Januari 2024',
       'avatar': 'assets/avatar_zahra.png',
     },
+    'usr_003': {
+      'name': 'Zahra Cantik',
+      'dob': '10 Oktober 2003',
+      'gender': 'Perempuan',
+      'email': 'zahraaaaa123@gmail.com',
+      'phone': '089512345678',
+      'joined': 'Bergabung sejak September 2025',
+      'avatar': 'assets/avatar_zahra.png',
+    },
+    'usr_004': {
+      'name': 'Aku Zahra',
+      'dob': '05 Januari 2004',
+      'gender': 'Perempuan',
+      'email': 'zahrafitri@gmail.com',
+      'phone': '089687654321',
+      'joined': 'Bergabung sejak September 2025',
+      'avatar': 'assets/avatar_zahra.png',
+    },
   };
 
   Map<String, String> getUserProfile(String userId) {
-    return _userProfileCache[userId] ?? {
+    if (_userProfileCache.containsKey(userId)) {
+      return _userProfileCache[userId]!;
+    }
+    if (_currentUser != null && _currentUser!.id == userId) {
+      return {
+        'name': _currentUser!.name,
+        'dob': '12 Juli 2003',
+        'gender': 'Perempuan',
+        'email': _currentUser!.email,
+        'phone': '089334212098',
+        'joined': 'Bergabung sejak Agustus 2025',
+        'avatar': 'assets/avatar_zahra.png',
+      };
+    }
+    return {
       'name': 'Zahra Fitriana',
       'dob': '12 Juli 2003',
       'gender': 'Perempuan',
@@ -220,7 +274,7 @@ class AuthService {
     }
   }
 
-  // Available Google accounts in picker
+  // Available Google accounts in picker (matching reference design)
   List<UserModel> get availableGoogleAccounts => [
         defaultUserAccount.copyWith(
           isBiodataComplete: isBiodataCompleted(defaultUserAccount.id),
@@ -228,11 +282,17 @@ class AuthService {
           bmiCategory: getUserBmi(defaultUserAccount.id)['category'] as String,
           obesityRisk: getUserBmi(defaultUserAccount.id)['risk'] as String,
         ),
-        defaultAdminAccount.copyWith(
-          isBiodataComplete: isBiodataCompleted(defaultAdminAccount.id),
-          bmiScore: (getUserBmi(defaultAdminAccount.id)['bmi'] as num).toDouble(),
-          bmiCategory: getUserBmi(defaultAdminAccount.id)['category'] as String,
-          obesityRisk: getUserBmi(defaultAdminAccount.id)['risk'] as String,
+        zahraCantikAccount.copyWith(
+          isBiodataComplete: isBiodataCompleted(zahraCantikAccount.id),
+          bmiScore: (getUserBmi(zahraCantikAccount.id)['bmi'] as num).toDouble(),
+          bmiCategory: getUserBmi(zahraCantikAccount.id)['category'] as String,
+          obesityRisk: getUserBmi(zahraCantikAccount.id)['risk'] as String,
+        ),
+        akuZahraAccount.copyWith(
+          isBiodataComplete: isBiodataCompleted(akuZahraAccount.id),
+          bmiScore: (getUserBmi(akuZahraAccount.id)['bmi'] as num).toDouble(),
+          bmiCategory: getUserBmi(akuZahraAccount.id)['category'] as String,
+          obesityRisk: getUserBmi(akuZahraAccount.id)['risk'] as String,
         ),
       ];
 
@@ -290,10 +350,25 @@ class AuthService {
   }
 
   Future<AuthResponse> loginWithGoogleAccount(UserModel account) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!_biodataStatusCache.containsKey(account.id)) {
+      _biodataStatusCache[account.id] = account.isBiodataComplete;
+    }
+    if (!_userProfileCache.containsKey(account.id)) {
+      _userProfileCache[account.id] = {
+        'name': account.name,
+        'dob': '12 Juli 2003',
+        'gender': 'Perempuan',
+        'email': account.email,
+        'phone': '089334212098',
+        'joined': 'Bergabung sejak September 2025',
+        'avatar': 'assets/avatar_zahra.png',
+      };
+    }
+    final isComplete = isBiodataCompleted(account.id);
     final bmiInfo = getUserBmi(account.id);
     _currentUser = account.copyWith(
-      isBiodataComplete: isBiodataCompleted(account.id),
+      isBiodataComplete: isComplete,
       bmiScore: (bmiInfo['bmi'] as num).toDouble(),
       bmiCategory: bmiInfo['category'] as String,
       obesityRisk: bmiInfo['risk'] as String,

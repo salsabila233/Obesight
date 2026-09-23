@@ -947,257 +947,371 @@ body {
   pointer-events: none;
 }
 
-.google-modal-card {
-  width: 100%;
-  background: #FFFFFF;
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-  padding: 22px 20px 28px 20px;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
-  transform: translateY(0);
-  transition: transform 0.35s var(--ease-spring);
-}
-
-.modal-backdrop.hidden .google-modal-card {
-  transform: translateY(100%);
-}
-
-.google-modal-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #F1F5F9;
-}
-
-.google-modal-logo {
-  width: 28px;
-  height: 28px;
-}
-
-.google-modal-titles {
-  flex: 1;
-}
-
-.google-modal-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1F2937;
-}
-
-.google-modal-sub {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.btn-close-modal {
-  background: #F1F5F9;
-  border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  font-size: 18px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
+/* ========================================================
+   GOOGLE ACCOUNT CHOOSER MODAL (EXACT REFERENCE DESIGN)
+   ======================================================== */
+.google-auth-backdrop {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #EFF6F3 !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 16px;
+  overflow-y: auto;
+  z-index: 1200;
+  transition: opacity 0.3s ease;
 }
 
-.google-account-list {
+.google-auth-backdrop.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.google-ref-wrapper {
+  width: 100%;
+  max-width: 345px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0 20px 0;
+  animation: googleModalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.google-account-item {
+@keyframes googleModalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.google-ref-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.google-ref-brand-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.google-ref-brand-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2D5A43;
+  letter-spacing: -0.3px;
+  font-family: inherit;
+}
+
+.google-ref-card {
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 28px;
+  padding: 26px 18px 20px 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Loading Overlay */
+.google-ref-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 28px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  backdrop-filter: blur(2px);
+}
+
+.google-ref-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3.5px solid #E2E8F0;
+  border-top-color: #4F9B77;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.google-ref-loading-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.google-ref-header {
+  margin-bottom: 18px;
+}
+
+.google-ref-g-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px auto;
+  display: block;
+}
+
+.google-ref-title {
+  font-size: 18.5px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.2px;
+}
+
+.google-ref-sub {
+  font-size: 12.5px;
+  color: #64748B;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.google-ref-accounts-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.google-ref-account-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  padding: 11px 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #F1F5F9;
+  width: 100%;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
-.google-account-item:hover {
+.google-ref-account-item:last-child {
+  border-bottom: none;
+}
+
+.google-ref-account-item:hover {
   background: #F8FAFC;
-  border-color: #CBD5E1;
-  transform: translateX(2px);
+  border-radius: 12px;
 }
 
-.google-avatar {
-  width: 36px;
-  height: 36px;
+.google-ref-avatar-box {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  color: #fff;
-  font-weight: 700;
-  font-size: 15px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 600;
+  font-size: 15px;
+  color: #FFFFFF;
 }
 
-.avatar-purple {
-  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+.google-ref-avatar-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #4F9B77;
 }
 
-.avatar-green {
-  background: linear-gradient(135deg, #10B981, #059669);
+.avatar-circle-gray {
+  background: #64748B;
 }
 
-.avatar-blue {
-  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+.avatar-circle-purple {
+  background: #6366F1;
 }
 
-.google-acc-info {
+.avatar-circle-icon {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+}
+
+.google-ref-account-info {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  min-width: 0;
 }
 
-.acc-name-row {
+.google-ref-account-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1E293B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.google-ref-account-email {
+  font-size: 11.5px;
+  color: #64748B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.google-ref-chevron {
+  color: #94A3B8;
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
-.acc-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-text-main);
+.google-ref-disclaimer {
+  font-size: 11px;
+  color: #64748B;
+  line-height: 1.5;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #F1F5F9;
+  text-align: center;
 }
 
-.acc-badge {
-  font-size: 10px;
+.google-ref-link {
+  color: #235D3A;
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.google-ref-link:hover {
+  color: #166534;
+}
+
+/* Dynamic Slot & Inline Custom Email Prompt */
+.badge-my-account {
+  font-size: 10px;
+  font-weight: 700;
   padding: 2px 7px;
   border-radius: 999px;
-  line-height: 1.2;
-  letter-spacing: 0.2px;
-}
-
-.badge-user {
   background: #DCFCE7;
   color: #15803D;
   border: 1px solid #BBF7D0;
+  margin-left: 6px;
+  display: inline-block;
 }
 
-.badge-admin {
-  background: #DBEAFE;
-  color: #1D4ED8;
-  border: 1px solid #BFDBFE;
+.avatar-circle-user {
+  background: linear-gradient(135deg, #10B981, #047857);
 }
 
-.acc-email {
-  font-size: 11px;
-  color: var(--color-text-muted);
+.google-ref-inline-custom {
+  margin-top: 14px;
+  padding: 16px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  text-align: left;
+  animation: fadeInDown 0.25s ease;
 }
 
-.google-modal-footer {
-  text-align: center;
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.btn-cancel-modal {
-  background: transparent;
-  border: none;
-  color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 8px 16px;
+.inline-custom-divider {
+  display: none;
 }
 
-/* Google Real OAuth Modal Styles */
-.google-security-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+.google-custom-header {
   margin-bottom: 12px;
 }
 
-.google-security-notice .notice-icon {
-  font-size: 18px;
-  line-height: 1.2;
-}
-
-.google-security-notice .notice-text {
-  font-size: 11.5px;
-  color: #166534;
-  line-height: 1.45;
-}
-
-.field-helper-info {
-  display: block;
-  font-size: 11px;
-  color: #64748B;
-  margin-top: 4px;
-  line-height: 1.35;
-}
-
-.field-helper-info code {
-  background: #F1F5F9;
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 10.5px;
-  color: #0F172A;
-}
-
-.google-modal-btn-row {
-  margin-top: 14px;
-  margin-bottom: 10px;
-}
-
-.demo-google-box {
-  background: #F8FAFC;
-  border: 1px dashed #CBD5E1;
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  text-align: center;
-  margin-top: 12px;
-  margin-bottom: 6px;
-}
-
-.demo-google-label {
-  display: block;
-  font-size: 11px;
-  color: #64748B;
-  margin-bottom: 8px;
-}
-
-.btn-demo-google-prompt {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  padding: 8px 12px;
-  background: #FFFFFF;
-  border: 1px solid #94A3B8;
-  border-radius: var(--radius-sm);
+.google-custom-title {
+  font-size: 13.5px;
+  font-weight: 700;
   color: #1E293B;
+  margin: 0 0 4px 0;
+}
+
+.google-custom-sub {
   font-size: 11.5px;
-  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+}
+
+.google-custom-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.btn-google-custom-cancel {
+  background: transparent;
+  border: 1px solid #CBD5E1;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
   cursor: pointer;
+}
+
+.btn-google-custom-submit {
+  background: #4F9B77;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-google-custom-submit:hover {
+  background: #3D8563;
+}
+
+/* Bottom Kembali Pill Button */
+.google-ref-bottom-action {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.btn-google-kembali {
+  background: #FFFFFF;
+  border: 1.5px solid #94A3B8;
+  color: #2D5A43;
+  font-size: 14.5px;
+  font-weight: 600;
+  padding: 10px 42px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
 }
 
-.btn-demo-google-prompt:hover {
-  background: #F1F5F9;
-  border-color: #64748B;
+.btn-google-kembali:hover {
+  border-color: #2D5A43;
+  background: #F0FDF4;
+  transform: translateY(-1px);
 }
 
 .profile-avatar-img {

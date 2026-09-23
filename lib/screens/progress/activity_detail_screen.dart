@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'activity_timer_screen.dart';
 
+<<<<<<< Updated upstream
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'activity_timer_screen.dart';
 
+=======
+>>>>>>> Stashed changes
 class ActivityDetailScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
 

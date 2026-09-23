@@ -661,6 +661,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const tTitle = customToastTitle || 'Berhasil Masuk!';
     const tMsg = customToastMsg || `Selamat datang di Beranda ${role === 'admin' ? 'Administrator' : 'Pengguna'}.`;
     showToast(tTitle, tMsg);
+
+    try {
+      localStorage.setItem('obesight_active_session', JSON.stringify({
+        role: role || 'user',
+        name: name || userProfile.fullName,
+        email: email || userProfile.email
+      }));
+    } catch (e) { }
   }
 
   // Saved / registered users repository (persists across page reloads in localStorage)
@@ -748,6 +756,9 @@ document.addEventListener('DOMContentLoaded', () => {
     clearErrors();
     clearRegErrors();
     clearForgotErrors();
+    try {
+      localStorage.removeItem('obesight_active_session');
+    } catch (e) { }
     showToast('Sesi Berakhir', 'Anda telah keluar dari akun.');
   }
 
@@ -4176,39 +4187,346 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Google Sign In Modal
-  if (btnGoogleAuth) {
-    btnGoogleAuth.addEventListener('click', () => {
-      if (googleModalBackdrop) {
-        googleModalBackdrop.classList.remove('hidden');
+  // ========================================================
+  // GOOGLE SIGN IN & REGISTRATION CONTROLLER
+  // ========================================================
+  const btnGoogleAuthReg = document.getElementById('btn-google-auth-reg');
+  const googleLoadingOverlay = document.getElementById('google-loading-overlay');
+  const googleLoadingText = document.getElementById('google-loading-text');
+  const btnGoogleAnotherAccount = document.getElementById('btn-google-another-account');
+  const googleInlineCustom = document.getElementById('google-ref-inline-custom');
+  const inputGoogleCustomEmail = document.getElementById('input-google-custom-email');
+  const inputGoogleCustomName = document.getElementById('input-google-custom-name');
+  const errGoogleCustomEmail = document.getElementById('err-google-custom-email');
+  const btnCancelCustomEmail = document.getElementById('btn-cancel-custom-email');
+  const btnSubmitCustomEmail = document.getElementById('btn-submit-custom-email');
+  const dynamicAccountsSlot = document.getElementById('dynamic-google-accounts-slot');
+
+  // Check if Google Client ID is configured in Vite env
+  const googleClientId = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GOOGLE_CLIENT_ID : null;
+
+  // Initialize official Google Identity Services (GIS) if Client ID is configured
+  if (googleClientId && window.google && window.google.accounts) {
+    try {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response) => {
+          handleGoogleGisCredential(response.credential);
+        }
+      });
+    } catch (e) {
+      console.warn('[ObeSight GIS] Failed to initialize Google Identity Services:', e);
+    }
+  }
+
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function handleGoogleGisCredential(credential) {
+    const payload = parseJwt(credential);
+    if (payload && payload.email) {
+      const name = payload.name || payload.given_name || payload.email.split('@')[0];
+      const email = payload.email.toLowerCase();
+      const picture = payload.picture || '';
+      saveUserGoogleAccount(name, email);
+      processGoogleAccountLogin(name, email, picture);
+    } else {
+      showToast('Gagal Autentikasi', 'Tidak dapat membaca kredensial akun Google.');
+    }
+  }
+
+  function getSavedGoogleAccounts() {
+    try {
+      const saved = localStorage.getItem('obesight_saved_google_accounts');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveUserGoogleAccount(name, email) {
+    try {
+      const list = getSavedGoogleAccounts();
+      const existingIdx = list.findIndex(acc => acc.email.toLowerCase() === email.toLowerCase());
+      if (existingIdx !== -1) {
+        list[existingIdx].name = name || list[existingIdx].name;
+      } else {
+        list.unshift({ name, email });
       }
+      localStorage.setItem('obesight_saved_google_accounts', JSON.stringify(list.slice(0, 5)));
+    } catch (e) { }
+  }
+
+  function renderDynamicGoogleAccounts() {
+    if (!dynamicAccountsSlot) return;
+
+    // 1. Check if user typed an email in Login (inputIdentifier) or Register (regEmail)
+    const typedEmail = (
+      (inputIdentifier && inputIdentifier.value.includes('@') ? inputIdentifier.value.trim() : '') ||
+      (regEmail && regEmail.value.includes('@') ? regEmail.value.trim() : '')
+    ).toLowerCase();
+
+    const typedName = (
+      (regName && regName.value.trim() ? regName.value.trim() : '') ||
+      (typedEmail ? typedEmail.split('@')[0].charAt(0).toUpperCase() + typedEmail.split('@')[0].slice(1) : '')
+    );
+
+    const savedAccounts = getSavedGoogleAccounts();
+    const allAccountsToRender = [...savedAccounts];
+
+    if (typedEmail && isValidEmailFormat(typedEmail)) {
+      if (!allAccountsToRender.some(a => a.email.toLowerCase() === typedEmail)) {
+        allAccountsToRender.unshift({ name: typedName || 'Pengguna', email: typedEmail, isTyped: true });
+      }
+    }
+
+    if (allAccountsToRender.length === 0) {
+      dynamicAccountsSlot.innerHTML = '';
+      return;
+    }
+
+    dynamicAccountsSlot.innerHTML = allAccountsToRender.map(acc => {
+      const initial = (acc.name && acc.name.length > 0) ? acc.name[0].toUpperCase() : 'G';
+      return `
+        <button type="button" class="google-ref-account-item dynamic-user-item" data-role="user" data-name="${acc.name}" data-email="${acc.email}">
+          <div class="google-ref-avatar-box avatar-circle-user">
+            <span>${initial}</span>
+          </div>
+          <div class="google-ref-account-info">
+            <div class="acc-name-row">
+              <span class="google-ref-account-name">${acc.name}</span>
+              <span class="badge-my-account">Akun Anda</span>
+            </div>
+            <span class="google-ref-account-email">${acc.email}</span>
+          </div>
+          <div class="google-ref-chevron">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    // Attach listeners to dynamic accounts
+    dynamicAccountsSlot.querySelectorAll('.dynamic-user-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.getAttribute('data-name');
+        const email = btn.getAttribute('data-email');
+        processGoogleAccountLogin(name, email, null);
+      });
     });
+  }
+
+  function openGoogleAccountModal() {
+    // If Google Client ID is configured and GIS loaded, attempt GIS prompt
+    if (googleClientId && window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          showInteractiveGoogleModal();
+        }
+      });
+    } else {
+      showInteractiveGoogleModal();
+    }
+  }
+
+  function showInteractiveGoogleModal() {
+    if (googleModalBackdrop) {
+      if (googleLoadingOverlay) googleLoadingOverlay.classList.add('hidden');
+      if (googleInlineCustom) googleInlineCustom.classList.add('hidden');
+      if (errGoogleCustomEmail) errGoogleCustomEmail.classList.add('hidden');
+      renderDynamicGoogleAccounts();
+      googleModalBackdrop.classList.remove('hidden');
+    }
   }
 
   function closeGoogleModal() {
     if (googleModalBackdrop) {
       googleModalBackdrop.classList.add('hidden');
+      if (googleLoadingOverlay) googleLoadingOverlay.classList.add('hidden');
+      if (googleInlineCustom) googleInlineCustom.classList.add('hidden');
     }
   }
 
-  if (btnCloseGoogleModal) btnCloseGoogleModal.addEventListener('click', closeGoogleModal);
-  if (btnCancelGoogle) btnCancelGoogle.addEventListener('click', closeGoogleModal);
+  /**
+   * Process selected Google Account:
+   * 1. Check if email already registered in system
+   * 2. If registered -> log in directly, load existing profile & biodata
+   * 3. If new -> auto-register in registeredUsers, init profile, set biodata incomplete
+   * 4. Persist active session in localStorage
+   * 5. Navigate to Home dashboard with responsive feedback
+   */
+  function processGoogleAccountLogin(name, email, avatarUrl) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail) return;
+
+    // Save as remembered Google account
+    saveUserGoogleAccount(name, cleanEmail);
+
+    if (googleLoadingOverlay) {
+      googleLoadingOverlay.classList.remove('hidden');
+      if (googleLoadingText) googleLoadingText.textContent = 'Menghubungkan akun Google...';
+    }
+
+    setTimeout(() => {
+      // Check if email already exists in registered users or presets
+      const isPreset = (
+        cleanEmail === 'zahraafitriana@gmail.com' ||
+        cleanEmail === 'zahrafitrie@gmail.com' ||
+        cleanEmail === 'zahraalfitiarisa@gmail.com' ||
+        cleanEmail === 'admin@obesight.com'
+      );
+      const registeredUser = registeredUsers.find(u => u.email && u.email.toLowerCase() === cleanEmail);
+      const isAlreadyRegistered = isPreset || !!registeredUser;
+
+      if (isAlreadyRegistered) {
+        // Log in as existing user
+        closeGoogleModal();
+        const userName = (registeredUser ? registeredUser.name : null) || name || 'Zahra Fitriana';
+        navigateToDashboard('user', userName, cleanEmail, 'Berhasil Masuk dengan Google!', `Selamat datang kembali, ${userName}.`);
+      } else {
+        // Auto-register new Google user
+        const joinedStr = getCurrentMonthYearIndo();
+        registeredUsers.push({
+          name: name,
+          email: cleanEmail,
+          password: '',
+          joinedDate: joinedStr,
+          isGoogleAuth: true
+        });
+
+        try {
+          localStorage.setItem('obesight_registered_users', JSON.stringify(registeredUsers));
+        } catch (e) { }
+
+        // New Google user has incomplete biodata by default
+        setUserBiodataStatus(cleanEmail, false);
+
+        // Initialize user profile
+        userProfile = {
+          fullName: name,
+          dob: '',
+          gender: 'Perempuan',
+          email: cleanEmail,
+          phone: '',
+          avatar: avatarUrl || (name.toLowerCase().includes('zahra') ? './assets/avatar_zahra.png' : DEFAULT_AVATAR_PLACEHOLDER),
+          joinedDate: joinedStr
+        };
+        saveUserProfile(cleanEmail);
+
+        closeGoogleModal();
+        navigateToDashboard('user', name, cleanEmail, 'Akun Google Terhubung!', `Selamat datang di ObeSight, ${name}. Silakan lengkapi biodata Anda.`);
+      }
+    }, 650);
+  }
+
+  if (btnGoogleAuth) {
+    btnGoogleAuth.addEventListener('click', openGoogleAccountModal);
+  }
+
+  if (btnGoogleAuthReg) {
+    btnGoogleAuthReg.addEventListener('click', openGoogleAccountModal);
+  }
+
+  if (btnCancelGoogle) {
+    btnCancelGoogle.addEventListener('click', closeGoogleModal);
+  }
+
   if (googleModalBackdrop) {
     googleModalBackdrop.addEventListener('click', (e) => {
       if (e.target === googleModalBackdrop) closeGoogleModal();
     });
   }
 
-  // Google Account Select
-  const currentGoogleAccountItems = document.querySelectorAll('.google-account-item');
-  currentGoogleAccountItems.forEach(item => {
+  // Account item clicks from reference modal
+  const googleRefAccountItems = document.querySelectorAll('.google-ref-account-item[data-email]');
+  googleRefAccountItems.forEach(item => {
     item.addEventListener('click', () => {
-      const role = item.getAttribute('data-role');
       const name = item.getAttribute('data-name');
-      closeGoogleModal();
-      navigateToDashboard(role, name, email);
+      const email = item.getAttribute('data-email');
+      const avatarImg = item.querySelector('.google-ref-avatar-img');
+      const avatarUrl = avatarImg ? avatarImg.getAttribute('src') : null;
+      processGoogleAccountLogin(name, email, avatarUrl);
     });
   });
+
+  // "Gunakan akun lain" click: toggles inline custom email form
+  if (btnGoogleAnotherAccount) {
+    btnGoogleAnotherAccount.addEventListener('click', () => {
+      if (googleInlineCustom) {
+        const isHidden = googleInlineCustom.classList.toggle('hidden');
+        if (!isHidden) {
+          if (inputGoogleCustomEmail) {
+            // Pre-fill with typed email if available
+            const typedEmail = (inputIdentifier ? inputIdentifier.value : '') || (regEmail ? regEmail.value : '');
+            if (typedEmail.includes('@') && !inputGoogleCustomEmail.value) {
+              inputGoogleCustomEmail.value = typedEmail.trim();
+            }
+            setTimeout(() => inputGoogleCustomEmail.focus(), 100);
+          }
+          if (errGoogleCustomEmail) errGoogleCustomEmail.classList.add('hidden');
+          googleInlineCustom.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    });
+  }
+
+  if (btnCancelCustomEmail) {
+    btnCancelCustomEmail.addEventListener('click', () => {
+      if (googleInlineCustom) googleInlineCustom.classList.add('hidden');
+    });
+  }
+
+  function submitCustomGoogleEmail() {
+    const email = (inputGoogleCustomEmail ? inputGoogleCustomEmail.value : '').trim().toLowerCase();
+    if (!email || !isValidEmailFormat(email)) {
+      if (errGoogleCustomEmail) {
+        errGoogleCustomEmail.textContent = !email ? 'Alamat email wajib diisi' : 'Masukkan format email yang valid (contoh: nama@gmail.com)';
+        errGoogleCustomEmail.classList.remove('hidden');
+      }
+      return;
+    }
+    if (errGoogleCustomEmail) errGoogleCustomEmail.classList.add('hidden');
+
+    const customNameInput = (inputGoogleCustomName ? inputGoogleCustomName.value : '').trim();
+    const namePart = email.split('@')[0];
+    const derivedName = customNameInput || (namePart.charAt(0).toUpperCase() + namePart.slice(1));
+    processGoogleAccountLogin(derivedName, email, null);
+  }
+
+  if (btnSubmitCustomEmail) {
+    btnSubmitCustomEmail.addEventListener('click', submitCustomGoogleEmail);
+  }
+
+  if (inputGoogleCustomEmail) {
+    inputGoogleCustomEmail.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitCustomGoogleEmail();
+      }
+    });
+    inputGoogleCustomEmail.addEventListener('input', () => {
+      if (errGoogleCustomEmail) errGoogleCustomEmail.classList.add('hidden');
+    });
+  }
+
+  if (inputGoogleCustomName) {
+    inputGoogleCustomName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitCustomGoogleEmail();
+      }
+    });
+  }
 
   // Forgot Password Link
   const linkForgotPwd = document.getElementById('link-forgot-pwd');
@@ -4219,9 +4537,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial data load
+  // Initial data load & Auto-Session Restore
   loadUserProfile(currentUser.email);
   updateReminderBannerVisibility();
+
+  // Check saved active session to keep user logged in across page reloads
+  let hasRestoredSession = false;
+  try {
+    const savedSession = localStorage.getItem('obesight_active_session');
+    if (savedSession) {
+      const sess = JSON.parse(savedSession);
+      if (sess && sess.email) {
+        clearAllTimers();
+        if (splashScreen) splashScreen.style.display = 'none';
+        if (authScreen) authScreen.classList.add('hidden');
+        navigateToDashboard(sess.role || 'user', sess.name, sess.email, 'Sesi Aktif', `Selamat datang kembali, ${sess.name}!`);
+        hasRestoredSession = true;
+      }
+    }
+  } catch (e) {
+    localStorage.removeItem('obesight_active_session');
+  }
 
   // URL Hash Navigation / Direct Route Support
   const initialHash = (window.location.hash || '').toLowerCase();

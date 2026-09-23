@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/google_account_picker_sheet.dart';
 import '../home/user_home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -12,12 +15,14 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _authService = AuthService();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  bool _isLoading = false;
   bool _isPasswordObscured = true;
   bool _isConfirmPasswordObscured = true;
   bool _isTermsAgreed = false;
@@ -100,6 +105,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         (route) => false,
       );
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final suggestedEmail = _emailController.text.trim();
+    final suggestedName = _nameController.text.trim();
+
+    final selectedAccount = await GoogleAccountPickerSheet.show(
+      context,
+      suggestedEmail: suggestedEmail.isNotEmpty ? suggestedEmail : null,
+      suggestedName: suggestedName.isNotEmpty ? suggestedName : null,
+    );
+
+    if (selectedAccount != null) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final response = await _authService.loginWithGoogleAccount(selectedAccount);
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.isSuccess && response.user != null) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => UserHomeScreen(user: response.user!),
+          ),
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.errorMessage ?? 'Gagal masuk dengan akun Google',
+              style: GoogleFonts.poppins(fontSize: 13),
+            ),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
     }
   }
 
@@ -483,6 +531,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Separator: ─── atau ───
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Divider(
+                        color: AppColors.dividerColor,
+                        thickness: 1.0,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Text(
+                        'atau',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.normal,
+                          color: AppColors.dividerText,
+                        ),
+                      ),
+                    ),
+                    const Expanded(
+                      child: Divider(
+                        color: AppColors.dividerColor,
+                        thickness: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 18),
+
+                // Button: "Daftar dengan Google"
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: _isLoading ? null : _handleGoogleSignIn,
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF1F2937),
+                      side: const BorderSide(color: AppColors.inputBorder, width: 1.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4F9B77)),
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset(
+                                'assets/google_icon.svg',
+                                width: 20,
+                                height: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Flexible(
+                                child: Text(
+                                  'Daftar dengan Google',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF1F2937),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
 

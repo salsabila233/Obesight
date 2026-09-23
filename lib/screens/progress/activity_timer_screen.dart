@@ -69,7 +69,11 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     if (_isRunning) return;
 
     // Negated: dragging up increases duration, dragging down decreases
+<<<<<<< Updated upstream
     _dragAccumulator -= (details.primaryDelta ?? 0.0);
+=======
+    _dragAccumulator -= details.primaryDelta ?? 0.0;
+>>>>>>> Stashed changes
     const double threshold = 14.0; // pixels per 1 minute change
 
     if (_dragAccumulator.abs() >= threshold) {

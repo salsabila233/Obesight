@@ -5,7 +5,6 @@ import 'package:obesight/screens/home/bmi_calculation_screen.dart';
 import 'package:obesight/screens/home/bmi_result_screen.dart';
 import 'package:obesight/services/auth_service.dart';
 import 'package:obesight/theme/app_theme.dart';
-import 'package:obesight/widgets/bmi_save_confirmation_dialog.dart';
 
 void main() {
   const dummyUser = UserModel(
