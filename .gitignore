@@ -16,4 +16,9 @@ build/
 node_modules/
 dist/
 .DS_Storebuild/
+<<<<<<< HEAD
 >>>>>>> 47464ba (Update gitignore)
+=======
+build/
+.dart_tool/
+>>>>>>> c7bed99 (Update gitignore)
