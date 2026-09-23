@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Flutter/Dart/Pub specific
 .dart_tool/
 .packages
@@ -11,3 +12,8 @@ build/
 
 # Miscellaneous
 .DS_Store
+=======
+node_modules/
+dist/
+.DS_Storebuild/
+>>>>>>> 47464ba (Update gitignore)
