@@ -200,49 +200,54 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Circle Activity Rest Icon
-                        Center(
-                          child: Container(
-                            width: 76,
-                            height: 76,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x14000000),
-                                  blurRadius: 12,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: Image.asset(
-                                'assets/progress/rest/circle_aktivitas.png',
-                                fit: BoxFit.cover,
-                                errorBuilder: (c, e, s) => Image.asset(
-                                  'assets/progress/clean/circle_aktivitas.png',
+                        // Header Row: Circle Activity Rest Icon & Title side-by-side
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFE8F4EE),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x14000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/progress/rest/circle_aktivitas.png',
                                   fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, st) => Container(
-                                    color: const Color(0xFFE2F1E8),
-                                    child: const Icon(Icons.directions_run_rounded, color: Color(0xFF36785A), size: 36),
+                                  errorBuilder: (c, e, s) => Image.asset(
+                                    'assets/progress/clean/circle_aktivitas.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (ctx, err, st) => Container(
+                                      color: const Color(0xFFE2F1E8),
+                                      child: const Icon(Icons.directions_run_rounded, color: Color(0xFF36785A), size: 32),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                'Istirahat Setelah Aktivitas',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF235B42),
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-
-                        // Title
-                        Text(
-                          'Istirahat Setelah Aktivitas',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF265C45),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 10),
 
                         // Subtitle
                         Text(

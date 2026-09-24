@@ -148,53 +148,59 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Circle Sun Icon
-                        Center(
-                          child: Container(
-                            width: 76,
-                            height: 76,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x14000000),
-                                  blurRadius: 12,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: Image.asset(
-                                'assets/progress/rest/circle_siang.png',
-                                fit: BoxFit.cover,
-                                errorBuilder: (c, e, s) => Image.asset(
-                                  'assets/progress/clean/circle_siang.png',
+                        // Header Row: Circle Sun Icon & Title side-by-side
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFE8F4EE),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x14000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/progress/rest/circle_siang.png',
                                   fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, st) => Container(
-                                    color: const Color(0xFFE2F1E8),
-                                    child: const Icon(Icons.wb_sunny_rounded, color: Color(0xFFEAB308), size: 36),
+                                  errorBuilder: (c, e, s) => Image.asset(
+                                    'assets/progress/clean/circle_siang.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (ctx, err, st) => Container(
+                                      color: const Color(0xFFE2F1E8),
+                                      child: const Icon(Icons.wb_sunny_rounded, color: Color(0xFFEAB308), size: 32),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                'Waktu Istirahat yang Disarankan',
+                                maxLines: 2,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF235B42),
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-
-                        // Title
-                        Text(
-                          'Waktu Istirahat yang Disarankan',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF265C45),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 10),
 
                         // Subtitle
                         Text(
-                          'Istirahat siang bisa membantu tubuh lebih segar dan meningkatkan konsentrasi',
+                          'Istirahat siang bisa membantu tubuh lebih segar dan meingkatkan konsentrasi',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: const Color(0xFF4A705E),

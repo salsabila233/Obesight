@@ -148,49 +148,54 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Circle Moon Icon
-                        Center(
-                          child: Container(
-                            width: 76,
-                            height: 76,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x14000000),
-                                  blurRadius: 12,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: Image.asset(
-                                'assets/progress/rest/circle_malam.png',
-                                fit: BoxFit.cover,
-                                errorBuilder: (c, e, s) => Image.asset(
-                                  'assets/progress/clean/circle_malam.png',
+                        // Header Row: Circle Moon Icon & Title side-by-side
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFE8F4EE),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x14000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/progress/rest/circle_malam.png',
                                   fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, st) => Container(
-                                    color: const Color(0xFFE2F1E8),
-                                    child: const Icon(Icons.nightlight_round, color: Color(0xFFEAB308), size: 36),
+                                  errorBuilder: (c, e, s) => Image.asset(
+                                    'assets/progress/clean/circle_malam.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (ctx, err, st) => Container(
+                                      color: const Color(0xFFE2F1E8),
+                                      child: const Icon(Icons.nightlight_round, color: Color(0xFFEAB308), size: 32),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                'Waktu Tidur Malam',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF235B42),
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-
-                        // Title
-                        Text(
-                          'Waktu Tidur Malam',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF265C45),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 10),
 
                         // Subtitle
                         Text(

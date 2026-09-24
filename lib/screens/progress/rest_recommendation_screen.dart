@@ -208,7 +208,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                   title: 'Waktu Tidur Malam',
                   desc: 'Menjaga metabolisme tubuh dan mengurangi risiko obesitas',
                   badges: [
-                    _buildPill(Icons.access_time_rounded, '22.00 - 05.00'),
+                    _buildPill(Icons.access_time_rounded, '22.00 – 09.00'),
                     _buildPill(Icons.nightlight_round, '7-8 jam'),
                   ],
                   onTap: () {
