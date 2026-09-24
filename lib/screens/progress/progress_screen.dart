@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import 'physical_activity_screen.dart';
+import 'rest_recommendation_screen.dart';
 
 class ProgressScreen extends StatelessWidget {
   final UserModel user;
@@ -404,11 +405,11 @@ class ProgressScreen extends StatelessWidget {
               iconColor: const Color(0xFF7E22CE),
               title: 'Waktu Istirahat',
               desc: 'Cek kualitas tidur 7-8 jam dan durasi istirahatmu.',
-              onTap: () => _showFeatureComingSoon(
-                context,
-                'Kualitas Tidur & Istirahat',
-                'Tidur yang cukup sangat berpengaruh pada regulasi hormon nafsu makan (ghrelin dan leptin) untuk mencegah obesitas.',
-              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const RestRecommendationScreen()),
+                );
+              },
             ),
 
             const SizedBox(height: 24),

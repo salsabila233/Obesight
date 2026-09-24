@@ -1901,7 +1901,11 @@ document.addEventListener('DOMContentLoaded', () => {
     landing: document.getElementById('progress-subview-landing'),
     recommendation: document.getElementById('progress-subview-recommendation'),
     detail: document.getElementById('progress-subview-detail'),
-    timer: document.getElementById('progress-subview-timer')
+    timer: document.getElementById('progress-subview-timer'),
+    restRecommendation: document.getElementById('progress-subview-rest-recommendation'),
+    restDay: document.getElementById('progress-subview-rest-day'),
+    restNight: document.getElementById('progress-subview-rest-night'),
+    restActivity: document.getElementById('progress-subview-rest-activity')
   };
 
   let progressEntryOrigin = 'monitoring'; // 'home' | 'monitoring'
@@ -1934,13 +1938,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Hide bottom nav on detail & timer screens for full-screen focus
-    const shouldHideNav = (targetView === 'detail' || targetView === 'timer');
+    const shouldHideNav = (
+      targetView === 'detail' ||
+      targetView === 'timer' ||
+      targetView === 'restDay' ||
+      targetView === 'restNight' ||
+      targetView === 'restActivity'
+    );
     if (userDash) {
       userDash.classList.toggle('hide-floating-nav', shouldHideNav);
     }
 
     if (targetView === 'recommendation') {
       initRecommendationDateScroller();
+    }
+    if (targetView === 'restRecommendation') {
+      initRestRecommendationDateScroller();
     }
   }
 
@@ -2011,6 +2024,35 @@ document.addEventListener('DOMContentLoaded', () => {
     btnBackFromRiwayat.addEventListener('click', () => switchMonitoringSubpage('main'));
   }
 
+  // Back buttons for Rest feature
+  const btnBackFromRestRecommendation = document.getElementById('btn-back-from-rest-recommendation');
+  if (btnBackFromRestRecommendation) {
+    btnBackFromRestRecommendation.addEventListener('click', () => {
+      showProgressSubView('landing');
+    });
+  }
+
+  const btnBackFromRestDay = document.getElementById('btn-back-from-rest-day');
+  if (btnBackFromRestDay) {
+    btnBackFromRestDay.addEventListener('click', () => {
+      showProgressSubView('restRecommendation');
+    });
+  }
+
+  const btnBackFromRestNight = document.getElementById('btn-back-from-rest-night');
+  if (btnBackFromRestNight) {
+    btnBackFromRestNight.addEventListener('click', () => {
+      showProgressSubView('restRecommendation');
+    });
+  }
+
+  const btnBackFromRestActivity = document.getElementById('btn-back-from-rest-activity');
+  if (btnBackFromRestActivity) {
+    btnBackFromRestActivity.addEventListener('click', () => {
+      showProgressSubView('restRecommendation');
+    });
+  }
+
   // Monitoring Main Menu Cards
   const btnOpenProgress = document.getElementById('btn-open-progress');
   if (btnOpenProgress) {
@@ -2054,8 +2096,113 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnProgressMenuIstirahat = document.getElementById('btn-progress-menu-istirahat');
   if (btnProgressMenuIstirahat) {
     btnProgressMenuIstirahat.addEventListener('click', () => {
-      showToast('Fitur Segera Hadir', 'Fitur Waktu Istirahat sedang dalam tahap pengembangan.');
+      showProgressSubView('restRecommendation');
     });
+  }
+
+  // Rest Recommendation Option Cards
+  const btnRestOptionSiang = document.getElementById('btn-rest-option-siang');
+  if (btnRestOptionSiang) {
+    btnRestOptionSiang.addEventListener('click', () => {
+      showProgressSubView('restDay');
+    });
+  }
+
+  const btnRestOptionMalam = document.getElementById('btn-rest-option-malam');
+  if (btnRestOptionMalam) {
+    btnRestOptionMalam.addEventListener('click', () => {
+      showProgressSubView('restNight');
+    });
+  }
+
+  const btnRestOptionAktivitas = document.getElementById('btn-rest-option-aktivitas');
+  if (btnRestOptionAktivitas) {
+    btnRestOptionAktivitas.addEventListener('click', () => {
+      showProgressSubView('restActivity');
+    });
+  }
+
+  // Rest Action Buttons
+  const btnActionReminderSiang = document.getElementById('btn-action-reminder-siang');
+  if (btnActionReminderSiang) {
+    btnActionReminderSiang.addEventListener('click', () => {
+      showToast('Pengingat Diatur', 'Pengingat istirahat siang telah berhasil diaktifkan.');
+    });
+  }
+
+  const btnActionReminderMalam = document.getElementById('btn-action-reminder-malam');
+  if (btnActionReminderMalam) {
+    btnActionReminderMalam.addEventListener('click', () => {
+      showToast('Pengingat Diatur', 'Pengingat tidur malam telah berhasil diaktifkan.');
+    });
+  }
+
+  const btnActionStartRestActivity = document.getElementById('btn-action-start-rest-activity');
+  if (btnActionStartRestActivity) {
+    btnActionStartRestActivity.addEventListener('click', () => {
+      showToast('Mulai Istirahat', 'Waktu istirahat setelah aktivitas telah dimulai.');
+    });
+  }
+
+  // ========================================================
+  // REAL-TIME REST RECOMMENDATION DATE SCROLLER
+  // ========================================================
+  const restRecDateScrollerContainer = document.getElementById('rest-recommendation-date-scroller');
+  function initRestRecommendationDateScroller() {
+    if (!restRecDateScrollerContainer) return;
+    restRecDateScrollerContainer.innerHTML = '';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu'];
+
+    for (let offset = -7; offset <= 13; offset++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + offset);
+
+      const dayOfWeek = dayNames[d.getDay()];
+      const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${String(d.getFullYear()).slice(-2)}`;
+
+      const pill = document.createElement('div');
+      pill.className = 'rec-date-pill';
+      pill.dataset.date = dateStr;
+
+      if (offset < 0) {
+        pill.classList.add('pill-past-red');
+        pill.innerHTML = `
+          <span class="rec-date-pill-day">${dayOfWeek}</span>
+          <span class="rec-date-pill-num">${dateStr}</span>
+        `;
+      } else if (offset === 0) {
+        pill.classList.add('pill-today-green');
+        pill.classList.add('selected');
+        pill.innerHTML = `
+          <span class="rec-date-pill-day">Hari ini</span>
+          <span class="rec-date-pill-num">${dateStr}</span>
+        `;
+      } else {
+        pill.classList.add('pill-future-white');
+        pill.innerHTML = `
+          <span class="rec-date-pill-day">${dayOfWeek}</span>
+          <span class="rec-date-pill-num">${dateStr}</span>
+        `;
+      }
+
+      pill.addEventListener('click', () => {
+        restRecDateScrollerContainer.querySelectorAll('.rec-date-pill').forEach(p => p.classList.remove('selected'));
+        pill.classList.add('selected');
+      });
+
+      restRecDateScrollerContainer.appendChild(pill);
+    }
+
+    setTimeout(() => {
+      const todayPill = restRecDateScrollerContainer.querySelector('.rec-date-pill.pill-today-green');
+      if (todayPill) {
+        todayPill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }, 120);
   }
 
   // ========================================================
