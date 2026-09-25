@@ -1,8 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ClinicalInfoScreen extends StatelessWidget {
   const ClinicalInfoScreen({super.key});
+
+  Future<void> _openUrl(BuildContext context, String urlString, String title) async {
+    final Uri uri = Uri.parse(urlString);
+    try {
+      final bool launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && context.mounted) {
+        _copyToClipboard(context, urlString, title);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        _copyToClipboard(context, urlString, title);
+      }
+    }
+  }
+
+  void _copyToClipboard(BuildContext context, String urlString, String title) {
+    Clipboard.setData(ClipboardData(text: urlString));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Tautan "$title" berhasil disalin ke papan klip',
+          style: GoogleFonts.poppins(fontSize: 12),
+        ),
+        backgroundColor: const Color(0xFF36785A),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +116,7 @@ class ClinicalInfoScreen extends StatelessWidget {
 
               // 2. Card: Indeks Massa Tubuh (IMT / BMI)
               _buildInfoCard(
+                context: context,
                 title: 'Indeks Massa Tubuh (IMT / BMI)',
                 icon: Icons.monitor_weight_outlined,
                 iconColor: const Color(0xFF36785A),
@@ -91,14 +126,16 @@ class ClinicalInfoScreen extends StatelessWidget {
                     '• Normal (18.5 - 24.9)\n'
                     '• Berat Badan Lebih (25.0 - 29.9)\n'
                     '• Obesitas (≥ 30.0)',
-                references: [
+                references: const [
                   _ReferenceLink(
-                    title: 'KMK No. HK.01.07-MENKES-509-2025: Pedoman Nasional Pelayanan Klinis Tata Laksana Obesitas Dewasa',
+                    title: 'Pedoman Nasional Pelayanan Klinis Tata Laksana Obesitas Dewasa',
                     organization: 'Kemenkes RI',
+                    url: 'https://keslan.kemkes.go.id/unduhan/KMK%20No.%20HK.01.07-MENKES-509-2025.pdf',
                   ),
                   _ReferenceLink(
-                    title: 'WHO Obesity and Overweight Factsheet (2024)',
+                    title: 'WHO Obesity Overweight',
                     organization: 'World Health Organization',
+                    url: 'https://www.who.int/news-room/fact-sheets/detail/obesity-and-overweight',
                   ),
                 ],
               ),
@@ -107,15 +144,17 @@ class ClinicalInfoScreen extends StatelessWidget {
 
               // 3. Card: Perkiraan Kalori
               _buildInfoCard(
+                context: context,
                 title: 'Perkiraan Kalori (Kebutuhan Energi)',
                 icon: Icons.local_fire_department_outlined,
                 iconColor: const Color(0xFFEA580C),
                 content:
                     'Estimasi kebutuhan energi basal (BMR) dihitung menggunakan Persamaan Harris-Benedict yang telah direvisi (berdasarkan berat badan, tinggi badan, usia, dan jenis kelamin). Nilai ini kemudian dikalikan faktor aktivitas fisik (PAL) serta disesuaikan dengan target berat badan Anda.',
-                references: [
+                references: const [
                   _ReferenceLink(
-                    title: 'CDC - Physical Activity Guidelines for Healthy Weight & Growth',
+                    title: 'CDC-Physical activity Guidlines for Healthy Weight & Growth',
                     organization: 'Centers for Disease Control and Prevention',
+                    url: 'https://www.cdc.gov/healthy-weight-growth/physical-activity/',
                   ),
                 ],
               ),
@@ -124,15 +163,17 @@ class ClinicalInfoScreen extends StatelessWidget {
 
               // 4. Card: Target Asupan Cairan
               _buildInfoCard(
-                title: 'Asupan Cairan (Target Air Harian)',
+                context: context,
+                title: 'Asupan Cairan dan Target',
                 icon: Icons.water_drop_outlined,
                 iconColor: const Color(0xFF0284C7),
                 content:
                     'Kebutuhan cairan dasar diestimasi sekitar 30-35 mililiter per kilogram berat badan per hari untuk orang dewasa dengan aktivitas sedang di iklim tropis. Kebutuhan dapat meningkat saat berolahraga intensif atau cuaca panas.',
-                references: [
+                references: const [
                   _ReferenceLink(
                     title: 'EFSA Scientific Opinion on Dietary Reference Values for Water',
                     organization: 'European Food Safety Authority',
+                    url: 'https://efsa.onlinelibrary.wiley.com/doi/10.2903/j.efsa.2010.1459',
                   ),
                 ],
               ),
@@ -146,6 +187,7 @@ class ClinicalInfoScreen extends StatelessWidget {
   }
 
   Widget _buildInfoCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color iconColor,
@@ -215,45 +257,80 @@ class ClinicalInfoScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Column(
             children: references.map((ref) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.link_rounded, size: 16, color: Color(0xFF36785A)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ref.title,
-                            style: GoogleFonts.poppins(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF0F172A),
-                              height: 1.35,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            ref.organization,
-                            style: GoogleFonts.poppins(
-                              fontSize: 10.5,
-                              color: const Color(0xFF36785A),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => _openUrl(context, ref.url, ref.title),
+                  onLongPress: () => _copyToClipboard(context, ref.url, ref.title),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                  ],
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F3EE),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.link_rounded, size: 16, color: Color(0xFF36785A)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ref.title,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF0F172A),
+                                  height: 1.35,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                ref.organization,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: const Color(0xFF36785A),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                ref.url,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  color: const Color(0xFF64748B),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.open_in_new_rounded,
+                            size: 16,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             }).toList(),
@@ -267,6 +344,11 @@ class ClinicalInfoScreen extends StatelessWidget {
 class _ReferenceLink {
   final String title;
   final String organization;
+  final String url;
 
-  _ReferenceLink({required this.title, required this.organization});
+  const _ReferenceLink({
+    required this.title,
+    required this.organization,
+    required this.url,
+  });
 }
