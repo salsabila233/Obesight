@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
@@ -23,12 +24,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadProfileData();
   }
 
+  /// Memuat data profil terbaru yang tersinkronisasi dengan akun pengguna
   void _loadProfileData() {
     setState(() {
       _profileData = _authService.getUserProfile(widget.user.id);
     });
   }
 
+  /// Membuka Halaman Edit Profil dan menangani hasil kembalian
   Future<void> _openEditProfile() async {
     final updated = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -39,21 +42,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
 
+    // Jika profil berhasil diperbarui, muat ulang data dan tampilkan Snackbar hijau
     if (updated == true && mounted) {
       _loadProfileData();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 22),
               const SizedBox(width: 10),
               Text(
                 'Profil berhasil diperbarui!',
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500),
+                style: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
-          backgroundColor: const Color(0xFF2D6A4F),
+          backgroundColor: const Color(0xFF2D6A4F), // Latar belakang hijau
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.all(16),
@@ -63,14 +72,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  /// Membangun widget avatar foto profil yang responsif terhadap perubahan
+  Widget _buildAvatar() {
+    final photoPath = _profileData['photo_path'];
+    final isRemoved = _profileData['avatar'] == 'removed';
+
+    // 1. Menggunakan file gambar hasil kamera/galeri jika ada
+    if (!isRemoved && photoPath != null && photoPath.isNotEmpty && File(photoPath).existsSync()) {
+      return Image.file(
+        File(photoPath),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
+      );
+    }
+
+    // 2. Foto profil dihapus (menggunakan avatar ikon placeholder)
+    if (isRemoved) {
+      return _buildFallbackAvatar();
+    }
+
+    // 3. Menggunakan avatar default aplikasi
+    return Image.asset(
+      _profileData['avatar'] ?? 'assets/avatar_zahra.png',
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
+    );
+  }
+
+  Widget _buildFallbackAvatar() {
+    return Container(
+      color: const Color(0xFFE2F1E8),
+      child: const Icon(Icons.person, color: Color(0xFF36785A), size: 36),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Sinkronisasi nama, email, dan tanggal bergabung dari data akun
     final name = _profileData['name'] ?? widget.user.name;
     final email = _profileData['email'] ?? widget.user.email;
     final dob = _profileData['dob'] ?? '12 Juli 2003';
     final gender = _profileData['gender'] ?? 'Perempuan';
     final phone = _profileData['phone'] ?? '089334212098';
-    final joined = _profileData['joined'] ?? 'Bergabung sejak Agustus 2025';
+    final joined = _profileData['joined'] ?? 'Bergabung sejak Juni 2026';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F6F8),
@@ -90,6 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         centerTitle: true,
+        // Ikon edit di sebelah kanan AppBar dihilangkan sesuai permintaan
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -115,23 +160,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Row(
                     children: [
-                      // Avatar
+                      // Avatar Pengguna
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 68,
+                        height: 68,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: const Color(0xFF36785A), width: 2),
                         ),
                         child: ClipOval(
-                          child: Image.asset(
-                            'assets/avatar_zahra.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              color: const Color(0xFFE2F1E8),
-                              child: const Icon(Icons.person, color: Color(0xFF36785A), size: 36),
-                            ),
-                          ),
+                          child: _buildAvatar(),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -142,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               name,
                               style: GoogleFonts.poppins(
-                                fontSize: 17,
+                                fontSize: 16.5,
                                 fontWeight: FontWeight.w700,
                                 color: const Color(0xFF0F172A),
                               ),
@@ -151,13 +189,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               email,
                               style: GoogleFonts.poppins(
-                                fontSize: 12,
+                                fontSize: 12.5,
                                 color: const Color(0xFF64748B),
                               ),
                             ),
                             const SizedBox(height: 6),
+                            // Informasi Tanggal Bergabung dalam format Bulan & Tahun
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
@@ -186,6 +225,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 14),
                   const Divider(color: Color(0xFFF1F5F9), height: 1),
                   const SizedBox(height: 12),
+
+                  // Tombol Masuk ke Halaman Edit Profil
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -212,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 16),
 
-            // Card 2: Informasi Pribadi
+            // Card 2: Informasi Pribadi Lengkap
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),

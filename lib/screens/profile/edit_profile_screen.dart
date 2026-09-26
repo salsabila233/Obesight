@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 
@@ -20,6 +22,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
+  final _picker = ImagePicker();
 
   late TextEditingController _nameController;
   late TextEditingController _dobController;
@@ -27,15 +30,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneController;
   late String _selectedGender;
 
-  // Photo state
-  String _avatarState = 'default'; // 'default', 'custom_camera', 'custom_gallery', 'removed'
+  // State pengelolaan foto profil
+  File? _selectedImageFile;
+  bool _isPhotoRemoved = false;
 
-  // Initial values to detect changes
+  // Nilai awal untuk mendeteksi perubahan
   late String _initialName;
   late String _initialDob;
   late String _initialEmail;
   late String _initialPhone;
   late String _initialGender;
+  late String _initialPhotoPath;
+  late bool _initialIsRemoved;
 
   @override
   void initState() {
@@ -45,6 +51,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _initialEmail = widget.initialProfile['email'] ?? widget.user.email;
     _initialPhone = widget.initialProfile['phone'] ?? '089334212098';
     _initialGender = widget.initialProfile['gender'] ?? 'Perempuan';
+    _initialPhotoPath = widget.initialProfile['photo_path'] ?? '';
+    _initialIsRemoved = widget.initialProfile['avatar'] == 'removed';
 
     _nameController = TextEditingController(text: _initialName);
     _dobController = TextEditingController(text: _initialDob);
@@ -62,15 +70,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  /// Mengecek apakah ada perubahan data pada formulir atau foto
   bool get _hasChanges {
-    return _nameController.text.trim() != _initialName ||
-        _dobController.text.trim() != _initialDob ||
-        _emailController.text.trim() != _initialEmail ||
-        _phoneController.text.trim() != _initialPhone ||
-        _selectedGender != _initialGender ||
-        _avatarState != 'default';
+    final isNameChanged = _nameController.text.trim() != _initialName;
+    final isDobChanged = _dobController.text.trim() != _initialDob;
+    final isEmailChanged = _emailController.text.trim() != _initialEmail;
+    final isPhoneChanged = _phoneController.text.trim() != _initialPhone;
+    final isGenderChanged = _selectedGender != _initialGender;
+    final isPhotoChanged = _selectedImageFile != null || (_isPhotoRemoved != _initialIsRemoved);
+
+    return isNameChanged ||
+        isDobChanged ||
+        isEmailChanged ||
+        isPhoneChanged ||
+        isGenderChanged ||
+        isPhotoChanged;
   }
 
+  /// Menangani aksi kembali: jika ada perubahan, tampilkan konfirmasi
   void _handleBack() {
     if (_hasChanges) {
       _showCancelConfirmDialog();
@@ -79,67 +96,152 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  /// Pop-up konfirmasi di tengah layar saat menekan tombol kembali
   void _showCancelConfirmDialog() {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      barrierDismissible: true,
+      builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        title: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(
                 color: Color(0xFFFEF3C7),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 22),
+              child: const Icon(
+                Icons.help_outline_rounded,
+                color: Color(0xFFD97706),
+                size: 32,
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(height: 12),
             Text(
-              'Batalkan Perubahan?',
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+              'Konfirmasi Perubahan',
+              style: GoogleFonts.poppins(
+                fontSize: 16.5,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF0F172A),
+              ),
             ),
           ],
         ),
         content: Text(
-          'Perubahan yang Anda buat belum disimpan. Yakin ingin membatalkan dan kembali ke profil?',
-          style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF64748B)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Lanjut Edit',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: const Color(0xFF36785A)),
-            ),
+          'Batalkan perubahan pada profil Anda?',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF475569),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              elevation: 0,
-            ),
-            onPressed: () {
-              Navigator.pop(ctx); // Close dialog
-              Navigator.of(context).pop(false); // Pop screen
-            },
-            child: Text(
-              'Batalkan',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        actions: [
+          Row(
+            children: [
+              // Tombol "Batal": Kembali ke halaman profil saya tanpa menyimpan perubahan
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogCtx); // Tutup dialog
+                    Navigator.of(context).pop(false); // Kembali tanpa menyimpan
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF64748B),
+                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Batal',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Tombol "Simpan": Memperbarui data, lalu kembali ke halaman profil dengan data terbaru
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogCtx); // Tutup dialog
+                    _saveProfileAndPop(); // Simpan dan kembali
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF36785A),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Simpan',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.5,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  /// Mengambil foto menggunakan image_picker (Kamera atau Galeri)
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() {
+          _selectedImageFile = File(picked.path);
+          _isPhotoRemoved = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih gambar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Menghapus foto profil
+  void _removePhoto() {
+    setState(() {
+      _selectedImageFile = null;
+      _isPhotoRemoved = true;
+    });
+  }
+
+  /// Menampilkan bottom sheet dengan 3 opsi: Kamera, Galeri, Hapus Foto
   void _showPhotoOptions() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(20),
+      builder: (bottomSheetCtx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -167,91 +269,87 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 color: const Color(0xFF0F172A),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-            // Ambil Foto (Kamera)
+            // 1. Ambil Foto (Kamera)
             ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(9),
                 decoration: const BoxDecoration(
                   color: Color(0xFFE2F1E8),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF36785A), size: 20),
               ),
-              title: Text('Ambil Foto (Kamera)', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
-              subtitle: Text('Gunakan kamera ponsel untuk foto baru', style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B))),
+              title: Text('Ambil Foto', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+              subtitle: Text('Gunakan kamera perangkat untuk mengambil foto baru', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B))),
               onTap: () {
-                Navigator.pop(ctx);
-                setState(() => _avatarState = 'custom_camera');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Foto berhasil diambil dari Kamera!'),
-                    backgroundColor: Color(0xFF36785A),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                Navigator.pop(bottomSheetCtx);
+                _pickImage(ImageSource.camera);
               },
             ),
 
-            // Unggah Gambar (Galeri)
+            // 2. Pilih dari Galeri
             ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(9),
                 decoration: const BoxDecoration(
                   color: Color(0xFFE0F2FE),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.photo_library_rounded, color: Color(0xFF0284C7), size: 20),
               ),
-              title: Text('Pilih dari Galeri', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
-              subtitle: Text('Pilih foto dari penyimpanan perangkat', style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B))),
+              title: Text('Pilih dari Galeri', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+              subtitle: Text('Pilih foto dari penyimpanan galeri perangkat', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B))),
               onTap: () {
-                Navigator.pop(ctx);
-                setState(() => _avatarState = 'custom_gallery');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Foto berhasil dipilih dari Galeri!'),
-                    backgroundColor: Color(0xFF36785A),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                Navigator.pop(bottomSheetCtx);
+                _pickImage(ImageSource.gallery);
               },
             ),
 
-            // Hapus Foto
+            // 3. Hapus Foto Profil
             ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(9),
                 decoration: const BoxDecoration(
                   color: Color(0xFFFEE2E2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFDC2626), size: 20),
               ),
-              title: Text('Hapus Foto Profil', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFFDC2626))),
-              subtitle: Text('Gunakan avatar bawaan ObeSight', style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF94A3B8))),
+              title: Text('Hapus Foto Profil', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFFDC2626))),
+              subtitle: Text('Gunakan avatar bawaan ObeSight', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF94A3B8))),
               onTap: () {
-                Navigator.pop(ctx);
-                setState(() => _avatarState = 'removed');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Foto profil dihapus. Menggunakan avatar bawaan.'),
-                    backgroundColor: Color(0xFF0F172A),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                Navigator.pop(bottomSheetCtx);
+                _removePhoto();
               },
             ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
     );
   }
 
-  void _saveProfile() {
+  /// Menyimpan perubahan dan kembali ke Halaman Profil Saya
+  void _saveProfileAndPop() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    String? photoPathToSave;
+    String? avatarToSave;
+
+    if (_isPhotoRemoved) {
+      avatarToSave = 'removed';
+      photoPathToSave = '';
+    } else if (_selectedImageFile != null) {
+      avatarToSave = 'custom';
+      photoPathToSave = _selectedImageFile!.path;
+    } else {
+      photoPathToSave = _initialPhotoPath;
+      avatarToSave = widget.initialProfile['avatar'];
+    }
 
     _authService.updateUserProfile(
       userId: widget.user.id,
@@ -260,75 +358,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       gender: _selectedGender,
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
+      avatar: avatarToSave,
+      photoPath: photoPathToSave,
     );
 
-    // Show Alert Dialog Success as requested
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check_rounded, color: Color(0xFF16A34A), size: 36),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Berhasil Disimpan! 🎉',
-              style: GoogleFonts.poppins(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Profil Anda telah berhasil diperbarui dan disinkronkan ke akun ObeSight.',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF475569)),
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx); // Close dialog
-                Navigator.of(context).pop(true); // Pop screen back to profile
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF36785A),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                elevation: 0,
-              ),
-              child: Text(
-                'Selesai',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    // Pop kembali ke Halaman Profil dengan nilai true (memicu reload data & snackbar hijau)
+    Navigator.of(context).pop(true);
   }
 
+  /// Membangun widget avatar berdasarkan state (file kamera/galeri, default, atau removed)
   Widget _buildAvatarWidget() {
-    if (_avatarState == 'removed') {
+    // 1. Gambar baru dipilih dari ImagePicker (Kamera / Galeri)
+    if (_selectedImageFile != null && _selectedImageFile!.existsSync()) {
+      return Image.file(_selectedImageFile!, fit: BoxFit.cover);
+    }
+
+    // 2. Foto profil dihapus
+    if (_isPhotoRemoved) {
       return Container(
         color: const Color(0xFFE2F1E8),
         child: const Icon(Icons.person, color: Color(0xFF36785A), size: 48),
       );
     }
+
+    // 3. Foto dari path lokal sebelumnya yang pernah disimpan
+    if (_initialPhotoPath.isNotEmpty && File(_initialPhotoPath).existsSync()) {
+      return Image.file(File(_initialPhotoPath), fit: BoxFit.cover);
+    }
+
+    // 4. Avatar default atau asset
+    if (_initialIsRemoved) {
+      return Container(
+        color: const Color(0xFFE2F1E8),
+        child: const Icon(Icons.person, color: Color(0xFF36785A), size: 48),
+      );
+    }
+
     return Image.asset(
-      'assets/avatar_zahra.png',
+      widget.initialProfile['avatar'] ?? 'assets/avatar_zahra.png',
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) => Container(
         color: const Color(0xFFE2F1E8),
@@ -377,7 +444,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  // Avatar with Camera Badge & Tap action
+                  // Avatar dengan Tombol Kamera & Aksi Tap
                   Center(
                     child: Column(
                       children: [
@@ -387,8 +454,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             alignment: Alignment.bottomRight,
                             children: [
                               Container(
-                                width: 92,
-                                height: 92,
+                                width: 96,
+                                height: 96,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(color: const Color(0xFF36785A), width: 3),
@@ -433,7 +500,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Form Container Card
+                  // Formulir Isian Profil
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -468,7 +535,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Jenis Kelamin Dropdown
+                        // Dropdown Jenis Kelamin
                         Text(
                           'Jenis Kelamin',
                           style: GoogleFonts.poppins(
@@ -534,11 +601,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 28),
 
-                  // Button Simpan
+                  // Tombol Simpan Utama
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _saveProfile,
+                      onPressed: _saveProfileAndPop,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF36785A),
                         foregroundColor: Colors.white,

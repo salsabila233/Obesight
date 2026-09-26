@@ -90,8 +90,9 @@ class AuthService {
       'gender': 'Perempuan',
       'email': 'zahraafitriana@gmail.com',
       'phone': '089334212098',
-      'joined': 'Bergabung sejak Agustus 2025',
+      'joined': 'Bergabung sejak Juni 2026',
       'avatar': 'assets/avatar_zahra.png',
+      'photo_path': '',
     },
     'usr_002': {
       'name': 'Zahra Fitrie',
@@ -101,6 +102,7 @@ class AuthService {
       'phone': '081234567890',
       'joined': 'Bergabung sejak Januari 2025',
       'avatar': 'assets/avatar_zahra.png',
+      'photo_path': '',
     },
     'adm_001': {
       'name': 'Dr. Hendra Wijaya, Sp.GK',
@@ -110,6 +112,7 @@ class AuthService {
       'phone': '081198765432',
       'joined': 'Bergabung sejak Januari 2024',
       'avatar': 'assets/avatar_zahra.png',
+      'photo_path': '',
     },
     'usr_003': {
       'name': 'Zahra Cantik',
@@ -119,6 +122,7 @@ class AuthService {
       'phone': '089512345678',
       'joined': 'Bergabung sejak September 2025',
       'avatar': 'assets/avatar_zahra.png',
+      'photo_path': '',
     },
     'usr_004': {
       'name': 'Aku Zahra',
@@ -128,6 +132,7 @@ class AuthService {
       'phone': '089687654321',
       'joined': 'Bergabung sejak September 2025',
       'avatar': 'assets/avatar_zahra.png',
+      'photo_path': '',
     },
   };
 
@@ -142,18 +147,20 @@ class AuthService {
         'gender': 'Perempuan',
         'email': _currentUser!.email,
         'phone': '089334212098',
-        'joined': 'Bergabung sejak Agustus 2025',
+        'joined': 'Bergabung sejak Juni 2026',
         'avatar': 'assets/avatar_zahra.png',
+        'photo_path': '',
       };
     }
     return {
-      'name': 'Zahra Fitriana',
+      'name': 'Aisyah Lailatul Fitri Hapsari',
       'dob': '12 Juli 2003',
       'gender': 'Perempuan',
-      'email': 'zahraafitriana@gmail.com',
+      'email': 'aisyah.hapsari@gmail.com',
       'phone': '089334212098',
-      'joined': 'Bergabung sejak Agustus 2025',
+      'joined': 'Bergabung sejak Juni 2026',
       'avatar': 'assets/avatar_zahra.png',
+      'photo_path': '',
     };
   }
 
@@ -165,6 +172,8 @@ class AuthService {
     String? email,
     String? phone,
     String? avatar,
+    String? photoPath,
+    String? joined,
   }) {
     final current = getUserProfile(userId);
     _userProfileCache[userId] = {
@@ -173,8 +182,9 @@ class AuthService {
       'gender': gender ?? current['gender'] ?? 'Perempuan',
       'email': email ?? current['email'] ?? '',
       'phone': phone ?? current['phone'] ?? '',
-      'joined': current['joined'] ?? 'Bergabung sejak Agustus 2025',
+      'joined': joined ?? current['joined'] ?? 'Bergabung sejak Juni 2026',
       'avatar': avatar ?? current['avatar'] ?? 'assets/avatar_zahra.png',
+      'photo_path': photoPath ?? current['photo_path'] ?? '',
     };
     if (_currentUser != null && _currentUser!.id == userId) {
       _currentUser = _currentUser!.copyWith(
