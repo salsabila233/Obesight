@@ -225,7 +225,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             width: 100,
                             height: 100,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(
+                            errorBuilder: (_, _, _) => const Icon(
                               Icons.assessment_rounded,
                               size: 72,
                               color: Color(0xFF4E8F73),
@@ -340,7 +340,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                                   width: 44,
                                   height: 44,
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Container(
+                                  errorBuilder: (_, _, _) => Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: const BoxDecoration(
                                       color: Color(0xFFE8F5EE),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../theme/app_theme.dart';
 import '../auth/login_screen.dart';
 import 'change_password_screen.dart';
 import 'change_email_screen.dart';
@@ -21,20 +22,27 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDarkMode = false;
+  late bool _isDarkMode;
   final _authService = AuthService();
 
-  void _showLogoutConfirmDialog() {
+  @override
+  void initState() {
+    super.initState();
+    _isDarkMode = AppTheme.isDark;
+  }
+
+  void _showLogoutConfirmDialog({bool isDark = false}) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: Color(0xFFFEE2E2),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF3F1D1D) : const Color(0xFFFEE2E2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626), size: 22),
@@ -42,18 +50,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(width: 12),
             Text(
               'Keluar Akun',
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
             ),
           ],
         ),
         content: Text(
           'Apakah Anda yakin ingin keluar dari akun ObeSight?',
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF475569)),
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Batal', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -79,6 +100,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    _isDarkMode = AppTheme.isDark;
+
     return Scaffold(
       backgroundColor: const Color(0xFF489874),
       appBar: AppBar(
@@ -101,9 +125,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF4F8F6),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
@@ -114,9 +138,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSectionHeader('Keamanan'),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -129,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _buildSettingItem(
                       icon: Icons.lock_outline_rounded,
-                      iconBg: const Color(0xFFE8F3EE),
+                      iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
                       iconColor: const Color(0xFF36785A),
                       title: 'Ubah Kata Sandi',
                       subtitle: 'Perbarui kata sandi akun Anda',
@@ -139,10 +165,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         );
                       },
                     ),
-                    const Divider(height: 1, indent: 60, endIndent: 16, color: Color(0xFFF1F5F9)),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      endIndent: 16,
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    ),
                     _buildSettingItem(
                       icon: Icons.mail_outline_rounded,
-                      iconBg: const Color(0xFFE8F3EE),
+                      iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
                       iconColor: const Color(0xFF36785A),
                       title: 'Ubah Email',
                       subtitle: 'Ganti alamat email terdaftar',
@@ -162,9 +193,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSectionHeader('Tampilan'),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -174,15 +207,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
                 child: InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(
+                  onTap: () async {
+                    await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => DarkModeScreen(
-                          initialDarkMode: _isDarkMode,
-                          onThemeChanged: (val) => setState(() => _isDarkMode = val),
+                          initialDarkMode: AppTheme.isDark,
+                          onThemeChanged: (val) {
+                            setState(() {
+                              _isDarkMode = val;
+                            });
+                          },
                         ),
                       ),
                     );
+                    if (mounted) setState(() {});
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
@@ -193,10 +231,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEDE9FE),
+                            color: isDark ? const Color(0xFF2E2A50) : const Color(0xFFEDE9FE),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.dark_mode_outlined, size: 20, color: Color(0xFF6366F1)),
+                          child: const Icon(Icons.dark_mode_outlined, size: 20, color: Color(0xFF818CF8)),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -208,26 +246,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF0F172A),
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                                 ),
                               ),
                               Text(
-                                'Tampilan gelap yang nyaman di mata',
-                                style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B)),
+                                AppTheme.currentThemeMode == ThemeMode.dark
+                                    ? 'Aktif (gelap ke seluruh halaman)'
+                                    : (AppTheme.currentThemeMode == ThemeMode.system
+                                        ? 'Mengikuti Sistem perangkat'
+                                        : 'Nonaktif (terang)'),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.5,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                ),
                               ),
                             ],
                           ),
                         ),
                         Switch(
                           value: _isDarkMode,
-                          activeThumbColor: const Color(0xFF36785A),
+                          activeThumbColor: const Color(0xFF4F9B77),
                           onChanged: (val) {
+                            AppTheme.toggleDarkMode(val);
                             setState(() {
                               _isDarkMode = val;
                             });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(val ? 'Mode Gelap diaktifkan' : 'Mode Terang diaktifkan'),
+                                content: Text(val ? 'Mode Gelap diterapkan ke seluruh halaman' : 'Mode Terang diterapkan ke seluruh halaman'),
                                 duration: const Duration(seconds: 1),
                               ),
                             );
@@ -245,9 +291,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSectionHeader('Informasi dan Akun'),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -260,7 +308,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _buildSettingItem(
                       icon: Icons.menu_book_outlined,
-                      iconBg: const Color(0xFFE0F2FE),
+                      iconBg: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE0F2FE),
                       iconColor: const Color(0xFF0284C7),
                       title: 'Informasi dan Sumber',
                       subtitle: 'Pedoman klinis, rumus & referensi',
@@ -270,10 +318,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         );
                       },
                     ),
-                    const Divider(height: 1, indent: 60, endIndent: 16, color: Color(0xFFF1F5F9)),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      endIndent: 16,
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    ),
                     _buildSettingItem(
                       icon: Icons.help_outline_rounded,
-                      iconBg: const Color(0xFFD1FAE5),
+                      iconBg: isDark ? const Color(0xFF133E2B) : const Color(0xFFD1FAE5),
                       iconColor: const Color(0xFF10B981),
                       title: 'Pusat Bantuan',
                       subtitle: 'FAQ, WhatsApp, & kontak bantuan',
@@ -283,10 +336,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         );
                       },
                     ),
-                    const Divider(height: 1, indent: 60, endIndent: 16, color: Color(0xFFF1F5F9)),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      endIndent: 16,
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    ),
                     _buildSettingItem(
                       icon: Icons.info_outline_rounded,
-                      iconBg: const Color(0xFFCCFBF1),
+                      iconBg: isDark ? const Color(0xFF113D38) : const Color(0xFFCCFBF1),
                       iconColor: const Color(0xFF0D9488),
                       title: 'Tentang Aplikasi',
                       subtitle: 'Versi, visi & fitur ObeSight',
@@ -296,10 +354,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         );
                       },
                     ),
-                    const Divider(height: 1, indent: 60, endIndent: 16, color: Color(0xFFF1F5F9)),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      endIndent: 16,
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    ),
                     _buildSettingItem(
                       icon: Icons.delete_outline_rounded,
-                      iconBg: const Color(0xFFFEE2E2),
+                      iconBg: isDark ? const Color(0xFF3F1D1D) : const Color(0xFFFEE2E2),
                       iconColor: const Color(0xFFDC2626),
                       title: 'Hapus Akun',
                       subtitle: 'Hapus akun dan riwayat permanen',
@@ -320,7 +383,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: _showLogoutConfirmDialog,
+                  onPressed: () => _showLogoutConfirmDialog(isDark: isDark),
                   icon: const Icon(Icons.logout_rounded, size: 18, color: Color(0xFFDC2626)),
                   label: Text(
                     'Keluar dari Akun',
@@ -331,8 +394,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFFCA5A5)),
-                    backgroundColor: const Color(0xFFFEF2F2),
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFCA5A5),
+                    ),
+                    backgroundColor: isDark ? const Color(0xFF2A1717) : const Color(0xFFFEF2F2),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
@@ -348,6 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
@@ -355,7 +421,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: GoogleFonts.poppins(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF64748B),
+          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
         ),
       ),
     );
@@ -370,6 +436,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
     Color? titleColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
       onTap: onTap,
       leading: Container(
@@ -386,12 +453,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: GoogleFonts.poppins(
           fontSize: 13.5,
           fontWeight: FontWeight.w600,
-          color: titleColor ?? const Color(0xFF0F172A),
+          color: titleColor ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B)),
+        style: GoogleFonts.poppins(
+          fontSize: 11.5,
+          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+        ),
       ),
       trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8), size: 20),
     );

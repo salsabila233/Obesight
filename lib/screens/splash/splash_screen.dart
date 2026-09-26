@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
-import '../auth/login_screen.dart';
+import '../auth/welcome_screen.dart';
 
 /// Halaman Splash Screen Multi-Tahap (5 Frame):
 /// 1. Splash 1 (Tahap Awal): Background hijau tua, logo berukuran kecil di tengah layar.
@@ -9,7 +9,7 @@ import '../auth/login_screen.dart';
 ///    Logo melakukan animasi pulse/zoom-in lembut berulang kali menggunakan [_scaleController].
 /// 3. Splash 5 (Tahap Akhir): Logo berhenti pada skala stabil, lalu teks "ObeSight" muncul
 ///    di sebelah kanan logo menggunakan [FadeTransition] yang digerakkan oleh [_textController].
-/// 4. Navigasi: Berpindah ke halaman utama/Login menggunakan [Navigator.pushReplacement].
+/// 4. Navigasi: Berpindah ke Welcome Screen menggunakan [Navigator.pushReplacement].
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,6 +27,10 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _textController;
   late final Animation<double> _textFadeAnimation;
 
+  // 3. Controller untuk animasi melayang (antigravity) naik-turun halus
+  late final AnimationController _floatingController;
+  late final Animation<double> _floatingAnimation;
+
   // State tampilan & tahapan
   Color _backgroundColor = AppColors.darkGreen; // Hijau tua awal (Splash 1)
   bool _showText = false; // Pengontrol kemunculan teks di sebelah kanan logo
@@ -42,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 700),
     );
 
-    // Animasi skala: dimulai dari kecil (0.8) hingga membesar (1.2) saat pulse
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(
         parent: _scaleController,
@@ -56,11 +59,23 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 800),
     );
 
-    // Animasi opasitas: dari 0.0 (transparan) menuju 1.0 (terlihat jelas)
     _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _textController,
         curve: Curves.easeIn,
+      ),
+    );
+
+    // Inisialisasi AnimationController 3: Efek Melayang (Antigravity Naik-Turun)
+    _floatingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+
+    _floatingAnimation = Tween<double>(begin: -5.0, end: 5.0).animate(
+      CurvedAnimation(
+        parent: _floatingController,
+        curve: Curves.easeInOutSine,
       ),
     );
 
@@ -122,7 +137,7 @@ class _SplashScreenState extends State<SplashScreen>
     _navigateToNextScreen();
   }
 
-  /// Melakukan navigasi aman ke halaman berikutnya
+  /// Melakukan navigasi aman ke halaman berikutnya (Welcome Screen)
   void _navigateToNextScreen() {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
@@ -131,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const LoginScreen(),
+            const WelcomeScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -142,9 +157,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    // Pastikan kedua AnimationController dilepas dari memori
+    // Pastikan ketiga AnimationController dilepas dari memori
     _scaleController.dispose();
     _textController.dispose();
+    _floatingController.dispose();
     super.dispose();
   }
 
@@ -166,27 +182,20 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 1. Logo dengan ScaleTransition
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: _backgroundColor == Colors.white
-                          ? [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: ClipOval(
+                // 1. Logo dengan ScaleTransition & Smooth Floating Antigravity
+                AnimatedBuilder(
+                  animation: _floatingController,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, _floatingAnimation.value),
+                      child: child,
+                    );
+                  },
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: SizedBox(
+                      width: 76,
+                      height: 76,
                       child: Image.asset(
                         'assets/logo.png',
                         fit: BoxFit.contain,

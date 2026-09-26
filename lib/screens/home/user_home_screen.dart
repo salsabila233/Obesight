@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
-import '../../models/article_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/article_service.dart';
 import '../auth/login_screen.dart';
@@ -197,7 +196,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: selectedGender,
+                            initialValue: selectedGender,
                             decoration: InputDecoration(
                               labelText: 'Jenis Kelamin',
                               labelStyle: GoogleFonts.poppins(fontSize: 12),
@@ -282,27 +281,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           },
         );
       },
-    );
-  }
-
-  void _showArticleDetail(String title, String content) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => HealthArticleDetailScreen(
-          article: {
-            'title': title,
-            'content': content,
-            'category': 'Edukasi Kesehatan',
-            'readTime': '3 Menit Baca',
-            'author': 'Tim Medis ObeSight',
-            'date': '22 September 2026',
-            'takeaways': [
-              'Pola hidup sehat adalah investasi jangka panjang untuk kualitas hidup terbaik.',
-              'Gunakan aplikasi ObeSight untuk memantau kemajuan Anda secara berkala.',
-            ],
-          },
-        ),
-      ),
     );
   }
 
@@ -1180,7 +1158,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   ),
                                 ),
                                 Text(
-                                  art.readTime.split(' ').first + 'm',
+                                  '${art.readTime.split(' ').first}m',
                                   style: GoogleFonts.poppins(
                                     fontSize: 9.5,
                                     color: const Color(0xFF94A3B8),

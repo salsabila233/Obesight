@@ -116,8 +116,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final phone = _profileData['phone'] ?? '089334212098';
     final joined = _profileData['joined'] ?? 'Bergabung sejak Juni 2026';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: const Color(0xFF36785A),
         elevation: 0,
@@ -134,7 +136,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         centerTitle: true,
-        // Ikon edit di sebelah kanan AppBar dihilangkan sesuai permintaan
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -145,16 +146,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                    color: const Color(0xFF0F172A).withValues(alpha: isDark ? 0.2 : 0.05),
                     blurRadius: 14,
                     offset: const Offset(0, 4),
                   ),
                 ],
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
               ),
               child: Column(
                 children: [
@@ -182,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 16.5,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -190,7 +193,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               email,
                               style: GoogleFonts.poppins(
                                 fontSize: 12.5,
-                                color: const Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -198,20 +201,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.calendar_today_rounded, size: 11, color: Color(0xFF64748B)),
+                                  Icon(
+                                    Icons.calendar_today_rounded,
+                                    size: 11,
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  ),
                                   const SizedBox(width: 5),
                                   Text(
                                     joined,
                                     style: GoogleFonts.poppins(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.w500,
-                                      color: const Color(0xFF64748B),
+                                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
@@ -223,7 +230,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const Divider(color: Color(0xFFF1F5F9), height: 1),
+                  Divider(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    height: 1,
+                  ),
                   const SizedBox(height: 12),
 
                   // Tombol Masuk ke Halaman Edit Profil
@@ -240,8 +250,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF36785A),
-                        side: const BorderSide(color: Color(0xFF36785A), width: 1.2),
+                        foregroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                          width: 1.2,
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 11),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
@@ -258,16 +271,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.05),
+                    color: const Color(0xFF0F172A).withValues(alpha: isDark ? 0.2 : 0.05),
                     blurRadius: 14,
                     offset: const Offset(0, 4),
                   ),
                 ],
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Container(
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE2F1E8),
+                          color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(Icons.badge_outlined, size: 18, color: Color(0xFF36785A)),
@@ -288,46 +303,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Divider(color: Color(0xFFF1F5F9), height: 1),
+                  Divider(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    height: 1,
+                  ),
                   const SizedBox(height: 12),
 
                   _buildInfoRow(
+                    isDark: isDark,
                     icon: Icons.person_outline_rounded,
-                    iconBg: const Color(0xFFF1F5F9),
+                    iconBg: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                     iconColor: const Color(0xFF64748B),
                     label: 'Nama Lengkap',
                     value: name,
                   ),
                   _buildInfoRow(
+                    isDark: isDark,
                     icon: Icons.cake_outlined,
-                    iconBg: const Color(0xFFE0F2FE),
+                    iconBg: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE0F2FE),
                     iconColor: const Color(0xFF0284C7),
                     label: 'Tanggal Lahir',
                     value: dob,
                   ),
                   _buildInfoRow(
+                    isDark: isDark,
                     icon: Icons.wc_outlined,
-                    iconBg: const Color(0xFFFCE7F3),
+                    iconBg: isDark ? const Color(0xFF4A1D36) : const Color(0xFFFCE7F3),
                     iconColor: const Color(0xFFDB2777),
                     label: 'Jenis Kelamin',
                     value: gender,
                   ),
                   _buildInfoRow(
+                    isDark: isDark,
                     icon: Icons.mail_outline_rounded,
-                    iconBg: const Color(0xFFFFEDD5),
+                    iconBg: isDark ? const Color(0xFF4A2A1A) : const Color(0xFFFFEDD5),
                     iconColor: const Color(0xFFEA580C),
                     label: 'Email',
                     value: email,
                   ),
                   _buildInfoRow(
+                    isDark: isDark,
                     icon: Icons.phone_outlined,
-                    iconBg: const Color(0xFFDCFCE7),
+                    iconBg: isDark ? const Color(0xFF133E2B) : const Color(0xFFDCFCE7),
                     iconColor: const Color(0xFF16A34A),
                     label: 'Telepon',
                     value: phone,
@@ -343,6 +366,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildInfoRow({
+    required bool isDark,
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -372,7 +396,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -384,7 +408,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
           ),

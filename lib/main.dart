@@ -36,6 +36,7 @@ class ObeSightApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< Updated upstream
     return MaterialApp(
       title: 'ObeSight',
       debugShowCheckedModeBanner: false,
@@ -50,6 +51,28 @@ class ObeSightApp extends StatelessWidget {
         '/verify-otp': (context) => const VerifyOtpScreen(),
         '/reset-password': (context) => const ResetPasswordScreen(),
         '/skrining': (context) => const SkriningLandingScreen(),
+=======
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return MaterialApp(
+          title: 'ObeSight',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: currentMode,
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const SplashScreen(),
+            '/login': (context) => const LoginScreen(),
+            '/welcome': (context) => const WelcomeScreen(),
+            '/register': (context) => const RegisterScreen(),
+            '/forgot-password': (context) => const ForgotPasswordScreen(),
+            '/verify-otp': (context) => const VerifyOtpScreen(),
+            '/reset-password': (context) => const ResetPasswordScreen(),
+          },
+        );
+>>>>>>> Stashed changes
       },
     );
   }

@@ -67,25 +67,9 @@ class _AnimatedIllustrationState extends State<AnimatedIllustration>
                 alignment: Alignment.center,
                 clipBehavior: Clip.none,
                 children: [
-                  // Subtle green ambient glow behind illustration
-                  Container(
-                    width: effectiveHeight * 0.85,
-                    height: effectiveHeight * 0.85,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF4F9B77).withValues(alpha: 0.12),
-                          blurRadius: 36,
-                          spreadRadius: 8,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Woman holding phone with health icons
+                  // Woman holding phone with health icons (clean, no container box behind)
                   Image.asset(
-                    'assets/illustration_woman.png',
+                    'assets/illustration_woman_original.png',
                     height: effectiveHeight,
                     fit: BoxFit.contain,
                   ),

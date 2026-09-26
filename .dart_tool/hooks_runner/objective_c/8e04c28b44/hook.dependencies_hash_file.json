@@ -1,1 +1,5 @@
+<<<<<<< Updated upstream
 {"file_system":[{"path":"c:\\users\\user\\obesight\\.dart_tool\\package_config.json","hash":-5989025536989245193},{"path":"C:\\Users\\USER\\Obesight\\.dart_tool\\package_config.json","hash":-5989025536989245193},{"path":"C:\\src\\flutter\\bin\\cache\\dart-sdk\\version","hash":-1985532409281033899}],"environment":[]}
+=======
+{"file_system":[{"path":"c:\\users\\user\\obesight\\.dart_tool\\package_config.json","hash":8018171348141068625,"size":19585,"last_modified":1790425447912200},{"path":"C:\\Users\\USER\\Obesight\\.dart_tool\\package_config.json","hash":8018171348141068625,"size":19585,"last_modified":1790425447912200}],"environment":[{"key":"DART_VERSION","hash":-6823914577270208273}]}
+>>>>>>> Stashed changes

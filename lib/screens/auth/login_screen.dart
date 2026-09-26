@@ -5,6 +5,7 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/animated_illustration.dart';
+import '../../widgets/antigravity_floating.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/google_account_picker_sheet.dart';
 import '../home/admin_home_screen.dart';
@@ -158,9 +159,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardOpen = bottomInset > 100;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -174,16 +176,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   children: [
                     const SizedBox(height: 12),
 
-                        // Top Row with App Logo & Quick Role Testing Badge
+                        // Top Row with App Logo & Floating Animation
                         Center(
                           child: Column(
                             children: [
-                              // Circular Health Logo
-                              Image.asset(
-                                'assets/logo.png',
-                                width: 68,
-                                height: 68,
-                                fit: BoxFit.contain,
+                              // Circular Health Logo with smooth Antigravity Floating
+                              AntigravityFloating(
+                                distance: 6.0,
+                                duration: const Duration(milliseconds: 2600),
+                                child: Image.asset(
+                                  'assets/logo.png',
+                                  width: 68,
+                                  height: 68,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                               const SizedBox(height: 6),
 
@@ -193,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 style: GoogleFonts.poppins(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.brandTitleGreen,
+                                  color: isDark ? const Color(0xFF58AF86) : AppColors.brandTitleGreen,
                                   letterSpacing: -0.3,
                                 ),
                               ),
@@ -211,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             style: GoogleFonts.poppins(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.darkGreen,
+                              color: isDark ? Colors.white : AppColors.darkGreen,
                               height: 1.25,
                               letterSpacing: -0.2,
                             ),
@@ -359,9 +365,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         // Separator: ─── atau ───
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Divider(
-                                color: AppColors.dividerColor,
+                                color: isDark ? const Color(0xFF334155) : AppColors.dividerColor,
                                 thickness: 1.0,
                               ),
                             ),
@@ -372,13 +378,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.normal,
-                                  color: AppColors.dividerText,
+                                  color: isDark ? const Color(0xFF94A3B8) : AppColors.dividerText,
                                 ),
                               ),
                             ),
-                            const Expanded(
+                            Expanded(
                               child: Divider(
-                                color: AppColors.dividerColor,
+                                color: isDark ? const Color(0xFF334155) : AppColors.dividerColor,
                                 thickness: 1.0,
                               ),
                             ),
@@ -394,9 +400,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           child: OutlinedButton(
                             onPressed: _isLoading ? null : _handleGoogleSignIn,
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF1F2937),
-                              side: const BorderSide(color: AppColors.inputBorder, width: 1.0),
+                              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              foregroundColor: isDark ? Colors.white : const Color(0xFF1F2937),
+                              side: BorderSide(
+                                color: isDark ? const Color(0xFF334155) : AppColors.inputBorder,
+                                width: 1.0,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -419,7 +428,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF1F2937),
+                                      color: isDark ? Colors.white : const Color(0xFF1F2937),
                                     ),
                                   ),
                                 ),
@@ -449,7 +458,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     'Belum punya akun?   ',
                                     style: GoogleFonts.poppins(
                                       fontSize: 13,
-                                      color: const Color(0xFF4B5563),
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4B5563),
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ),

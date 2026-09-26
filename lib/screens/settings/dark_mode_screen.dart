@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../theme/app_theme.dart';
 
 class DarkModeScreen extends StatefulWidget {
   final bool initialDarkMode;
@@ -21,19 +22,38 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedOption = widget.initialDarkMode ? 1 : 0;
+    switch (AppTheme.currentThemeMode) {
+      case ThemeMode.light:
+        _selectedOption = 0;
+        break;
+      case ThemeMode.dark:
+        _selectedOption = 1;
+        break;
+      case ThemeMode.system:
+        _selectedOption = 2;
+        break;
+    }
   }
 
   void _selectOption(int index) {
     setState(() {
       _selectedOption = index;
     });
-    final isDark = index == 1;
-    widget.onThemeChanged?.call(isDark);
+
+    final mode = index == 0
+        ? ThemeMode.light
+        : index == 1
+            ? ThemeMode.dark
+            : ThemeMode.system;
+
+    AppTheme.setThemeMode(mode);
+    widget.onThemeChanged?.call(index == 1);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: const Color(0xFF489874),
       appBar: AppBar(
@@ -56,9 +76,9 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF4F8F6),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDarkTheme ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -70,7 +90,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDarkTheme ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 4),
@@ -78,7 +98,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                 'Pilih tampilan visual yang paling nyaman untuk mata Anda saat menggunakan aplikasi.',
                 style: GoogleFonts.poppins(
                   fontSize: 12.5,
-                  color: const Color(0xFF64748B),
+                  color: isDarkTheme ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   height: 1.4,
                 ),
               ),
@@ -89,6 +109,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                 children: [
                   Expanded(
                     child: _buildThemePreviewCard(
+                      context,
                       title: 'Mode Terang',
                       isSelected: _selectedOption == 0,
                       isDarkPreview: false,
@@ -98,6 +119,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: _buildThemePreviewCard(
+                      context,
                       title: 'Mode Gelap',
                       isSelected: _selectedOption == 1,
                       isDarkPreview: true,
@@ -112,9 +134,11 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
               // Settings Options List
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDarkTheme ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDarkTheme ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.03),
@@ -126,22 +150,35 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                 child: Column(
                   children: [
                     _buildOptionTile(
+                      context,
                       index: 0,
                       title: 'Terang',
                       subtitle: 'Warna cerah yang bersih dan jernih di siang hari',
                       icon: Icons.light_mode_rounded,
                       iconColor: const Color(0xFFEAB308),
                     ),
-                    const Divider(height: 1, indent: 60, endIndent: 20, color: Color(0xFFF1F5F9)),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      endIndent: 20,
+                      color: isDarkTheme ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    ),
                     _buildOptionTile(
+                      context,
                       index: 1,
                       title: 'Gelap',
                       subtitle: 'Lebih teduh dan menghemat daya baterai perangkat',
                       icon: Icons.dark_mode_rounded,
                       iconColor: const Color(0xFF6366F1),
                     ),
-                    const Divider(height: 1, indent: 60, endIndent: 20, color: Color(0xFFF1F5F9)),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      endIndent: 20,
+                      color: isDarkTheme ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                    ),
                     _buildOptionTile(
+                      context,
                       index: 2,
                       title: 'Mengikuti Sistem',
                       subtitle: 'Secara otomatis mengikuti pengaturan tema di HP Anda',
@@ -158,9 +195,11 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F3EE),
+                  color: isDarkTheme ? const Color(0xFF1E293B) : const Color(0xFFE8F3EE),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF36785A).withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,10 +208,10 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Pilihan tema Anda disimpan secara lokal dan akan otomatis diterapkan setiap kali aplikasi ObeSight dibuka.',
+                        'Pilihan tema Anda disimpan secara global dan akan diterapkan ke seluruh halaman aplikasi ObeSight.',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: const Color(0xFF1E4534),
+                          color: isDarkTheme ? const Color(0xFFE2E8F0) : const Color(0xFF1E4534),
                           height: 1.45,
                         ),
                       ),
@@ -187,26 +226,33 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
     );
   }
 
-  Widget _buildThemePreviewCard({
+  Widget _buildThemePreviewCard(
+    BuildContext context, {
     required String title,
     required bool isSelected,
     required bool isDarkPreview,
     required VoidCallback onTap,
   }) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkTheme ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? const Color(0xFF36785A) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? const Color(0xFF36785A)
+                : (isDarkTheme ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected ? const Color(0xFF36785A).withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.02),
+              color: isSelected
+                  ? const Color(0xFF36785A).withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -279,7 +325,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                    color: isDarkTheme ? Colors.white : const Color(0xFF0F172A),
                   ),
                 ),
               ],
@@ -290,14 +336,17 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
     );
   }
 
-  Widget _buildOptionTile({
+  Widget _buildOptionTile(
+    BuildContext context, {
     required int index,
     required String title,
     required String subtitle,
     required IconData icon,
     required Color iconColor,
   }) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedOption == index;
+
     return InkWell(
       onTap: () => _selectOption(index),
       borderRadius: BorderRadius.circular(20),
@@ -323,7 +372,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF0F172A),
+                      color: isDarkTheme ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -331,7 +380,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                     subtitle,
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
-                      color: const Color(0xFF64748B),
+                      color: isDarkTheme ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     ),
                   ),
                 ],

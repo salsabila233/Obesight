@@ -96,7 +96,7 @@ class ImtResultScreen extends StatelessWidget {
                                 width: 110,
                                 height: 130,
                                 fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => const SizedBox(
+                                errorBuilder: (_, _, _) => const SizedBox(
                                   width: 100,
                                   height: 120,
                                   child: Icon(Icons.directions_run_rounded, size: 64, color: Colors.white70),
