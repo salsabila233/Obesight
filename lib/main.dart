@@ -6,6 +6,7 @@ import 'screens/auth/register_screen.dart';
 import 'screens/auth/reset_password_screen.dart';
 import 'screens/auth/verify_otp_screen.dart';
 import 'screens/auth/welcome_screen.dart';
+import 'screens/skrining/skrining_landing_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -48,6 +49,7 @@ class ObeSightApp extends StatelessWidget {
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/verify-otp': (context) => const VerifyOtpScreen(),
         '/reset-password': (context) => const ResetPasswordScreen(),
+        '/skrining': (context) => const SkriningLandingScreen(),
       },
     );
   }

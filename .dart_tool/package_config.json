@@ -101,7 +101,7 @@
       "name": "flutter",
       "rootUri": "file:///C:/src/flutter/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.13"
+      "languageVersion": "3.11"
     },
     {
       "name": "flutter_lints",
@@ -125,13 +125,13 @@
       "name": "flutter_test",
       "rootUri": "file:///C:/src/flutter/packages/flutter_test",
       "packageUri": "lib/",
-      "languageVersion": "3.13"
+      "languageVersion": "3.11"
     },
     {
       "name": "flutter_web_plugins",
       "rootUri": "file:///C:/src/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
-      "languageVersion": "3.13"
+      "languageVersion": "3.11"
     },
     {
       "name": "google_fonts",
@@ -246,12 +246,6 @@
       "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/lints-6.1.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
-    },
-    {
-      "name": "listen",
-      "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/listen-1.0.1",
-      "packageUri": "lib/",
-      "languageVersion": "3.10"
     },
     {
       "name": "logging",
@@ -377,7 +371,7 @@
       "name": "sky_engine",
       "rootUri": "file:///C:/src/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.13"
+      "languageVersion": "3.11"
     },
     {
       "name": "source_span",
@@ -411,9 +405,9 @@
     },
     {
       "name": "test_api",
-      "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/test_api-0.7.14",
+      "rootUri": "file:///C:/Users/USER/AppData/Local/Pub/Cache/hosted/pub.dev/test_api-0.7.12",
       "packageUri": "lib/",
-      "languageVersion": "3.11"
+      "languageVersion": "3.10"
     },
     {
       "name": "typed_data",
@@ -531,8 +525,8 @@
     }
   ],
   "generator": "pub",
-  "generatorVersion": "3.14.0-211.1.beta",
+  "generatorVersion": "3.13.2",
   "flutterRoot": "file:///C:/src/flutter",
-  "flutterVersion": "3.49.0-0.1.pre",
+  "flutterVersion": "3.47.2",
   "pubCache": "file:///C:/Users/USER/AppData/Local/Pub/Cache"
 }

@@ -13,6 +13,7 @@ import '../progress/screening_history_screen.dart';
 import 'health_article_list_screen.dart';
 import 'health_article_detail_screen.dart';
 import 'bmi_calculation_screen.dart';
+import '../skrining/skrining_landing_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   final UserModel user;
@@ -94,156 +95,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   void _showScreeningModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SkriningLandingScreen(user: widget.user),
       ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.8,
-          maxChildSize: 0.95,
-          minChildSize: 0.5,
-          expand: false,
-          builder: (_, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: ListView(
-                controller: scrollController,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5EE),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'SKRINING KESEHATAN',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF36785A),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Deteksi Risiko Obesitas',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Jawab pertanyaan berikut untuk menilai pola hidup dan tingkat risiko obesitas Anda.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: const Color(0xFF475569),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  _buildQuestionItem('1. Frekuensi konsumsi makanan cepat saji atau minuman manis?', [
-                    'Jarang (1-2x per bulan)',
-                    'Kadang-kadang (1-2x per minggu)',
-                    'Sering (>3x per minggu)',
-                  ]),
-                  _buildQuestionItem('2. Durasi aktivitas fisik / olahraga dalam seminggu?', [
-                    'Lebih dari 150 menit / minggu',
-                    'Kurang dari 150 menit / minggu',
-                    'Hampir tidak pernah olahraga',
-                  ]),
-                  _buildQuestionItem('3. Rata-rata jam tidur malam?', [
-                    'Cukup (7 - 8 jam)',
-                    'Kurang (<6 jam)',
-                  ]),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00874A),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Hasil Skrining: Risiko Rendah. Pola hidup Anda sudah baik!',
-                            style: GoogleFonts.poppins(),
-                          ),
-                          backgroundColor: const Color(0xFF16A34A),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Lihat Hasil Skrining',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildQuestionItem(String question, List<String> options) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            question,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...options.map((opt) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  children: [
-                    const Icon(Icons.radio_button_checked, size: 16, color: Color(0xFF36785A)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        opt,
-                        style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF475569)),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-        ],
-      ),
-    );
+    ).then((_) {
+      if (mounted) {
+        _syncUserData();
+      }
+    });
   }
 
   void _openBmiCalculationScreen() async {
