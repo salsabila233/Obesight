@@ -9,8 +9,8 @@ import '../settings/settings_screen.dart';
 import '../progress/progress_screen.dart';
 import '../progress/physical_activity_screen.dart';
 import '../progress/screening_history_screen.dart';
-import 'health_article_list_screen.dart';
-import 'health_article_detail_screen.dart';
+import '../article/health_article_list_screen.dart';
+import '../article/health_article_detail_screen.dart';
 import 'bmi_calculation_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 
@@ -1086,7 +1086,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   );
                 },
                 child: Container(
-                  width: 148,
+                  width: 154,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -1103,22 +1103,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        height: 85,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [art.headerColor, art.headerColor.withValues(alpha: 0.75)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            art.icon,
-                            size: 36,
-                            color: Colors.white,
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        child: SizedBox(
+                          height: 96,
+                          width: double.infinity,
+                          child: Image.asset(
+                            art.imageAsset,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: art.headerColor.withValues(alpha: 0.15),
+                              child: Center(
+                                child: Icon(art.icon, size: 36, color: art.headerColor),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -1140,25 +1138,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                             ),
                             const SizedBox(height: 8),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE2F1E8),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    art.category.split(' ').first,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF2E6B4F),
-                                    ),
-                                  ),
-                                ),
+                                const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF94A3B8)),
+                                const SizedBox(width: 4),
                                 Text(
-                                  '${art.readTime.split(' ').first}m',
+                                  art.readTime,
                                   style: GoogleFonts.poppins(
                                     fontSize: 9.5,
                                     color: const Color(0xFF94A3B8),

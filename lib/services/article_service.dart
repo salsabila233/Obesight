@@ -9,136 +9,153 @@ class ArticleService {
   final List<ArticleModel> _articles = const [
     ArticleModel(
       id: 1,
-      title: '5 Pola Makan Sehat Cegah Obesitas',
-      category: 'Pola Makan & Nutrisi',
-      snippet: 'Kenali kebiasaan makan yang tanpa disadari meningkatkan risiko berat badan berlebih dan cara mengatasinya.',
-      author: 'Dr. Hendra Wijaya, Sp.GK',
+      title: 'Porsi piring gizi seimbang',
+      snippet: 'Panduan takaran proporsional Isi Piringku untuk memenuhi kebutuhan gizi seimbang harian.',
       date: '21 September 2026',
       readTime: '4 Menit Baca',
-      headerColor: Color(0xFF7E96AC),
-      icon: Icons.restaurant_menu_rounded,
+      headerColor: Color(0xFFE5BD87),
+      icon: Icons.pie_chart_outline_rounded,
+      imageAsset: 'assets/articles/article_porsi_piring_gizi_seimbang.jpg',
       content:
-          'Menerapkan pola makan sehat merupakan fondasi utama dalam mencegah dan mengendalikan obesitas. Kebiasaan makan terburu-buru, konsumsi minuman manis kemasan, dan mengabaikan sinyal kenyang adalah faktor pemicu utama kenaikan berat badan.\n\n'
-          'Untuk menjaga berat badan stabil, mulailah dengan membatasi konsumsi gula tambahan, garam berlebih, dan lemak jenuh (GGL). Pastikan Anda sarapan dengan asupan protein dan serat yang cukup agar rasa kenyang bertahan lebih lama hingga siang hari.\n\n'
-          'Hindari makan sambil menatap layar gawai (mindless eating) karena hal ini membuat otak terlambat menerima sinyal kenyang, sehingga porsi makan cenderung berlebih.',
+          'Konsep "Isi Piringku" merupakan panduan sajian makanan sehat yang dicetuskan oleh Kementerian Kesehatan Republik Indonesia untuk membantu masyarakat mengontrol porsi dan kualitas gizi makanan sehari-hari.\n\n'
+          'Dalam satu piring makan, porsi dibagi menjadi beberapa bagian utama:\n'
+          '1. Makanan Pokok (Karbohidrat): Mengisi sepertiga (1/3) dari piring makan. Utamakan sumber karbohidrat kompleks seperti nasi merah, jagung, kentang rebus, atau ubi jalar yang kaya serat.\n\n'
+          '2. Sayuran: Mengisi sepertiga (1/3) dari piring makan. Sayuran hijau dan berwarna seperti bayam, brokoli, wortel, dan buncis menyediakan vitamin, mineral, serta serat untuk kelancaran pencernaan.\n\n'
+          '3. Lauk-Pauk (Protein): Mengisi seperenam (1/6) dari piring makan. Pilih sumber protein hewani atau nabati rendah lemak jenuh seperti ikan, tempe, tahu, dada ayam tanpa kulit, atau telur.\n\n'
+          '4. Buah-buahan: Mengisi seperenam (1/6) dari piring makan sebagai sumber antioksidan, vitamin alami, dan pemanis alami pengganti gula buatan.\n\n'
+          'Selain mengatur komposisi piring, lengkapi kebiasaan sehat dengan minum air putih minimal 8 gelas setiap hari, mencuci tangan dengan sabun sebelum makan, dan beraktivitas fisik secara rutin.',
       takeaways: [
-        'Hindari konsumsi kalori cair dari minuman berpemanis buatan dan bersoda.',
-        'Makan secara perlahan dan kunyah minimal 20-30 kali per suapan.',
-        'Jaga jam makan tetap teratur untuk menstabilkan ritme metabolisme tubuh.',
-        'Penuhi kebutuhan air putih minimal 2 liter (8 gelas) sehari.',
+        'Setengah piring makan terdiri dari kombinasi sayuran dan buah-buahan segar.',
+        'Pilihlah karbohidrat kompleks dengan indeks glikemik lebih rendah untuk menjaga rasa kenyang.',
+        'Batasi asupan Gula, Garam, dan Lemak (GGL) dalam pengolahan hidangan harian.',
+        'Penuhi kebutuhan hidrasi tubuh dengan minum air putih minimal 2 liter per hari.',
       ],
-      tags: ['Nutrisi', 'Diet', 'Pola Makan'],
     ),
     ArticleModel(
       id: 2,
-      title: 'Porsi Piring Gizi Seimbang Kemenkes (Isi Piringku)',
-      category: 'Panduan Gizi',
-      snippet: 'Panduan praktis porsi gizi seimbang harian sesuai anjuran Kementerian Kesehatan RI.',
-      author: 'Kementerian Kesehatan RI',
+      title: '5 pola makan',
+      snippet: 'Lima prinsip pola makan sehat untuk mengontrol berat badan dan menjaga metabolisme tubuh.',
       date: '20 September 2026',
       readTime: '5 Menit Baca',
-      headerColor: Color(0xFFE5BD87),
-      icon: Icons.pie_chart_outline_rounded,
+      headerColor: Color(0xFF7E96AC),
+      icon: Icons.restaurant_menu_rounded,
+      imageAsset: 'assets/articles/article_5_pola_makan.jpg',
       content:
-          'Konsep "Isi Piringku" menggantikan slogan lama 4 Sehat 5 Sempurna dengan penekanan pada porsi makanan yang proporsional dalam satu piring makan.\n\n'
-          'Pembagian Isi Piringku untuk makanan utama:\n'
-          '1. Makanan Pokok (Karbohidrat Kompleks): 1/3 bagian dari piring, seperti nasi merah, kentang, jagung, atau ubi.\n'
-          '2. Sayur-mayur: 1/3 bagian dari piring sebagai sumber serat, vitamin, dan mineral alami.\n'
-          '3. Lauk-pauk (Protein): 1/6 bagian dari piring, prioritaskan ikan, telur, tahu, tempe, atau dada ayam tanpa kulit.\n'
-          '4. Buah-buahan: 1/6 bagian dari piring sebagai antioksidan alami.\n\n'
-          'Penerapan porsi ini membantu mencegah penumpukan kalori berlebih dan menjaga kestabilan kadar glukosa darah.',
+          'Menjaga berat badan ideal dan mencegah obesitas bermula dari kebiasaan makan sehari-hari yang terencana dan disiplin. Berikut adalah 5 pola makan yang efektif diterapkan:\n\n'
+          '1. Jadwalkan Waktu Makan Secara Teratur\n'
+          'Makan pada jam yang konsisten setiap hari membantu tubuh mengatur siklus metabolisme dan mencegah rasa lapar berlebih yang memicu keinginan makan berlebihan pada waktu berikutnya.\n\n'
+          '2. Utamakan Makanan Utuh (Whole Foods)\n'
+          'Perbanyak konsumsi makanan utuh yang belum mengalami banyak proses industri (minimally processed). Biji-bijian utuh, kacang-kacangan, sayur, dan buah kaya akan nutrisi alami dan serat tinggi.\n\n'
+          '3. Terapkan Mindful Eating\n'
+          'Makanlah secara perlahan dan kunyah setiap suapan dengan baik (20-30 kali). Hindari makan sambil menonton TV atau bermain gawai agar otak dapat menerima sinyal kenyang tepat waktu.\n\n'
+          '4. Kendalikan Ukuran Porsi\n'
+          'Gunakan piring berukuran sedang atau lebih kecil untuk membantu mengontrol porsi secara visual tanpa merasa kekurangan makanan.\n\n'
+          '5. Batasi Camilan Olahan Tinggi Gula dan Garam\n'
+          'Ganti camilan manis atau gorengan dengan pilihan padat nutrisi seperti buah potong, kacang almond panggang, atau yogurt tawar.',
       takeaways: [
-        'Separuh dari piring makan Anda harus diisi oleh sayuran dan buah-buahan segar.',
-        'Pilihlah sumber karbohidrat kompleks dengan indeks glikemik rendah.',
-        'Batasi anjuran G4-G1-L5: Gula 4 sendok makan, Garam 1 sendok teh, Lemak 5 sendok makan per hari.',
+        'Makan dengan jadwal teratur mencegah lonjakan rasa lapar mendadak.',
+        'Mengunyah secara perlahan memberi waktu otak untuk merespons sinyal kenyang lambung.',
+        'Pilih camilan sehat dan hindari minuman manis berpemanis buatan.',
+        'Kendalikan porsi makan dengan piring yang proporsional.',
       ],
-      tags: ['Isi Piringku', 'Kemenkes', 'Gizi Seimbang'],
     ),
     ArticleModel(
       id: 3,
-      title: 'Aktivitas Fisik Ringan Pembakar Kalori',
-      category: 'Aktivitas Fisik',
-      snippet: 'Kebiasaan aktif harian sederhana yang efektif membakar kalori tanpa harus ke tempat gym.',
-      author: 'Tim Medis ObeSight',
+      title: 'Pentingnya kualitas tidur',
+      snippet: 'Hubungan penting antara tidur berkualitas dan regulasi hormon pengatur nafsu makan.',
       date: '19 September 2026',
       readTime: '4 Menit Baca',
-      headerColor: Color(0xFF58B29C),
-      icon: Icons.directions_run_rounded,
+      headerColor: Color(0xFF818CF8),
+      icon: Icons.nightlight_round,
+      imageAsset: 'assets/articles/article_kualitas_tidur.jpg',
       content:
-          'Tidak perlu langsung memulai olahraga berat jika Anda baru memulai perjalanan hidup sehat. Non-Exercise Activity Thermogenesis (NEAT) atau pembakaran kalori dari aktivitas non-olahraga harian memiliki dampak yang sangat besar.\n\n'
-          'Berjalan kaki 30 menit sehari (setara 3.000–5.000 langkah) dapat membakar sekitar 150-200 kalori. Memilih naik tangga dibanding lift, berjalan saat menelepon, dan melakukan peregangan ringan setiap 45 menit saat bekerja di meja dapat melancarkan sirkulasi darah serta membakar ekstra kalori.\n\n'
-          'Kombinasikan dengan olahraga teratur 150 menit per minggu untuk hasil optimal.',
+          'Tidur bukan sekadar waktu istirahat pasif, melainkan periode penting bagi tubuh untuk meregenerasi sel, memulihkan energi, dan menyeimbangkan hormon pengatur metabolisme.\n\n'
+          'Saat seseorang kurang tidur atau mengalami gangguan tidur kronis, produksi hormon Ghrelin (hormon pemicu rasa lapar) akan meningkat tajam. Di saat yang sama, hormon Leptin (hormon pemberi rasa kenyang) mengalami penurunan drastis.\n\n'
+          'Kondisi ketidakseimbangan hormon ini menyebabkan seseorang merasa lebih cepat lapar, sulit merasa kenyang, dan memiliki dorongan kuat untuk mengonsumsi makanan manis, gurih, dan berkarbohidrat tinggi sepanjang hari.\n\n'
+          'Untuk menjaga kualitas tidur yang optimal:\n'
+          '• Targetkan durasi tidur 7–8 jam per malam untuk orang dewasa.\n'
+          '• Hindari paparan cahaya biru dari layar gawai minimal 30 menit sebelum tidur.\n'
+          '• Jaga suhu kamar tidur tetap sejuk, nyaman, dan minim cahaya.\n'
+          '• Batasi konsumsi kafein dan hindari makan berat menjelang jam tidur.',
       takeaways: [
-        'Targetkan minimal 7.000 langkah setiap hari secara bertahap.',
-        'Jangan duduk diam lebih dari 60 menit berturut-turut.',
-        'Jadikan jalan kaki cepat sebagai rutinitas pagi atau sore hari.',
+        'Tidur 7–8 jam setiap malam menjaga keseimbangan hormon nafsu makan (ghrelin dan leptin).',
+        'Kurang tidur memicu metabolisme lambat dan rasa ingin mengonsumsi makanan tinggi kalori.',
+        'Terapkan sleep hygiene dengan membatasi penggunaan gawai menjelang waktu istirahat.',
       ],
-      tags: ['Aktivitas', 'Olahraga', 'Kebugaran'],
     ),
     ArticleModel(
       id: 4,
-      title: 'Obesitas Sebagai Pemicu Komplikasi Medis',
-      category: 'Klinis & Medis',
-      snippet: 'Memahami bagaimana peradangan kronis akibat lemak berlebih memicu penyakit metabolik.',
-      author: 'dr. Nurul Aisyah, M.Kes',
+      title: 'Obesitas sebagai pemicu komplikasi',
+      snippet: 'Memahami bagaimana kelebihan lemak tubuh dapat memicu berbagai risiko penyakit metabolik.',
       date: '18 September 2026',
       readTime: '5 Menit Baca',
       headerColor: Color(0xFF94A3B8),
       icon: Icons.medical_services_outlined,
+      imageAsset: 'assets/articles/article_obesitas_komplikasi.jpg',
       content:
-          'Obesitas bukan sekadar permasalahan estetika atau penampilan luar, melainkan penyakit metabolik kronis yang memerlukan penanganan terarah.\n\n'
-          'Akumulasi jaringan adiposa (lemak) berlebih, terutama lemak viseral di sekitar organ perut, melepaskan sitokin pro-inflamasi secara konstan. Hal ini menyebabkan resistensi insulin, yang merupakan awal mula terjadinya Diabetes Melitus Tipe 2, hipertensi, dislipidemia (kolesterol tinggi), hingga penyakit jantung koroner.\n\n'
-          'Kabar baiknya, penurunan berat badan sebesar 5-10% dari berat badan awal sudah terbukti secara klinis mampu menurunkan risiko komplikasi ini secara drastis.',
+          'Obesitas merupakan penyakit metabolik kronis yang ditandai dengan penumpukan jaringan lemak berlebih, terutama di sekitar area rongga perut (lemak viseral).\n\n'
+          'Jaringan lemak viseral yang berlebihan bukan hanya cadangan energi, melainkan organ endokrin aktif yang terus-menerus melepaskan zat kimia pemicu peradangan (sitokin pro-inflamasi). Hal ini menyebabkan terjadinya resistensi insulin di dalam jaringan otot dan hati.\n\n'
+          'Beberapa komplikasi kesehatan utama yang dipicu oleh obesitas meliputi:\n'
+          '1. Diabetes Melitus Tipe 2 akibat resistensi insulin yang berkepanjangan.\n'
+          '2. Hipertensi dan Penyakit Jantung Koroner akibat beban kerja pompa jantung yang meningkat dan penumpukan plak di pembuluh darah.\n'
+          '3. Perlemakan Hati Non-Alkoholik (NAFLD) yang dapat mengganggu fungsi organ hati.\n'
+          '4. Gangguan Pernapasan saat Tidur (Sleep Apnea) yang menurunkan suplai oksigen malam hari.\n'
+          '5. Masalah Sendi dan Nyeri Lutut (Osteoartritis) akibat beban tumpuan tubuh yang berlebih.\n\n'
+          'Penurunan berat badan sebesar 5% sampai 10% dari berat badan awal terbukti secara klinis mampu menurunkan risiko komplikasi ini secara signifikan.',
       takeaways: [
-        'Deteksi dini IMT dan lingkar perut secara berkala sangat krusial.',
-        'Penurunan berat badan 5-10% memberikan proteksi kardiovaskular yang sangat signifikan.',
-        'Konsultasikan ke dokter spesialis gizi klinis jika IMT Anda berada di kategori obesitas.',
+        'Obesitas memicu peradangan kronis dan resistensi insulin dalam tubuh.',
+        'Komplikasi meliputi diabetes tipe 2, penyakit kardiovaskular, dan perlemakan hati.',
+        'Penurunan berat badan bertahap sebesar 5–10% memberikan proteksi kesehatan yang besar.',
+        'Lakukan skrining risiko dan konsultasikan kondisi kesehatan Anda secara berkala.',
       ],
-      tags: ['Medis', 'Komplikasi', 'Resistensi Insulin'],
     ),
     ArticleModel(
       id: 5,
-      title: 'Yuk, Kenali Pola Hidup Sehat Sehari-hari',
-      category: 'Gaya Hidup',
-      snippet: 'Langkah mudah membangun kebiasaan hidup sehat yang berkesinambungan dan menyenangkan.',
-      author: 'Tim Edukasi ObeSight',
+      title: 'Aktivitas fisik ringan',
+      snippet: 'Gerakan aktif harian sederhana yang efektif membakar kalori dan meningkatkan kebugaran.',
       date: '17 September 2026',
-      readTime: '3 Menit Baca',
-      headerColor: Color(0xFF489874),
-      icon: Icons.favorite_outline_rounded,
+      readTime: '4 Menit Baca',
+      headerColor: Color(0xFF58B29C),
+      icon: Icons.directions_run_rounded,
+      imageAsset: 'assets/articles/article_aktivitas_fisik_ringan.jpg',
       content:
-          'Membangun gaya hidup sehat tidak harus dimulai dari perubahan ekstrem yang menyiksa. Perubahan kecil yang dilakukan secara konsisten jauh lebih berhasil membawa dampak positif jangka panjang.\n\n'
-          'Tiga pilar utama hidup sehat:\n'
-          '1. Nutrisi: Pilihlah makanan utuh (whole foods) dan kurangi makanan olahan ultra (ultra-processed food).\n'
-          '2. Gerak: Temukan jenis olahraga yang Anda sukai, seperti bersepeda santai, yoga, renang, atau jogging.\n'
-          '3. Istirahat: Tidur berkualitas 7–8 jam setiap malam membantu menyeimbangkan hormon leptin dan ghrelin yang mengontrol rasa lapar dan kenyang.',
+          'Memulai kebiasaan hidup aktif tidak selalu memerlukan latihan beban berat di gym. Aktivitas fisik ringan yang dilakukan secara konsisten setiap hari memiliki kontribusi besar dalam pembakaran kalori harian (NEAT - Non-Exercise Activity Thermogenesis).\n\n'
+          'Beberapa contoh aktivitas fisik ringan yang mudah diterapkan:\n'
+          '• Jalan Kaki Santai atau Cepat: Melakukan jalan kaki selama 30 menit sehari (setara 3.000–5.000 langkah) membantu membakar sekitar 150–200 kalori dan melancarkan sirkulasi darah.\n'
+          '• Menggunakan Tangga: Memilih tangga daripada lift untuk 1–2 lantai dapat mengaktifkan otot kaki dan meningkatkan detak jantung secara bertahap.\n'
+          '• Peregangan di Sela Kerja: Berdiri dan lakukan peregangan ringan setiap 45–60 menit duduk bekerja di meja.\n'
+          '• Pekerjaan Rumah Tangga: Menyapu, mengepel, atau merawat tanaman di pekarangan juga termasuk aktivitas fisik yang produktif.\n\n'
+          'Kombinasikan kebiasaan aktif ini dengan olahraga teratur minimal 150 menit per minggu untuk memperoleh tubuh yang bugar dan bertenaga.',
       takeaways: [
-        'Fokus pada konsistensi kebiasaan daripada kesempurnaan sesaat.',
-        'Kelola stres melalui relaksasi dan istirahat yang cukup.',
-        'Catat perkembangan berat badan dan aktivitas harian di aplikasi ObeSight.',
+        'Aktivitas fisik ringan membantu meningkatkan pembakaran kalori tanpa membebani tubuh.',
+        'Jalan kaki 30 menit per hari melancarkan aliran darah dan meningkatkan sensitivitas insulin.',
+        'Hindari duduk diam berjam-jam tanpa jeda bergerak.',
+        'Pilih aktivitas yang menyenangkan agar dapat dipertahankan menjadi rutinitas.',
       ],
-      tags: ['Gaya Hidup', 'Tips', 'Pola Sehat'],
     ),
     ArticleModel(
       id: 6,
-      title: 'Pentingnya Kualitas Tidur untuk Mengatur Berat Badan',
-      category: 'Gaya Hidup',
-      snippet: 'Bagaimana kurang tidur dapat meningkatkan nafsu makan dan menghambat penurunan berat badan.',
-      author: 'Dr. Hendra Wijaya, Sp.GK',
-      date: '15 September 2026',
-      readTime: '4 Menit Baca',
-      headerColor: Color(0xFF818CF8),
-      icon: Icons.nightlight_round,
+      title: 'Yuk kenali pola hidup sehat',
+      snippet: 'Langkah terintegrasi membangun kebiasaan hidup sehat yang berkesinambungan dan bahagia.',
+      date: '16 September 2026',
+      readTime: '3 Menit Baca',
+      headerColor: Color(0xFF489874),
+      icon: Icons.favorite_outline_rounded,
+      imageAsset: 'assets/articles/article_kenali_pola_hidup_sehat.jpg',
       content:
-          'Kurang tidur merupakan salah satu faktor tersembunyi yang sering menggagalkan usaha penurunan berat badan. Saat tubuh kurang istirahat, produksi hormon ghrelin (pemicu rasa lapar) meningkat, sementara hormon leptin (pemberi sinyal kenyang) menurun drastis.\n\n'
-          'Akibatnya, Anda akan merasa lebih lapar dan cenderung mengidam makanan tinggi gula serta karbohidrat olahan pada siang dan malam hari.\n\n'
-          'Terapkan sleep hygiene yang baik: matikan gawai 30 menit sebelum tidur, buat kamar tidur sejuk dan gelap, serta hindari kafein setelah pukul 3 sore.',
+          'Menerapkan pola hidup sehat adalah sebuah perjalanan berkelanjutan untuk merawat tubuh dan pikiran, bukan sekadar program diet ketat yang membatasi segalanya secara ekstrem.\n\n'
+          'Empat pilar utama pola hidup sehat yang seimbang:\n'
+          '1. Nutrisi Seimbang: Mengonsumsi makanan bergizi lengkap, memperhatikan proporsi piring makan, dan membatasi makanan olahan tinggi lemak serta gula.\n\n'
+          '2. Aktivitas Fisik Rutin: Melakukan olahraga teratur dan memperbanyak gerak aktif setiap hari untuk melatih fungsi jantung dan otot.\n\n'
+          '3. Istirahat dan Regenerasi: Memastikan waktu tidur yang cukup dan berkualitas agar hormon tubuh tetap seimbang.\n\n'
+          '4. Manajemen Stres dan Ketenangan Mental: Luangkan waktu untuk relaksasi, meditasi, menyalurkan hobi, atau berkumpul bersama keluarga untuk menurunkan kadar hormon stres (kortisol).\n\n'
+          'Mulailah dari satu perubahan kecil hari ini. Konsistensi kecil yang dilakukan setiap hari akan menghasilkan transformasi kesehatan yang luar biasa.',
       takeaways: [
-        'Tidur 7-8 jam per malam untuk menyeimbangkan hormon nafsu makan.',
-        'Hindari makan berat 2-3 jam sebelum waktu tidur.',
-        'Buat rutinitas tidur yang konsisten setiap hari.',
+        'Pola hidup sehat merupakan kombinasi dari nutrisi, olahraga, istirahat, dan kesehatan mental.',
+        'Fokus pada konsistensi kebiasaan sehari-hari daripada hasil instan.',
+        'Kelola stres dengan baik untuk mencegah emotional eating dan kelelahan kronis.',
+        'Catat dan rayakan setiap pencapaian kesehatan Anda.',
       ],
-      tags: ['Tidur', 'Hormon', 'Metabolisme'],
     ),
   ];
 
@@ -154,21 +171,13 @@ class ArticleService {
     }
   }
 
-  List<ArticleModel> searchArticles(String query, {String? category}) {
+  List<ArticleModel> searchArticles(String query) {
     final q = query.trim().toLowerCase();
+    if (q.isEmpty) return _articles;
     return _articles.where((art) {
-      final matchesQuery = q.isEmpty ||
-          art.title.toLowerCase().contains(q) ||
+      return art.title.toLowerCase().contains(q) ||
           art.snippet.toLowerCase().contains(q) ||
-          art.category.toLowerCase().contains(q) ||
-          art.tags.any((tag) => tag.toLowerCase().contains(q));
-
-      final matchesCategory = category == null ||
-          category.isEmpty ||
-          category == 'Semua' ||
-          art.category.toLowerCase() == category.toLowerCase();
-
-      return matchesQuery && matchesCategory;
+          art.content.toLowerCase().contains(q);
     }).toList();
   }
 }
