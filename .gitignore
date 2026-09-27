@@ -1,8 +1,15 @@
-# Flutter/Dart/Pub specific
+# Flutter/Dart specific
 .dart_tool/
 .packages
 build/
 .pub/
+
+# Platform generated files
+/android/app/debug
+/android/app/profile
+/android/app/release
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # IDE specific
 .vscode/
@@ -11,8 +18,3 @@ build/
 
 # Miscellaneous
 .DS_Store
-
-# Flutter/Dart generated files & dependencies
-.flutter-plugins
-.flutter-plugins-dependencies
-pubspec.lock
