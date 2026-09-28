@@ -57,19 +57,39 @@ class SkriningData {
     return bmi.toStringAsFixed(1).replaceAll('.', ',');
   }
 
-  // Category title matching UI reference: "Overweight\nLevel I" or similar
+  // Official classification category key (PAPDI & KMK No. HK.01.07-MENKES-509-2025)
+  String get classificationCategory {
+    final currentBmi = bmi;
+    if (currentBmi < 18.5) {
+      return 'Underweight';
+    } else if (currentBmi <= 22.9) {
+      return 'Normal';
+    } else if (currentBmi <= 24.9) {
+      return 'Overweight';
+    } else if (currentBmi <= 29.9) {
+      return 'Obesitas I';
+    } else if (currentBmi <= 34.9) {
+      return 'Obesitas II';
+    } else {
+      return 'Obesitas III';
+    }
+  }
+
+  // Category title matching UI reference
   String get categoryTitle {
     final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Underweight\nLevel I';
     } else if (currentBmi <= 22.9) {
       return 'Normal\nWeight';
-    } else if (currentBmi <= 27.5) {
+    } else if (currentBmi <= 24.9) {
       return 'Overweight\nLevel I';
     } else if (currentBmi <= 29.9) {
-      return 'Overweight\nLevel II';
-    } else {
       return 'Obesitas\nTingkat I';
+    } else if (currentBmi <= 34.9) {
+      return 'Obesitas\nTingkat II';
+    } else {
+      return 'Obesitas\nTingkat III';
     }
   }
 
@@ -80,10 +100,14 @@ class SkriningData {
       return 'Berat badan di bawah rentang ideal';
     } else if (currentBmi <= 22.9) {
       return 'Berat badan dalam rentang ideal';
-    } else if (currentBmi <= 27.5) {
+    } else if (currentBmi <= 24.9) {
       return 'Berat badan sedikit diatas rentang ideal';
+    } else if (currentBmi <= 29.9) {
+      return 'Berat badan tingkat obesitas I';
+    } else if (currentBmi <= 34.9) {
+      return 'Berat badan tingkat obesitas II';
     } else {
-      return 'Berat badan melampaui batas normal';
+      return 'Berat badan tingkat obesitas III (Morbid)';
     }
   }
 

@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../home/user_home_screen.dart';
 import '../progress/screening_history_screen.dart';
 import 'skrining_models.dart';
+import 'skrining_recommendation_screen.dart';
 
 class SkriningResultScreen extends StatelessWidget {
   final SkriningData data;
@@ -574,12 +575,14 @@ class SkriningResultScreen extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
+                          flex: 1,
                           child: OutlinedButton(
                             onPressed: () {
-                              Navigator.of(context).push(
+                              Navigator.of(context).pushAndRemoveUntil(
                                 MaterialPageRoute(
-                                  builder: (_) => const ScreeningHistoryScreen(),
+                                  builder: (_) => UserHomeScreen(user: currentUser),
                                 ),
+                                (route) => false,
                               );
                             },
                             style: OutlinedButton.styleFrom(
@@ -591,24 +594,29 @@ class SkriningResultScreen extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              'Riwayat',
+                              'Kembali ke Beranda',
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Expanded(
-                          flex: 2,
+                          flex: 1,
                           child: ElevatedButton(
                             onPressed: () {
-                              Navigator.of(context).pushAndRemoveUntil(
+                              Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => UserHomeScreen(user: currentUser),
+                                  builder: (_) => SkriningRecommendationScreen(
+                                    data: data,
+                                    user: currentUser,
+                                  ),
                                 ),
-                                (route) => false,
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -621,9 +629,12 @@ class SkriningResultScreen extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              'Kembali ke Beranda',
+                              'Lihat Rekomendasi',
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
