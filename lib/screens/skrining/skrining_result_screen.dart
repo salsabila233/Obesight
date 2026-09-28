@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../home/user_home_screen.dart';
-import '../progress/screening_history_screen.dart';
 import 'skrining_models.dart';
 import 'skrining_recommendation_screen.dart';
 
@@ -32,18 +31,21 @@ class SkriningResultScreen extends StatelessWidget {
     final userName = currentUser.name.isNotEmpty ? currentUser.name : 'Zahra Fitriana';
     final dateString = _formatTodayDate();
 
-    const primaryGreen = Color(0xFF4A8B6C); // Medical soft green
-    const textDark = Color(0xFF1E293B);
-    const textMuted = Color(0xFF64748B);
-    const cardBorder = Color(0xFFE2E8F0);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4A8B6C); // Medical soft green
+    final textDark = isDark ? Colors.white : const Color(0xFF1E293B);
+    final textMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: textDark, size: 28),
+          icon: Icon(Icons.chevron_left_rounded, color: textDark, size: 28),
           onPressed: () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => UserHomeScreen(user: currentUser)),
@@ -79,7 +81,7 @@ class SkriningResultScreen extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: cardBg,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: cardBorder, width: 1.2),
                             ),
@@ -87,14 +89,14 @@ class SkriningResultScreen extends StatelessWidget {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFE2E8F0),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.person_rounded,
                                     size: 14,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -133,7 +135,7 @@ class SkriningResultScreen extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: cardBg,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: cardBorder, width: 1.2),
                             ),
@@ -141,14 +143,14 @@ class SkriningResultScreen extends StatelessWidget {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFE2E8F0),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.calendar_today_rounded,
                                     size: 14,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -205,7 +207,7 @@ class SkriningResultScreen extends StatelessWidget {
                               width: 80,
                               height: 80,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Image.asset(
+                              errorBuilder: (context, error, stackTrace) => Image.asset(
                                 'assets/illustration_woman.png',
                                 width: 80,
                                 height: 80,
@@ -257,7 +259,7 @@ class SkriningResultScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: cardBorder, width: 1.2),
                       ),
@@ -270,13 +272,13 @@ class SkriningResultScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5EE),
+                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F5EE),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.height_rounded,
                                     size: 18,
-                                    color: Color(0xFF2E6B4F),
+                                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -320,13 +322,13 @@ class SkriningResultScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF1F5F9),
+                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.monitor_weight_outlined,
                                     size: 18,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -370,13 +372,13 @@ class SkriningResultScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5EE),
+                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F5EE),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.pie_chart_outline_rounded,
                                     size: 18,
-                                    color: Color(0xFF2E6B4F),
+                                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -425,7 +427,7 @@ class SkriningResultScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: cardBorder, width: 1.2),
                       ),
@@ -436,7 +438,7 @@ class SkriningResultScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFFEF3C7),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -464,7 +466,7 @@ class SkriningResultScreen extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w400,
-                                    color: const Color(0xFF475569),
+                                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                                     height: 1.4,
                                   ),
                                 ),
@@ -482,7 +484,7 @@ class SkriningResultScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: cardBorder, width: 1.2),
                       ),
@@ -494,7 +496,7 @@ class SkriningResultScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF991B1B), // Soft red title
+                              color: const Color(0xFFEF4444), // Soft red title
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -503,7 +505,7 @@ class SkriningResultScreen extends StatelessWidget {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('• ', style: TextStyle(fontSize: 14, color: textDark)),
+                                    Text('• ', style: TextStyle(fontSize: 14, color: textDark)),
                                     Expanded(
                                       child: Text(
                                         point,
@@ -529,9 +531,12 @@ class SkriningResultScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5EE), // Soft green background
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFC6E7D2), width: 1.0),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFC6E7D2),
+                          width: 1.0,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,7 +546,7 @@ class SkriningResultScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1E3A2F), // Darker green title
+                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF1E3A2F),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -550,7 +555,7 @@ class SkriningResultScreen extends StatelessWidget {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('• ', style: TextStyle(fontSize: 14, color: textDark)),
+                                    Text('• ', style: TextStyle(fontSize: 14, color: textDark)),
                                     Expanded(
                                       child: Text(
                                         factor,
@@ -586,7 +591,7 @@ class SkriningResultScreen extends StatelessWidget {
                               );
                             },
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: primaryGreen, width: 1.5),
+                              side: BorderSide(color: primaryGreen, width: 1.5),
                               foregroundColor: primaryGreen,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(

@@ -22,13 +22,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfileData();
+    _authService.profileUpdateNotifier.addListener(_loadProfileData);
+  }
+
+  @override
+  void dispose() {
+    _authService.profileUpdateNotifier.removeListener(_loadProfileData);
+    super.dispose();
   }
 
   /// Memuat data profil terbaru yang tersinkronisasi dengan akun pengguna
   void _loadProfileData() {
-    setState(() {
-      _profileData = _authService.getUserProfile(widget.user.id);
-    });
+    if (mounted) {
+      setState(() {
+        _profileData = _authService.getUserProfile(widget.user.id);
+      });
+    }
   }
 
   /// Membuka Halaman Edit Profil dan menangani hasil kembalian
@@ -77,13 +86,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final photoPath = _profileData['photo_path'];
     final isRemoved = _profileData['avatar'] == 'removed';
 
-    // 1. Menggunakan file gambar hasil kamera/galeri jika ada
-    if (!isRemoved && photoPath != null && photoPath.isNotEmpty && File(photoPath).existsSync()) {
-      return Image.file(
-        File(photoPath),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
-      );
+    // 1. Menggunakan file gambar hasil kamera/galeri atau network url jika ada
+    if (!isRemoved && photoPath != null && photoPath.isNotEmpty) {
+      if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+        return Image.network(
+          photoPath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
+        );
+      }
+      if (File(photoPath).existsSync()) {
+        return Image.file(
+          File(photoPath),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(),
+        );
+      }
     }
 
     // 2. Foto profil dihapus (menggunakan avatar ikon placeholder)

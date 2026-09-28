@@ -56,15 +56,22 @@ class ScreeningHistoryScreen extends StatelessWidget {
   ];
 
   void _showDetailModal(BuildContext context, Map<String, dynamic> item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final modalBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final cardInnerBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: modalBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -75,7 +82,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                 width: 44,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -94,12 +101,12 @@ class ScreeningHistoryScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
+                        color: textPrimary,
                       ),
                     ),
                     Text(
                       item['fullDate'] as String,
-                      style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B)),
+                      style: GoogleFonts.poppins(fontSize: 12, color: textSecondary),
                     ),
                   ],
                 ),
@@ -126,9 +133,9 @@ class ScreeningHistoryScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: cardInnerBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: cardBorder),
               ),
               child: Row(
                 children: [
@@ -147,14 +154,14 @@ class ScreeningHistoryScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Indeks Massa Tubuh (IMT)',
-                          style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF64748B)),
+                          style: GoogleFonts.poppins(fontSize: 11.5, color: textSecondary),
                         ),
                         Text(
                           '${item['bmi']} kg/m²',
                           style: GoogleFonts.poppins(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF0F172A),
+                            color: textPrimary,
                           ),
                         ),
                         Text(
@@ -176,12 +183,16 @@ class ScreeningHistoryScreen extends StatelessWidget {
             // Description
             Text(
               'Analisis & Rekomendasi:',
-              style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+              style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
             ),
             const SizedBox(height: 6),
             Text(
               item['riskDesc'] as String,
-              style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF475569), height: 1.45),
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                height: 1.45,
+              ),
             ),
             const SizedBox(height: 14),
 
@@ -191,11 +202,20 @@ class ScreeningHistoryScreen extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('• ', style: TextStyle(color: Color(0xFF36785A), fontWeight: FontWeight.bold)),
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                        size: 15,
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           rec,
-                          style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF334155), height: 1.4),
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                            height: 1.4,
+                          ),
                         ),
                       ),
                     ],
@@ -225,10 +245,14 @@ class ScreeningHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -255,7 +279,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -269,6 +293,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                   bgColor: const Color(0xFFFDF2F8),
                   borderColor: const Color(0xFFFCE7F3),
                   numColor: const Color(0xFFDB2777),
+                  isDark: isDark,
                 ),
                 const SizedBox(width: 10),
                 _buildStatCard(
@@ -277,6 +302,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                   bgColor: const Color(0xFFFEF2F2),
                   borderColor: const Color(0xFFFEE2E2),
                   numColor: const Color(0xFFDC2626),
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -289,6 +315,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                   bgColor: const Color(0xFFFFFBEB),
                   borderColor: const Color(0xFFFEF3C7),
                   numColor: const Color(0xFFD97706),
+                  isDark: isDark,
                 ),
                 const SizedBox(width: 10),
                 _buildStatCard(
@@ -297,6 +324,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                   bgColor: const Color(0xFFF0FDF4),
                   borderColor: const Color(0xFFDCFCE7),
                   numColor: const Color(0xFF16A34A),
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -308,13 +336,17 @@ class ScreeningHistoryScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE6F7F0), Color(0xFFD4F1E4)],
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF1E293B), const Color(0xFF1B382B)]
+                      : [const Color(0xFFE6F7F0), const Color(0xFFD4F1E4)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFC4ECDA)),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFC4ECDA),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF36785A).withValues(alpha: 0.06),
@@ -329,7 +361,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -339,9 +371,9 @@ class ScreeningHistoryScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.auto_awesome_rounded,
-                      color: Color(0xFF2D6A4F),
+                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2D6A4F),
                       size: 20,
                     ),
                   ),
@@ -351,7 +383,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                       'Terus pertahankan kebiasaan baikmu! Perkembangan kecil setiap hari membawa perubahan besar untuk kesehatanmu.',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: const Color(0xFF112A1F),
+                        color: isDark ? Colors.white : const Color(0xFF112A1F),
                         height: 1.45,
                         fontWeight: FontWeight.w500,
                       ),
@@ -369,7 +401,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: textPrimary,
               ),
             ),
             const SizedBox(height: 14),
@@ -382,7 +414,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = _historyData[index];
-                return _buildTimelineCard(context, item);
+                return _buildTimelineCard(context, item, isDark);
               },
             ),
 
@@ -399,17 +431,18 @@ class ScreeningHistoryScreen extends StatelessWidget {
     required Color bgColor,
     required Color borderColor,
     required Color numColor,
+    required bool isDark,
   }) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: isDark ? const Color(0xFF1E293B) : bgColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : borderColor),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -432,7 +465,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF475569),
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
               ),
             ),
           ],
@@ -441,15 +474,21 @@ class ScreeningHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildTimelineCard(BuildContext context, Map<String, dynamic> item, bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final dateBoxBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -470,9 +509,9 @@ class ScreeningHistoryScreen extends StatelessWidget {
                   width: 58,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: dateBoxBg,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: cardBorder),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -482,7 +521,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFF0F172A),
+                          color: textPrimary,
                         ),
                       ),
                       Text(
@@ -491,7 +530,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF64748B),
+                          color: textSecondary,
                         ),
                       ),
                     ],
@@ -510,7 +549,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                             'IMT: ',
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
-                              color: const Color(0xFF64748B),
+                              color: textSecondary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -519,7 +558,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFF0F172A),
+                              color: textPrimary,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -545,7 +584,7 @@ class ScreeningHistoryScreen extends StatelessWidget {
                         item['category'] as String,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
-                          color: const Color(0xFF64748B),
+                          color: textSecondary,
                         ),
                       ),
                     ],

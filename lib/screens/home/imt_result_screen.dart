@@ -38,13 +38,18 @@ class ImtResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4E8F73); // #4CAF93 / #3E8E7E
-    const appBg = Color(0xFFF5F9F7);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F9F7);
+    final cardBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFEBF7F2);
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFD4EFE4);
+    final textHeading = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final textSub = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
 
     return Scaffold(
       backgroundColor: appBg,
       appBar: AppBar(
-        backgroundColor: primaryGreen,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
@@ -71,7 +76,7 @@ class ImtResultScreen extends StatelessWidget {
                     // HERO CARD HIJAU DENGAN ILUSTRASI PEREMPUAN BERLARI & ANGKA BESAR
                     Container(
                       width: double.infinity,
-                      color: primaryGreen,
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,11 +129,11 @@ class ImtResultScreen extends StatelessWidget {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: isDark ? const Color(0xFF0F172A) : Colors.white,
                                         borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.08),
+                                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
                                             blurRadius: 8,
                                             offset: const Offset(0, 2),
                                           ),
@@ -162,9 +167,9 @@ class ImtResultScreen extends StatelessWidget {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEBF7F2),
+                              color: cardBg,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFD4EFE4)),
+                              border: Border.all(color: cardBorder),
                             ),
                             child: Column(
                               children: [
@@ -174,7 +179,7 @@ class ImtResultScreen extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1A1A2E),
+                                    color: textHeading,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
@@ -183,7 +188,7 @@ class ImtResultScreen extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
-                                    color: const Color(0xFF475569),
+                                    color: textSub,
                                     height: 1.45,
                                   ),
                                 ),
@@ -193,7 +198,7 @@ class ImtResultScreen extends StatelessWidget {
                           const SizedBox(height: 18),
 
                           // SLIDER INDIKATOR KATEGORI IMT & BADGE RISIKO
-                          _ImtCategoryBar(bmi: bmi, risk: risk),
+                          _ImtCategoryBar(bmi: bmi, risk: risk, isDark: isDark),
                           const SizedBox(height: 18),
 
                           // CARD 2: Detail Data Anda / Ringkasan Data Fisik
@@ -202,15 +207,16 @@ class ImtResultScreen extends StatelessWidget {
                             gender: gender,
                             height: height,
                             weight: weight,
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 18),
 
                           // CARD 3: Tabel Kategori IMT
-                          const _BmiCategoryTable(),
+                          _BmiCategoryTable(isDark: isDark),
                           const SizedBox(height: 18),
 
                           // SECTION: Rekomendasi Gaya Hidup & Aktivitas
-                          const _LifestyleRecommendationsSection(),
+                          _LifestyleRecommendationsSection(isDark: isDark),
                           const SizedBox(height: 24),
 
                           // TOMBOL: Hitung Ulang ↻
@@ -219,10 +225,10 @@ class ImtResultScreen extends StatelessWidget {
                             height: 50,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryGreen,
+                                backgroundColor: const Color(0xFF4E8F73),
                                 foregroundColor: Colors.white,
                                 elevation: 3,
-                                shadowColor: primaryGreen.withValues(alpha: 0.35),
+                                shadowColor: const Color(0xFF4E8F73).withValues(alpha: 0.35),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25),
                                 ),
@@ -280,28 +286,35 @@ class _DetailDataCard extends StatelessWidget {
   final String gender;
   final double height;
   final double weight;
+  final bool isDark;
 
   const _DetailDataCard({
     required this.age,
     required this.gender,
     required this.height,
     required this.weight,
+    this.isDark = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final dividerColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final valueColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -319,31 +332,29 @@ class _DetailDataCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildDetailRow(Icons.calendar_today_outlined, 'Usia', '$age Tahun'),
-          const Divider(height: 18, color: Color(0xFFF1F5F9)),
-          _buildDetailRow(Icons.wc_rounded, 'Gender', gender),
-          const Divider(height: 18, color: Color(0xFFF1F5F9)),
-          _buildDetailRow(Icons.height_rounded, 'Tinggi Badan', '${height % 1 == 0 ? height.toInt() : height} CM'),
-          const Divider(height: 18, color: Color(0xFFF1F5F9)),
-          _buildDetailRow(Icons.scale_rounded, 'Berat Badan', '${weight % 1 == 0 ? weight.toInt() : weight} KG'),
+          _buildDetailRow(Icons.calendar_today_outlined, 'Usia', '$age Tahun', primaryGreen, labelColor, valueColor),
+          Divider(height: 18, color: dividerColor),
+          _buildDetailRow(Icons.wc_rounded, 'Gender', gender, primaryGreen, labelColor, valueColor),
+          Divider(height: 18, color: dividerColor),
+          _buildDetailRow(Icons.height_rounded, 'Tinggi Badan', '${height % 1 == 0 ? height.toInt() : height} CM', primaryGreen, labelColor, valueColor),
+          Divider(height: 18, color: dividerColor),
+          _buildDetailRow(Icons.scale_rounded, 'Berat Badan', '${weight % 1 == 0 ? weight.toInt() : weight} KG', primaryGreen, labelColor, valueColor),
         ],
       ),
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    const primaryGreen = Color(0xFF4E8F73);
-
+  Widget _buildDetailRow(IconData icon, String label, String value, Color iconColor, Color labelColor, Color valueColor) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: primaryGreen),
+        Icon(icon, size: 18, color: iconColor),
         const SizedBox(width: 10),
         Text(
           label,
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF475569),
+            color: labelColor,
           ),
         ),
         const Spacer(),
@@ -352,7 +363,7 @@ class _DetailDataCard extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 13.5,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF1A1A2E),
+            color: valueColor,
           ),
         ),
       ],
@@ -364,22 +375,29 @@ class _DetailDataCard extends StatelessWidget {
 // SUB-WIDGET: Kategori IMT Table Card
 // ==========================================
 class _BmiCategoryTable extends StatelessWidget {
-  const _BmiCategoryTable();
+  final bool isDark;
+
+  const _BmiCategoryTable({this.isDark = false});
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final dividerColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final titleColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final rangeColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -397,19 +415,19 @@ class _BmiCategoryTable extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildCategoryRow(const Color(0xFF38BDF8), 'Kurus', '<18,5'),
-          const Divider(height: 16, color: Color(0xFFF1F5F9)),
-          _buildCategoryRow(const Color(0xFF22C55E), 'Ideal', '18,5-24,9'),
-          const Divider(height: 16, color: Color(0xFFF1F5F9)),
-          _buildCategoryRow(const Color(0xFFF59E0B), 'Kelebihan Berat', '25-29,9'),
-          const Divider(height: 16, color: Color(0xFFF1F5F9)),
-          _buildCategoryRow(const Color(0xFFEF4444), 'Obesitas', '>30'),
+          _buildCategoryRow(const Color(0xFF38BDF8), 'Kurus', '<18,5', titleColor, rangeColor),
+          Divider(height: 16, color: dividerColor),
+          _buildCategoryRow(const Color(0xFF22C55E), 'Ideal', '18,5-24,9', titleColor, rangeColor),
+          Divider(height: 16, color: dividerColor),
+          _buildCategoryRow(const Color(0xFFF59E0B), 'Kelebihan Berat', '25-29,9', titleColor, rangeColor),
+          Divider(height: 16, color: dividerColor),
+          _buildCategoryRow(const Color(0xFFEF4444), 'Obesitas', '>30', titleColor, rangeColor),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryRow(Color dotColor, String title, String range) {
+  Widget _buildCategoryRow(Color dotColor, String title, String range, Color titleColor, Color rangeColor) {
     return Row(
       children: [
         Container(
@@ -426,7 +444,7 @@ class _BmiCategoryTable extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF1A1A2E),
+            color: titleColor,
           ),
         ),
         const Spacer(),
@@ -435,7 +453,7 @@ class _BmiCategoryTable extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF334155),
+            color: rangeColor,
           ),
         ),
       ],
@@ -449,15 +467,22 @@ class _BmiCategoryTable extends StatelessWidget {
 class _ImtCategoryBar extends StatelessWidget {
   final double bmi;
   final String risk;
+  final bool isDark;
 
   const _ImtCategoryBar({
     required this.bmi,
     required this.risk,
+    this.isDark = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final badgeBorder = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+    final badgeText = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     // Calculate percentage position along range [15.0 to 35.0]
     final clampedBmi = bmi.clamp(15.0, 35.0);
@@ -467,12 +492,12 @@ class _ImtCategoryBar extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -485,19 +510,19 @@ class _ImtCategoryBar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
+              border: Border.all(color: badgeBorder),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.info_outline_rounded, size: 16, color: primaryGreen),
+                Icon(Icons.info_outline_rounded, size: 16, color: primaryGreen),
                 const SizedBox(width: 6),
                 Text(
                   'Risiko Obesitas: $risk',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1A2E),
+                    color: badgeText,
                   ),
                 ),
               ],
@@ -527,8 +552,9 @@ class _ImtCategoryBar extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1A1A2E),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFF1A1A2E),
                                   borderRadius: BorderRadius.circular(6),
+                                  border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                                 ),
                                 child: Text(
                                   bmi.toStringAsFixed(1),
@@ -541,7 +567,9 @@ class _ImtCategoryBar extends StatelessWidget {
                               ),
                               CustomPaint(
                                 size: const Size(8, 4),
-                                painter: _TrianglePainter(color: const Color(0xFF1A1A2E)),
+                                painter: _TrianglePainter(
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFF1A1A2E),
+                                ),
                               ),
                             ],
                           ),
@@ -572,10 +600,10 @@ class _ImtCategoryBar extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildBarLabel('Kurus'),
-                      _buildBarLabel('Normal'),
-                      _buildBarLabel('Gemuk'),
-                      _buildBarLabel('Obesitas'),
+                      _buildBarLabel('Kurus', labelColor),
+                      _buildBarLabel('Normal', labelColor),
+                      _buildBarLabel('Gemuk', labelColor),
+                      _buildBarLabel('Obesitas', labelColor),
                     ],
                   ),
                 ],
@@ -587,7 +615,7 @@ class _ImtCategoryBar extends StatelessWidget {
     );
   }
 
-  Widget _buildBarLabel(String text) {
+  Widget _buildBarLabel(String text, Color color) {
     return Expanded(
       child: Text(
         text,
@@ -595,7 +623,7 @@ class _ImtCategoryBar extends StatelessWidget {
         style: GoogleFonts.poppins(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF64748B),
+          color: color,
         ),
       ),
     );
@@ -625,10 +653,14 @@ class _TrianglePainter extends CustomPainter {
 // SUB-WIDGET: Lifestyle Recommendations Section
 // ==========================================
 class _LifestyleRecommendationsSection extends StatelessWidget {
-  const _LifestyleRecommendationsSection();
+  final bool isDark;
+
+  const _LifestyleRecommendationsSection({this.isDark = false});
 
   @override
   Widget build(BuildContext context) {
+    final titleColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -637,7 +669,7 @@ class _LifestyleRecommendationsSection extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF1A1A2E),
+            color: titleColor,
           ),
         ),
         const SizedBox(height: 12),
@@ -663,18 +695,23 @@ class _LifestyleRecommendationsSection extends StatelessWidget {
   }
 
   Widget _buildItem(IconData icon, String title, String desc) {
-    const primaryGreen = Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final iconBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F5EE);
+    final titleColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -685,8 +722,8 @@ class _LifestyleRecommendationsSection extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Color(0xFFE8F5EE),
+            decoration: BoxDecoration(
+              color: iconBg,
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: primaryGreen, size: 20),
@@ -701,7 +738,7 @@ class _LifestyleRecommendationsSection extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1A1A2E),
+                    color: titleColor,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -709,7 +746,7 @@ class _LifestyleRecommendationsSection extends StatelessWidget {
                   desc,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: descColor,
                     height: 1.4,
                   ),
                 ),

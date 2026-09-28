@@ -153,13 +153,18 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4E8F73); // #4CAF93 / #3E8E7E
-    const appBg = Color(0xFFF5F9F7);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F9F7);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textHeading = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final textSub = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
       backgroundColor: appBg,
       appBar: AppBar(
-        backgroundColor: primaryGreen,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
@@ -187,9 +192,9 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                     // HERO CARD
                     Container(
                       width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFD6F0E3),
-                        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3),
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
                       ),
                       padding: const EdgeInsets.fromLTRB(20, 16, 16, 20),
                       child: Row(
@@ -203,7 +208,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1A1A2E),
+                                    color: textHeading,
                                     height: 1.3,
                                   ),
                                 ),
@@ -212,7 +217,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                                   'Ketahui status berat badan dan risiko kesehatan berdasarkan tinggi dan berat badanmu.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
-                                    color: const Color(0xFF334155),
+                                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                                     height: 1.4,
                                   ),
                                 ),
@@ -225,10 +230,10 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             width: 100,
                             height: 100,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) => const Icon(
+                            errorBuilder: (_, _, _) => Icon(
                               Icons.assessment_rounded,
                               size: 72,
-                              color: Color(0xFF4E8F73),
+                              color: primaryGreen,
                             ),
                           ),
                         ],
@@ -246,7 +251,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1A1A2E),
+                              color: textHeading,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -259,6 +264,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             controller: _ageController,
                             keyboardType: TextInputType.number,
                             isDropdownStyle: true,
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 14),
 
@@ -268,6 +274,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             onChanged: (gender) {
                               setState(() => _selectedGender = gender);
                             },
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 14),
 
@@ -278,6 +285,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             icon: Icons.height_rounded,
                             controller: _heightController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 14),
 
@@ -288,6 +296,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             icon: Icons.scale_rounded,
                             controller: _weightController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            isDark: isDark,
                           ),
                           const SizedBox(height: 18),
 
@@ -296,7 +305,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
+                                color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: const Color(0xFFFECACA)),
                               ),
@@ -321,12 +330,12 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: cardBg,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(color: cardBorder),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                                   blurRadius: 10,
                                   offset: const Offset(0, 3),
                                 ),
@@ -342,11 +351,11 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                                   fit: BoxFit.contain,
                                   errorBuilder: (_, _, _) => Container(
                                     padding: const EdgeInsets.all(8),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFE8F5EE),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F5EE),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(Icons.info_outline_rounded, color: primaryGreen, size: 24),
+                                    child: Icon(Icons.info_outline_rounded, color: primaryGreen, size: 24),
                                   ),
                                 ),
                                 const SizedBox(width: 14),
@@ -359,7 +368,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                                         style: GoogleFonts.poppins(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700,
-                                          color: const Color(0xFF1A1A2E),
+                                          color: textHeading,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -367,7 +376,7 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                                         'IMT dihitung berdasarkan rumus berat badan (kg) dibagi tinggi badan (m) kuadrat. Pastikan data yang dimasukkan akurat.',
                                         style: GoogleFonts.poppins(
                                           fontSize: 12,
-                                          color: const Color(0xFF64748B),
+                                          color: textSub,
                                           height: 1.45,
                                         ),
                                       ),
@@ -385,10 +394,10 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             height: 52,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryGreen,
+                                backgroundColor: const Color(0xFF4E8F73),
                                 foregroundColor: Colors.white,
                                 elevation: 3,
-                                shadowColor: primaryGreen.withValues(alpha: 0.35),
+                                shadowColor: const Color(0xFF4E8F73).withValues(alpha: 0.35),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(26), // Pill shape
                                 ),
@@ -434,6 +443,7 @@ class _PhysicalDataCard extends StatelessWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final bool isDropdownStyle;
+  final bool isDark;
 
   const _PhysicalDataCard({
     required this.label,
@@ -442,22 +452,27 @@ class _PhysicalDataCard extends StatelessWidget {
     required this.controller,
     required this.keyboardType,
     this.isDropdownStyle = false,
+    this.isDark = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -466,7 +481,7 @@ class _PhysicalDataCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Baris Atas: Icon kecil hijau outline + label abu-abu/navy
+          // Baris Atas: Icon kecil hijau outline + label
           Row(
             children: [
               Icon(icon, size: 16, color: primaryGreen),
@@ -476,7 +491,7 @@ class _PhysicalDataCard extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF475569),
+                  color: labelColor,
                 ),
               ),
             ],
@@ -488,7 +503,7 @@ class _PhysicalDataCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Kiri: Angka besar bold hitam/navy (ukuran ±32)
+              // Kiri: Angka besar bold
               Expanded(
                 child: TextField(
                   controller: controller,
@@ -499,7 +514,7 @@ class _PhysicalDataCard extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1A1A2E),
+                    color: textColor,
                     letterSpacing: -0.5,
                   ),
                   decoration: const InputDecoration(
@@ -524,7 +539,7 @@ class _PhysicalDataCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 2),
-                    const Icon(Icons.keyboard_arrow_down_rounded, color: primaryGreen, size: 20),
+                    Icon(Icons.keyboard_arrow_down_rounded, color: primaryGreen, size: 20),
                   ],
                 )
               else
@@ -550,29 +565,32 @@ class _PhysicalDataCard extends StatelessWidget {
 class _GenderSelector extends StatelessWidget {
   final String selectedGender;
   final ValueChanged<String> onChanged;
+  final bool isDark;
 
   const _GenderSelector({
     required this.selectedGender,
     required this.onChanged,
+    this.isDark = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.wc_rounded, size: 16, color: primaryGreen),
+            Icon(Icons.wc_rounded, size: 16, color: primaryGreen),
             const SizedBox(width: 8),
             Text(
               'Jenis Kelamin',
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF475569),
+                color: labelColor,
               ),
             ),
           ],
@@ -585,6 +603,7 @@ class _GenderSelector extends StatelessWidget {
                 label: '♂ Laki-laki',
                 isSelected: selectedGender.toLowerCase().contains('laki'),
                 onTap: () => onChanged('Laki-laki'),
+                isDark: isDark,
               ),
             ),
             const SizedBox(width: 14),
@@ -593,6 +612,7 @@ class _GenderSelector extends StatelessWidget {
                 label: '♀ Perempuan',
                 isSelected: selectedGender.toLowerCase().contains('perempuan'),
                 onTap: () => onChanged('Perempuan'),
+                isDark: isDark,
               ),
             ),
           ],
@@ -605,8 +625,14 @@ class _GenderSelector extends StatelessWidget {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
-    const primaryGreen = Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFF0FAF5);
+    final inactiveBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final inactiveBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final activeText = isDark ? const Color(0xFF6EE7B7) : primaryGreen;
+    final inactiveText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return GestureDetector(
       onTap: onTap,
@@ -614,15 +640,15 @@ class _GenderSelector extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         height: 52,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF0FAF5) : Colors.white,
+          color: isSelected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? primaryGreen : const Color(0xFFE2E8F0),
+            color: isSelected ? primaryGreen : inactiveBorder,
             width: isSelected ? 2.0 : 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -634,7 +660,7 @@ class _GenderSelector extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 14.5,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? primaryGreen : const Color(0xFF64748B),
+            color: isSelected ? activeText : inactiveText,
           ),
         ),
       ),

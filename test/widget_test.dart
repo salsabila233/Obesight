@@ -179,7 +179,8 @@ void main() {
     // Tap "Masuk dengan Google"
     await tester.tap(find.text('Masuk dengan Google'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Expect Google Account Picker BottomSheet
     expect(find.text('Masuk dengan Google'), findsWidgets);
@@ -192,7 +193,7 @@ void main() {
     // Tap "Kembali" to dismiss
     await tester.tap(find.text('Kembali'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Verify user is back on login screen without error
     expect(find.text('Masuk'), findsOneWidget);
@@ -217,12 +218,13 @@ void main() {
     // Tap "Masuk dengan Google"
     await tester.tap(find.text('Masuk dengan Google'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Tap Zahra Fitriana account
     await tester.tap(find.text('Zahra Fitriana'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
 
     // Verify UserHomeScreen is displayed

@@ -43,12 +43,13 @@ class _SkriningLandingScreenState extends State<SkriningLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF4A8B6C); // Medical soft green
-    const textDark = Color(0xFF1E293B);
-    const textMuted = Color(0xFF64748B);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4A8B6C); // Medical soft green
+    final textDark = isDark ? Colors.white : const Color(0xFF1E293B);
+    final textMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -62,7 +63,7 @@ class _SkriningLandingScreenState extends State<SkriningLandingScreen> {
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
                         color: textMuted,
                         size: 28,
@@ -170,7 +171,7 @@ class _SkriningLandingScreenState extends State<SkriningLandingScreen> {
                       errorBuilder: (context, error, stackTrace) => Container(
                         height: 220,
                         alignment: Alignment.center,
-                        child: const Icon(
+                        child: Icon(
                           Icons.accessibility_new_rounded,
                           size: 100,
                           color: primaryGreen,

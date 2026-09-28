@@ -40,10 +40,12 @@ class ClinicalInfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -62,9 +64,9 @@ class ClinicalInfoScreen extends StatelessWidget {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF4F8F6),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -75,9 +77,11 @@ class ClinicalInfoScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBEB),
+                  color: isDark ? const Color(0xFF2E1F0B) : const Color(0xFFFFFBEB),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +97,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF92400E),
+                              color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -101,7 +105,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                             'Angka dan rekomendasi di aplikasi ini merupakan perkiraan umum untuk dewasa sehat, bukan saran medis, diagnosis klinis, atau resep pengobatan. Selalu konsultasikan dengan dokter atau ahli gizi untuk kondisi kesehatan spesifik Anda.',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
-                              color: const Color(0xFFB45309),
+                              color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
                               height: 1.45,
                             ),
                           ),
@@ -117,6 +121,7 @@ class ClinicalInfoScreen extends StatelessWidget {
               // 2. Card: Indeks Massa Tubuh (IMT / BMI)
               _buildInfoCard(
                 context: context,
+                isDark: isDark,
                 title: 'Indeks Massa Tubuh (IMT / BMI)',
                 icon: Icons.monitor_weight_outlined,
                 iconColor: const Color(0xFF36785A),
@@ -145,6 +150,7 @@ class ClinicalInfoScreen extends StatelessWidget {
               // 3. Card: Perkiraan Kalori
               _buildInfoCard(
                 context: context,
+                isDark: isDark,
                 title: 'Perkiraan Kalori (Kebutuhan Energi)',
                 icon: Icons.local_fire_department_outlined,
                 iconColor: const Color(0xFFEA580C),
@@ -164,6 +170,7 @@ class ClinicalInfoScreen extends StatelessWidget {
               // 4. Card: Target Asupan Cairan
               _buildInfoCard(
                 context: context,
+                isDark: isDark,
                 title: 'Asupan Cairan dan Target',
                 icon: Icons.water_drop_outlined,
                 iconColor: const Color(0xFF0284C7),
@@ -188,6 +195,7 @@ class ClinicalInfoScreen extends StatelessWidget {
 
   Widget _buildInfoCard({
     required BuildContext context,
+    required bool isDark,
     required String title,
     required IconData icon,
     required Color iconColor,
@@ -197,12 +205,14 @@ class ClinicalInfoScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEAEFEA)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -228,7 +238,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                 ),
               ),
@@ -239,19 +249,19 @@ class ClinicalInfoScreen extends StatelessWidget {
             content,
             style: GoogleFonts.poppins(
               fontSize: 12.5,
-              color: const Color(0xFF475569),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
               height: 1.5,
             ),
           ),
           const SizedBox(height: 14),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
           Text(
             'Referensi Ilmiah & Regulasi:',
             style: GoogleFonts.poppins(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 8),
@@ -267,9 +277,11 @@ class ClinicalInfoScreen extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +289,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8F3EE),
+                            color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(Icons.link_rounded, size: 16, color: Color(0xFF36785A)),
@@ -292,7 +304,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF0F172A),
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                                   height: 1.35,
                                 ),
                               ),
@@ -312,7 +324,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 10.5,
-                                  color: const Color(0xFF64748B),
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   decoration: TextDecoration.underline,
                                 ),
                               ),

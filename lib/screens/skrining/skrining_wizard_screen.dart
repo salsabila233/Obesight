@@ -27,11 +27,15 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   late final TextEditingController _heightController;
   late final TextEditingController _weightController;
 
-  static const Color primaryGreen = Color(0xFF4A8B6C); // Medical soft green
-  static const Color activeGreen = Color(0xFF36785A);
-  static const Color textDark = Color(0xFF1E293B);
-  static const Color textMuted = Color(0xFF64748B);
-  static const Color cardBorder = Color(0xFFCBD5E1);
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+  Color get primaryGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF4A8B6C);
+  Color get activeGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
+  Color get textDark => _isDark ? Colors.white : const Color(0xFF1E293B);
+  Color get textMuted => _isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+  Color get cardBorder => _isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+  Color get cardBg => _isDark ? const Color(0xFF1E293B) : Colors.white;
+  Color get scaffoldBg => _isDark ? const Color(0xFF0F172A) : Colors.white;
+  Color get inputBg => _isDark ? const Color(0xFF0F172A) : Colors.white;
 
   @override
   void initState() {
@@ -175,9 +179,9 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: primaryGreen,
+        backgroundColor: _isDark ? const Color(0xFF1E293B) : primaryGreen,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 30),
@@ -757,7 +761,7 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: cardBorder, width: 1.0),
       ),
@@ -805,14 +809,14 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
                   color: isSelected ? activeGreen : const Color(0xFF94A3B8),
                   width: isSelected ? 2 : 1.5,
                 ),
-                color: Colors.white,
+                color: inputBg,
               ),
               alignment: Alignment.center,
               child: isSelected
                   ? Container(
                       width: 9,
                       height: 9,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: activeGreen,
                       ),
@@ -845,7 +849,7 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
       width: maxWidth,
       height: 38,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: inputBg,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: cardBorder, width: 1.0),
       ),

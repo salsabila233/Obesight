@@ -31,12 +31,13 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final filteredArticles = ArticleService().searchArticles(_searchQuery);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAF9),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 19),
@@ -60,13 +61,17 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE6F7F0), Color(0xFFD4F1E4)],
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF1E3A2F), const Color(0xFF132A20)]
+                    : [const Color(0xFFE6F7F0), const Color(0xFFD4F1E4)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFC4ECDA)),
+              border: Border.all(
+                color: isDark ? const Color(0xFF2A503F) : const Color(0xFFC4ECDA),
+              ),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x1436785A),
@@ -104,7 +109,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF112A1F),
+                          color: isDark ? Colors.white : const Color(0xFF112A1F),
                           height: 1.35,
                         ),
                       ),
@@ -113,7 +118,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                         'Temukan wawasan gizi, pola makan, kualitas tidur, dan aktivitas fisik untuk pencegahan obesitas.',
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          color: const Color(0xFF375347),
+                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF375347),
                           height: 1.45,
                         ),
                       ),
@@ -149,20 +154,23 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-              boxShadow: const [
+              border: Border.all(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                width: 1.5,
+              ),
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x08000000),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                   blurRadius: 6,
-                  offset: Offset(0, 2),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Row(
               children: [
-                const Icon(Icons.search_rounded, color: Color(0xFF64748B), size: 22),
+                Icon(Icons.search_rounded, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), size: 22),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
@@ -170,10 +178,15 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                     onChanged: (val) {
                       setState(() => _searchQuery = val);
                     },
-                    style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13.5,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Cari topik atau artikel...',
-                      hintStyle: GoogleFonts.poppins(color: const Color(0xFF94A3B8)),
+                      hintStyle: GoogleFonts.poppins(
+                        color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                      ),
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -185,7 +198,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                       _searchController.clear();
                       setState(() => _searchQuery = '');
                     },
-                    child: const Icon(Icons.close_rounded, color: Color(0xFF64748B), size: 18),
+                    child: Icon(Icons.close_rounded, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), size: 18),
                   ),
               ],
             ),
@@ -198,9 +211,11 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
               padding: const EdgeInsets.all(32),
               margin: const EdgeInsets.only(top: 14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
               ),
               child: Column(
                 children: [
@@ -208,13 +223,20 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'Artikel Tidak Ditemukan',
-                    style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Tidak ada artikel yang cocok dengan kata kunci pencarian.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B)),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
                   ),
                   const SizedBox(height: 14),
                   OutlinedButton(
@@ -223,8 +245,8 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                       setState(() => _searchQuery = '');
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF36785A),
-                      side: const BorderSide(color: Color(0xFF36785A)),
+                      foregroundColor: const Color(0xFF58AF86),
+                      side: const BorderSide(color: Color(0xFF58AF86)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     child: Text('Reset Pencarian', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -239,14 +261,16 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE8EEF3)),
-                    boxShadow: const [
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE8EEF3),
+                    ),
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x0A000000),
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                         blurRadius: 10,
-                        offset: Offset(0, 3),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -283,7 +307,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                                 height: 1.3,
                               ),
                             ),
@@ -296,7 +320,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
-                                color: const Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                 height: 1.4,
                               ),
                             ),

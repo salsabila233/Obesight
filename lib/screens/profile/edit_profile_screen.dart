@@ -47,9 +47,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _initialName = widget.initialProfile['name'] ?? widget.user.name;
-    _initialDob = widget.initialProfile['dob'] ?? '12 Juli 2003';
+    _initialDob = widget.initialProfile['dob'] ?? '';
     _initialEmail = widget.initialProfile['email'] ?? widget.user.email;
-    _initialPhone = widget.initialProfile['phone'] ?? '089334212098';
+    _initialPhone = widget.initialProfile['phone'] ?? '';
     _initialGender = widget.initialProfile['gender'] ?? 'Perempuan';
     _initialPhotoPath = widget.initialProfile['photo_path'] ?? '';
     _initialIsRemoved = widget.initialProfile['avatar'] == 'removed';
@@ -58,7 +58,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _dobController = TextEditingController(text: _initialDob);
     _emailController = TextEditingController(text: _initialEmail);
     _phoneController = TextEditingController(text: _initialPhone);
-    _selectedGender = _initialGender;
+    _selectedGender = _initialGender.isNotEmpty ? _initialGender : 'Perempuan';
   }
 
   @override
@@ -98,18 +98,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   /// Pop-up konfirmasi di tengah layar saat menekan tombol kembali
   void _showCancelConfirmDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (dialogCtx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
         title: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFFEF3C7),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF3E2D12) : const Color(0xFFFEF3C7),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -124,7 +127,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 16.5,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
           ],
@@ -135,23 +138,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: GoogleFonts.poppins(
             fontSize: 13.5,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF475569),
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
           ),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
         actions: [
           Row(
             children: [
-              // Tombol "Batal": Kembali ke halaman profil saya tanpa menyimpan perubahan
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pop(dialogCtx); // Tutup dialog
-                    Navigator.of(context).pop(false); // Kembali tanpa menyimpan
+                    Navigator.pop(dialogCtx);
+                    Navigator.of(context).pop(false);
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF64748B),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -167,13 +169,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-
-              // Tombol "Simpan": Memperbarui data, lalu kembali ke halaman profil dengan data terbaru
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(dialogCtx); // Tutup dialog
-                    _saveProfileAndPop(); // Simpan dan kembali
+                    Navigator.pop(dialogCtx);
+                    _saveProfileAndPop();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF36785A),
@@ -237,14 +237,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   /// Menampilkan bottom sheet dengan 3 opsi: Kamera, Galeri, Hapus Foto
   void _showPhotoOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (bottomSheetCtx) => Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -255,7 +257,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -266,7 +268,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
             const SizedBox(height: 12),
@@ -276,14 +278,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               contentPadding: EdgeInsets.zero,
               leading: Container(
                 padding: const EdgeInsets.all(9),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE2F1E8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF36785A).withValues(alpha: isDark ? 0.2 : 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF36785A), size: 20),
               ),
-              title: Text('Ambil Foto', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
-              subtitle: Text('Gunakan kamera perangkat untuk mengambil foto baru', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B))),
+              title: Text('Ambil Foto', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+              subtitle: Text('Gunakan kamera perangkat untuk mengambil foto baru', style: GoogleFonts.poppins(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
               onTap: () {
                 Navigator.pop(bottomSheetCtx);
                 _pickImage(ImageSource.camera);
@@ -295,14 +297,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               contentPadding: EdgeInsets.zero,
               leading: Container(
                 padding: const EdgeInsets.all(9),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE0F2FE),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.2 : 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.photo_library_rounded, color: Color(0xFF0284C7), size: 20),
               ),
-              title: Text('Pilih dari Galeri', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
-              subtitle: Text('Pilih foto dari penyimpanan galeri perangkat', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B))),
+              title: Text('Pilih dari Galeri', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+              subtitle: Text('Pilih foto dari galeri penyimpanan', style: GoogleFonts.poppins(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
               onTap: () {
                 Navigator.pop(bottomSheetCtx);
                 _pickImage(ImageSource.gallery);
@@ -314,14 +316,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               contentPadding: EdgeInsets.zero,
               leading: Container(
                 padding: const EdgeInsets.all(9),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFEE2E2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDC2626).withValues(alpha: isDark ? 0.2 : 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFDC2626), size: 20),
               ),
               title: Text('Hapus Foto Profil', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFFDC2626))),
-              subtitle: Text('Gunakan avatar bawaan ObeSight', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF94A3B8))),
+              subtitle: Text('Gunakan avatar bawaan ObeSight', style: GoogleFonts.poppins(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
               onTap: () {
                 Navigator.pop(bottomSheetCtx);
                 _removePhoto();
@@ -386,6 +388,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return Image.file(File(_initialPhotoPath), fit: BoxFit.cover);
     }
 
+    // 3b. Foto dari URL (seperti Google Sign-In photoURL)
+    if (_initialPhotoPath.startsWith('http://') || _initialPhotoPath.startsWith('https://')) {
+      return Image.network(
+        _initialPhotoPath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: const Color(0xFFE2F1E8),
+          child: const Icon(Icons.person, color: Color(0xFF36785A), size: 48),
+        ),
+      );
+    }
+
     // 4. Avatar default atau asset
     if (_initialIsRemoved) {
       return Container(
@@ -406,6 +420,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA);
+    final textDark = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return PopScope(
       canPop: !_hasChanges,
       onPopInvokedWithResult: (didPop, result) {
@@ -434,9 +454,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF4F8F6),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -505,16 +525,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: cardColor,
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                           blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
                       ],
-                      border: Border.all(color: const Color(0xFFEAEFEA)),
+                      border: Border.all(color: cardBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,6 +544,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           controller: _nameController,
                           icon: Icons.person_outline_rounded,
                           validator: (val) => val == null || val.trim().isEmpty ? 'Nama tidak boleh kosong' : null,
+                          isDark: isDark,
                         ),
                         const SizedBox(height: 16),
 
@@ -532,6 +553,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           controller: _dobController,
                           icon: Icons.calendar_today_outlined,
                           hint: 'Contoh: 12 Juli 2003',
+                          isDark: isDark,
                         ),
                         const SizedBox(height: 16),
 
@@ -541,31 +563,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF334155),
+                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
                           initialValue: _selectedGender,
+                          dropdownColor: cardColor,
                           decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.wc_outlined, size: 20, color: Color(0xFF64748B)),
+                            prefixIcon: Icon(Icons.wc_outlined, size: 20, color: textMuted),
                             filled: true,
-                            fillColor: const Color(0xFFF8FAFC),
+                            fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              borderSide: BorderSide(color: cardBorder),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              borderSide: BorderSide(color: cardBorder),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5),
                             ),
                           ),
-                          style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                          style: GoogleFonts.poppins(fontSize: 13.5, color: textDark),
                           items: const [
                             DropdownMenuItem(value: 'Perempuan', child: Text('Perempuan')),
                             DropdownMenuItem(value: 'Laki-laki', child: Text('Laki-laki')),
@@ -586,6 +609,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           icon: Icons.mail_outline_rounded,
                           keyboardType: TextInputType.emailAddress,
                           validator: (val) => val == null || !val.contains('@') ? 'Masukkan email yang valid' : null,
+                          isDark: isDark,
                         ),
                         const SizedBox(height: 16),
 
@@ -594,35 +618,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           controller: _phoneController,
                           icon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
+                          isDark: isDark,
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
-                  // Tombol Simpan Utama
+                  // Tombol Simpan Perubahan
                   SizedBox(
                     width: double.infinity,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: _saveProfileAndPop,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF36785A),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       child: Text(
                         'Simpan Perubahan',
                         style: GoogleFonts.poppins(
-                          fontSize: 14.5,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -637,9 +663,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required TextEditingController controller,
     required IconData icon,
     String? hint,
-    TextInputType keyboardType = TextInputType.text,
+    TextInputType? keyboardType,
     String? Function(String?)? validator,
+    required bool isDark,
   }) {
+    final textDark = isDark ? Colors.white : const Color(0xFF0F172A);
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -648,35 +679,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: GoogleFonts.poppins(
             fontSize: 12.5,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF334155),
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
           ),
         ),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
-          style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+          validator: validator,
+          style: GoogleFonts.poppins(fontSize: 13.5, color: textDark),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, size: 20, color: const Color(0xFF64748B)),
             hintText: hint,
-            hintStyle: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF94A3B8)),
+            hintStyle: GoogleFonts.poppins(fontSize: 13, color: textMuted),
+            prefixIcon: Icon(icon, size: 20, color: textMuted),
             filled: true,
-            fillColor: const Color(0xFFF8FAFC),
+            fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: BorderSide(color: cardBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: BorderSide(color: cardBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5),
             ),
           ),
-          validator: validator,
         ),
       ],
     );

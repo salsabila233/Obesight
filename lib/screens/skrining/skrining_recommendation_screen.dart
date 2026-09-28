@@ -27,6 +27,13 @@ class SkriningRecommendationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUser = user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4A8B6C); // Medical soft green
+    final textDark = isDark ? Colors.white : const Color(0xFF1E293B);
+    final textMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final cardBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     // 1. Ambil kategori hasil klasifikasi algoritma/model skrining
     final String activeCategory = customCategory ?? data.classificationCategory;
@@ -35,12 +42,12 @@ class SkriningRecommendationScreen extends StatelessWidget {
     final CategoryRecommendation rec = SkriningRecommendationRules.getRecommendationByCategory(activeCategory);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: textDark, size: 28),
+          icon: Icon(Icons.chevron_left_rounded, color: textDark, size: 28),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -93,9 +100,9 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
+                        border: Border.all(color: cardBorder, width: 1.1),
                       ),
                       child: Row(
                         children: [
@@ -161,7 +168,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w400,
-                                    color: const Color(0xFF334155),
+                                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                                     height: 1.3,
                                   ),
                                 ),
@@ -219,9 +226,12 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0FDF4),
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF0FDF4),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFA7F3D0), width: 1.2),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFA7F3D0),
+                          width: 1.2,
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -237,7 +247,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w500,
-                                color: const Color(0xFF065F46),
+                                color: isDark ? const Color(0xFF58AF86) : const Color(0xFF065F46),
                                 height: 1.35,
                               ),
                             ),
@@ -257,7 +267,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                           child: OutlinedButton(
                             onPressed: () => Navigator.of(context).pop(),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: cardBorder, width: 1.3),
+                              side: BorderSide(color: cardBorder, width: 1.3),
                               foregroundColor: textDark,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
@@ -269,7 +279,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF475569),
+                                color: textDark,
                               ),
                             ),
                           ),

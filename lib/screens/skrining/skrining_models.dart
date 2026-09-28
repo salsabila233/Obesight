@@ -64,7 +64,7 @@ class SkriningData {
       return 'Underweight';
     } else if (currentBmi <= 22.9) {
       return 'Normal';
-    } else if (currentBmi <= 24.9) {
+    } else if (currentBmi <= 27.0) {
       return 'Overweight';
     } else if (currentBmi <= 29.9) {
       return 'Obesitas I';
@@ -82,7 +82,7 @@ class SkriningData {
       return 'Underweight\nLevel I';
     } else if (currentBmi <= 22.9) {
       return 'Normal\nWeight';
-    } else if (currentBmi <= 24.9) {
+    } else if (currentBmi <= 27.0) {
       return 'Overweight\nLevel I';
     } else if (currentBmi <= 29.9) {
       return 'Obesitas\nTingkat I';
@@ -100,7 +100,7 @@ class SkriningData {
       return 'Berat badan di bawah rentang ideal';
     } else if (currentBmi <= 22.9) {
       return 'Berat badan dalam rentang ideal';
-    } else if (currentBmi <= 24.9) {
+    } else if (currentBmi <= 27.0) {
       return 'Berat badan sedikit diatas rentang ideal';
     } else if (currentBmi <= 29.9) {
       return 'Berat badan tingkat obesitas I';

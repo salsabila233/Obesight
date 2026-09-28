@@ -118,32 +118,54 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   Future<void> _handleGoogleSignIn() async {
     _clearAuthError();
+    setState(() {
+      _isLoading = true;
+    });
+
+    // 1. Coba Google Sign-In Asli dengan Firebase Auth & Cloud Firestore users/{uid}
+    final response = await _authService.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (response.isSuccess && response.user != null) {
+      setState(() {
+        _isLoading = false;
+      });
+      _navigateToDashboard(response.user!);
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    // 2. Jika Google Sign-In asli dibatalkan atau berada di lingkungan tanpa Google Play Services,
+    // sediakan akun picker cadangan
     final typedId = _identifierController.text.trim();
     final isEmail = typedId.contains('@');
 
-    // Open Google Account Picker Bottom Sheet
     final selectedAccount = await GoogleAccountPickerSheet.show(
       context,
       suggestedEmail: isEmail ? typedId : null,
       suggestedName: !isEmail && typedId.isNotEmpty ? typedId : null,
     );
-    if (selectedAccount != null) {
+    if (selectedAccount != null && mounted) {
       setState(() {
         _isLoading = true;
       });
 
-      final response = await _authService.loginWithGoogleAccount(selectedAccount);
+      final pickerResponse = await _authService.loginWithGoogleAccount(selectedAccount);
       if (!mounted) return;
 
       setState(() {
         _isLoading = false;
       });
 
-      if (response.isSuccess && response.user != null) {
-        _navigateToDashboard(response.user!);
+      if (pickerResponse.isSuccess && pickerResponse.user != null) {
+        _navigateToDashboard(pickerResponse.user!);
       } else {
         setState(() {
-          _authErrorMessage = response.errorMessage ?? 'Gagal masuk dengan akun Google';
+          _authErrorMessage = pickerResponse.errorMessage ?? 'Gagal masuk dengan akun Google';
         });
       }
     }

@@ -1,10 +1,10 @@
-/// Aturan Rekomendasi Klinis Tata Laksana Obesitas & Pengendalian Berat Badan
-/// Berdasarkan:
-/// 1. Konsensus Pengelolaan Obesitas PAPDI (Perhimpunan Dokter Spesialis Penyakit Dalam Indonesia)
-///    https://papdi.or.id/pdfs/1422/Soft%20copy%20konsensus%20obesitas.pdf
-/// 2. Keputusan Menteri Kesehatan RI No. HK.01.07-MENKES-509-2025
-///    (Pedoman Nasional Pelayanan Kedokteran Tata Laksana Obesitas Dewasa)
-///    https://keslan.kemkes.go.id/unduhan/KMK%20No.%20HK.01.07-MENKES-509-2025.pdf
+// Aturan Rekomendasi Klinis Tata Laksana Obesitas & Pengendalian Berat Badan
+// Berdasarkan:
+// 1. Konsensus Pengelolaan Obesitas PAPDI (Perhimpunan Dokter Spesialis Penyakit Dalam Indonesia)
+//    https://papdi.or.id/pdfs/1422/Soft%20copy%20konsensus%20obesitas.pdf
+// 2. Keputusan Menteri Kesehatan RI No. HK.01.07-MENKES-509-2025
+//    (Pedoman Nasional Pelayanan Kedokteran Tata Laksana Obesitas Dewasa)
+//    https://keslan.kemkes.go.id/unduhan/KMK%20No.%20HK.01.07-MENKES-509-2025.pdf
 
 class CategoryRecommendation {
   final String categoryKey; // 'Normal', 'Overweight', 'Obesitas I', 'Obesitas II', 'Obesitas III', 'Underweight'

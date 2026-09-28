@@ -45,16 +45,18 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       return;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFFFEE2E2),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF451A1A) : const Color(0xFFFEE2E2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.delete_forever_rounded, color: Color(0xFFDC2626), size: 36),
@@ -62,14 +64,21 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
             const SizedBox(height: 12),
             Text(
               'Yakin Hapus Akun?',
-              style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+              style: GoogleFonts.poppins(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
             ),
           ],
         ),
         content: Text(
           'Semua data profil, riwayat skrining, dan pemantauan aktivitas fisik Anda akan dihapus secara permanen dan tidak dapat dikembalikan.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF64748B)),
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+          ),
         ),
         actions: [
           Row(
@@ -79,10 +88,18 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   onPressed: () => Navigator.pop(ctx),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: Text('Batal', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: const Color(0xFF475569))),
+                  child: Text(
+                    'Batal',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -139,10 +156,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -161,9 +180,9 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF4F8F6),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -174,9 +193,11 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
+                  color: isDark ? const Color(0xFF3B1212) : const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFFECACA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +213,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF991B1B),
+                              color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -200,7 +221,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                             'Menghapus akun akan melenyapkan semua rekam jejak skrining, data antropometri, dan preferensi akun Anda. Data ini tidak dapat dipulihkan kembali.',
                             style: GoogleFonts.poppins(
                               fontSize: 11.5,
-                              color: const Color(0xFFB91C1C),
+                              color: isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
                               height: 1.45,
                             ),
                           ),
@@ -219,16 +240,18 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 10),
 
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                 ),
                 child: Column(
                   children: List.generate(_reasons.length, (index) {
@@ -252,7 +275,9 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                  color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF475569),
+                                  color: isSelected
+                                      ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                                 ),
                               ),
                             ),
@@ -272,7 +297,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 8),
@@ -280,9 +305,11 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,33 +317,43 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: Color(0xFF64748B)),
+                        prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                             size: 20,
-                            color: const Color(0xFF64748B),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           ),
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
                         hintText: 'Masukkan kata sandi Anda saat ini',
-                        hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF94A3B8)),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFDC2626), width: 1.5),
+                        focusedBorder: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: Color(0xFFDC2626), width: 1.5),
                         ),
                       ),
                     ),
@@ -344,7 +381,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                               'Saya mengerti dan menyetujui bahwa penghapusan akun bersifat final dan permanen.',
                               style: GoogleFonts.poppins(
                                 fontSize: 11.5,
-                                color: const Color(0xFF475569),
+                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                                 height: 1.4,
                               ),
                             ),

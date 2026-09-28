@@ -45,6 +45,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final article = widget.article;
     final otherArticles = ArticleService()
         .getArticles()
@@ -53,7 +54,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
         .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAF9),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -63,7 +64,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
             expandedHeight: 250,
             pinned: true,
             elevation: _showStickyTitle ? 2 : 0,
-            backgroundColor: const Color(0xFF36785A),
+            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
             leading: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(7),
@@ -128,10 +129,10 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
           SliverToBoxAdapter(
             child: Container(
               transform: Matrix4.translationValues(0, -18, 0),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: const [
                   BoxShadow(
                     color: Color(0x0A000000),
                     blurRadius: 16,
@@ -149,7 +150,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 21,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                       height: 1.35,
                     ),
                   ),
@@ -158,24 +159,24 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                   // Reading Time & Date Info Bar (Clean, no doctor / author info)
                   Row(
                     children: [
-                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF36785A)),
+                      Icon(Icons.access_time_rounded, size: 14, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A)),
                       const SizedBox(width: 5),
                       Text(
                         article.readTime,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF36785A),
+                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
                         ),
                       ),
-                      const Text('   •   ', style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 10)),
+                      Text('   •   ', style: TextStyle(color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1), fontSize: 10)),
                       const Icon(Icons.calendar_today_outlined, size: 13, color: Color(0xFF94A3B8)),
                       const SizedBox(width: 5),
                       Text(
                         article.date,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
-                          color: const Color(0xFF64748B),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -188,10 +189,13 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                       margin: const EdgeInsets.only(bottom: 20),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF4FAF7),
+                        color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFF4FAF7),
                         borderRadius: BorderRadius.circular(12),
-                        border: const Border(
-                          left: BorderSide(color: Color(0xFF36785A), width: 4),
+                        border: Border(
+                          left: BorderSide(
+                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                            width: 4,
+                          ),
                         ),
                       ),
                       child: Text(
@@ -200,7 +204,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                           fontSize: 13.5,
                           fontStyle: FontStyle.italic,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF2E6B4F),
+                          color: isDark ? const Color(0xFFD1FAE5) : const Color(0xFF2E6B4F),
                           height: 1.55,
                         ),
                       ),
@@ -215,7 +219,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                         paragraph.trim(),
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          color: const Color(0xFF334155),
+                          color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155),
                           height: 1.7,
                         ),
                       ),
@@ -228,9 +232,12 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF4FAF7),
+                        color: isDark ? const Color(0xFF0F291E) : const Color(0xFFF4FAF7),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFC8EBD9), width: 1.5),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF22543D) : const Color(0xFFC8EBD9),
+                          width: 1.5,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,11 +246,15 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFD4F1E4),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFD4F1E4),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.shield_outlined, size: 17, color: Color(0xFF2E6B4F)),
+                                child: Icon(
+                                  Icons.shield_outlined,
+                                  size: 17,
+                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Text(
@@ -251,7 +262,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF143728),
+                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF143728),
                                 ),
                               ),
                             ],
@@ -262,16 +273,20 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Padding(
-                                      padding: EdgeInsets.only(top: 2, right: 8),
-                                      child: Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF36785A)),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2, right: 8),
+                                      child: Icon(
+                                        Icons.check_circle_rounded,
+                                        size: 16,
+                                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                                      ),
                                     ),
                                     Expanded(
                                       child: Text(
                                         item,
                                         style: GoogleFonts.poppins(
                                           fontSize: 12.5,
-                                          color: const Color(0xFF2D5241),
+                                          color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF2D5241),
                                           height: 1.5,
                                         ),
                                       ),
@@ -285,7 +300,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                     const SizedBox(height: 28),
                   ],
 
-                  const Divider(color: Color(0xFFE2E8F0)),
+                  Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   const SizedBox(height: 18),
 
                   // Artikel Lainnya Section (Clean without category or tags)
@@ -294,7 +309,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -312,9 +327,11 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -345,7 +362,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF0F172A),
+                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                                     ),
                                   ),
                                   const SizedBox(height: 3),
@@ -353,7 +370,7 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                                     otherArt.readTime,
                                     style: GoogleFonts.poppins(
                                       fontSize: 11,
-                                      color: const Color(0xFF64748B),
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],

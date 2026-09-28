@@ -58,32 +58,41 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       email: newEmail,
     );
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.mark_email_read_rounded, color: Color(0xFF16A34A), size: 36),
+              child: Icon(Icons.mark_email_read_rounded, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A), size: 36),
             ),
             const SizedBox(height: 12),
             Text(
               'Email Berhasil Diubah',
-              style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+              style: GoogleFonts.poppins(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
             ),
           ],
         ),
         content: Text(
           'Alamat email akun ObeSight Anda telah diperbarui menjadi $newEmail.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF475569)),
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+          ),
         ),
         actions: [
           SizedBox(
@@ -124,10 +133,12 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -146,9 +157,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF4F8F6),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -160,7 +171,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 4),
@@ -168,7 +179,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 'Pastikan email baru Anda aktif untuk menerima ringkasan monitoring dan notifikasi keamanan akun.',
                 style: GoogleFonts.poppins(
                   fontSize: 12.5,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   height: 1.4,
                 ),
               ),
@@ -178,12 +189,14 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -198,26 +211,33 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF334155),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                       ),
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _currentEmailController,
                       enabled: false,
-                      style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF64748B)),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.mail_lock_outlined, size: 20, color: Color(0xFF94A3B8)),
+                        prefixIcon: Icon(Icons.mail_lock_outlined, size: 20, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
                         filled: true,
-                        fillColor: const Color(0xFFF1F5F9),
+                        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
                         disabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
                       ),
                     ),
@@ -229,32 +249,42 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF334155),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                       ),
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _newEmailController,
                       keyboardType: TextInputType.emailAddress,
-                      style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20, color: Color(0xFF64748B)),
+                        prefixIcon: Icon(Icons.mail_outline_rounded, size: 20, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         hintText: 'contoh: nama@email.com',
-                        hintStyle: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF94A3B8)),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5),
+                        focusedBorder: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: Color(0xFF36785A), width: 1.5),
                         ),
                       ),
                     ),
@@ -266,40 +296,50 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF334155),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                       ),
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20, color: Color(0xFF64748B)),
+                        prefixIcon: Icon(Icons.lock_outline_rounded, size: 20, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                             size: 20,
-                            color: const Color(0xFF64748B),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           ),
                           onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
                         hintText: 'Konfirmasi sandi untuk verifikasi',
-                        hintStyle: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF94A3B8)),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        ),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5),
+                        focusedBorder: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          borderSide: BorderSide(color: Color(0xFF36785A), width: 1.5),
                         ),
                       ),
                     ),

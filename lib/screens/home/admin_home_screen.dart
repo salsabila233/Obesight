@@ -23,10 +23,12 @@ class AdminHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Row(
@@ -130,7 +132,7 @@ class AdminHomeScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
             const SizedBox(height: 12),
@@ -144,6 +146,7 @@ class AdminHomeScreen extends StatelessWidget {
                     trend: '+12% bln ini',
                     icon: Icons.people_alt_outlined,
                     color: AppColors.primaryGreen,
+                    isDark: isDark,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -154,6 +157,7 @@ class AdminHomeScreen extends StatelessWidget {
                     trend: 'Perlu atensi',
                     icon: Icons.warning_amber_rounded,
                     color: const Color(0xFFE11D48),
+                    isDark: isDark,
                   ),
                 ),
               ],
@@ -168,6 +172,7 @@ class AdminHomeScreen extends StatelessWidget {
                     trend: '5 menunggu',
                     icon: Icons.chat_bubble_outline_rounded,
                     color: const Color(0xFF2563EB),
+                    isDark: isDark,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -178,6 +183,7 @@ class AdminHomeScreen extends StatelessWidget {
                     trend: 'Model v2.4',
                     icon: Icons.auto_graph_rounded,
                     color: const Color(0xFF7C3AED),
+                    isDark: isDark,
                   ),
                 ),
               ],
@@ -191,7 +197,7 @@ class AdminHomeScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
             const SizedBox(height: 12),
@@ -200,18 +206,21 @@ class AdminHomeScreen extends StatelessWidget {
               icon: Icons.manage_accounts_outlined,
               title: 'Kelola Data Pengguna & Hak Akses',
               subtitle: 'Verifikasi akun dan status keanggotaan',
+              isDark: isDark,
             ),
             const SizedBox(height: 10),
             _buildAdminActionTile(
               icon: Icons.biotech_outlined,
               title: 'Parameter Algoritma Risiko Obesitas',
               subtitle: 'Pengaturan cut-off BMI dan biomarker',
+              isDark: isDark,
             ),
             const SizedBox(height: 10),
             _buildAdminActionTile(
               icon: Icons.file_download_outlined,
               title: 'Ekspor Laporan Epidemiologi',
               subtitle: 'Unduh rekap statistik format Excel/PDF',
+              isDark: isDark,
             ),
           ],
         ),
@@ -225,13 +234,16 @@ class AdminHomeScreen extends StatelessWidget {
     required String trend,
     required IconData icon,
     required Color color,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +256,7 @@ class AdminHomeScreen extends StatelessWidget {
                   title,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -259,7 +271,7 @@ class AdminHomeScreen extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 4),
@@ -280,23 +292,30 @@ class AdminHomeScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 20, color: const Color(0xFF334155)),
+            child: Icon(
+              icon,
+              size: 20,
+              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF334155),
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -308,20 +327,23 @@ class AdminHomeScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 Text(
                   subtitle,
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+          ),
         ],
       ),
     );

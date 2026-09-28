@@ -137,15 +137,23 @@ class BmiResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final dividerColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+
     final statusColor = _getStatusColor();
     final statusBgColor = _getStatusBgColor();
     // Indonesian formatted number with comma e.g. "23,4"
     final bmiString = bmi.toStringAsFixed(1).replaceAll('.', ',');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAF9),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -178,17 +186,20 @@ class BmiResultScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            statusBgColor.withValues(alpha: 0.65),
-                            Colors.white,
+                            isDark ? statusColor.withValues(alpha: 0.22) : statusBgColor.withValues(alpha: 0.65),
+                            cardBg,
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                         ),
                         borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.25), width: 1.2),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: isDark ? 0.4 : 0.25),
+                          width: 1.2,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -201,7 +212,7 @@ class BmiResultScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF64748B),
+                              color: textSecondary,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -228,7 +239,7 @@ class BmiResultScreen extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF64748B),
+                                  color: textSecondary,
                                 ),
                               ),
                             ],
@@ -266,7 +277,7 @@ class BmiResultScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                               fontSize: 12,
-                              color: const Color(0xFF334155),
+                              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                               height: 1.5,
                             ),
                           ),
@@ -281,19 +292,19 @@ class BmiResultScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
+                        color: textPrimary,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: cardBorder),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),
@@ -305,31 +316,41 @@ class BmiResultScreen extends StatelessWidget {
                             label: 'Berat Badan',
                             value: '${weight.toStringAsFixed(1)} kg',
                             icon: Icons.monitor_weight_outlined,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          Divider(height: 1, color: dividerColor),
                           _buildDataRow(
                             label: 'Tinggi Badan',
                             value: '${height.toStringAsFixed(0)} cm',
                             icon: Icons.height_rounded,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          Divider(height: 1, color: dividerColor),
                           _buildDataRow(
                             label: 'Jenis Kelamin',
                             value: gender,
                             icon: gender == 'Laki-laki' ? Icons.male_rounded : Icons.female_rounded,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          Divider(height: 1, color: dividerColor),
                           _buildDataRow(
                             label: 'Kategori Status',
                             value: category,
                             icon: Icons.bookmark_outline_rounded,
                             valueColor: statusColor,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          Divider(height: 1, color: dividerColor),
                           _buildDataRow(
                             label: 'Rentang Normal (Sehat)',
                             value: '18,5 - 22,9 kg/m²',
                             icon: Icons.verified_outlined,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
                         ],
                       ),
@@ -342,7 +363,7 @@ class BmiResultScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
+                        color: textPrimary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -352,12 +373,12 @@ class BmiResultScreen extends StatelessWidget {
                           margin: const EdgeInsets.only(bottom: 10),
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardBg,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: cardBorder),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.02),
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -370,12 +391,12 @@ class BmiResultScreen extends StatelessWidget {
                                 width: 38,
                                 height: 38,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F5EE),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F5EE),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
                                   _getRecommendationIcon(rec['icon']!),
-                                  color: const Color(0xFF368260),
+                                  color: isDark ? const Color(0xFF58AF86) : const Color(0xFF368260),
                                   size: 20,
                                 ),
                               ),
@@ -389,7 +410,7 @@ class BmiResultScreen extends StatelessWidget {
                                       style: GoogleFonts.poppins(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF0F172A),
+                                        color: textPrimary,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -397,7 +418,7 @@ class BmiResultScreen extends StatelessWidget {
                                       rec['desc']!,
                                       style: GoogleFonts.poppins(
                                         fontSize: 11.5,
-                                        color: const Color(0xFF475569),
+                                        color: textSecondary,
                                         height: 1.4,
                                       ),
                                     ),
@@ -418,10 +439,11 @@ class BmiResultScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBg,
+                border: isDark ? const Border(top: BorderSide(color: Color(0xFF334155))) : null,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, -4),
                   ),
@@ -464,8 +486,11 @@ class BmiResultScreen extends StatelessWidget {
                     height: 44,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF36785A),
-                        side: const BorderSide(color: Color(0xFF489874), width: 1.2),
+                        foregroundColor: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                          width: 1.2,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -479,7 +504,7 @@ class BmiResultScreen extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF36785A),
+                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
                         ),
                       ),
                     ),
@@ -498,12 +523,14 @@ class BmiResultScreen extends StatelessWidget {
     required String value,
     required IconData icon,
     Color? valueColor,
+    required Color textPrimary,
+    required Color textSecondary,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: const Color(0xFF64748B)),
+          Icon(icon, size: 18, color: textSecondary),
           const SizedBox(width: 10),
           Expanded(
             flex: 6,
@@ -512,7 +539,7 @@ class BmiResultScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF64748B),
+                color: textSecondary,
               ),
             ),
           ),
@@ -525,7 +552,7 @@ class BmiResultScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: valueColor ?? const Color(0xFF0F172A),
+                color: valueColor ?? textPrimary,
               ),
             ),
           ),

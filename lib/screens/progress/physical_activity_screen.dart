@@ -248,13 +248,14 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     final actId = act['id'] as String;
     final actName = act['name'] as String;
     final isAlreadyCompleted = _completedActivities.contains(actId);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         elevation: 10,
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
           child: Column(
@@ -267,15 +268,15 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   Container(
                     width: 68,
                     height: 68,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE2F1E8),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
                       shape: BoxShape.circle,
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.assignment_turned_in_outlined,
                         size: 36,
-                        color: Color(0xFF2D6A4F),
+                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2D6A4F),
                       ),
                     ),
                   ),
@@ -288,7 +289,10 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFEAB308),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          width: 2,
+                        ),
                       ),
                       child: const Center(
                         child: Text(
@@ -312,7 +316,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 8),
@@ -325,7 +329,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 12.5,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   height: 1.45,
                 ),
               ),
@@ -338,7 +342,9 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        ),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => Navigator.pop(ctx),
@@ -347,7 +353,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF64748B),
+                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -410,11 +416,14 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -459,28 +468,28 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   Border border;
 
                   if (isSelected) {
-                    bgColor = const Color(0xFF36785A);
+                    bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
                     textColor = Colors.white;
                     subTextColor = Colors.white.withValues(alpha: 0.9);
-                    border = Border.all(color: const Color(0xFF36785A), width: 1.5);
+                    border = Border.all(color: bgColor, width: 1.5);
                   } else if (isPast) {
-                    // Past Days -> Merah, Teks Putih (sesuai spesifikasi main.js pill-past-red)
+                    // Past Days -> Merah, Teks Putih
                     bgColor = const Color(0xFFEF4444);
                     textColor = Colors.white;
                     subTextColor = Colors.white.withValues(alpha: 0.85);
                     border = Border.all(color: const Color(0xFFDC2626));
                   } else if (isToday) {
                     // Today -> Hijau Pastel
-                    bgColor = const Color(0xFFD1FAE5);
-                    textColor = const Color(0xFF065F46);
-                    subTextColor = const Color(0xFF047857);
+                    bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
+                    textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
+                    subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
                     border = Border.all(color: const Color(0xFF10B981), width: 1.5);
                   } else {
-                    // Future Days -> Putih dengan Border Tipis Abu-abu
-                    bgColor = Colors.white;
-                    textColor = const Color(0xFF0F172A);
-                    subTextColor = const Color(0xFF64748B);
-                    border = Border.all(color: const Color(0xFFE2E8F0));
+                    // Future Days
+                    bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+                    textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+                    subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+                    border = Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
                   }
 
                   return GestureDetector(
@@ -507,7 +516,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                               ]
                             : [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                                   blurRadius: 4,
                                   offset: const Offset(0, 1),
                                 )
@@ -552,21 +561,22 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+                    color: textPrimary,
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2F1E8),
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
                     borderRadius: BorderRadius.circular(8),
+                    border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                   ),
                   child: Text(
                     '${_completedActivities.length}/5 Selesai',
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF2E6B4F),
+                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
                     ),
                   ),
                 ),
@@ -575,7 +585,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
             const SizedBox(height: 12),
 
             // 5 Activity Cards with Interactive Checklist & 3 Pills
-            ..._activities.map((act) => _buildActivityCard(act)),
+            ..._activities.map((act) => _buildActivityCard(act, isDark)),
 
             const SizedBox(height: 20),
           ],
@@ -584,24 +594,30 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> act) {
+  Widget _buildActivityCard(Map<String, dynamic> act, bool isDark) {
     final actId = act['id'] as String;
     final isCompleted = _completedActivities.contains(actId);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isCompleted
+        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
+    final textTitle = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textDesc = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
         border: Border.all(
-          color: isCompleted ? const Color(0xFF36785A) : const Color(0xFFE2E8F0),
+          color: cardBorder,
           width: isCompleted ? 1.5 : 1.0,
         ),
       ),
@@ -628,8 +644,12 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                         errorBuilder: (context, error, stackTrace) => Container(
                           width: 76,
                           height: 76,
-                          color: const Color(0xFFE2F1E8),
-                          child: const Icon(Icons.directions_run_rounded, color: Color(0xFF36785A), size: 36),
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
+                          child: Icon(
+                            Icons.directions_run_rounded,
+                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                            size: 36,
+                          ),
                         ),
                       ),
                     ),
@@ -673,7 +693,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
+                                color: textTitle,
                               ),
                             ),
                           ),
@@ -686,7 +706,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          color: const Color(0xFF64748B),
+                          color: textDesc,
                           height: 1.35,
                         ),
                       ),
@@ -697,9 +717,9 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                         spacing: 6,
                         runSpacing: 4,
                         children: [
-                          _buildPill(Icons.access_time_rounded, act['duration'] as String),
-                          _buildPill(Icons.calendar_today_rounded, act['frequency'] as String),
-                          _buildPill(Icons.local_fire_department_rounded, act['calories'] as String),
+                          _buildPill(Icons.access_time_rounded, act['duration'] as String, isDark),
+                          _buildPill(Icons.calendar_today_rounded, act['frequency'] as String, isDark),
+                          _buildPill(Icons.local_fire_department_rounded, act['calories'] as String, isDark),
                         ],
                       ),
                     ],
@@ -711,7 +731,9 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 IconButton(
                   icon: Icon(
                     isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                    color: isCompleted ? const Color(0xFF36785A) : const Color(0xFFCBD5E1),
+                    color: isCompleted
+                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                        : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
                     size: 26,
                   ),
                   tooltip: isCompleted ? 'Batalkan status selesai' : 'Tandai selesai',
@@ -725,21 +747,30 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     );
   }
 
-  Widget _buildPill(IconData icon, String text) {
+  Widget _buildPill(IconData icon, String text, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(6),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10.5, color: const Color(0xFF475569)),
+          Icon(
+            icon,
+            size: 10.5,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+          ),
           const SizedBox(width: 3),
           Text(
             text,
-            style: GoogleFonts.poppins(fontSize: 9.5, fontWeight: FontWeight.w500, color: const Color(0xFF475569)),
+            style: GoogleFonts.poppins(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w500,
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+            ),
           ),
         ],
       ),

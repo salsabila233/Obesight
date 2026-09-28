@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/google_account_picker_sheet.dart';
 import '../home/user_home_screen.dart';
+import '../profile/complete_profile_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -58,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  Future<void> _handleRegister() async {
     setState(() {
       _termsErrorMessage = null;
     });
@@ -89,26 +89,93 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (isFormValid) {
       final name = _nameController.text.trim();
       final email = _emailController.text.trim();
+      final password = _passwordController.text;
 
-      final newUser = UserModel(
-        id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
+      setState(() {
+        _isLoading = true;
+      });
+
+      final response = await _authService.registerWithEmailPassword(
         name: name,
         email: email,
-        username: email.split('@').first,
-        role: UserRole.user,
+        password: password,
       );
 
-      // Direct navigation to user home dashboard
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => UserHomeScreen(user: newUser),
-        ),
-        (route) => false,
-      );
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.isSuccess && response.user != null) {
+        final registeredUser = response.user!;
+        if (!registeredUser.hasCompletedRequiredProfile && !registeredUser.isAdmin) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => CompleteProfileScreen(user: registeredUser, isGatedFlow: false),
+            ),
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => UserHomeScreen(user: registeredUser),
+            ),
+            (route) => false,
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.errorMessage ?? 'Gagal mendaftarkan akun.',
+              style: GoogleFonts.poppins(fontSize: 13),
+            ),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    // 1. Google Sign-In Asli dengan Firebase Auth & Cloud Firestore
+    final response = await _authService.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (response.isSuccess && response.user != null) {
+      setState(() {
+        _isLoading = false;
+      });
+      final signedUser = response.user!;
+      if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => CompleteProfileScreen(user: signedUser, isGatedFlow: false),
+          ),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => UserHomeScreen(user: signedUser),
+          ),
+          (route) => false,
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    // 2. Fallback picker
     final suggestedEmail = _emailController.text.trim();
     final suggestedName = _nameController.text.trim();
 
@@ -118,30 +185,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
       suggestedName: suggestedName.isNotEmpty ? suggestedName : null,
     );
 
-    if (selectedAccount != null) {
+    if (selectedAccount != null && mounted) {
       setState(() {
         _isLoading = true;
       });
 
-      final response = await _authService.loginWithGoogleAccount(selectedAccount);
+      final pickerResponse = await _authService.loginWithGoogleAccount(selectedAccount);
       if (!mounted) return;
 
       setState(() {
         _isLoading = false;
       });
 
-      if (response.isSuccess && response.user != null) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => UserHomeScreen(user: response.user!),
-          ),
-          (route) => false,
-        );
+      if (pickerResponse.isSuccess && pickerResponse.user != null) {
+        final pickerUser = pickerResponse.user!;
+        if (!pickerUser.hasCompletedRequiredProfile && !pickerUser.isAdmin) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => CompleteProfileScreen(user: pickerUser, isGatedFlow: false),
+            ),
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => UserHomeScreen(user: pickerUser),
+            ),
+            (route) => false,
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              response.errorMessage ?? 'Gagal masuk dengan akun Google',
+              pickerResponse.errorMessage ?? 'Gagal masuk dengan akun Google',
               style: GoogleFonts.poppins(fontSize: 13),
             ),
             backgroundColor: Colors.red.shade700,

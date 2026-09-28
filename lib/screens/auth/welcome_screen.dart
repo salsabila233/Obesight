@@ -143,6 +143,21 @@ class WelcomeScreen extends StatelessWidget {
                 height: 48,
                 child: OutlinedButton(
                   onPressed: () async {
+                    // 1. Coba Google Sign-In Asli dengan Firebase Auth & Cloud Firestore
+                    final response = await AuthService().signInWithGoogle();
+                    if (response.isSuccess && response.user != null && context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => response.user!.isAdmin
+                              ? AdminHomeScreen(user: response.user!)
+                              : UserHomeScreen(user: response.user!),
+                        ),
+                      );
+                      return;
+                    }
+
+                    // 2. Fallback picker
+                    if (!context.mounted) return;
                     final selected = await GoogleAccountPickerSheet.show(context);
                     if (selected != null && context.mounted) {
                       await AuthService().loginWithGoogleAccount(selected);

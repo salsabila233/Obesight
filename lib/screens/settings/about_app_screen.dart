@@ -6,10 +6,12 @@ class AboutAppScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -28,9 +30,9 @@ class AboutAppScreen extends StatelessWidget {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          color: Color(0xFFF4F8F6),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -41,12 +43,14 @@ class AboutAppScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -58,7 +62,7 @@ class AboutAppScreen extends StatelessWidget {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F3EE),
+                        color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
                         shape: BoxShape.circle,
                         border: Border.all(color: const Color(0xFF36785A), width: 2),
                       ),
@@ -79,7 +83,7 @@ class AboutAppScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                       ),
                     ),
                     Container(
@@ -97,7 +101,7 @@ class AboutAppScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF36785A),
+                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -106,7 +110,7 @@ class AboutAppScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: const Color(0xFF475569),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                         height: 1.5,
                       ),
                     ),
@@ -121,9 +125,11 @@ class AboutAppScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFEAEFEA)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +143,7 @@ class AboutAppScreen extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
                       ],
@@ -145,18 +151,21 @@ class AboutAppScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     _buildFeatureBox(
+                      isDark: isDark,
                       icon: Icons.assignment_outlined,
                       title: 'Skrining Risiko',
                       description: 'Membantu kamu mengenali risiko obesitas sejak dini berdasarkan kondisi tubuh dan pola hidup sehari-hari.',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureBox(
+                      isDark: isDark,
                       icon: Icons.insights_rounded,
                       title: 'Monitoring Pola Hidup',
                       description: 'Membantu memantau perkembangan berat badan, aktivitas fisik, konsumsi air, dan jam tidur secara terpadu.',
                     ),
                     const SizedBox(height: 12),
                     _buildFeatureBox(
+                      isDark: isDark,
                       icon: Icons.auto_awesome_rounded,
                       title: 'Rekomendasi Berbasis AI',
                       description: 'Memberikan wawasan dan rekomendasi cerdas yang disesuaikan secara personal dengan kondisi metabolisme Anda.',
@@ -171,9 +180,11 @@ class AboutAppScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBEB),
+                  color: isDark ? const Color(0xFF2E1F0B) : const Color(0xFFFFFBEB),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +200,7 @@ class AboutAppScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF92400E),
+                              color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -197,7 +208,7 @@ class AboutAppScreen extends StatelessWidget {
                             'ObeSight merupakan aplikasi untuk skrining awal dan pemantauan pola hidup, bukan alat untuk mendiagnosis obesitas klinis atau menggantikan konsultasi dengan dokter spesialis.',
                             style: GoogleFonts.poppins(
                               fontSize: 11.5,
-                              color: const Color(0xFFB45309),
+                              color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
                               height: 1.45,
                             ),
                           ),
@@ -216,7 +227,7 @@ class AboutAppScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 4),
@@ -236,6 +247,7 @@ class AboutAppScreen extends StatelessWidget {
   }
 
   Widget _buildFeatureBox({
+    required bool isDark,
     required IconData icon,
     required String title,
     required String description,
@@ -243,17 +255,19 @@ class AboutAppScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAF9),
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2EBE5)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2EBE5),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: Color(0xFFE2F1E8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 18, color: const Color(0xFF36785A)),
@@ -268,7 +282,7 @@ class AboutAppScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -276,7 +290,7 @@ class AboutAppScreen extends StatelessWidget {
                   description,
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     height: 1.4,
                   ),
                 ),

@@ -14,6 +14,10 @@ class ProgressScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+
     return ListenableBuilder(
       listenable: NutritionService.instance,
       builder: (context, _) {
@@ -21,9 +25,9 @@ class ProgressScreen extends StatelessWidget {
         final currentDrink = NutritionService.instance.myDrink;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF3F6F8),
+          backgroundColor: scaffoldBg,
           appBar: AppBar(
-            backgroundColor: const Color(0xFF36785A),
+            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -49,13 +53,17 @@ class ProgressScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFE6F7F0), Color(0xFFD4F1E4)],
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [const Color(0xFF1E293B), const Color(0xFF1B382B)]
+                          : [const Color(0xFFE6F7F0), const Color(0xFFD4F1E4)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFC4ECDA)),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFC4ECDA),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF36785A).withValues(alpha: 0.08),
@@ -74,7 +82,7 @@ class ProgressScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF36785A).withValues(alpha: 0.12),
+                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFF36785A).withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -82,7 +90,7 @@ class ProgressScreen extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF23533E),
+                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF23533E),
                                 ),
                               ),
                             ),
@@ -92,7 +100,7 @@ class ProgressScreen extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF112A1F),
+                                color: isDark ? Colors.white : const Color(0xFF112A1F),
                                 height: 1.3,
                               ),
                             ),
@@ -101,7 +109,7 @@ class ProgressScreen extends StatelessWidget {
                               'Konsistensi dan langkah kecil harian adalah kunci keberhasilan gaya hidup sehat.',
                               style: GoogleFonts.poppins(
                                 fontSize: 11.5,
-                                color: const Color(0xFF375347),
+                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF375347),
                                 height: 1.4,
                               ),
                             ),
@@ -115,10 +123,10 @@ class ProgressScreen extends StatelessWidget {
                           'assets/progress/clean/character_woman.png',
                           height: 110,
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
+                          errorBuilder: (context, error, stackTrace) => Icon(
                             Icons.directions_run_rounded,
                             size: 64,
-                            color: Color(0xFF36785A),
+                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
                           ),
                         ),
                       ),
@@ -144,12 +152,14 @@ class ProgressScreen extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF5EB),
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF5EB),
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: const Color(0xFFFFE7D4)),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFFFE7D4),
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                                 blurRadius: 10,
                                 offset: const Offset(0, 3),
                               ),
@@ -164,20 +174,16 @@ class ProgressScreen extends StatelessWidget {
                                 child: Container(
                                   height: 95,
                                   width: double.infinity,
-                                  color: const Color(0xFFFEF3C7),
-                                  child: currentFood != null
-                                      ? Image.asset(
-                                          currentFood['thumbImg'] as String? ?? 'assets/progress/nutrition/food_oatmeal.png',
-                                          width: double.infinity,
-                                          height: 95,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => const Center(
-                                            child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
-                                          ),
-                                        )
-                                      : const Center(
-                                          child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
-                                        ),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFEF3C7),
+                                  child: Image.asset(
+                                    currentFood?['thumbImg'] as String? ?? 'assets/progress/nutrition/food_oatmeal.png',
+                                    width: double.infinity,
+                                    height: 95,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => const Center(
+                                      child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -195,7 +201,7 @@ class ProgressScreen extends StatelessWidget {
                                             style: GoogleFonts.poppins(
                                               fontSize: 13.5,
                                               fontWeight: FontWeight.w700,
-                                              color: const Color(0xFF0F172A),
+                                              color: textPrimary,
                                             ),
                                           ),
                                         ),
@@ -238,12 +244,14 @@ class ProgressScreen extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFEFBEA),
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEFBEA),
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: const Color(0xFFFDF5CF)),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFFDF5CF),
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                                 blurRadius: 10,
                                 offset: const Offset(0, 3),
                               ),
@@ -258,20 +266,16 @@ class ProgressScreen extends StatelessWidget {
                                 child: Container(
                                   height: 95,
                                   width: double.infinity,
-                                  color: const Color(0xFFE0F2FE),
-                                  child: currentDrink != null
-                                      ? Image.asset(
-                                          currentDrink['thumbImg'] as String? ?? 'assets/progress/nutrition/drink_infused_lemon.png',
-                                          width: double.infinity,
-                                          height: 95,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => const Center(
-                                            child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
-                                          ),
-                                        )
-                                      : const Center(
-                                          child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
-                                        ),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
+                                  child: Image.asset(
+                                    currentDrink?['thumbImg'] as String? ?? 'assets/progress/nutrition/drink_infused_lemon.png',
+                                    width: double.infinity,
+                                    height: 95,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => const Center(
+                                      child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -289,7 +293,7 @@ class ProgressScreen extends StatelessWidget {
                                             style: GoogleFonts.poppins(
                                               fontSize: 13.5,
                                               fontWeight: FontWeight.w700,
-                                              color: const Color(0xFF0F172A),
+                                              color: textPrimary,
                                             ),
                                           ),
                                         ),
@@ -328,7 +332,7 @@ class ProgressScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+                    color: textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -337,11 +341,12 @@ class ProgressScreen extends StatelessWidget {
                 _buildFeatureTile(
                   iconImg: 'assets/progress/clean/icon_salad.png',
                   iconFallback: Icons.eco_outlined,
-                  iconBg: const Color(0xFFE2F1E8),
-                  iconColor: const Color(0xFF36785A),
+                  iconBg: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
+                  iconColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
                   title: 'Makanan & Minuman',
                   desc: 'Pantau asupan nutrisi seimbang dan kalori harianmu.',
                   isHighlighted: true,
+                  isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -356,11 +361,12 @@ class ProgressScreen extends StatelessWidget {
                 _buildFeatureTile(
                   iconImg: 'assets/progress/clean/icon_shoe.png',
                   iconFallback: Icons.directions_run_rounded,
-                  iconBg: const Color(0xFFE0F2FE),
-                  iconColor: const Color(0xFF0284C7),
+                  iconBg: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
+                  iconColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
                   title: 'Aktivitas Fisik',
                   desc: 'Panduan olahraga, durasi & rekomendasi aktivitas fisik harian.',
                   isHighlighted: true,
+                  isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const PhysicalActivityScreen()),
@@ -369,29 +375,30 @@ class ProgressScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
 
-            // Feature 3: Waktu Istirahat
-            _buildFeatureTile(
-              iconImg: 'assets/progress/clean/icon_bed.png',
-              iconFallback: Icons.bedtime_outlined,
-              iconBg: const Color(0xFFF3E8FF),
-              iconColor: const Color(0xFF7E22CE),
-              title: 'Waktu Istirahat',
-              desc: 'Cek kualitas tidur 7-8 jam dan durasi istirahatmu.',
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const RestRecommendationScreen()),
-                );
-              },
-            ),
+                // Feature 3: Waktu Istirahat
+                _buildFeatureTile(
+                  iconImg: 'assets/progress/clean/icon_bed.png',
+                  iconFallback: Icons.bedtime_outlined,
+                  iconBg: isDark ? const Color(0xFF0F172A) : const Color(0xFFF3E8FF),
+                  iconColor: isDark ? const Color(0xFFC084FC) : const Color(0xFF7E22CE),
+                  title: 'Waktu Istirahat',
+                  desc: 'Cek kualitas tidur 7-8 jam dan durasi istirahatmu.',
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const RestRecommendationScreen()),
+                    );
+                  },
+                ),
 
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        );
+      },
     );
-  },
-);
-}
+  }
 
   Widget _buildFeatureTile({
     required String iconImg,
@@ -402,18 +409,26 @@ class ProgressScreen extends StatelessWidget {
     required String desc,
     required VoidCallback onTap,
     bool isHighlighted = false,
+    bool isDark = false,
   }) {
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark
+        ? (isHighlighted ? const Color(0xFF58AF86).withValues(alpha: 0.5) : const Color(0xFF334155))
+        : (isHighlighted ? const Color(0xFF36785A).withValues(alpha: 0.4) : const Color(0xFFE2E8F0));
+    final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isHighlighted ? const Color(0xFF36785A).withValues(alpha: 0.4) : const Color(0xFFE2E8F0),
+          color: cardBorder,
           width: isHighlighted ? 1.3 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: isHighlighted ? const Color(0xFF36785A).withValues(alpha: 0.08) : const Color(0xFF0F172A).withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -453,7 +468,7 @@ class ProgressScreen extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: titleColor,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -461,7 +476,7 @@ class ProgressScreen extends StatelessWidget {
                         desc,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
-                          color: const Color(0xFF64748B),
+                          color: descColor,
                           height: 1.35,
                         ),
                       ),
@@ -471,7 +486,9 @@ class ProgressScreen extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: isHighlighted ? const Color(0xFF36785A) : const Color(0xFF94A3B8),
+                  color: isHighlighted
+                      ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                      : const Color(0xFF94A3B8),
                 ),
               ],
             ),
