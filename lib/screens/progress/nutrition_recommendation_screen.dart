@@ -68,17 +68,13 @@ class _NutritionRecommendationScreenState
   }
 
   List<Map<String, dynamic>> get _filteredItems {
-    final all = NutritionService.allItems;
     switch (_currentFilter) {
       case NutritionFilter.food:
-        return all.where((it) => it['type'] == 'food').toList();
+        return NutritionService.instance.getFoodItems();
       case NutritionFilter.drink:
-        return all.where((it) => it['type'] == 'drink').toList();
+        return NutritionService.instance.getDrinkItems();
       case NutritionFilter.all:
-        // 4 Makanan followed by 4 Minuman
-        final foods = all.where((it) => it['type'] == 'food').toList();
-        final drinks = all.where((it) => it['type'] == 'drink').toList();
-        return [...foods, ...drinks];
+        return NutritionService.instance.getAllItems();
     }
   }
 

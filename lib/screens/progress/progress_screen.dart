@@ -5,7 +5,7 @@ import '../../services/nutrition_service.dart';
 import 'physical_activity_screen.dart';
 import 'rest_recommendation_screen.dart';
 import 'nutrition_recommendation_screen.dart';
-import 'nutrition_detail_screen.dart';
+import 'saved_nutrition_list_screen.dart';
 
 class ProgressScreen extends StatelessWidget {
   final UserModel user;
@@ -137,7 +137,7 @@ class ProgressScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => NutritionDetailScreen(item: currentFood),
+                              builder: (_) => const SavedNutritionListScreen(isFood: true),
                             ),
                           );
                         },
@@ -165,15 +165,19 @@ class ProgressScreen extends StatelessWidget {
                                   height: 95,
                                   width: double.infinity,
                                   color: const Color(0xFFFEF3C7),
-                                  child: Image.asset(
-                                    currentFood['thumbImg'] as String? ?? 'assets/progress/nutrition/food_oatmeal.png',
-                                    width: double.infinity,
-                                    height: 95,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => const Center(
-                                      child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
-                                    ),
-                                  ),
+                                  child: currentFood != null
+                                      ? Image.asset(
+                                          currentFood['thumbImg'] as String? ?? 'assets/progress/nutrition/food_oatmeal.png',
+                                          width: double.infinity,
+                                          height: 95,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => const Center(
+                                            child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
+                                        ),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -200,7 +204,9 @@ class ProgressScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      currentFood['title'] as String? ?? 'Oatmeal + Pisang + Almond',
+                                      currentFood != null
+                                          ? (currentFood['title'] as String? ?? 'Oatmeal + Pisang + Almond')
+                                          : 'Belum ada menu',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.poppins(
@@ -225,7 +231,7 @@ class ProgressScreen extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => NutritionDetailScreen(item: currentDrink),
+                              builder: (_) => const SavedNutritionListScreen(isFood: false),
                             ),
                           );
                         },
@@ -253,15 +259,19 @@ class ProgressScreen extends StatelessWidget {
                                   height: 95,
                                   width: double.infinity,
                                   color: const Color(0xFFE0F2FE),
-                                  child: Image.asset(
-                                    currentDrink['thumbImg'] as String? ?? 'assets/progress/nutrition/drink_infused_lemon.png',
-                                    width: double.infinity,
-                                    height: 95,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => const Center(
-                                      child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
-                                    ),
-                                  ),
+                                  child: currentDrink != null
+                                      ? Image.asset(
+                                          currentDrink['thumbImg'] as String? ?? 'assets/progress/nutrition/drink_infused_lemon.png',
+                                          width: double.infinity,
+                                          height: 95,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => const Center(
+                                            child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
+                                        ),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -288,7 +298,9 @@ class ProgressScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      currentDrink['title'] as String? ?? 'Infused Water Lemon',
+                                      currentDrink != null
+                                          ? (currentDrink['title'] as String? ?? 'Infused Water Lemon')
+                                          : 'Belum ada menu',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.poppins(

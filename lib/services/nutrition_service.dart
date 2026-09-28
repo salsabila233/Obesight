@@ -214,27 +214,66 @@ class NutritionService extends ChangeNotifier {
     },
   ];
 
-  // Current active / saved items
-  Map<String, dynamic> _myFood = allItems[0]; // Default: Oatmeal + Pisang + Almond
-  Map<String, dynamic> _myDrink = allItems[7]; // Default: Infused Water Lemon
+  // ================= Backend Data Filtering Providers =================
+  List<Map<String, dynamic>> getAllItems() {
+    final foods = allItems.where((it) => it['type'] == 'food').toList();
+    final drinks = allItems.where((it) => it['type'] == 'drink').toList();
+    return [...foods, ...drinks];
+  }
 
-  final Set<String> _savedItemIds = {'food_oatmeal', 'drink_infused_lemon'};
+  List<Map<String, dynamic>> getFoodItems() {
+    return allItems.where((it) => it['type'] == 'food').toList();
+  }
 
-  Map<String, dynamic> get myFood => _myFood;
-  Map<String, dynamic> get myDrink => _myDrink;
-  Set<String> get savedItemIds => _savedItemIds;
+  List<Map<String, dynamic>> getDrinkItems() {
+    return allItems.where((it) => it['type'] == 'drink').toList();
+  }
 
-  bool isSaved(String id) => _savedItemIds.contains(id);
+  // ================= Saved Items (Makananku & Minumanku) =================
+  final List<Map<String, dynamic>> _myFoods = [
+    allItems[0], // Default: Oatmeal + Pisang + Almond
+  ];
+  final List<Map<String, dynamic>> _myDrinks = [
+    allItems[7], // Default: Infused Water Lemon
+  ];
+
+  List<Map<String, dynamic>> get myFoods => List.unmodifiable(_myFoods);
+  List<Map<String, dynamic>> get myDrinks => List.unmodifiable(_myDrinks);
+
+  Map<String, dynamic>? get myFood => _myFoods.isNotEmpty ? _myFoods.last : null;
+  Map<String, dynamic>? get myDrink => _myDrinks.isNotEmpty ? _myDrinks.last : null;
+
+  Set<String> get savedItemIds => {
+        ..._myFoods.map((f) => f['id'] as String),
+        ..._myDrinks.map((d) => d['id'] as String),
+      };
+
+  bool isFoodSaved(String id) => _myFoods.any((f) => f['id'] == id);
+  bool isDrinkSaved(String id) => _myDrinks.any((d) => d['id'] == id);
+  bool isSaved(String id) => isFoodSaved(id) || isDrinkSaved(id);
 
   void addFood(Map<String, dynamic> item) {
-    _myFood = item;
-    _savedItemIds.add(item['id'] as String);
+    if (!isFoodSaved(item['id'] as String)) {
+      _myFoods.add(item);
+      notifyListeners();
+    }
+  }
+
+  void removeFood(String id) {
+    _myFoods.removeWhere((item) => item['id'] == id);
     notifyListeners();
   }
 
   void addDrink(Map<String, dynamic> item) {
-    _myDrink = item;
-    _savedItemIds.add(item['id'] as String);
+    if (!isDrinkSaved(item['id'] as String)) {
+      _myDrinks.add(item);
+      notifyListeners();
+    }
+  }
+
+  void removeDrink(String id) {
+    _myDrinks.removeWhere((item) => item['id'] == id);
     notifyListeners();
   }
 }
+

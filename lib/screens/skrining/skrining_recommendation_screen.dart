@@ -118,23 +118,31 @@ class SkriningRecommendationScreen extends StatelessWidget {
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      'Hasil: ',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: textMuted,
+                                    Expanded(
+                                      child: RichText(
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        text: TextSpan(
+                                          text: 'Hasil: ',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                            color: textMuted,
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                              text: rec.categoryDisplayName,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: _getCategoryColor(activeCategory),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    Text(
-                                      rec.categoryDisplayName,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: _getCategoryColor(activeCategory),
-                                      ),
-                                    ),
-                                    const Spacer(),
+                                    const SizedBox(width: 6),
                                     Text(
                                       rec.imtRange,
                                       style: GoogleFonts.poppins(
@@ -267,7 +275,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Lanjutkan Sebagai Progress Button
+                        // Lanjutkan Sebagai Progres Button
                         Expanded(
                           flex: 2,
                           child: ElevatedButton(
@@ -282,7 +290,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              'Lanjutkan sebagai progress',
+                              'Lanjutkan sebagai progres',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
@@ -415,7 +423,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                 // Question Text
                 Text(
-                  'Apakah Anda ingin menyimpan\nrekomendasi sebagai progres/\ntarget?',
+                  'Apakah Anda ingin melanjutkan\nrekomendasi sebagai progres?',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 14.5,
@@ -427,7 +435,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                 const SizedBox(height: 22),
 
-                // Two Action Buttons: "Tidak" & "Simpan"
+                // Two Action Buttons: "Tidak" & "YA"
                 Row(
                   children: [
                     // Tidak Button
@@ -453,7 +461,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Simpan Button
+                    // YA Button (Hijau)
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
@@ -473,7 +481,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      'Rekomendasi berhasil disimpan!',
+                                      'Rekomendasi berhasil dilanjutkan sebagai progres!',
                                       style: GoogleFonts.poppins(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
@@ -501,7 +509,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryGreen,
+                          backgroundColor: const Color(0xFF2E7D5B),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -510,10 +518,10 @@ class SkriningRecommendationScreen extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'Simpan',
+                          'YA',
                           style: GoogleFonts.poppins(
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                         ),

@@ -64,15 +64,29 @@ class _NutritionDetailScreenState extends State<NutritionDetailScreen>
     super.dispose();
   }
 
-  void _handleAddItem() {
+  void _handleToggleSaved() {
     final isFood = widget.item['type'] == 'food';
+    final itemId = widget.item['id'] as String;
+    final isSaved = isFood
+        ? NutritionService.instance.isFoodSaved(itemId)
+        : NutritionService.instance.isDrinkSaved(itemId);
 
-    if (isFood) {
-      NutritionService.instance.addFood(widget.item);
-      _triggerToast('Makanan berhasil disimpan!');
+    if (isSaved) {
+      if (isFood) {
+        NutritionService.instance.removeFood(itemId);
+        _triggerToast('Makanan dihapus dari Makananku');
+      } else {
+        NutritionService.instance.removeDrink(itemId);
+        _triggerToast('Minuman dihapus dari Minumanku');
+      }
     } else {
-      NutritionService.instance.addDrink(widget.item);
-      _triggerToast('Minuman berhasil disimpan!');
+      if (isFood) {
+        NutritionService.instance.addFood(widget.item);
+        _triggerToast('Makanan berhasil disimpan!');
+      } else {
+        NutritionService.instance.addDrink(widget.item);
+        _triggerToast('Minuman berhasil disimpan!');
+      }
     }
   }
 
@@ -351,29 +365,45 @@ class _NutritionDetailScreenState extends State<NutritionDetailScreen>
 
                       const SizedBox(height: 32),
 
-                      // 6. Tombol Full-Width Hijau di Bagian Bawah
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF36785A),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      // 6. Tombol Full-Width di Bagian Bawah (Tambah / Hapus)
+                      ListenableBuilder(
+                        listenable: NutritionService.instance,
+                        builder: (context, _) {
+                          final itemId = widget.item['id'] as String;
+                          final isSaved = isFood
+                              ? NutritionService.instance.isFoodSaved(itemId)
+                              : NutritionService.instance.isDrinkSaved(itemId);
+
+                          final buttonText = isSaved
+                              ? (isFood ? 'Hapus Makananku' : 'Hapus Minumanku')
+                              : (isFood ? 'Tambah sebagai makananku' : 'Tambah sebagai minumanku');
+
+                          final buttonColor = isSaved ? const Color(0xFFDC2626) : const Color(0xFF36785A);
+
+                          return SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: buttonColor,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: _handleToggleSaved,
+                              child: Text(
+                                buttonText,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-                          onPressed: _handleAddItem,
-                          child: Text(
-                            isFood ? 'Tambah sebagai makananku' : 'Tambah sebagai Minumanku',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ],
                   ),
