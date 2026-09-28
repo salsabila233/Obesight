@@ -74,6 +74,7 @@ flutter:
     - assets/progress/clean/
     - assets/progress/
     - assets/progress/rest/
+    - assets/progress/nutrition/
 
 flutter_launcher_icons:
   android: true
