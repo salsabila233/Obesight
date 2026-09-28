@@ -14,16 +14,6 @@ class HealthArticleListScreen extends StatefulWidget {
 class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedCategory = 'Semua';
-
-  final List<String> _categories = [
-    'Semua',
-    'Pola Makan & Nutrisi',
-    'Panduan Gizi',
-    'Aktivitas Fisik',
-    'Klinis & Medis',
-    'Gaya Hidup',
-  ];
 
   @override
   void dispose() {
@@ -41,10 +31,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredArticles = ArticleService().searchArticles(
-      _searchQuery,
-      category: _selectedCategory,
-    );
+    final filteredArticles = ArticleService().searchArticles(_searchQuery);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF9),
@@ -102,7 +89,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'EDUKASI OBESITAS',
+                          'EDUKASI KESEHATAN',
                           style: GoogleFonts.poppins(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w700,
@@ -113,7 +100,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Yuk, Kenali Pola Hidup Sehat untuk Cegah Obesitas',
+                        'Informasi & Panduan Gaya Hidup Sehat',
                         style: GoogleFonts.poppins(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
@@ -123,7 +110,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Temukan informasi gizi, aktivitas, dan pencegahan komplikasi medis secara tepat.',
+                        'Temukan wawasan gizi, pola makan, kualitas tidur, dan aktivitas fisik untuk pencegahan obesitas.',
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           color: const Color(0xFF375347),
@@ -203,44 +190,9 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          // Category Chips Horizontal List
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: _categories.map((cat) {
-                final isSelected = _selectedCategory == cat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    labelStyle: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: isSelected ? Colors.white : const Color(0xFF475569),
-                    ),
-                    selectedColor: const Color(0xFF36785A),
-                    backgroundColor: Colors.white,
-                    side: BorderSide(
-                      color: isSelected ? const Color(0xFF36785A) : const Color(0xFFE2E8F0),
-                    ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() => _selectedCategory = cat);
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Article Cards List
+          // Article Cards List (Image with Title underneath / modern clean cards)
           if (filteredArticles.isEmpty)
             Container(
               padding: const EdgeInsets.all(32),
@@ -260,7 +212,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tidak ada artikel yang cocok dengan filter pencarian.',
+                    'Tidak ada artikel yang cocok dengan kata kunci pencarian.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B)),
                   ),
@@ -268,17 +220,14 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                   OutlinedButton(
                     onPressed: () {
                       _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                        _selectedCategory = 'Semua';
-                      });
+                      setState(() => _searchQuery = '');
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF36785A),
                       side: const BorderSide(color: Color(0xFF36785A)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: Text('Reset Filter', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text('Reset Pencarian', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -288,97 +237,91 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
               return GestureDetector(
                 onTap: () => _openArticleDetail(art),
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: const Color(0xFFE8EEF3)),
                     boxShadow: const [
                       BoxShadow(
-                        color: Color(0x08000000),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
+                        color: Color(0x0A000000),
+                        blurRadius: 10,
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Thumbnail
-                      Container(
-                        width: 95,
-                        height: 95,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [art.headerColor, art.headerColor.withValues(alpha: 0.7)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                      // Gambar Artikel di bagian atas kartu
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Image.asset(
+                            art.imageAsset,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: art.headerColor.withValues(alpha: 0.2),
+                              child: Center(
+                                child: Icon(art.icon, size: 48, color: art.headerColor),
+                              ),
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Center(
-                          child: Icon(art.icon, color: Colors.white, size: 38),
                         ),
                       ),
-                      const SizedBox(width: 14),
 
-                      // Info
-                      Expanded(
+                      // Konten di bawah gambar (Judul, Snippet, Waktu Baca & Tombol Baca)
+                      Padding(
+                        padding: const EdgeInsets.all(14),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE2F1E8),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                art.category,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2E6B4F),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 5),
+                            // Judul di bawah gambar
                             Text(
                               art.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
-                                fontSize: 13,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: const Color(0xFF0F172A),
                                 height: 1.3,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
+
+                            // Snippet / Ringkasan
                             Text(
                               art.snippet,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: const Color(0xFF64748B),
-                                height: 1.35,
+                                height: 1.4,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 12),
+
+                            // Footer Info (Waktu Baca & Tombol Baca)
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  art.readTime,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10.5,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF94A3B8)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      art.readTime,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        color: const Color(0xFF94A3B8),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF36785A),
                                     borderRadius: BorderRadius.circular(20),
@@ -387,15 +330,15 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        'Baca',
+                                        'Baca Artikel',
                                         style: GoogleFonts.poppins(
-                                          fontSize: 10.5,
+                                          fontSize: 11,
                                           fontWeight: FontWeight.w600,
                                           color: Colors.white,
                                         ),
                                       ),
-                                      const SizedBox(width: 3),
-                                      const Icon(Icons.arrow_forward_rounded, size: 12, color: Colors.white),
+                                      const SizedBox(width: 4),
+                                      const Icon(Icons.arrow_forward_rounded, size: 13, color: Colors.white),
                                     ],
                                   ),
                                 ),
