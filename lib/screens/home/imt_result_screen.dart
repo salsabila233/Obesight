@@ -92,66 +92,78 @@ class ImtResultScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Ilustrasi Wanita Berlari (Page 9 design asset)
-                              Image.asset(
-                                'assets/bmi_woman_running.png',
-                                width: 110,
-                                height: 130,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, _, _) => const SizedBox(
-                                  width: 100,
-                                  height: 120,
-                                  child: Icon(Icons.directions_run_rounded, size: 64, color: Colors.white70),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Angka Besar IMT
-                                    Text(
-                                      _formattedBmi,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 52,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                        letterSpacing: -1,
-                                        height: 1.1,
-                                      ),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 128,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Ilustrasi Wanita Berlari (Page 9 design asset) di sisi kiri
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Image.asset(
+                                    'assets/bmi_woman_running.png',
+                                    width: 84,
+                                    height: 114,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, _, _) => const SizedBox(
+                                      width: 72,
+                                      height: 96,
+                                      child: Icon(Icons.directions_run_rounded, size: 52, color: Colors.white70),
                                     ),
-                                    const SizedBox(height: 8),
+                                  ),
+                                ),
 
-                                    // Pill Badge Kategori
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Text(
-                                        category,
+                                // Angka Besar IMT & Pill Status Kategori persis di tengah simetris
+                                Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      // Angka Besar IMT
+                                      Text(
+                                        _formattedBmi,
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: primaryGreen,
+                                          fontSize: 52,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                          letterSpacing: -1,
+                                          height: 1.1,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 8),
+
+                                      // Pill Badge Kategori
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Text(
+                                          category,
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: primaryGreen,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -506,26 +518,29 @@ class _ImtCategoryBar extends StatelessWidget {
       child: Column(
         children: [
           // Badge Risiko Obesitas
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: badgeBorder),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.info_outline_rounded, size: 16, color: primaryGreen),
-                const SizedBox(width: 6),
-                Text(
-                  'Risiko Obesitas: $risk',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: badgeText,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: badgeBorder),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 16, color: primaryGreen),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Risiko Obesitas: $risk',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: badgeText,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 22),

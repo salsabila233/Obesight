@@ -13,7 +13,7 @@ import '../progress/physical_activity_screen.dart';
 import '../progress/screening_history_screen.dart';
 import '../article/health_article_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
-import 'bmi_calculation_screen.dart';
+import 'imt_form_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
@@ -139,7 +139,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   void _openBmiCalculationScreen() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BmiCalculationScreen(user: widget.user),
+        builder: (_) => ImtFormScreen(user: widget.user),
       ),
     );
     if (mounted) {
