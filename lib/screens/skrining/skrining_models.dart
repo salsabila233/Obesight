@@ -25,6 +25,14 @@ class SkriningData {
   String? alcohol; // 'Tidak pernah', 'Kadang-kadang', 'Sering', 'Selalu'
   String? transportation; // 'Jalan kaki', 'Sepeda', 'Motor', 'Mobil', 'Transportasi umum'
 
+  // Hasil Inferensi Model AI (Random Forest)
+  String? aiPredictedClass; // 'Normal_Weight', 'Obesity_Type_I', etc.
+  String? aiCategoryKey; // 'Normal', 'Overweight', 'Obesitas I', etc.
+  String? aiCategoryTitle; // 'Normal\nWeight', 'Overweight\nLevel I', etc.
+  String? aiCategoryBadge; // 'Berat badan dalam rentang ideal'
+  double? aiConfidence; // e.g. 85.0
+  Map<String, int>? aiVotes; // Distribusi suara 100 decision trees
+
   SkriningData({
     this.gender = 'Perempuan',
     this.age = 23,
@@ -42,6 +50,12 @@ class SkriningData {
     this.screenTime,
     this.alcohol,
     this.transportation,
+    this.aiPredictedClass,
+    this.aiCategoryKey,
+    this.aiCategoryTitle,
+    this.aiCategoryBadge,
+    this.aiConfidence,
+    this.aiVotes,
   });
 
   // Calculate BMI
@@ -58,7 +72,11 @@ class SkriningData {
   }
 
   // Official classification category key (PAPDI & KMK No. HK.01.07-MENKES-509-2025)
+  // Memprioritaskan hasil prediksi model Random Forest jika tersedia
   String get classificationCategory {
+    if (aiCategoryKey != null && aiCategoryKey!.isNotEmpty) {
+      return aiCategoryKey!;
+    }
     final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Underweight';
@@ -75,8 +93,11 @@ class SkriningData {
     }
   }
 
-  // Category title matching UI reference
+  // Category title matching UI reference (prioritas hasil Random Forest)
   String get categoryTitle {
+    if (aiCategoryTitle != null && aiCategoryTitle!.isNotEmpty) {
+      return aiCategoryTitle!;
+    }
     final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Underweight\nLevel I';
@@ -95,6 +116,9 @@ class SkriningData {
 
   // Category badge matching UI reference
   String get categoryBadge {
+    if (aiCategoryBadge != null && aiCategoryBadge!.isNotEmpty) {
+      return aiCategoryBadge!;
+    }
     final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Berat badan di bawah rentang ideal';

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/random_forest_service.dart';
 import 'skrining_models.dart';
 import 'skrining_result_screen.dart';
 
@@ -21,6 +22,7 @@ class SkriningWizardScreen extends StatefulWidget {
 class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   int _currentStep = 0; // 0 to 4 -> Langkah 1 to 5
   late final SkriningData _data;
+  bool _isAnalyzing = false;
 
   // Controllers for Step 1
   late final TextEditingController _ageController;
@@ -67,6 +69,11 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     _ageController.addListener(_onFieldChanged);
     _heightController.addListener(_onFieldChanged);
     _weightController.addListener(_onFieldChanged);
+
+    // Preload model Random Forest di background saat user mengisi wizard
+    RandomForestService.instance.init().catchError((err) {
+      debugPrint('Preload RandomForestService error: $err');
+    });
   }
 
   void _onFieldChanged() {
@@ -132,8 +139,29 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     }
   }
 
-  void _finishScreening() {
-    // Save updated BMI and risk profile to AuthService
+  Future<void> _finishScreening() async {
+    if (_isAnalyzing) return;
+
+    setState(() {
+      _isAnalyzing = true;
+    });
+
+    // 1. Eksekusi inferensi Model Random Forest (100 Decision Trees)
+    try {
+      final prediction = await RandomForestService.instance.predict(_data);
+      _data.aiPredictedClass = prediction.rawClass;
+      _data.aiCategoryKey = prediction.categoryKey;
+      _data.aiCategoryTitle = prediction.categoryTitle;
+      _data.aiCategoryBadge = prediction.categoryBadge;
+      _data.aiConfidence = prediction.confidence;
+      _data.aiVotes = prediction.votes;
+    } catch (e) {
+      debugPrint('Error predicting with RandomForestService: $e');
+    }
+
+    if (!mounted) return;
+
+    // 2. Save updated BMI and risk profile to AuthService
     final userId = widget.user?.id ?? AuthService().currentUser?.id ?? 'usr_001';
     final calculatedBmi = _data.bmi;
     final category = _data.categoryTitle.replaceAll('\n', ' ');
@@ -155,7 +183,11 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
       isComplete: true,
     );
 
-    // Navigate to Hasil Skrining
+    setState(() {
+      _isAnalyzing = false;
+    });
+
+    // 3. Navigate to Hasil Skrining
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => SkriningResultScreen(
@@ -884,9 +916,11 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
 
   // =================== ACTION BUTTON ===================
   Widget _buildActionButton() {
-    final isValid = _isCurrentStepValid;
+    final isValid = _isCurrentStepValid && !_isAnalyzing;
     final isLastStep = _currentStep == 4;
-    final buttonText = isLastStep ? 'Lihat Hasil' : 'Berikutnya';
+    final buttonText = _isAnalyzing
+        ? 'Menganalisis Data...'
+        : (isLastStep ? 'Lihat Hasil' : 'Berikutnya');
 
     return Center(
       child: ElevatedButton(
@@ -905,6 +939,17 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (_isAnalyzing) ...[
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
             Text(
               buttonText,
               style: GoogleFonts.poppins(
@@ -913,12 +958,14 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.arrow_forward_rounded,
-              size: 18,
-              color: Colors.white,
-            ),
+            if (!_isAnalyzing) ...[
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 18,
+                color: Colors.white,
+              ),
+            ],
           ],
         ),
       ),

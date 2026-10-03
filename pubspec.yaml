@@ -79,6 +79,7 @@ flutter:
     - assets/progress/
     - assets/progress/rest/
     - assets/progress/nutrition/
+    - assets/obesight_model.json
 
 flutter_launcher_icons:
   android: true
