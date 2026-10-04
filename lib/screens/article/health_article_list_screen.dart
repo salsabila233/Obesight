@@ -183,7 +183,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                       color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Cari topik atau artikel...',
+                      hintText: 'Cari judul artikel...',
                       hintStyle: GoogleFonts.poppins(
                         color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                       ),

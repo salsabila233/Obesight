@@ -175,9 +175,7 @@ class ArticleService {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return _articles;
     return _articles.where((art) {
-      return art.title.toLowerCase().contains(q) ||
-          art.snippet.toLowerCase().contains(q) ||
-          art.content.toLowerCase().contains(q);
+      return art.title.toLowerCase().contains(q);
     }).toList();
   }
 }
