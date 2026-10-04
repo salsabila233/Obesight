@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/google_account_picker_sheet.dart';
 import '../home/admin_home_screen.dart';
 import '../home/user_home_screen.dart';
 import '../profile/complete_profile_screen.dart';
@@ -150,15 +149,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    // 1. Google Sign-In Asli dengan Firebase Auth & Cloud Firestore
+    // Panggil langsung Google Sign-In resmi native bawaan perangkat
     final response = await _authService.signInWithGoogle();
 
     if (!mounted) return;
 
+    setState(() {
+      _isLoading = false;
+    });
+
     if (response.isSuccess && response.user != null) {
-      setState(() {
-        _isLoading = false;
-      });
       final signedUser = response.user!;
       if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
         Navigator.of(context).pushAndRemoveUntil(
@@ -184,66 +184,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = false;
-    });
-
-    // 2. Fallback picker
-    final suggestedEmail = _emailController.text.trim();
-    final suggestedName = _nameController.text.trim();
-
-    final selectedAccount = await GoogleAccountPickerSheet.show(
-      context,
-      suggestedEmail: suggestedEmail.isNotEmpty ? suggestedEmail : null,
-      suggestedName: suggestedName.isNotEmpty ? suggestedName : null,
-    );
-
-    if (selectedAccount != null && mounted) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      final pickerResponse = await _authService.loginWithGoogleAccount(selectedAccount);
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (pickerResponse.isSuccess && pickerResponse.user != null) {
-        final pickerUser = pickerResponse.user!;
-        if (!pickerUser.hasCompletedRequiredProfile && !pickerUser.isAdmin) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => CompleteProfileScreen(
-                user: pickerUser,
-                isGatedFlow: false,
-                redirectToHomeAfterSave: true,
-              ),
-            ),
-            (route) => false,
-          );
-        } else {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => pickerUser.isAdmin
-                  ? AdminHomeScreen(user: pickerUser)
-                  : UserHomeScreen(user: pickerUser),
-            ),
-            (route) => false,
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              pickerResponse.errorMessage ?? 'Gagal masuk dengan akun Google',
-              style: GoogleFonts.poppins(fontSize: 13),
-            ),
-            backgroundColor: Colors.red.shade700,
+    if (response.errorMessage != null &&
+        !response.errorMessage!.contains('dibatalkan')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            response.errorMessage!,
+            style: GoogleFonts.poppins(fontSize: 13),
           ),
-        );
-      }
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 

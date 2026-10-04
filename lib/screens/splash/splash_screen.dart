@@ -3,13 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 import '../auth/welcome_screen.dart';
 
-/// Halaman Splash Screen Multi-Tahap (5 Frame):
-/// 1. Splash 1 (Tahap Awal): Background hijau tua, logo berukuran kecil di tengah layar.
-/// 2. Splash 2-4 (Tahap Transisi): Background berubah menjadi putih bersih.
-///    Logo melakukan animasi pulse/zoom-in lembut berulang kali menggunakan [_scaleController].
-/// 3. Splash 5 (Tahap Akhir): Logo berhenti pada skala stabil, lalu teks "ObeSight" muncul
-///    di sebelah kanan logo menggunakan [FadeTransition] yang digerakkan oleh [_textController].
-/// 4. Navigasi: Berpindah ke Welcome Screen menggunakan [Navigator.pushReplacement].
+/// Halaman Splash Screen Dua Tahap:
+/// 1. Tahap 1: Latar belakang hijau tua (AppColors.darkGreen) dengan logo di tengah.
+/// 2. Tahap 2: Latar belakang bertransisi mulus menjadi putih bersih (Colors.white),
+///    lalu teks merek "ObeSight" muncul di sebelah kanan logo dengan fade-in halus.
+/// 3. Navigasi: Bertransisi halus ke WelcomeScreen (halaman Login).
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -19,44 +17,44 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  // 1. Controller untuk efek skala / pulse logo
+  // Controller animasi pulse/scale logo
   late final AnimationController _scaleController;
   late final Animation<double> _scaleAnimation;
 
-  // 2. Controller terpisah untuk kemunculan (fade in) teks "ObeSight"
+  // Controller animasi kemunculan teks "ObeSight"
   late final AnimationController _textController;
   late final Animation<double> _textFadeAnimation;
 
-  // 3. Controller untuk animasi melayang (antigravity) naik-turun halus
+  // Controller animasi floating halus (antigravity naik-turun)
   late final AnimationController _floatingController;
   late final Animation<double> _floatingAnimation;
 
   // State tampilan & tahapan
-  Color _backgroundColor = AppColors.darkGreen; // Hijau tua awal (Splash 1)
-  bool _showText = false; // Pengontrol kemunculan teks di sebelah kanan logo
+  Color _backgroundColor = AppColors.darkGreen;
+  bool _showText = false;
   bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Inisialisasi AnimationController 1: Efek Skala (Zoom-In / Pulse) Logo
+    // 1. Controller Skala Logo
     _scaleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 600),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
         parent: _scaleController,
-        curve: Curves.easeInOut,
+        curve: Curves.easeOutBack,
       ),
     );
 
-    // Inisialisasi AnimationController 2: Fade-In Teks Brand
+    // 2. Controller Fade Teks Brand
     _textController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 700),
     );
 
     _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -66,78 +64,54 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Inisialisasi AnimationController 3: Efek Melayang (Antigravity Naik-Turun)
+    // 3. Controller Efek Melayang Halus
     _floatingController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
 
-    _floatingAnimation = Tween<double>(begin: -5.0, end: 5.0).animate(
+    _floatingAnimation = Tween<double>(begin: -4.0, end: 4.0).animate(
       CurvedAnimation(
         parent: _floatingController,
         curve: Curves.easeInOutSine,
       ),
     );
 
-    // Jalankan urutan animasi multi-tahap
     _startSplashSequence();
   }
 
-  /// Mengatur alur tahapan animasi menggunakan Future.delayed
   Future<void> _startSplashSequence() async {
-    // -------------------------------------------------------------
-    // Tahap Awal (Splash 1):
-    // Layar dimulai dengan background penuh berwarna hijau tua.
-    // Logo muncul kecil di tengah.
-    // -------------------------------------------------------------
+    // Jalankan animasi skala awal logo di layar hijau tua
+    _scaleController.forward();
+
+    // Tampilkan fase hijau tua selama 1.2 detik
     await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
 
-    // -------------------------------------------------------------
-    // Tahap Transisi (Splash 2 - 4):
-    // Latar belakang berubah menjadi putih bersih.
-    // Logo melakukan animasi zoom-in/pulse (membesar dan mengecil berulang kali).
-    // -------------------------------------------------------------
+    // Transisi latar belakang menjadi putih bersih
     setState(() {
       _backgroundColor = Colors.white;
     });
 
-    // Menjalankan animasi pulse berulang secara bolak-balik
-    _scaleController.repeat(reverse: true);
-
-    // Jeda waktu agar efek pulse terlihat selama beberapa siklus
-    await Future.delayed(const Duration(milliseconds: 2200));
+    // Jeda sejenak untuk transisi warna
+    await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
 
-    // -------------------------------------------------------------
-    // Tahap Akhir (Splash 5):
-    // Logo berhenti pada skala stabil tertentu (skala 1.0 = nilai tengah 0.5 tween).
-    // Teks "ObeSight" berwarna hijau muncul di kanan logo via FadeTransition.
-    // -------------------------------------------------------------
-    _scaleController.stop();
-    await _scaleController.animateTo(
-      0.5, // 0.8 + 0.5 * (1.2 - 0.8) = 1.0 (skala normal)
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
-    if (!mounted) return;
-
-    // Tampilkan teks dan mulai animasi fade in
+    // Munculkan teks merek "ObeSight" di samping logo
     setState(() {
       _showText = true;
     });
     await _textController.forward();
     if (!mounted) return;
 
-    // Jeda waktu agar identitas merek dapat dibaca oleh pengguna
-    await Future.delayed(const Duration(milliseconds: 1400));
+    // Tampilkan brand identity lengkap di latar putih selama 1.5 detik
+    await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
-    // Navigasi ke halaman utama / Login
+    // Masuk ke halaman Welcome / Login
     _navigateToNextScreen();
   }
 
-  /// Melakukan navigasi aman ke halaman berikutnya (Welcome Screen)
   void _navigateToNextScreen() {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
@@ -150,14 +124,13 @@ class _SplashScreenState extends State<SplashScreen>
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
-        transitionDuration: const Duration(milliseconds: 600),
+        transitionDuration: const Duration(milliseconds: 500),
       ),
     );
   }
 
   @override
   void dispose() {
-    // Pastikan ketiga AnimationController dilepas dari memori
     _scaleController.dispose();
     _textController.dispose();
     _floatingController.dispose();
@@ -182,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 1. Logo dengan ScaleTransition & Smooth Floating Antigravity
+                // 1. Logo ObeSight dengan animasi Scale & Floating
                 AnimatedBuilder(
                   animation: _floatingController,
                   builder: (context, child) {
@@ -204,7 +177,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                // 2. Teks "ObeSight" berwarna hijau dengan FadeTransition
+                // 2. Teks "ObeSight" berwarna hijau saat latar menjadi putih
                 if (_showText) ...[
                   const SizedBox(width: 14),
                   FadeTransition(

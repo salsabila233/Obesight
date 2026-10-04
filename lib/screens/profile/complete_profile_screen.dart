@@ -16,8 +16,8 @@ class CompleteProfileScreen extends StatefulWidget {
   const CompleteProfileScreen({
     super.key,
     required this.user,
-    this.isGatedFlow = true,
-    this.redirectToHomeAfterSave = false,
+    this.isGatedFlow = false,
+    this.redirectToHomeAfterSave = true,
   });
 
   @override
@@ -46,8 +46,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     super.initState();
     final profile = _authService.getUserProfile(widget.user.id);
 
-    final initialName = profile['name']?.isNotEmpty == true ? profile['name']! : widget.user.name;
-    final initialEmail = profile['email']?.isNotEmpty == true ? profile['email']! : widget.user.email;
+    final initialName = widget.user.name.isNotEmpty && widget.user.name != 'Pengguna ObeSight'
+        ? widget.user.name
+        : (profile['name']?.isNotEmpty == true ? profile['name']! : widget.user.name);
+    final initialEmail = widget.user.email.isNotEmpty
+        ? widget.user.email
+        : (profile['email']?.isNotEmpty == true ? profile['email']! : widget.user.email);
     final initialDob = profile['dob'] ?? widget.user.dob ?? '';
     final initialGender = profile['gender'] ?? widget.user.gender;
     final initialPhone = profile['phone'] ?? widget.user.phone ?? '';
@@ -153,16 +157,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final gender = _selectedGender!;
     final phone = _phoneController.text.trim();
 
-    // 1. Simpan ke AuthService & Firestore users/{uid}
-    _authService.updateUserProfile(
+    // 1. Simpan secara asinkron ke AuthService & Cloud Firestore users/{uid}
+    await _authService.updateUserProfile(
       userId: widget.user.id,
       name: name,
       dob: dob,
       gender: gender,
       phone: phone,
     );
-
-    await Future.delayed(const Duration(milliseconds: 350));
 
     if (!mounted) return;
 
@@ -178,32 +180,38 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       isBiodataComplete: true,
     );
 
+    // 2. Tampilkan notifikasi sukses sebelum berpindah halaman
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
             const SizedBox(width: 8),
-            Text(
-              'Profil berhasil dilengkapi!',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            Expanded(
+              child: Text(
+                'Berhasil menyimpan profil',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+              ),
             ),
           ],
         ),
         backgroundColor: const Color(0xFF16A34A),
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
       ),
     );
 
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    // 3. Arahkan pengguna dengan aman (mencegah bug layar hitam yang timbul akibat pop ke rute kosong)
     if (widget.isGatedFlow) {
-      // Redirect langsung ke Skrining Landing Screen
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => SkriningLandingScreen(user: updatedUser),
         ),
       );
-    } else if (widget.redirectToHomeAfterSave || !Navigator.of(context).canPop()) {
-      // Redirect langsung ke Beranda sesuai akun yang sedang aktif
+    } else {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => updatedUser.isAdmin
@@ -212,8 +220,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         ),
         (route) => false,
       );
-    } else {
-      Navigator.of(context).pop(true);
     }
   }
 
@@ -542,16 +548,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           )
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                widget.isGatedFlow
-                                    ? 'Simpan & Lanjutkan ke Skrining'
-                                    : (widget.redirectToHomeAfterSave
-                                        ? 'Simpan & Masuk ke Beranda'
-                                        : 'Simpan Perubahan'),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
+                              Flexible(
+                                child: Text(
+                                  widget.isGatedFlow
+                                      ? 'Simpan & Lanjutkan ke Skrining'
+                                      : (widget.redirectToHomeAfterSave
+                                          ? 'Simpan & Masuk ke Beranda'
+                                          : 'Simpan Perubahan'),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -606,22 +616,26 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               symbol,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: symbolColor,
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? activeText : inactiveText,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? activeText : inactiveText,
+                ),
               ),
             ),
           ],

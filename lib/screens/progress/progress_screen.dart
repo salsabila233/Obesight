@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
+import '../../services/auth_service.dart';
 import '../../services/nutrition_service.dart';
 import '../../services/progress_tracking_service.dart';
+import '../profile/complete_profile_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 import 'nutrition_recommendation_screen.dart';
 import 'physical_activity_screen.dart';
@@ -409,7 +411,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
+                    final isComplete = await AuthService().checkProfileGating(widget.user.id);
+                    if (!mounted) return;
+                    if (!isComplete) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Lengkapi data diri terlebih dahulu sebelum melakukan skrining.',
+                            style: GoogleFonts.poppins(fontSize: 13),
+                          ),
+                          backgroundColor: const Color(0xFFD97706),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CompleteProfileScreen(
+                            user: widget.user,
+                            isGatedFlow: true,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => SkriningLandingScreen(user: widget.user),
@@ -506,12 +532,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       children: [
                         const Icon(Icons.date_range_rounded, size: 14, color: Color(0xFF36785A)),
                         const SizedBox(width: 4),
-                        Text(
-                          'Periode: ${service.formattedDateRange}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF36785A),
+                        Expanded(
+                          child: Text(
+                            'Periode: ${service.formattedDateRange}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF36785A),
+                            ),
                           ),
                         ),
                       ],
@@ -576,16 +604,22 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Total Target Dilakukan',
-                      style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                    Flexible(
+                      child: Text(
+                        'Total Target Dilakukan',
+                        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
+                      ),
                     ),
-                    Text(
-                      '${service.totalCompletedActions} dari ${service.totalTargetActions} Target Tercapai',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF36785A),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '${service.totalCompletedActions} dari ${service.totalTargetActions} Target Tercapai',
+                        textAlign: TextAlign.end,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF36785A),
+                        ),
                       ),
                     ),
                   ],
@@ -699,15 +733,19 @@ class _ProgressScreenState extends State<ProgressScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                ),
               ),
             ),
+            const SizedBox(width: 8),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   doneText,

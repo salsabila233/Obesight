@@ -26,11 +26,11 @@ void main() {
     expect(find.text('Selamat Datang Kembali\ndi ObeSight!'), findsOneWidget);
 
     // Verify Input Labels
-    expect(find.text('Nama Pengguna dan Email'), findsOneWidget);
+    expect(find.text('Email'), findsOneWidget);
     expect(find.text('Kata sandi'), findsOneWidget);
 
     // Verify Placeholders
-    expect(find.text('Masukkan nama pengguna dan email'), findsOneWidget);
+    expect(find.text('Masukkan email anda'), findsOneWidget);
     expect(find.text('Masukkan kata sandi'), findsOneWidget);
 
     // Verify Links & Buttons
@@ -62,7 +62,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     // Expect validation errors
-    expect(find.text('Nama pengguna atau email wajib diisi'), findsOneWidget);
+    expect(find.text('Email wajib diisi'), findsOneWidget);
     expect(find.text('Kata sandi wajib diisi'), findsOneWidget);
   });
 
@@ -161,7 +161,7 @@ void main() {
     expect(find.text('Total Pasien'), findsOneWidget);
   });
 
-  testWidgets('Google sign in opens account picker sheet', (WidgetTester tester) async {
+  testWidgets('Google sign in button exists and does not show custom mock account picker sheet', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.resetPhysicalSize);
@@ -176,60 +176,18 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    // Tap "Masuk dengan Google"
-    await tester.tap(find.text('Masuk dengan Google'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.pump(const Duration(milliseconds: 500));
-
-    // Expect Google Account Picker BottomSheet
-    expect(find.text('Masuk dengan Google'), findsWidgets);
-    expect(find.text('Zahra Fitriana'), findsOneWidget);
-    expect(find.text('Zahra Cantik'), findsOneWidget);
-    expect(find.text('Aku Zahra'), findsOneWidget);
-    expect(find.text('Gunakan akun lain'), findsOneWidget);
-    expect(find.text('Kembali'), findsOneWidget);
-
-    // Tap "Kembali" to dismiss
-    await tester.tap(find.text('Kembali'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-
-    // Verify user is back on login screen without error
-    expect(find.text('Masuk'), findsOneWidget);
-    expect(find.text('Email atau kata sandi salah'), findsNothing);
-  });
-
-  testWidgets('Google sign in selecting an account successfully enters UserHomeScreen', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.75;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.lightTheme,
-        home: const LoginScreen(),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    // Tombol "Masuk dengan Google" ada di layar
+    expect(find.text('Masuk dengan Google'), findsOneWidget);
 
     // Tap "Masuk dengan Google"
     await tester.tap(find.text('Masuk dengan Google'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
-    await tester.pump(const Duration(milliseconds: 500));
 
-    // Tap Zahra Fitriana account
-    await tester.tap(find.text('Zahra Fitriana'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.pump(const Duration(milliseconds: 500));
-
-    // Verify UserHomeScreen is displayed
-    expect(find.textContaining('Halo, Zahra'), findsOneWidget);
-    expect(find.text('Status Kesehatan'), findsOneWidget);
+    // Pastikan widget/sheet akun kustom ("Zahra Cantik", "Aku Zahra") TIDAK MUNCUL sama sekali
+    expect(find.text('Zahra Cantik'), findsNothing);
+    expect(find.text('Aku Zahra'), findsNothing);
+    expect(find.text('Gunakan akun lain'), findsNothing);
   });
 
   testWidgets('Invalid credentials error banner only appears when credentials are wrong, and auto-dismisses on typing', (WidgetTester tester) async {

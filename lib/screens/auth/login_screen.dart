@@ -7,7 +7,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/animated_illustration.dart';
 import '../../widgets/antigravity_floating.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../widgets/google_account_picker_sheet.dart';
+import '../profile/complete_profile_screen.dart';
 import '../home/admin_home_screen.dart';
 import '../home/user_home_screen.dart';
 import 'register_screen.dart';
@@ -119,52 +119,38 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       _isLoading = true;
     });
 
-    // 1. Coba Google Sign-In Asli dengan Firebase Auth & Cloud Firestore users/{uid}
+    // Panggil langsung Google Sign-In resmi native bawaan perangkat
     final response = await _authService.signInWithGoogle();
 
     if (!mounted) return;
-
-    if (response.isSuccess && response.user != null) {
-      setState(() {
-        _isLoading = false;
-      });
-      _navigateToDashboard(response.user!);
-      return;
-    }
 
     setState(() {
       _isLoading = false;
     });
 
-    // 2. Jika Google Sign-In asli dibatalkan atau berada di lingkungan tanpa Google Play Services,
-    // sediakan akun picker cadangan
-    final typedEmail = _emailController.text.trim();
-    final isEmail = typedEmail.contains('@');
-
-    final selectedAccount = await GoogleAccountPickerSheet.show(
-      context,
-      suggestedEmail: isEmail ? typedEmail : null,
-      suggestedName: !isEmail && typedEmail.isNotEmpty ? typedEmail : null,
-    );
-    if (selectedAccount != null && mounted) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      final pickerResponse = await _authService.loginWithGoogleAccount(selectedAccount);
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (pickerResponse.isSuccess && pickerResponse.user != null) {
-        _navigateToDashboard(pickerResponse.user!);
+    if (response.isSuccess && response.user != null) {
+      final user = response.user!;
+      if (!user.hasCompletedRequiredProfile && !user.isAdmin) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => CompleteProfileScreen(
+              user: user,
+              isGatedFlow: false,
+              redirectToHomeAfterSave: true,
+            ),
+          ),
+        );
       } else {
-        setState(() {
-          _authErrorMessage = pickerResponse.errorMessage ?? 'Gagal masuk dengan akun Google';
-        });
+        _navigateToDashboard(user);
       }
+      return;
+    }
+
+    if (response.errorMessage != null &&
+        !response.errorMessage!.contains('dibatalkan')) {
+      setState(() {
+        _authErrorMessage = response.errorMessage;
+      });
     }
   }
 

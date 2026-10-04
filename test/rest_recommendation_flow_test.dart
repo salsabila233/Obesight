@@ -34,10 +34,12 @@ void main() {
 
     // Verify Progress Screen elements
     expect(find.text('Progress'), findsOneWidget);
-    expect(find.text('Waktu Istirahat'), findsOneWidget);
-
     // 2. Click "Waktu Istirahat" -> Navigate to Rekomendasi Waktu Istirahat
-    await tester.tap(find.text('Waktu Istirahat'));
+    final waktuIstirahatFinder = find.text('Waktu Istirahat');
+    await tester.ensureVisible(waktuIstirahatFinder);
+    await tester.pumpAndSettle();
+    expect(waktuIstirahatFinder, findsOneWidget);
+    await tester.tap(waktuIstirahatFinder);
     await tester.pumpAndSettle();
 
     // Verify Rekomendasi Waktu Istirahat Screen elements

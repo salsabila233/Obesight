@@ -45,10 +45,10 @@ void main() {
       expect(foundOriginalIllustration, isTrue);
 
       // Buttons render
-      expect(find.text('Daftar'), findsOneWidget);
+      expect(find.text('Masuk'), findsOneWidget);
       expect(
         find.byWidgetPredicate(
-          (widget) => widget is RichText && widget.text.toPlainText().contains('Masuk'),
+          (widget) => widget is RichText && widget.text.toPlainText().contains('Daftar'),
         ),
         findsOneWidget,
       );

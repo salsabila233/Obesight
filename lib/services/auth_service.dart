@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,7 +27,15 @@ class AuthService {
 
   FirebaseAuth get _firebaseAuth => FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
-  GoogleSignIn get _googleSignIn => GoogleSignIn();
+  GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
+  GoogleSignIn get googleSignIn => _googleSignIn;
+
+  @visibleForTesting
+  set googleSignInInstance(GoogleSignIn instance) {
+    _googleSignIn = instance;
+  }
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
@@ -198,7 +205,7 @@ class AuthService {
   }
 
   /// Update user profile both locally and automatically to Firestore (users/{uid})
-  void updateUserProfile({
+  Future<void> updateUserProfile({
     required String userId,
     String? name,
     String? dob,
@@ -208,7 +215,7 @@ class AuthService {
     String? avatar,
     String? photoPath,
     String? joined,
-  }) {
+  }) async {
     final current = getUserProfile(userId);
     final updatedMap = {
       'name': name ?? current['name'] ?? 'User',
@@ -260,7 +267,7 @@ class AuthService {
       if (avatar != null) {
         firestoreData['avatar'] = avatar;
       }
-      _firestore.collection('users').doc(userId).set(firestoreData, SetOptions(merge: true));
+      await _firestore.collection('users').doc(userId).set(firestoreData, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Notice saving to Firestore user doc: $e');
     }
@@ -452,30 +459,33 @@ class AuthService {
   // BAGIAN 2: INTEGRASI GOOGLE SIGN-IN ASLI & FIREBASE AUTH
   // -------------------------------------------------------------
 
-  /// Masuk dengan Google menggunakan package google_sign_in asli
-  /// yang langsung terhubung ke Firebase Auth (GoogleAuthProvider).
+  /// Masuk dengan Google menggunakan package google_sign_in resmi
+  /// yang langsung memunculkan dialog akun Google native bawaan perangkat
+  /// dan menghubungkan akun ke Firebase Auth & Cloud Firestore.
   Future<AuthResponse> signInWithGoogle() async {
     try {
-      if (Platform.environment.containsKey('FLUTTER_TEST')) {
-        return const AuthResponse.failure('Test environment');
-      }
+      // Pastikan sesi Google sebelumnya di-reset agar dialog pemilih akun Google
+      // asli bawaan sistem/perangkat pengguna selalu muncul setiap tombol diklik
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
 
-      // 1. Trigger Google Sign-In prompt
+      // 1. Panggil langsung dialog akun Google native bawaan perangkat
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         return const AuthResponse.failure('Proses masuk dengan Google dibatalkan.');
       }
 
-      // 2. Obtain auth details from the request
+      // 2. Dapatkan token autentikasi resmi dari akun Google yang dipilih
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      // 3. Create a new credential for Firebase
+      // 3. Buat kredensial OAuth untuk Firebase Auth
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // 4. Sign in to Firebase Auth
+      // 4. Masuk ke Firebase Auth menggunakan kredensial Google
       final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
       final User? firebaseUser = userCredential.user;
 
@@ -498,7 +508,7 @@ class AuthService {
       String phone = '';
 
       if (!userDoc.exists) {
-        // Pengguna baru pertama kali login
+        // Pengguna baru pertama kali login dengan Google
         await userDocRef.set({
           'uid': uid,
           'name': name,
@@ -514,7 +524,7 @@ class AuthService {
           'authProvider': 'google',
         });
       } else {
-        // Pengguna lama: ambil data gating yang sudah ada
+        // Pengguna lama: ambil data profil yang sudah ada
         final data = userDoc.data() ?? {};
         dob = (data['dob'] as String?)?.trim() ?? '';
         gender = (data['gender'] as String?)?.trim() ?? 'Perempuan';
@@ -547,10 +557,10 @@ class AuthService {
         id: uid,
         name: name,
         email: email,
-        username: email.split('@').first,
+        username: email.contains('@') ? email.split('@').first : email,
         role: UserRole.user,
-        avatarUrl: photoUrl,
-        photoPath: photoUrl,
+        avatarUrl: photoUrl.isNotEmpty ? photoUrl : null,
+        photoPath: photoUrl.isNotEmpty ? photoUrl : null,
         dob: dob,
         gender: gender,
         phone: phone,

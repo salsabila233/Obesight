@@ -38,7 +38,7 @@ class ProgressTrackingService extends ChangeNotifier {
   DateTime _nextScreeningDate = DateTime.now().add(const Duration(days: 14));
 
   // Daftar Target Rekomendasi yang Dipantau dalam Rentang Waktu Ini
-  List<RecommendationProgressGoal> _goals = const [
+  final List<RecommendationProgressGoal> _goals = const [
     // 1. Latihan Fisik
     RecommendationProgressGoal(
       id: 'ex_1',

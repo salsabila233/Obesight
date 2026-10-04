@@ -5,7 +5,6 @@ import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/animated_illustration.dart';
 import '../../widgets/antigravity_floating.dart';
-import '../../widgets/google_account_picker_sheet.dart';
 import '../home/admin_home_screen.dart';
 import '../home/user_home_screen.dart';
 import '../profile/complete_profile_screen.dart';
@@ -145,9 +144,11 @@ class WelcomeScreen extends StatelessWidget {
                 height: 48,
                 child: OutlinedButton(
                   onPressed: () async {
-                    // 1. Coba Google Sign-In Asli dengan Firebase Auth & Cloud Firestore
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     final response = await AuthService().signInWithGoogle();
-                    if (response.isSuccess && response.user != null && context.mounted) {
+                    if (!context.mounted) return;
+
+                    if (response.isSuccess && response.user != null) {
                       final signedUser = response.user!;
                       if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
                         Navigator.of(context).pushReplacement(
@@ -171,33 +172,15 @@ class WelcomeScreen extends StatelessWidget {
                       return;
                     }
 
-                    // 2. Fallback picker
-                    if (!context.mounted) return;
-                    final selected = await GoogleAccountPickerSheet.show(context);
-                    if (selected != null && context.mounted) {
-                      final pickerResp = await AuthService().loginWithGoogleAccount(selected);
-                      if (context.mounted && pickerResp.isSuccess && pickerResp.user != null) {
-                        final activeUser = pickerResp.user!;
-                        if (!activeUser.hasCompletedRequiredProfile && !activeUser.isAdmin) {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => CompleteProfileScreen(
-                                user: activeUser,
-                                isGatedFlow: false,
-                                redirectToHomeAfterSave: true,
-                              ),
-                            ),
-                          );
-                        } else {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => activeUser.isAdmin
-                                  ? AdminHomeScreen(user: activeUser)
-                                  : UserHomeScreen(user: activeUser),
-                            ),
-                          );
-                        }
-                      }
+                    if (response.errorMessage != null &&
+                        !response.errorMessage!.contains('dibatalkan')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(response.errorMessage!),
+                          backgroundColor: const Color(0xFFDC2626),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
                     }
                   },
                   style: OutlinedButton.styleFrom(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
-import '../profile/edit_profile_screen.dart';
+import '../profile/complete_profile_screen.dart';
 import 'skrining_wizard_screen.dart';
 
 class SkriningLandingScreen extends StatefulWidget {
@@ -34,6 +34,30 @@ class _SkriningLandingScreenState extends State<SkriningLandingScreen> {
   }
 
   void _navigateToWizard() {
+    final userId = widget.user?.id ?? AuthService().currentUser?.id ?? 'usr_001';
+    final isComplete = AuthService().isProfileComplete(userId);
+    if (!isComplete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lengkapi data diri (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) terlebih dahulu sebelum memulai skrining.',
+            style: GoogleFonts.poppins(fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFD97706),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => CompleteProfileScreen(
+            user: widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount,
+            isGatedFlow: true,
+          ),
+        ),
+      );
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SkriningWizardScreen(user: widget.user),
@@ -82,12 +106,11 @@ class _SkriningLandingScreenState extends State<SkriningLandingScreen> {
                 child: InkWell(
                   onTap: () {
                     final userToEdit = widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
-                    final initialProfile = AuthService().getUserProfile(userToEdit.id);
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => EditProfileScreen(
+                        builder: (_) => CompleteProfileScreen(
                           user: userToEdit,
-                          initialProfile: initialProfile,
+                          isGatedFlow: true,
                         ),
                       ),
                     ).then((_) => _checkBiodataStatus());

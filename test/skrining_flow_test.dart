@@ -156,6 +156,6 @@ void main() {
     expect(find.text('Konsumsi sayur yang kurang'), findsOneWidget);
 
     // 6. Action button
-    expect(find.text('Kembali ke Beranda'), findsOneWidget);
+    expect(find.text('Lihat Rekomendasi'), findsOneWidget);
   });
 }
