@@ -646,76 +646,44 @@ class SkriningResultScreen extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // ACTION BUTTONS
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                  builder: (_) => UserHomeScreen(user: currentUser),
-                                ),
-                                (route) => false,
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: primaryGreen, width: 1.5),
-                              foregroundColor: primaryGreen,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(22),
+                    // ACTION BUTTON: LIHAT REKOMENDASI
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => SkriningRecommendationScreen(
+                                data: data,
+                                user: currentUser,
                               ),
                             ),
-                            child: Text(
-                              'Kembali ke Beranda',
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryGreen,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          flex: 1,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => SkriningRecommendationScreen(
-                                    data: data,
-                                    user: currentUser,
-                                  ),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryGreen,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(22),
-                              ),
-                            ),
-                            child: Text(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
                               'Lihat Rekomendasi',
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
-                                fontSize: 12,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
 
                     const SizedBox(height: 20),

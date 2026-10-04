@@ -258,60 +258,36 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // ACTION BUTTONS (Kembali & Lanjutkan Sebagai Progress)
-                    Row(
-                      children: [
-                        // Kembali Button
-                        Expanded(
-                          flex: 1,
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: cardBorder, width: 1.3),
-                              foregroundColor: textDark,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(22),
-                              ),
-                            ),
-                            child: Text(
-                              'Kembali',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: textDark,
-                              ),
-                            ),
+                    // ACTION BUTTON: LANJUTKAN SEBAGAI PROGRES
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () => _showSaveProgressDialog(context, currentUser, rec),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryGreen,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        // Lanjutkan Sebagai Progres Button
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton(
-                            onPressed: () => _showSaveProgressDialog(context, currentUser, rec),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryGreen,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(22),
-                              ),
-                            ),
-                            child: Text(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
                               'Lanjutkan sebagai progres',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
-                                fontSize: 12.5,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
 
                     const SizedBox(height: 16),
