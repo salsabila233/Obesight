@@ -4,16 +4,20 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+import '../home/admin_home_screen.dart';
+import '../home/user_home_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   final UserModel user;
   final bool isGatedFlow; // Jika true, diarahkan langsung ke skrining setelah simpan
+  final bool redirectToHomeAfterSave; // Jika true, langsung arahkan ke beranda setelah simpan
 
   const CompleteProfileScreen({
     super.key,
     required this.user,
     this.isGatedFlow = true,
+    this.redirectToHomeAfterSave = false,
   });
 
   @override
@@ -198,6 +202,16 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           builder: (_) => SkriningLandingScreen(user: updatedUser),
         ),
       );
+    } else if (widget.redirectToHomeAfterSave || !Navigator.of(context).canPop()) {
+      // Redirect langsung ke Beranda sesuai akun yang sedang aktif
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => updatedUser.isAdmin
+              ? AdminHomeScreen(user: updatedUser)
+              : UserHomeScreen(user: updatedUser),
+        ),
+        (route) => false,
+      );
     } else {
       Navigator.of(context).pop(true);
     }
@@ -218,7 +232,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (_) => widget.user.isAdmin
+                      ? AdminHomeScreen(user: widget.user)
+                      : UserHomeScreen(user: widget.user),
+                ),
+                (route) => false,
+              );
+            }
+          },
         ),
         title: Text(
           'Lengkapi Profil',
@@ -428,20 +455,22 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         children: [
                           Expanded(
                             child: _buildGenderOption(
-                              label: 'Perempuan',
-                              icon: Icons.female_rounded,
-                              isSelected: _selectedGender == 'Perempuan',
-                              onTap: () => setState(() => _selectedGender = 'Perempuan'),
+                              label: 'Laki-laki',
+                              symbol: '♂',
+                              symbolColor: const Color(0xFF00BBA7),
+                              isSelected: _selectedGender == 'Laki-laki',
+                              onTap: () => setState(() => _selectedGender = 'Laki-laki'),
                               isDark: isDark,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: _buildGenderOption(
-                              label: 'Laki-laki',
-                              icon: Icons.male_rounded,
-                              isSelected: _selectedGender == 'Laki-laki',
-                              onTap: () => setState(() => _selectedGender = 'Laki-laki'),
+                              label: 'Perempuan',
+                              symbol: '♀',
+                              symbolColor: const Color(0xFFD946EF),
+                              isSelected: _selectedGender == 'Perempuan',
+                              onTap: () => setState(() => _selectedGender = 'Perempuan'),
                               isDark: isDark,
                             ),
                           ),
@@ -517,7 +546,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                               Text(
                                 widget.isGatedFlow
                                     ? 'Simpan & Lanjutkan ke Skrining'
-                                    : 'Simpan Perubahan',
+                                    : (widget.redirectToHomeAfterSave
+                                        ? 'Simpan & Masuk ke Beranda'
+                                        : 'Simpan Perubahan'),
                                 style: GoogleFonts.poppins(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -540,44 +571,57 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   Widget _buildGenderOption({
     required String label,
-    required IconData icon,
+    required String symbol,
+    required Color symbolColor,
     required bool isSelected,
     required VoidCallback onTap,
     required bool isDark,
   }) {
+    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFF0FAF5);
+    final inactiveBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final activeBorder = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final inactiveBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final activeText = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F);
+    final inactiveText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 50,
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF36785A).withValues(alpha: isDark ? 0.2 : 0.1)
-              : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected ? activeBg : inactiveBg,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF36785A)
-                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-            width: isSelected ? 1.8 : 1.0,
+            color: isSelected ? activeBorder : inactiveBorder,
+            width: isSelected ? 1.6 : 1.2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? const Color(0xFF36785A) : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            Text(
+              symbol,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: symbolColor,
+              ),
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? const Color(0xFF36785A)
-                    : (isDark ? Colors.white : const Color(0xFF0F172A)),
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? activeText : inactiveText,
               ),
             ),
           ],

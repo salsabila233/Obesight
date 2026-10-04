@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/google_account_picker_sheet.dart';
+import '../home/admin_home_screen.dart';
 import '../home/user_home_screen.dart';
 import '../profile/complete_profile_screen.dart';
 
@@ -112,14 +113,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (!registeredUser.hasCompletedRequiredProfile && !registeredUser.isAdmin) {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => CompleteProfileScreen(user: registeredUser, isGatedFlow: false),
+              builder: (context) => CompleteProfileScreen(
+                user: registeredUser,
+                isGatedFlow: false,
+                redirectToHomeAfterSave: true,
+              ),
             ),
             (route) => false,
           );
         } else {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => UserHomeScreen(user: registeredUser),
+              builder: (context) => registeredUser.isAdmin
+                  ? AdminHomeScreen(user: registeredUser)
+                  : UserHomeScreen(user: registeredUser),
             ),
             (route) => false,
           );
@@ -156,14 +163,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => CompleteProfileScreen(user: signedUser, isGatedFlow: false),
+            builder: (context) => CompleteProfileScreen(
+              user: signedUser,
+              isGatedFlow: false,
+              redirectToHomeAfterSave: true,
+            ),
           ),
           (route) => false,
         );
       } else {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => UserHomeScreen(user: signedUser),
+            builder: (context) => signedUser.isAdmin
+                ? AdminHomeScreen(user: signedUser)
+                : UserHomeScreen(user: signedUser),
           ),
           (route) => false,
         );
@@ -202,14 +215,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (!pickerUser.hasCompletedRequiredProfile && !pickerUser.isAdmin) {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => CompleteProfileScreen(user: pickerUser, isGatedFlow: false),
+              builder: (context) => CompleteProfileScreen(
+                user: pickerUser,
+                isGatedFlow: false,
+                redirectToHomeAfterSave: true,
+              ),
             ),
             (route) => false,
           );
         } else {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => UserHomeScreen(user: pickerUser),
+              builder: (context) => pickerUser.isAdmin
+                  ? AdminHomeScreen(user: pickerUser)
+                  : UserHomeScreen(user: pickerUser),
             ),
             (route) => false,
           );

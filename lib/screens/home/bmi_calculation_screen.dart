@@ -314,16 +314,18 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                         Expanded(
                           child: _buildGenderCard(
                             gender: 'Laki-laki',
-                            icon: Icons.male_rounded,
+                            symbol: '♂',
+                            symbolColor: const Color(0xFF00BBA7),
                             isSelected: _selectedGender == 'Laki-laki',
                             isDark: isDark,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: _buildGenderCard(
                             gender: 'Perempuan',
-                            icon: Icons.female_rounded,
+                            symbol: '♀',
+                            symbolColor: const Color(0xFFD946EF),
                             isSelected: _selectedGender == 'Perempuan',
                             isDark: isDark,
                           ),
@@ -491,16 +493,17 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
 
   Widget _buildGenderCard({
     required String gender,
-    required IconData icon,
+    required String symbol,
+    required Color symbolColor,
     required bool isSelected,
     required bool isDark,
   }) {
-    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F5EE);
+    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFF0FAF5);
     final inactiveBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final activeBorder = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
     final inactiveBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final activeTextColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F);
-    final inactiveTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final inactiveTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
 
     return GestureDetector(
       onTap: () {
@@ -510,44 +513,42 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        height: 50,
         decoration: BoxDecoration(
           color: isSelected ? activeBg : inactiveBg,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? activeBorder : inactiveBorder,
-            width: isSelected ? 1.6 : 1.0,
+            width: isSelected ? 1.6 : 1.2,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF489874).withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : [],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 19,
-              color: isSelected ? activeTextColor : inactiveTextColor,
+            Text(
+              symbol,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: symbolColor,
+              ),
             ),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                gender,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? activeTextColor : inactiveTextColor,
-                ),
+            const SizedBox(width: 8),
+            Text(
+              gender,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? activeTextColor : inactiveTextColor,
               ),
             ),
           ],

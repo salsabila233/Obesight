@@ -20,11 +20,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
-  final _identifierController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  final _identifierFocus = FocusNode();
+  final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
 
   final _authService = AuthService();
@@ -35,16 +35,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    // Default dummy account prefilled for testing convenience if needed,
-    // or can be empty. Let's keep it empty initially per State 1 requirement:
-    // "STATE 1 — LOGIN AWAL: Saat halaman dibuka: Email kosong, Password kosong, Keyboard tidak muncul"
   }
 
   @override
   void dispose() {
-    _identifierController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
-    _identifierFocus.dispose();
+    _emailFocus.dispose();
     _passwordFocus.dispose();
     super.dispose();
   }
@@ -67,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     });
 
     final response = await _authService.login(
-      identifier: _identifierController.text,
+      identifier: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
@@ -141,13 +138,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     // 2. Jika Google Sign-In asli dibatalkan atau berada di lingkungan tanpa Google Play Services,
     // sediakan akun picker cadangan
-    final typedId = _identifierController.text.trim();
-    final isEmail = typedId.contains('@');
+    final typedEmail = _emailController.text.trim();
+    final isEmail = typedEmail.contains('@');
 
     final selectedAccount = await GoogleAccountPickerSheet.show(
       context,
-      suggestedEmail: isEmail ? typedId : null,
-      suggestedName: !isEmail && typedId.isNotEmpty ? typedId : null,
+      suggestedEmail: isEmail ? typedEmail : null,
+      suggestedName: !isEmail && typedEmail.isNotEmpty ? typedEmail : null,
     );
     if (selectedAccount != null && mounted) {
       setState(() {
@@ -258,17 +255,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                         const SizedBox(height: 18),
 
-                        // Input: Nama Pengguna dan Email
+                        // Input: Email
                         CustomTextField(
-                          label: 'Nama Pengguna dan Email',
-                          hintText: 'Masukkan nama pengguna dan email',
-                          controller: _identifierController,
-                          focusNode: _identifierFocus,
+                          label: 'Email',
+                          hintText: 'Masukkan email anda',
+                          controller: _emailController,
+                          focusNode: _emailFocus,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Nama pengguna atau email wajib diisi';
+                              return 'Email wajib diisi';
+                            }
+                            final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                            if (!emailRegex.hasMatch(value.trim())) {
+                              return 'Format email tidak valid (contoh: nama@email.com)';
                             }
                             return null;
                           },

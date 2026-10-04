@@ -600,7 +600,9 @@ class _GenderSelector extends StatelessWidget {
           children: [
             Expanded(
               child: _buildGenderOption(
-                label: '♂ Laki-laki',
+                label: 'Laki-laki',
+                symbol: '♂',
+                symbolColor: const Color(0xFF00BBA7),
                 isSelected: selectedGender.toLowerCase().contains('laki'),
                 onTap: () => onChanged('Laki-laki'),
                 isDark: isDark,
@@ -609,7 +611,9 @@ class _GenderSelector extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: _buildGenderOption(
-                label: '♀ Perempuan',
+                label: 'Perempuan',
+                symbol: '♀',
+                symbolColor: const Color(0xFFD946EF),
                 isSelected: selectedGender.toLowerCase().contains('perempuan'),
                 onTap: () => onChanged('Perempuan'),
                 isDark: isDark,
@@ -623,6 +627,8 @@ class _GenderSelector extends StatelessWidget {
 
   Widget _buildGenderOption({
     required String label,
+    required String symbol,
+    required Color symbolColor,
     required bool isSelected,
     required VoidCallback onTap,
     required bool isDark,
@@ -638,30 +644,43 @@ class _GenderSelector extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        height: 52,
+        height: 50,
         decoration: BoxDecoration(
           color: isSelected ? activeBg : inactiveBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? primaryGreen : inactiveBorder,
-            width: isSelected ? 2.0 : 1.2,
+            width: isSelected ? 1.6 : 1.2,
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-              blurRadius: 8,
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 14.5,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? activeText : inactiveText,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              symbol,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: symbolColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? activeText : inactiveText,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -8,6 +8,7 @@ import '../../widgets/antigravity_floating.dart';
 import '../../widgets/google_account_picker_sheet.dart';
 import '../home/admin_home_screen.dart';
 import '../home/user_home_screen.dart';
+import '../profile/complete_profile_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
@@ -71,7 +72,7 @@ class WelcomeScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // "Daftar" Button
+              // Button 1 (Background Hijau): "Masuk"
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -79,7 +80,7 @@ class WelcomeScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(),
+                        builder: (context) => const LoginScreen(),
                       ),
                     );
                   },
@@ -92,10 +93,11 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Daftar',
+                    'Masuk',
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -103,12 +105,12 @@ class WelcomeScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // "Sudah punya akun? Masuk"
+              // Teks Link: "Belum punya akun? Daftar"
               GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
+                      builder: (context) => const RegisterScreen(),
                     ),
                   );
                 },
@@ -117,14 +119,14 @@ class WelcomeScreen extends StatelessWidget {
                     style: GoogleFonts.poppins(fontSize: 14),
                     children: [
                       TextSpan(
-                        text: 'Sudah punya akun?  ',
+                        text: 'Belum punya akun?  ',
                         style: TextStyle(
                           color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4B5563),
                           fontWeight: FontWeight.normal,
                         ),
                       ),
                       TextSpan(
-                        text: 'Masuk',
+                        text: 'Daftar',
                         style: GoogleFonts.poppins(
                           color: AppColors.primaryGreen,
                           fontWeight: FontWeight.w600,
@@ -146,13 +148,26 @@ class WelcomeScreen extends StatelessWidget {
                     // 1. Coba Google Sign-In Asli dengan Firebase Auth & Cloud Firestore
                     final response = await AuthService().signInWithGoogle();
                     if (response.isSuccess && response.user != null && context.mounted) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => response.user!.isAdmin
-                              ? AdminHomeScreen(user: response.user!)
-                              : UserHomeScreen(user: response.user!),
-                        ),
-                      );
+                      final signedUser = response.user!;
+                      if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => CompleteProfileScreen(
+                              user: signedUser,
+                              isGatedFlow: false,
+                              redirectToHomeAfterSave: true,
+                            ),
+                          ),
+                        );
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => signedUser.isAdmin
+                                ? AdminHomeScreen(user: signedUser)
+                                : UserHomeScreen(user: signedUser),
+                          ),
+                        );
+                      }
                       return;
                     }
 
@@ -160,15 +175,28 @@ class WelcomeScreen extends StatelessWidget {
                     if (!context.mounted) return;
                     final selected = await GoogleAccountPickerSheet.show(context);
                     if (selected != null && context.mounted) {
-                      await AuthService().loginWithGoogleAccount(selected);
-                      if (context.mounted) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => selected.isAdmin
-                                ? AdminHomeScreen(user: selected)
-                                : UserHomeScreen(user: selected),
-                          ),
-                        );
+                      final pickerResp = await AuthService().loginWithGoogleAccount(selected);
+                      if (context.mounted && pickerResp.isSuccess && pickerResp.user != null) {
+                        final activeUser = pickerResp.user!;
+                        if (!activeUser.hasCompletedRequiredProfile && !activeUser.isAdmin) {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => CompleteProfileScreen(
+                                user: activeUser,
+                                isGatedFlow: false,
+                                redirectToHomeAfterSave: true,
+                              ),
+                            ),
+                          );
+                        } else {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => activeUser.isAdmin
+                                  ? AdminHomeScreen(user: activeUser)
+                                  : UserHomeScreen(user: activeUser),
+                            ),
+                          );
+                        }
                       }
                     }
                   },
