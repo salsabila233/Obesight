@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/progress_tracking_service.dart';
 import '../progress/progress_screen.dart';
 import 'skrining_models.dart';
 import 'skrining_recommendation_rules.dart';
@@ -453,6 +454,9 @@ class SkriningRecommendationScreen extends StatelessWidget {
                         onPressed: () {
                           // Dismiss dialog
                           Navigator.of(dialogContext).pop();
+
+                          // Update Progress Tracking data dengan hasil skrining terbaru
+                          ProgressTrackingService.instance.updateFromScreening(data);
 
                           // Show top success banner / notification
                           ScaffoldMessenger.of(context).showSnackBar(
