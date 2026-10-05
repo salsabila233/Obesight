@@ -72,11 +72,8 @@ class SkriningData {
   }
 
   // Official classification category key (PAPDI & KMK No. HK.01.07-MENKES-509-2025)
-  // Memprioritaskan hasil prediksi model Random Forest jika tersedia
+  // Memprioritaskan hasil prediksi model Random Forest yang telah tervalidasi klinis
   String get classificationCategory {
-    if (aiCategoryKey != null && aiCategoryKey!.isNotEmpty) {
-      return aiCategoryKey!;
-    }
     final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Underweight';
@@ -85,6 +82,9 @@ class SkriningData {
     } else if (currentBmi <= 27.0) {
       return 'Overweight';
     } else if (currentBmi <= 29.9) {
+      if (aiCategoryKey != null && (aiCategoryKey == 'Obesitas I' || aiCategoryKey == 'Overweight')) {
+        return aiCategoryKey!;
+      }
       return 'Obesitas I';
     } else if (currentBmi <= 34.9) {
       return 'Obesitas II';
@@ -93,12 +93,21 @@ class SkriningData {
     }
   }
 
-  // Category title matching UI reference (prioritas hasil Random Forest)
+  // Category title matching UI reference (prioritas hasil Random Forest yang valid)
   String get categoryTitle {
-    if (aiCategoryTitle != null && aiCategoryTitle!.isNotEmpty) {
-      return aiCategoryTitle!;
-    }
     final currentBmi = bmi;
+    // Validasi pencegahan inkonsistensi AI
+    if (aiCategoryTitle != null && aiCategoryTitle!.isNotEmpty) {
+      final isNormalAI = aiCategoryTitle!.contains('Normal');
+      if (currentBmi >= 23.0 && isNormalAI) {
+        // AI salah prediksi Normal padahal IMT berlebih -> gunakan standar klinis
+      } else if (currentBmi < 18.5 && isNormalAI) {
+        // AI salah prediksi Normal padahal IMT kurang -> gunakan standar klinis
+      } else {
+        return aiCategoryTitle!;
+      }
+    }
+
     if (currentBmi < 18.5) {
       return 'Underweight\nLevel I';
     } else if (currentBmi <= 22.9) {
@@ -116,10 +125,18 @@ class SkriningData {
 
   // Category badge matching UI reference
   String get categoryBadge {
-    if (aiCategoryBadge != null && aiCategoryBadge!.isNotEmpty) {
-      return aiCategoryBadge!;
-    }
     final currentBmi = bmi;
+    if (aiCategoryBadge != null && aiCategoryBadge!.isNotEmpty) {
+      final isNormalBadge = aiCategoryBadge!.contains('ideal');
+      if (currentBmi >= 23.0 && isNormalBadge) {
+        // Gunakan badge akurat
+      } else if (currentBmi < 18.5 && isNormalBadge) {
+        // Gunakan badge akurat
+      } else {
+        return aiCategoryBadge!;
+      }
+    }
+
     if (currentBmi < 18.5) {
       return 'Berat badan di bawah rentang ideal';
     } else if (currentBmi <= 22.9) {
@@ -145,19 +162,21 @@ class SkriningData {
         return 'Risiko Rendah - Sedang';
       }
       return 'Risiko Terkendali';
-    } else if (currentBmi <= 27.5) {
+    } else if (currentBmi <= 27.0) {
       return 'Risiko Meningkat';
     } else {
       return 'Risiko Tinggi';
     }
   }
 
-  // Risk Description matching screenshot
+  // Risk Description matching clinical risk profile
   String get riskDescription {
     final currentBmi = bmi;
-    if (currentBmi <= 22.9) {
+    if (currentBmi < 18.5) {
+      return 'Berat badan Anda berada di bawah batas sehat. Diperlukan evaluasi asupan gizi seimbang dan pemenuhan kalori untuk mencegah risiko malnutrisi atau penurunan imunitas.';
+    } else if (currentBmi <= 22.9) {
       return 'Pola hidup dan berat badan Anda saat ini berada dalam rentang baik. Tetap pertahankan konsumsi makanan bergizi seimbang dan aktivitas fisik secara konsisten.';
-    } else if (currentBmi <= 27.5) {
+    } else if (currentBmi <= 27.0) {
       return 'Anda memiliki risiko sedang terhadap obesitas. Beberapa kebiasaan Anda sudah cukup baik, namun masih ada yang perlu ditingkatkan agar risiko obesitas tidak bertambah.';
     } else {
       return 'Anda memiliki risiko tinggi terhadap obesitas dan komplikasi terkait. Disarankan untuk berkonsultasi dengan ahli gizi atau dokter serta mengatur pola makan dan aktivitas teratur.';
@@ -167,7 +186,14 @@ class SkriningData {
   // Potential risks bullet points
   List<String> get potentialRisks {
     final currentBmi = bmi;
-    if (currentBmi <= 22.9) {
+    if (currentBmi < 18.5) {
+      return [
+        'Risiko defisiensi zat gizi mikro & anemia',
+        'Penurunan daya tahan tubuh / imunitas',
+        'Kelemahan massa otot dan mudah lelah',
+        'Kerapuhan tulang dini (risiko osteopenia)',
+      ];
+    } else if (currentBmi <= 22.9) {
       return [
         'Kekurangan nutrisi mikro jika pola makan tidak beragam',
         'Penurunan massa otot bila kurang berolahraga',

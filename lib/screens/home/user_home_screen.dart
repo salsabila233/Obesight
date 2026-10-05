@@ -703,14 +703,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    item['title'] as String,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : const Color(0xFF1E4534),
-                      height: 1.2,
+                  Flexible(
+                    child: Text(
+                      item['title'] as String,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : const Color(0xFF1E4534),
+                        height: 1.2,
+                      ),
                     ),
                   ),
                 ],
@@ -759,110 +763,120 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
               ),
-              child: Row(
-                children: [
-                  // Kolom IMT
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.calculate_outlined,
-                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
-                            size: 26,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'IMT',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                              ),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Kolom IMT (dengan Expanded dan constraints aman)
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            Text(
-                              _currentBmi.toStringAsFixed(1),
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                height: 1.15,
-                              ),
+                            child: Icon(
+                              Icons.calculate_outlined,
+                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
+                              size: 26,
                             ),
-                            Text(
-                              _currentBmiCategory,
-                              style: GoogleFonts.poppins(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                color: _getBmiStatusColor(_currentBmi),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Divider vertikal
-                  Container(
-                    width: 1,
-                    height: 48,
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                  ),
-                  // Kolom Risiko Obesitas
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
-                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(
-                            Icons.directions_walk_rounded,
-                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
-                            size: 26,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Risiko Obesitas',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'IMT',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _currentObesityRisk,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: _getBmiStatusColor(_currentBmi),
+                                Text(
+                                  _currentBmi.toStringAsFixed(1),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    height: 1.15,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  _currentBmiCategory,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: _getBmiStatusColor(_currentBmi),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    // Divider vertikal yang fleksibel
+                    Container(
+                      width: 1,
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                    ),
+                    // Kolom Risiko Obesitas
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.directions_walk_rounded,
+                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
+                              size: 26,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Risiko Obesitas',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _currentObesityRisk,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: _getBmiStatusColor(_currentBmi),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -1226,8 +1240,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // Tab 1: Stats
   Widget _buildStatsTab(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1423,8 +1438,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // Tab 2: Settings
   Widget _buildSettingsTab(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

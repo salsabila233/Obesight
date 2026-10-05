@@ -6,9 +6,9 @@ import '../../services/nutrition_service.dart';
 import '../../services/progress_tracking_service.dart';
 import '../profile/complete_profile_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
+import 'night_sleep_detail_screen.dart';
 import 'nutrition_recommendation_screen.dart';
 import 'physical_activity_screen.dart';
-import 'rest_recommendation_screen.dart';
 import 'saved_nutrition_list_screen.dart';
 import 'screening_history_screen.dart';
 
@@ -140,22 +140,22 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Feature 3: Waktu Istirahat
+                // Feature 3: Waktu Tidur
                 _buildFeatureTile(
                   iconImg: 'assets/progress/clean/icon_bed.png',
-                  iconFallback: Icons.bedtime_outlined,
-                  iconBg: isDark ? const Color(0xFF0F172A) : const Color(0xFFF3E8FF),
-                  iconColor: isDark ? const Color(0xFFC084FC) : const Color(0xFF7E22CE),
-                  title: 'Waktu Istirahat',
-                  desc: 'Cek kualitas tidur 7-8 jam dan durasi istirahatmu.',
+                  iconFallback: Icons.nightlight_round,
+                  iconBg: isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F4EE),
+                  iconColor: isDark ? const Color(0xFF34D399) : const Color(0xFF235B42),
+                  title: 'Waktu Tidur',
+                  desc: 'Pantau durasi tidur malam dan kualitas istirahatmu.',
                   isHighlighted: true,
                   borderColor: isDark
-                      ? const Color(0xFFC084FC).withValues(alpha: 0.5)
-                      : const Color(0xFFE9D5FF),
+                      ? const Color(0xFF34D399).withValues(alpha: 0.5)
+                      : const Color(0xFFA5D6C1),
                   isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const RestRecommendationScreen()),
+                      MaterialPageRoute(builder: (_) => const NightSleepDetailScreen()),
                     );
                   },
                 ),

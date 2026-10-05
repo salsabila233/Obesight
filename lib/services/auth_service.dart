@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
 class AuthResponse {
@@ -58,6 +59,182 @@ class AuthService {
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
+
+  static const String _keyActiveUserId = 'obesight_active_user_id';
+  static const String _keyActiveUserEmail = 'obesight_active_user_email';
+
+  Future<void> _saveSession(UserModel user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyActiveUserId, user.id);
+      await prefs.setString(_keyActiveUserEmail, user.email);
+    } catch (e) {
+      debugPrint('Notice saving session to SharedPreferences: $e');
+    }
+  }
+
+  Future<void> _clearSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyActiveUserId);
+      await prefs.remove(_keyActiveUserEmail);
+    } catch (e) {
+      debugPrint('Notice clearing session from SharedPreferences: $e');
+    }
+  }
+
+  /// Memulihkan sesi login pengguna secara persisten saat aplikasi dibuka kembali
+  /// 1. Cek sesi aktif di Firebase Authentication (currentUser)
+  /// 2. Ambil data profil, biodata lengkap, dan riwayat IMT langsung dari Cloud Firestore users/{uid}
+  /// 3. Jika Firebase offline / mode lokal, pulihkan dari SharedPreferences & cache lokal
+  Future<UserModel?> restorePersistentSession() async {
+    try {
+      // 1. Cek Firebase Authentication aktif
+      if (isFirebaseAvailable) {
+        final firebaseUser = _firebaseAuth.currentUser;
+        if (firebaseUser != null) {
+          final uid = firebaseUser.uid;
+          try {
+            final doc = await _firestore.collection('users').doc(uid).get().timeout(
+              const Duration(seconds: 4),
+              onTimeout: () => throw TimeoutException('Firestore timeout'),
+            );
+
+            if (doc.exists && doc.data() != null) {
+              final data = doc.data()!;
+              final name = (data['name'] as String?)?.trim() ??
+                  firebaseUser.displayName ??
+                  'Pengguna ObeSight';
+              final email = (data['email'] as String?)?.trim() ??
+                  firebaseUser.email ??
+                  '';
+              final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ??
+                  (firebaseUser.photoURL ?? '');
+              final dob = (data['dob'] as String?)?.trim() ?? '';
+              final gender = (data['gender'] as String?)?.trim() ?? 'Perempuan';
+              final phone = (data['phone'] as String?)?.trim() ?? '';
+              final roleStr = (data['role'] as String?) ?? 'user';
+              final isGated = (data['isBiodataComplete'] == true) ||
+                  (dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty);
+
+              final bmiScore = (data['bmiScore'] as num?)?.toDouble() ?? 22.8;
+              final bmiCategory = (data['bmiCategory'] as String?) ?? 'Normal';
+              final obesityRisk = (data['obesityRisk'] as String?) ?? 'Rendah';
+
+              // Sinkronisasi memori lokal
+              _userProfileCache[uid] = {
+                'name': name,
+                'dob': dob,
+                'gender': gender,
+                'email': email,
+                'phone': phone,
+                'joined': (data['joined'] as String?) ?? 'Bergabung sejak ${DateTime.now().year}',
+                'avatar': photoUrl.isNotEmpty ? photoUrl : 'assets/avatar_zahra.png',
+                'photo_path': photoUrl,
+              };
+              _biodataStatusCache[uid] = isGated;
+              _userBmiCache[uid] = {
+                'bmi': bmiScore,
+                'category': bmiCategory,
+                'risk': obesityRisk,
+                'weight': (data['weight'] as num?)?.toDouble() ?? 58.0,
+                'height': (data['height'] as num?)?.toDouble() ?? 165.0,
+                'gender': gender,
+                'age': (data['age'] as num?)?.toInt() ?? 22,
+              };
+
+              _currentUser = UserModel(
+                id: uid,
+                name: name,
+                email: email,
+                username: email.contains('@') ? email.split('@').first : (email.isNotEmpty ? email : 'user'),
+                role: roleStr == 'admin' ? UserRole.admin : UserRole.user,
+                avatarUrl: photoUrl.isNotEmpty ? photoUrl : null,
+                photoPath: photoUrl.isNotEmpty ? photoUrl : null,
+                dob: dob,
+                gender: gender,
+                phone: phone,
+                isBiodataComplete: isGated,
+                bmiScore: bmiScore,
+                bmiCategory: bmiCategory,
+                obesityRisk: obesityRisk,
+              );
+
+              await _saveSession(_currentUser!);
+              profileUpdateNotifier.value++;
+              return _currentUser;
+            }
+          } catch (e) {
+            debugPrint('Firestore fetch on restore session: $e');
+          }
+
+          // Fallback lokal jika Firestore offline namun firebaseUser masih login
+          final cached = getUserProfile(uid);
+          final isGated = isBiodataCompleted(uid);
+          final bmiInfo = getUserBmi(uid);
+
+          _currentUser = UserModel(
+            id: uid,
+            name: cached['name'] ?? firebaseUser.displayName ?? 'Pengguna ObeSight',
+            email: cached['email'] ?? firebaseUser.email ?? '',
+            username: (cached['email'] ?? firebaseUser.email ?? 'user').split('@').first,
+            role: UserRole.user,
+            avatarUrl: cached['avatar'],
+            photoPath: cached['photo_path'],
+            dob: cached['dob'] ?? '',
+            gender: cached['gender'] ?? 'Perempuan',
+            phone: cached['phone'] ?? '',
+            isBiodataComplete: isGated,
+            bmiScore: (bmiInfo['bmi'] as num?)?.toDouble() ?? 22.8,
+            bmiCategory: (bmiInfo['category'] as String?) ?? 'Normal',
+            obesityRisk: (bmiInfo['risk'] as String?) ?? 'Rendah',
+          );
+
+          await _saveSession(_currentUser!);
+          profileUpdateNotifier.value++;
+          return _currentUser;
+        }
+      }
+
+      // 2. Cek SharedPreferences jika pengguna pernah login dengan preset / akun lokal
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final savedUid = prefs.getString(_keyActiveUserId);
+        if (savedUid != null && savedUid.isNotEmpty) {
+          // Cari di daftar akun preset atau cache lokal
+          final cached = getUserProfile(savedUid);
+          final isGated = isBiodataCompleted(savedUid);
+          final bmiInfo = getUserBmi(savedUid);
+
+          _currentUser = UserModel(
+            id: savedUid,
+            name: cached['name'] ?? 'User',
+            email: cached['email'] ?? prefs.getString(_keyActiveUserEmail) ?? '',
+            username: (cached['email'] ?? 'user').split('@').first,
+            role: savedUid == 'adm_001' ? UserRole.admin : UserRole.user,
+            avatarUrl: cached['avatar'],
+            photoPath: cached['photo_path'],
+            dob: cached['dob'] ?? '',
+            gender: cached['gender'] ?? 'Perempuan',
+            phone: cached['phone'] ?? '',
+            isBiodataComplete: isGated,
+            bmiScore: (bmiInfo['bmi'] as num?)?.toDouble() ?? 22.8,
+            bmiCategory: (bmiInfo['category'] as String?) ?? 'Normal',
+            obesityRisk: (bmiInfo['risk'] as String?) ?? 'Rendah',
+          );
+
+          profileUpdateNotifier.value++;
+          return _currentUser;
+        }
+      } catch (e) {
+        debugPrint('SharedPreferences check on restore session: $e');
+      }
+    } catch (e) {
+      debugPrint('General error in restorePersistentSession: $e');
+    }
+
+    return null;
+  }
 
   // Notifier to trigger real-time updates across screens whenever profile or avatar changes
   final ValueNotifier<int> profileUpdateNotifier = ValueNotifier<int>(0);

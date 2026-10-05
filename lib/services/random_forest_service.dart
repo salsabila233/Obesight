@@ -347,7 +347,7 @@ class RandomForestService {
       }
     }
 
-    // Cari kelas dengan suara terbanyak (Majority Voting)
+    // 1. Dapatkan kelas dominan dari suara pohon keputusan (Random Forest)
     int bestClassIdx = 0;
     int maxVotes = -1;
     final totalTrees = _trees.isNotEmpty ? _trees.length : 1;
@@ -359,9 +359,16 @@ class RandomForestService {
       }
     }
 
-    final rawClass = (bestClassIdx < _classes.length)
+    String predictedClass = (bestClassIdx < _classes.length)
         ? _classes[bestClassIdx]
         : 'Overweight_Level_I';
+
+    // 2. Rekonsiliasi Klinis & Validasi Batas IMT (PAPDI & KMK Kemenkes No. HK.01.07-MENKES-509-2025)
+    // Model pohon keputusan UCI dapat memiliki bias data survei tertentu (misal: jika riwayat keluarga 'Tidak',
+    // pohon bisa menghasilkan 'Normal_Weight' padahal berat badan 78 kg dan tinggi 165 cm / IMT 28.7).
+    // Secara klinis medis, klasifikasi tidak boleh bertentangan dengan indeks massa tubuh riil pasien.
+    final double actualBmi = data.bmi;
+    final String validatedClass = _reconcileWithClinicalBmi(predictedClass, actualBmi);
 
     final confidence = (maxVotes / totalTrees) * 100.0;
 
@@ -372,11 +379,11 @@ class RandomForestService {
       probsMap[_classes[i]] = (voteCounts[i] / totalTrees) * 100.0;
     }
 
-    // Petakan rawClass ke standar kategori aplikasi dan rekomendasi klinis
-    final mapping = _mapClassToCategory(rawClass);
+    // 3. Petakan validatedClass ke representasi judul & badge dinamis
+    final mapping = _mapClassToCategory(validatedClass);
 
     return RandomForestPrediction(
-      rawClass: rawClass,
+      rawClass: validatedClass,
       categoryKey: mapping.categoryKey,
       categoryTitle: mapping.categoryTitle,
       categoryBadge: mapping.categoryBadge,
@@ -384,6 +391,48 @@ class RandomForestService {
       votes: votesMap,
       probabilities: probsMap,
     );
+  }
+
+  /// Rekonsiliasi prediksi model AI dengan batas rentang IMT antropometri klinis (PAPDI / Kemenkes 2025)
+  static String _reconcileWithClinicalBmi(String mlClass, double bmi) {
+    if (bmi < 18.5) {
+      // Underweight: tidak boleh diprediksi Normal atau Obesitas
+      return 'Insufficient_Weight';
+    } else if (bmi <= 22.9) {
+      // Normal weight: rentang sehat
+      return 'Normal_Weight';
+    } else if (bmi <= 24.9) {
+      // Overweight Level I (Kelebihan BB ringan / Pre-obesitas)
+      // Jika AI memprediksi Underweight atau Normal, rekonsiliasi ke Overweight Level I
+      if (mlClass == 'Insufficient_Weight' || mlClass == 'Normal_Weight') {
+        return 'Overweight_Level_I';
+      }
+      return (mlClass.contains('Overweight') || mlClass.contains('Obesity'))
+          ? mlClass
+          : 'Overweight_Level_I';
+    } else if (bmi <= 27.0) {
+      // Overweight Level II
+      if (mlClass == 'Insufficient_Weight' || mlClass == 'Normal_Weight') {
+        return 'Overweight_Level_II';
+      }
+      return mlClass;
+    } else if (bmi <= 29.9) {
+      // IMT 27.1 - 29.9 (Kategori Obesitas I / Overweight Level II)
+      // Tidak boleh berstatus Normal_Weight atau Underweight!
+      if (mlClass == 'Insufficient_Weight' || mlClass == 'Normal_Weight') {
+        return 'Obesity_Type_I';
+      }
+      return mlClass;
+    } else if (bmi <= 34.9) {
+      // Obesitas Tingkat II
+      if (mlClass == 'Insufficient_Weight' || mlClass == 'Normal_Weight' || mlClass == 'Overweight_Level_I') {
+        return 'Obesity_Type_II';
+      }
+      return mlClass;
+    } else {
+      // Obesitas Tingkat III (Morbid >= 35.0)
+      return 'Obesity_Type_III';
+    }
   }
 
   /// Sinkronisasi label prediksi AI ke standar PAPDI / KMK Kemenkes 2025
@@ -407,7 +456,7 @@ class RandomForestService {
         return const _CategoryMeta(
           categoryKey: 'Overweight',
           categoryTitle: 'Overweight\nLevel I',
-          categoryBadge: 'Berat badan sedikit di atas rentang ideal',
+          categoryBadge: 'Kelebihan berat badan tingkat I',
         );
 
       case 'Overweight_Level_II':

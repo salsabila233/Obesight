@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:obesight/models/user_model.dart';
 import 'package:obesight/screens/progress/progress_screen.dart';
-import 'package:obesight/screens/progress/rest_recommendation_screen.dart';
-import 'package:obesight/screens/progress/day_rest_detail_screen.dart';
 import 'package:obesight/screens/progress/night_sleep_detail_screen.dart';
-import 'package:obesight/screens/progress/activity_rest_detail_screen.dart';
 import 'package:obesight/theme/app_theme.dart';
 
 void main() {
@@ -17,7 +14,7 @@ void main() {
     role: UserRole.user,
   );
 
-  testWidgets('Navigation Flow: Progress -> Waktu Istirahat -> Rekomendasi Waktu Istirahat -> Details & Back', (WidgetTester tester) async {
+  testWidgets('Navigation Flow: Progress -> Waktu Tidur -> NightSleepDetailScreen -> Back to Progress', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.resetPhysicalSize);
@@ -34,82 +31,36 @@ void main() {
 
     // Verify Progress Screen elements
     expect(find.text('Progress'), findsOneWidget);
-    // 2. Click "Waktu Istirahat" -> Navigate to Rekomendasi Waktu Istirahat
-    final waktuIstirahatFinder = find.text('Waktu Istirahat');
-    await tester.ensureVisible(waktuIstirahatFinder);
-    await tester.pumpAndSettle();
-    expect(waktuIstirahatFinder, findsOneWidget);
-    await tester.tap(waktuIstirahatFinder);
-    await tester.pumpAndSettle();
 
-    // Verify Rekomendasi Waktu Istirahat Screen elements
-    expect(find.byType(RestRecommendationScreen), findsOneWidget);
-    expect(find.text('Rekomendasi Waktu Istirahat'), findsOneWidget);
-    expect(find.text('Istirahat Siang'), findsOneWidget);
-    expect(find.text('Waktu Tidur Malam'), findsOneWidget);
-    expect(find.text('Istirahat Setelah Aktivitas'), findsOneWidget);
-    expect(find.textContaining('Rekomendasi ini dibuat berdasarkan pola hidup sehat'), findsOneWidget);
-
-    // 3. Test Istirahat Siang Detail & Back
-    await tester.tap(find.text('Istirahat Siang'));
+    // 2. Click "Waktu Tidur" -> Langsung navigasi ke Halaman Waktu Tidur Malam
+    final waktuTidurFinder = find.text('Waktu Tidur');
+    await tester.ensureVisible(waktuTidurFinder);
+    await tester.pumpAndSettle();
+    expect(waktuTidurFinder, findsOneWidget);
+    await tester.tap(waktuTidurFinder);
     await tester.pumpAndSettle();
 
-    expect(find.byType(DayRestDetailScreen), findsOneWidget);
-    expect(find.text('Waktu Istirahat yang Disarankan'), findsOneWidget);
-    expect(find.text('13.00 - 14.00'), findsOneWidget);
-    expect(find.text('20 - 30 menit'), findsOneWidget);
-    expect(find.text('Atur pengingat'), findsOneWidget);
-
-    // Press Back Button (←) -> Should return to Rekomendasi Waktu Istirahat, NOT Progress!
-    final backBtn1 = find.byIcon(Icons.arrow_back_ios_new_rounded);
-    await tester.tap(backBtn1);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(RestRecommendationScreen), findsOneWidget);
-    expect(find.byType(DayRestDetailScreen), findsNothing);
-
-    // 4. Test Waktu Tidur Malam Detail & Back
-    await tester.tap(find.text('Waktu Tidur Malam'));
-    await tester.pumpAndSettle();
-
+    // 3. Verifikasi halaman Waktu Tidur Malam
     expect(find.byType(NightSleepDetailScreen), findsOneWidget);
-    expect(find.text('Waktu Tidur Malam'), findsOneWidget);
-    expect(find.text('22.00 - 23.00'), findsOneWidget);
-    expect(find.text('05.00 - 06.00'), findsOneWidget);
-    expect(find.text('7 - 8 jam'), findsOneWidget);
-    expect(find.text('Atur pengingat'), findsOneWidget);
+    expect(find.text('Waktu Tidur Malam'), findsWidgets);
+    expect(find.text('Tidur yang cukup dan teratur membantu metabolisme tubuh tetap seimbang.'), findsOneWidget);
+    expect(find.text('Masukkan data'), findsOneWidget);
 
-    // Press Back Button (←) -> Should return to Rekomendasi Waktu Istirahat
-    final backBtn2 = find.byIcon(Icons.arrow_back_ios_new_rounded);
-    await tester.tap(backBtn2);
-    await tester.pumpAndSettle();
+    // Verifikasi tombol "Atur pengingat" sudah dihapus
+    expect(find.text('Atur pengingat'), findsNothing);
 
-    expect(find.byType(RestRecommendationScreen), findsOneWidget);
-    expect(find.byType(NightSleepDetailScreen), findsNothing);
+    // Verifikasi opsi filter grafik ada
+    expect(find.text('Jam'), findsOneWidget);
+    expect(find.text('Hari'), findsOneWidget);
+    expect(find.text('Minggu'), findsOneWidget);
+    expect(find.text('Bulan'), findsOneWidget);
 
-    // 5. Test Istirahat Setelah Aktivitas Detail & Back
-    await tester.tap(find.text('Istirahat Setelah Aktivitas'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(ActivityRestDetailScreen), findsOneWidget);
-    expect(find.text('Istirahat Setelah Aktivitas'), findsOneWidget);
-    expect(find.text('15 - 30 menit'), findsOneWidget);
-    expect(find.text('Mulai Istirahat'), findsOneWidget);
-
-    // Press Back Button (←) -> Should return to Rekomendasi Waktu Istirahat
-    final backBtn3 = find.byIcon(Icons.arrow_back_ios_new_rounded);
-    await tester.tap(backBtn3);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(RestRecommendationScreen), findsOneWidget);
-    expect(find.byType(ActivityRestDetailScreen), findsNothing);
-
-    // 6. Test Back Button from Rekomendasi Waktu Istirahat -> Should return to ProgressScreen
-    final backToProgressBtn = find.byIcon(Icons.arrow_back_ios_new_rounded);
-    await tester.tap(backToProgressBtn);
+    // 4. Test tombol Back -> Harus kembali ke ProgressScreen
+    final backBtn = find.byIcon(Icons.arrow_back_ios_new_rounded).first;
+    await tester.tap(backBtn);
     await tester.pumpAndSettle();
 
     expect(find.byType(ProgressScreen), findsOneWidget);
-    expect(find.byType(RestRecommendationScreen), findsNothing);
+    expect(find.byType(NightSleepDetailScreen), findsNothing);
   });
 }

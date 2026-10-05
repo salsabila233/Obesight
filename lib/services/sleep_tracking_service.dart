@@ -35,6 +35,86 @@ class DailySleepSummary {
   }
 }
 
+class WeeklySleepSummary {
+  final String weekLabel;
+  final DateTime startDate;
+  final DateTime endDate;
+  final double averageMinutesPerDay;
+  final int totalMinutes;
+  final int daysWithData;
+  final bool isCurrentWeek;
+
+  const WeeklySleepSummary({
+    required this.weekLabel,
+    required this.startDate,
+    required this.endDate,
+    required this.averageMinutesPerDay,
+    required this.totalMinutes,
+    required this.daysWithData,
+    required this.isCurrentWeek,
+  });
+
+  bool get hasData => totalMinutes > 0;
+  int get averageHours => averageMinutesPerDay ~/ 60;
+  int get averageRemainingMinutes => (averageMinutesPerDay % 60).round();
+  String get formattedAverage {
+    if (averageMinutesPerDay <= 0) return '-';
+    if (averageHours > 0 && averageRemainingMinutes > 0) {
+      return '${averageHours}j ${averageRemainingMinutes}m';
+    }
+    if (averageHours > 0) return '${averageHours}j';
+    return '${averageRemainingMinutes}m';
+  }
+}
+
+class MonthlySleepSummary {
+  final String monthLabel;
+  final int month;
+  final int year;
+  final double averageMinutesPerDay;
+  final int totalMinutes;
+  final int daysWithData;
+  final bool isCurrentMonth;
+
+  const MonthlySleepSummary({
+    required this.monthLabel,
+    required this.month,
+    required this.year,
+    required this.averageMinutesPerDay,
+    required this.totalMinutes,
+    required this.daysWithData,
+    required this.isCurrentMonth,
+  });
+
+  bool get hasData => totalMinutes > 0;
+  int get averageHours => averageMinutesPerDay ~/ 60;
+  int get averageRemainingMinutes => (averageMinutesPerDay % 60).round();
+  String get formattedAverage {
+    if (averageMinutesPerDay <= 0) return '-';
+    if (averageHours > 0 && averageRemainingMinutes > 0) {
+      return '${averageHours}j ${averageRemainingMinutes}m';
+    }
+    if (averageHours > 0) return '${averageHours}j';
+    return '${averageRemainingMinutes}m';
+  }
+}
+
+class HourlySleepData {
+  final int hour;
+  final String label;
+  final int minutesSlept;
+  final bool isAsleep;
+
+  const HourlySleepData({
+    required this.hour,
+    required this.label,
+    required this.minutesSlept,
+    required this.isAsleep,
+  });
+
+  double get fraction => (minutesSlept / 60.0).clamp(0.0, 1.0);
+}
+
 class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   static final SleepTrackingService _instance = SleepTrackingService._internal();
   factory SleepTrackingService() => _instance;
@@ -383,6 +463,119 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     return '$h12:$mStr $period';
   }
 
+  /// Data distribusi tidur per jam untuk satu tanggal tertentu (24 jam)
+  List<HourlySleepData> getHourlySleepForDate(DateTime date) {
+    final recs = getRecordsForDate(date);
+    // Jika belum ada record tersimpan hari ini tapi ada deteksi otomatis, gunakan deteksi otomatis
+    final pending = _pendingAutoDetectedRecord;
+    final effectiveRecs = List<SleepRecord>.from(recs);
+    if (effectiveRecs.isEmpty && pending != null && pending.date == formatDateKey(date)) {
+      effectiveRecs.add(pending);
+    }
+
+    final List<HourlySleepData> hourly = [];
+    for (int h = 0; h < 24; h++) {
+      final hourStart = DateTime(date.year, date.month, date.day, h, 0);
+      final hourEnd = hourStart.add(const Duration(hours: 1));
+
+      int minutesInThisHour = 0;
+      for (final r in effectiveRecs) {
+        final rStart = r.startTime;
+        final rEnd = r.endTime;
+
+        final overlapStart = rStart.isAfter(hourStart) ? rStart : hourStart;
+        final overlapEnd = rEnd.isBefore(hourEnd) ? rEnd : hourEnd;
+
+        if (overlapEnd.isAfter(overlapStart)) {
+          minutesInThisHour += overlapEnd.difference(overlapStart).inMinutes;
+        }
+      }
+
+      final label = '${h.toString().padLeft(2, '0')}.00';
+      hourly.add(HourlySleepData(
+        hour: h,
+        label: label,
+        minutesSlept: minutesInThisHour.clamp(0, 60),
+        isAsleep: minutesInThisHour > 0,
+      ));
+    }
+    return hourly;
+  }
+
+  /// Ringkasan tidur per minggu (4 minggu terakhir) dari database asli
+  List<WeeklySleepSummary> getPast4WeeksSummaries([DateTime? referenceDate]) {
+    final ref = referenceDate ?? DateTime.now();
+    final summaries = <WeeklySleepSummary>[];
+
+    for (int w = 3; w >= 0; w--) {
+      final endDay = ref.subtract(Duration(days: w * 7));
+      final startDay = endDay.subtract(const Duration(days: 6));
+
+      int totalM = 0;
+      int daysWithData = 0;
+
+      for (int d = 0; d < 7; d++) {
+        final current = startDay.add(Duration(days: d));
+        final recs = getRecordsForDate(current);
+        final dayM = recs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
+        if (dayM > 0) {
+          totalM += dayM;
+          daysWithData++;
+        }
+      }
+
+      final avgM = daysWithData > 0 ? (totalM / daysWithData) : 0.0;
+      final weekLabel = w == 0 ? 'Mgg Ini' : 'Mgg -$w';
+
+      summaries.add(WeeklySleepSummary(
+        weekLabel: weekLabel,
+        startDate: startDay,
+        endDate: endDay,
+        averageMinutesPerDay: avgM,
+        totalMinutes: totalM,
+        daysWithData: daysWithData,
+        isCurrentWeek: w == 0,
+      ));
+    }
+    return summaries;
+  }
+
+  /// Ringkasan tidur per bulan (6 bulan terakhir) dari database asli
+  List<MonthlySleepSummary> getPastMonthsSummaries([int count = 6, DateTime? referenceDate]) {
+    final ref = referenceDate ?? DateTime.now();
+    const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    final summaries = <MonthlySleepSummary>[];
+
+    for (int m = count - 1; m >= 0; m--) {
+      int targetMonth = ref.month - m;
+      int targetYear = ref.year;
+      while (targetMonth <= 0) {
+        targetMonth += 12;
+        targetYear -= 1;
+      }
+
+      final monthRecs = _records.where((r) {
+        final d = r.startTime;
+        return d.year == targetYear && d.month == targetMonth;
+      }).toList();
+
+      final totalM = monthRecs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
+      final uniqueDays = monthRecs.map((r) => r.date).toSet().length;
+      final avgM = uniqueDays > 0 ? (totalM / uniqueDays) : 0.0;
+
+      summaries.add(MonthlySleepSummary(
+        monthLabel: monthNames[targetMonth],
+        month: targetMonth,
+        year: targetYear,
+        averageMinutesPerDay: avgM,
+        totalMinutes: totalM,
+        daysWithData: uniqueDays,
+        isCurrentMonth: m == 0,
+      ));
+    }
+    return summaries;
+  }
+
   // ==========================================
   // CRUD & VALIDASI DATA
   // ==========================================
@@ -509,24 +702,25 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  // Default seed dataset untuk 7 hari terakhir agar visualisasi grafik langsung tampil indah
+  // Default seed dataset untuk 30 hari terakhir agar visualisasi grafik (Jam, Hari, Minggu, Bulan) langsung tampil indah & fungsional
   void _initDefaults() {
     final now = DateTime.now();
-    // Default 7 days of historical sleep records (e.g. 7j 20m, 6j 45m, 8j 00m, 7j 30m, 6j 50m, 8j 10m, 7j 40m)
-    final sampleDurations = [
+    // Default sample durasi untuk beberapa hari (6-8 jam)
+    final cycleDurations = [
       const Duration(hours: 7, minutes: 20),
       const Duration(hours: 6, minutes: 45),
       const Duration(hours: 8, minutes: 0),
       const Duration(hours: 7, minutes: 30),
       const Duration(hours: 6, minutes: 50),
       const Duration(hours: 8, minutes: 10),
-      const Duration(hours: 5, minutes: 10), // Hari ini (sesuai Gambar 1 & 4)
+      const Duration(hours: 7, minutes: 15),
     ];
 
-    for (int i = 6; i >= 1; i--) {
+    // Seed 30 hari ke belakang (kecuali hari ini)
+    for (int i = 30; i >= 1; i--) {
       final day = now.subtract(Duration(days: i));
       final dateKey = formatDateKey(day);
-      final dur = sampleDurations[6 - i];
+      final dur = cycleDurations[i % cycleDurations.length];
 
       final startTime = DateTime(day.year, day.month, day.day, 22, 30);
       final endTime = startTime.add(dur);
@@ -538,10 +732,27 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         startTime: startTime,
         endTime: endTime,
         durationMinutes: dur.inMinutes,
-        source: i == 0 ? 'automatic' : 'manual',
+        source: 'manual',
         createdAt: day,
         updatedAt: day,
       ));
     }
+
+    // Default perkiraan tidur otomatis hari ini berdasarkan aktivitas HP (sesuai Gambar 1: 5j 10m)
+    // Sesi menutup HP pukul 23.30 hingga membuka HP pukul 04.40 (5 jam 10 menit)
+    final todayCandidateEnd = DateTime(now.year, now.month, now.day, 4, 40);
+    final todayCandidateStart = todayCandidateEnd.subtract(const Duration(hours: 5, minutes: 10));
+
+    _pendingAutoDetectedRecord = SleepRecord(
+      id: 'auto_${now.year}_${now.month}_${now.day}',
+      userId: currentUserId,
+      date: formatDateKey(now),
+      startTime: todayCandidateStart,
+      endTime: todayCandidateEnd,
+      durationMinutes: 310, // 5j 10m
+      source: 'automatic',
+      createdAt: now,
+      updatedAt: now,
+    );
   }
 }

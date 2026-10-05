@@ -25,6 +25,70 @@ class SkriningResultScreen extends StatelessWidget {
     return '${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
+  Color _getCategoryRingColor(String category, bool isDark) {
+    final cat = category.toLowerCase();
+    if (cat.contains('underweight') || cat.contains('kurang')) {
+      return const Color(0xFF93C5FD); // Soft blue
+    } else if (cat.contains('normal')) {
+      return const Color(0xFF86EFAC); // Soft fresh green
+    } else if (cat.contains('overweight') || cat.contains('kelebihan')) {
+      return const Color(0xFFFDE047); // Soft sunny amber/yellow
+    } else {
+      return const Color(0xFFFCA5A5); // Soft coral/rose red for Obesitas
+    }
+  }
+
+  Color _getCategoryBadgeBg(String category, bool isDark) {
+    final cat = category.toLowerCase();
+    if (cat.contains('underweight') || cat.contains('kurang')) {
+      return isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE0F2FE);
+    } else if (cat.contains('normal')) {
+      return isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7);
+    } else if (cat.contains('overweight') || cat.contains('kelebihan')) {
+      return isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7);
+    } else {
+      return isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2);
+    }
+  }
+
+  Color _getCategoryBadgeTextColor(String category, bool isDark) {
+    final cat = category.toLowerCase();
+    if (cat.contains('underweight') || cat.contains('kurang')) {
+      return isDark ? const Color(0xFFBFDBFE) : const Color(0xFF0369A1);
+    } else if (cat.contains('normal')) {
+      return isDark ? const Color(0xFF86EFAC) : const Color(0xFF15803D);
+    } else if (cat.contains('overweight') || cat.contains('kelebihan')) {
+      return isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E);
+    } else {
+      return isDark ? const Color(0xFFFECACA) : const Color(0xFFB91C1C);
+    }
+  }
+
+  IconData _getRiskIcon(String riskTitle) {
+    if (riskTitle.contains('Terkendali')) {
+      return Icons.check_circle_outline_rounded;
+    }
+    return Icons.warning_amber_rounded;
+  }
+
+  Color _getRiskColor(String riskTitle, bool isDark) {
+    if (riskTitle.contains('Terkendali')) {
+      return isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A);
+    } else if (riskTitle.contains('Meningkat') || riskTitle.contains('Perhatian') || riskTitle.contains('Sedang')) {
+      return isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+    }
+    return isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626);
+  }
+
+  Color _getRiskBgColor(String riskTitle, bool isDark) {
+    if (riskTitle.contains('Terkendali')) {
+      return isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7);
+    } else if (riskTitle.contains('Meningkat') || riskTitle.contains('Perhatian') || riskTitle.contains('Sedang')) {
+      return isDark ? const Color(0xFF334155) : const Color(0xFFFEF3C7);
+    }
+    return isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2);
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
@@ -188,16 +252,16 @@ class SkriningResultScreen extends StatelessWidget {
 
                     const SizedBox(height: 18),
 
-                    // 2. SEKSI STATUS/KATEGORI (Avatar Bulat Kuning + Overweight Level I + Badge)
+                    // 2. SEKSI STATUS/KATEGORI (Avatar Bulat Dinamis + Kategori Dinamis + Badge Dinamis)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Avatar Bulat Kuning
+                        // Avatar Bulat dengan warna cincin dinamis sesuai kategori
                         Container(
                           width: 88,
                           height: 88,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFDE047), // Soft sunny yellow
+                          decoration: BoxDecoration(
+                            color: _getCategoryRingColor(data.classificationCategory, isDark),
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
@@ -217,7 +281,7 @@ class SkriningResultScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        // Judul Kategori & Badge
+                        // Judul Kategori & Badge Dinamis
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +299,7 @@ class SkriningResultScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7), // Light amber badge
+                                  color: _getCategoryBadgeBg(data.classificationCategory, isDark),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -243,7 +307,7 @@ class SkriningResultScreen extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF92400E),
+                                    color: _getCategoryBadgeTextColor(data.classificationCategory, isDark),
                                   ),
                                 ),
                               ),
@@ -436,16 +500,16 @@ class SkriningResultScreen extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Yellow Warning Triangle Icon
+                          // Dynamic Risk Icon Container
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF334155) : const Color(0xFFFEF3C7),
+                              color: _getRiskBgColor(data.riskTitle, isDark),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(
-                              Icons.warning_amber_rounded,
-                              color: Color(0xFFD97706),
+                            child: Icon(
+                              _getRiskIcon(data.riskTitle),
+                              color: _getRiskColor(data.riskTitle, isDark),
                               size: 24,
                             ),
                           ),
@@ -459,7 +523,7 @@ class SkriningResultScreen extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFFD97706),
+                                    color: _getRiskColor(data.riskTitle, isDark),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
