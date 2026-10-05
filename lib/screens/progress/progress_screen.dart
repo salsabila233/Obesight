@@ -105,6 +105,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   title: 'Makanan & Minuman',
                   desc: 'Pantau asupan nutrisi seimbang dan kalori harianmu.',
                   isHighlighted: true,
+                  borderColor: isDark
+                      ? const Color(0xFF58AF86).withValues(alpha: 0.5)
+                      : const Color(0xFF36785A).withValues(alpha: 0.4),
                   isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
@@ -125,6 +128,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   title: 'Aktivitas Fisik',
                   desc: 'Panduan olahraga, durasi & rekomendasi aktivitas fisik harian.',
                   isHighlighted: true,
+                  borderColor: isDark
+                      ? const Color(0xFF38BDF8).withValues(alpha: 0.5)
+                      : const Color(0xFFBAE6FD),
                   isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
@@ -142,6 +148,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   iconColor: isDark ? const Color(0xFFC084FC) : const Color(0xFF7E22CE),
                   title: 'Waktu Istirahat',
                   desc: 'Cek kualitas tidur 7-8 jam dan durasi istirahatmu.',
+                  isHighlighted: true,
+                  borderColor: isDark
+                      ? const Color(0xFFC084FC).withValues(alpha: 0.5)
+                      : const Color(0xFFE9D5FF),
                   isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
@@ -1137,11 +1147,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
     required VoidCallback onTap,
     bool isHighlighted = false,
     bool isDark = false,
+    Color? borderColor,
   }) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final cardBorder = isDark
-        ? (isHighlighted ? const Color(0xFF58AF86).withValues(alpha: 0.5) : const Color(0xFF334155))
-        : (isHighlighted ? const Color(0xFF36785A).withValues(alpha: 0.4) : const Color(0xFFE2E8F0));
+    final cardBorder = borderColor ??
+        (isDark
+            ? (isHighlighted ? const Color(0xFF58AF86).withValues(alpha: 0.5) : const Color(0xFF334155))
+            : (isHighlighted ? const Color(0xFF36785A).withValues(alpha: 0.4) : const Color(0xFFE2E8F0)));
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
     final descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
@@ -1151,7 +1163,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: cardBorder,
-          width: isHighlighted ? 1.3 : 1.0,
+          width: isHighlighted || borderColor != null ? 1.3 : 1.0,
         ),
         boxShadow: [
           BoxShadow(

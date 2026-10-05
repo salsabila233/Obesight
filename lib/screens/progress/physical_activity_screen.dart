@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/physical_activity_service.dart';
 import 'activity_detail_screen.dart';
 
 class PhysicalActivityScreen extends StatefulWidget {
@@ -13,9 +14,6 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
   late final ScrollController _dateScrollController;
   final int _todayOffset = 7; // Index of today in [-7 .. +13] (total 21 days)
   late int _selectedDayIndex;
-
-  // Track completed activities (per activity id)
-  final Set<String> _completedActivities = {};
 
   final List<Map<String, dynamic>> _activities = [
     {
@@ -235,178 +233,12 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     super.dispose();
   }
 
-  void _openDetail(Map<String, dynamic> act) {
+  void _openDetail(Map<String, dynamic> act, String dateKey) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ActivityDetailScreen(activity: act),
-      ),
-    );
-  }
-
-  // Interactive Save Confirmation Modal (Matches HTML #progress-confirm-modal)
-  void _confirmToggleActivity(Map<String, dynamic> act) {
-    final actId = act['id'] as String;
-    final actName = act['name'] as String;
-    final isAlreadyCompleted = _completedActivities.contains(actId);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        elevation: 10,
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon Circle with Clipboard & Question Mark Badge
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 68,
-                    height: 68,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.assignment_turned_in_outlined,
-                        size: 36,
-                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2D6A4F),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: -4,
-                    right: -4,
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEAB308),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          width: 2,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '?',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-
-              // Modal Title
-              Text(
-                'Simpan Perubahan?',
-                style: GoogleFonts.poppins(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Modal Description
-              Text(
-                isAlreadyCompleted
-                    ? 'Tandai aktivitas "$actName" sebagai belum selesai hari ini?'
-                    : 'Perubahan yang kamu lakukan akan disimpan sebagai progress hari ini.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 22),
-
-              // Action Buttons [BATAL] [YA]
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                        ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: () => Navigator.pop(ctx),
-                      child: Text(
-                        'BATAL',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        backgroundColor: const Color(0xFF36785A),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        setState(() {
-                          if (isAlreadyCompleted) {
-                            _completedActivities.remove(actId);
-                          } else {
-                            _completedActivities.add(actId);
-                          }
-                        });
-
-                        // Toast Notification
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              isAlreadyCompleted
-                                  ? 'Status $actName diperbarui (belum selesai)'
-                                  : 'Aktivitas Disimpan: Sesi $actName berhasil diselesaikan!',
-                              style: GoogleFonts.poppins(fontSize: 12.5),
-                            ),
-                            backgroundColor: const Color(0xFF2E6B4F),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'YA',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        builder: (_) => ActivityDetailScreen(
+          activity: act,
+          dateKey: dateKey,
         ),
       ),
     );
@@ -420,183 +252,193 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8);
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
 
-    return Scaffold(
-      backgroundColor: scaffoldBg,
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Rekomendasi Aktivitas Fisik',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Horizontal Real-Time Date Scroller (21 days: -7 to +13)
-            SizedBox(
-              height: 74,
-              child: ListView.builder(
-                controller: _dateScrollController,
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: 21,
-                itemBuilder: (context, index) {
-                  final offset = index - _todayOffset;
-                  final date = now.add(Duration(days: offset));
-                  final isSelected = _selectedDayIndex == index;
-                  final isPast = offset < 0;
-                  final isToday = offset == 0;
+    return ListenableBuilder(
+      listenable: PhysicalActivityService.instance,
+      builder: (context, _) {
+        final offset = _selectedDayIndex - _todayOffset;
+        final selectedDate = now.add(Duration(days: offset));
+        final selectedDateKey = PhysicalActivityService.instance.formatDateKey(selectedDate);
+        final completedCount = PhysicalActivityService.instance.getCompletedCountForDate(selectedDateKey);
 
-                  final dayName = isToday ? 'Hari ini' : dayNames[date.weekday % 7];
-                  final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
-
-                  Color bgColor;
-                  Color textColor;
-                  Color subTextColor;
-                  Border border;
-
-                  if (isSelected) {
-                    bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
-                    textColor = Colors.white;
-                    subTextColor = Colors.white.withValues(alpha: 0.9);
-                    border = Border.all(color: bgColor, width: 1.5);
-                  } else if (isPast) {
-                    // Past Days -> Merah, Teks Putih
-                    bgColor = const Color(0xFFEF4444);
-                    textColor = Colors.white;
-                    subTextColor = Colors.white.withValues(alpha: 0.85);
-                    border = Border.all(color: const Color(0xFFDC2626));
-                  } else if (isToday) {
-                    // Today -> Hijau Pastel
-                    bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
-                    textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
-                    subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
-                    border = Border.all(color: const Color(0xFF10B981), width: 1.5);
-                  } else {
-                    // Future Days
-                    bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-                    textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-                    subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-                    border = Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
-                  }
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedDayIndex = index;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 58,
-                      margin: const EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: border,
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: const Color(0xFF36785A).withValues(alpha: 0.25),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                )
-                              ]
-                            : [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 1),
-                                )
-                              ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            dayName,
-                            style: GoogleFonts.poppins(
-                              fontSize: isToday ? 9.5 : 11,
-                              fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w500,
-                              color: subTextColor,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            dateStr,
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: textColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+        return Scaffold(
+          backgroundColor: scaffoldBg,
+          appBar: AppBar(
+            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text(
+              'Rekomendasi Aktivitas Fisik',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // Section Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            centerTitle: true,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Pilihan Aktivitas Olahraga',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: textPrimary,
+                // Horizontal Real-Time Date Scroller (21 days: -7 to +13)
+                SizedBox(
+                  height: 74,
+                  child: ListView.builder(
+                    controller: _dateScrollController,
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: 21,
+                    itemBuilder: (context, index) {
+                      final itemOffset = index - _todayOffset;
+                      final date = now.add(Duration(days: itemOffset));
+                      final isSelected = _selectedDayIndex == index;
+                      final isPast = itemOffset < 0;
+                      final isToday = itemOffset == 0;
+
+                      final dayName = isToday ? 'Hari ini' : dayNames[date.weekday % 7];
+                      final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
+
+                      Color bgColor;
+                      Color textColor;
+                      Color subTextColor;
+                      Border border;
+
+                      if (isSelected) {
+                        bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
+                        textColor = Colors.white;
+                        subTextColor = Colors.white.withValues(alpha: 0.9);
+                        border = Border.all(color: bgColor, width: 1.5);
+                      } else if (isPast) {
+                        // Past Days -> Merah, Teks Putih
+                        bgColor = const Color(0xFFEF4444);
+                        textColor = Colors.white;
+                        subTextColor = Colors.white.withValues(alpha: 0.85);
+                        border = Border.all(color: const Color(0xFFDC2626));
+                      } else if (isToday) {
+                        // Today -> Hijau Pastel
+                        bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
+                        textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
+                        subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
+                        border = Border.all(color: const Color(0xFF10B981), width: 1.5);
+                      } else {
+                        // Future Days
+                        bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+                        textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+                        subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+                        border = Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
+                      }
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedDayIndex = index;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 58,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border: border,
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    )
+                                  ]
+                                : [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    )
+                                  ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                dayName,
+                                style: GoogleFonts.poppins(
+                                  fontSize: isToday ? 9.5 : 11,
+                                  fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w500,
+                                  color: subTextColor,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                dateStr,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
-                    borderRadius: BorderRadius.circular(8),
-                    border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-                  ),
-                  child: Text(
-                    '${_completedActivities.length}/5 Selesai',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+
+                const SizedBox(height: 20),
+
+                // Section Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Pilihan Aktivitas Olahraga',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
                     ),
-                  ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
+                        borderRadius: BorderRadius.circular(8),
+                        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+                      ),
+                      child: Text(
+                        '$completedCount/5 Selesai',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 12),
+
+                // 5 Activity Cards with Read-Only Checklist
+                ..._activities.map((act) => _buildActivityCard(act, isDark, selectedDateKey)),
+
+                const SizedBox(height: 20),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // 5 Activity Cards with Interactive Checklist & 3 Pills
-            ..._activities.map((act) => _buildActivityCard(act, isDark)),
-
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> act, bool isDark) {
+  Widget _buildActivityCard(Map<String, dynamic> act, bool isDark, String dateKey) {
     final actId = act['id'] as String;
-    final isCompleted = _completedActivities.contains(actId);
+    final isCompleted = PhysicalActivityService.instance.isCompleted(dateKey, actId);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isCompleted
         ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
@@ -626,7 +468,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          onTap: () => _openDetail(act),
+          onTap: () => _openDetail(act, dateKey),
           child: Padding(
             padding: const EdgeInsets.all(13),
             child: Row(
@@ -727,17 +569,16 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 ),
                 const SizedBox(width: 6),
 
-                // Interactive Checklist Toggle Button
-                IconButton(
-                  icon: Icon(
+                // Read-Only Status Indicator (Automatically checked via completed timer)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6, left: 2),
+                  child: Icon(
                     isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                     color: isCompleted
                         ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
                         : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
                     size: 26,
                   ),
-                  tooltip: isCompleted ? 'Batalkan status selesai' : 'Tandai selesai',
-                  onPressed: () => _confirmToggleActivity(act),
                 ),
               ],
             ),

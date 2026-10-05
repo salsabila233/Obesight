@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'activity_timer_screen.dart';
+import 'activity_rest_detail_screen.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
+  final String? dateKey;
 
-  const ActivityDetailScreen({super.key, required this.activity});
+  const ActivityDetailScreen({
+    super.key,
+    required this.activity,
+    this.dateKey,
+  });
 
   @override
   State<ActivityDetailScreen> createState() => _ActivityDetailScreenState();
@@ -213,7 +219,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               // Content Sliver
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 100),
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 150),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -443,12 +449,25 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       elevation: 0,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).push(
+                    onPressed: () async {
+                      final result = await Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => ActivityTimerScreen(activity: widget.activity),
+                          builder: (_) => ActivityTimerScreen(
+                            activity: widget.activity,
+                            dateKey: widget.dateKey,
+                          ),
                         ),
                       );
+                      if (!context.mounted) return;
+                      if (result == 'rest') {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => const ActivityRestDetailScreen(),
+                          ),
+                        );
+                      } else if (result == true) {
+                        Navigator.of(context).pop(true);
+                      }
                     },
                     icon: const Icon(Icons.play_arrow_rounded, size: 22),
                     label: Text(

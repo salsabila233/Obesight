@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'activity_timer_screen.dart';
 
 class ActivityRestDetailScreen extends StatefulWidget {
   const ActivityRestDetailScreen({super.key});
@@ -10,128 +10,6 @@ class ActivityRestDetailScreen extends StatefulWidget {
 }
 
 class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
-  void _startRestTimerDialog() {
-    int remainingSeconds = 15 * 60; // 15 minutes default
-    Timer? timer;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            timer ??= Timer.periodic(const Duration(seconds: 1), (t) {
-              if (remainingSeconds > 0) {
-                setDialogState(() {
-                  remainingSeconds--;
-                });
-              } else {
-                t.cancel();
-              }
-            });
-
-            final minutes = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
-            final seconds = (remainingSeconds % 60).toString().padLeft(2, '0');
-            final progress = 1.0 - (remainingSeconds / (15 * 60));
-
-            return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              backgroundColor: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Sesi Istirahat Berlangsung',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF265C45),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Tarik napas perlahan dan minum air putih.',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Circular Countdown Timer
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        SizedBox(
-                          width: 140,
-                          height: 140,
-                          child: CircularProgressIndicator(
-                            value: progress,
-                            strokeWidth: 8,
-                            backgroundColor: const Color(0xFFE2F1E8),
-                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF3E8D6B)),
-                          ),
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '$minutes:$seconds',
-                              style: GoogleFonts.poppins(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
-                              ),
-                            ),
-                            Text(
-                              'Menit',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                color: const Color(0xFF94A3B8),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Tombol Selesai
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3E8D6B),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        onPressed: () {
-                          timer?.cancel();
-                          Navigator.pop(ctx);
-                        },
-                        child: Text(
-                          'Selesai Istirahat',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13.5),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    ).then((_) {
-      timer?.cancel();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -294,7 +172,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      '15 - 30 menit',
+                                      '15 menit',
                                       style: GoogleFonts.poppins(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
@@ -445,7 +323,21 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                               elevation: 0,
                             ),
-                            onPressed: _startRestTimerDialog,
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const ActivityTimerScreen(
+                                    activity: {
+                                      'id': 'rest_activity',
+                                      'title': 'Istirahat Setelah Aktivitas',
+                                      'heroImg': 'assets/progress/rest/hero_aktivitas.png',
+                                      'isRest': true,
+                                      'targetText': '15 menit',
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
