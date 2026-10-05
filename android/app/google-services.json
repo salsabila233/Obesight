@@ -12,7 +12,20 @@
           "package_name": "com.obesight.obesight"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "450892632554-5p3alqnr53rsnilepfpt8a1l3sdcoebv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.obesight.obesight",
+            "certificate_hash": "1c3ff1e1b14367e7f5d39f945af9511b1c9d60a1"
+          }
+        },
+        {
+          "client_id": "450892632554-70g0729319qta1595gnign3a200mghql.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCJdEY9u-dfT6LCNKYuWUnzq37-51t45yo"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "450892632554-70g0729319qta1595gnign3a200mghql.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "450892632554-h21rolmt3scugqltmmiovliir252hs0d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.obesight.obesight"
+              }
+            }
+          ]
         }
       }
     }
