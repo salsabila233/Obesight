@@ -9070,4 +9070,264 @@ body.theme-dark .help-contact-value {
   background: #3B8263;
 }
 
+/* ========================================================
+   REVISED IMT CALCULATOR & RESULT UI (FIGMA 1:1)
+   ======================================================== */
+
+.imt-header-green {
+  background: #489874 !important;
+  color: #FFFFFF !important;
+}
+
+.imt-header-green .mobile-subpage-title {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.imt-header-green .btn-subpage-back {
+  color: #FFFFFF !important;
+}
+
+/* Green Result Hero Card */
+.imt-result-hero-card {
+  background: #489874;
+  background: linear-gradient(180deg, #489874 0%, #3B8263 100%);
+  padding: 16px 20px 24px 20px;
+  color: #FFFFFF;
+}
+
+.imt-result-hero-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+.imt-result-hero-body {
+  position: relative;
+  min-height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.imt-hero-img-wrap {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 84px;
+  height: 114px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.imt-hero-runner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.imt-hero-score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 0 auto;
+  z-index: 1;
+}
+
+.imt-hero-score-num {
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1.05;
+  color: #FFFFFF;
+  letter-spacing: -1px;
+}
+
+.imt-hero-pill-badge {
+  margin-top: 8px;
+  background: #FFFFFF;
+  color: #2D6B50;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 5px 22px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Description Box */
+.imt-desc-box {
+  background: #E8F5EE;
+  border: 1.5px solid #C4ECDA;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.imt-desc-heading {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #112A1F;
+  margin: 0 0 6px 0;
+}
+
+.imt-desc-text {
+  font-size: 12px;
+  color: #375347;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Gauge Card */
+.bmi-gauge-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 14px 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* Detail Data Anda Card */
+.imt-detail-data-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  margin-bottom: 16px;
+}
+
+.imt-card-sec-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #489874;
+  margin: 0 0 12px 0;
+}
+
+.imt-detail-rows-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.imt-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.imt-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.imt-row-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.imt-row-divider {
+  height: 1px;
+  background: #F1F5F9;
+  margin: 4px 0;
+}
+
+/* Kategori IMT Table */
+.imt-category-table-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  margin-bottom: 16px;
+}
+
+.imt-cat-table-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.imt-cat-table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.imt-cat-table-row.active-category {
+  background: #E8F5EE;
+  font-weight: 700;
+}
+
+.cat-table-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.cat-name {
+  font-size: 13px;
+  color: #1E293B;
+}
+
+.cat-table-range {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 600;
+}
+
+/* Hitung Ulang Action */
+.btn-imt-recalc-action {
+  width: 100%;
+  height: 50px;
+  background: #489874;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 25px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(72, 152, 116, 0.3);
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+
+.btn-imt-recalc-action:hover {
+  background: #3B8263;
+  transform: translateY(-1px);
+}
+
+.btn-imt-recalc-action:active {
+  transform: translateY(0);
+}
+
 

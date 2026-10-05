@@ -618,8 +618,8 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                     }
                   },
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     color: textPrimary,
                   ),
                   decoration: InputDecoration(

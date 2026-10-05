@@ -2918,6 +2918,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const bmiCalcErrorBanner = document.getElementById('bmi-calc-error-banner');
   const bmiCalcErrorText = document.getElementById('bmi-calc-error-text');
   const btnSaveBmiCalc = document.getElementById('btn-save-bmi-calc');
+  const modalBmiConfirm = document.getElementById('modal-bmi-confirm-backdrop');
   const btnCancelBmiConfirm = document.getElementById('btn-cancel-bmi-confirm');
   const btnConfirmSaveBmi = document.getElementById('btn-confirm-save-bmi');
   const btnBackFromBmiCalc = document.getElementById('btn-back-from-bmi-calc');
@@ -2986,55 +2987,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (bmiCalcErrorBanner) bmiCalcErrorBanner.classList.add('hidden');
 
-      // Langsung hitung nilai estimasi IMT dan simpan tanpa popup konfirmasi
-      const hM = h / 100;
-      const bmi = (w / (hM * hM)).toFixed(1);
-      const bmiVal = parseFloat(bmi);
-
-      let category = 'Normal';
-      let risk = 'Rendah';
-
-      if (bmiVal < 18.5) {
-        category = 'Kurus';
-        risk = 'Rendah';
-      } else if (bmiVal <= 22.9) {
-        category = 'Normal';
-        risk = 'Rendah';
-      } else if (bmiVal <= 24.9) {
-        category = 'Overweight';
-        risk = 'Sedang';
+      // Tampilkan Modal Konfirmasi Simpan Perubahan (Sesuai Figma)
+      if (modalBmiConfirm) {
+        modalBmiConfirm.classList.remove('hidden');
       } else {
-        category = 'Obesitas';
-        risk = 'Tinggi';
+        performSaveBmiCalculation();
       }
+    });
+  }
 
-      const updatedData = {
-        bmi: bmi,
-        category: category,
-        risk: risk,
-        weight: w,
-        height: h,
-        age: a,
-        gender: selectedBmiGender
-      };
+  if (btnCancelBmiConfirm && modalBmiConfirm) {
+    btnCancelBmiConfirm.addEventListener('click', () => {
+      modalBmiConfirm.classList.add('hidden');
+    });
+  }
 
-      setUserBmiData(currentUser.email, updatedData);
-      updateHealthStatusCard(updatedData);
+  function performSaveBmiCalculation() {
+    const w = parseFloat(inputBmiWeight?.value) || 58;
+    const h = parseFloat(inputBmiHeight?.value) || 165;
+    const a = parseInt(inputBmiAge?.value, 10) || 22;
 
-      // Langsung pindah ke halaman Hasil IMT
-      showScreen('bmi-result');
-      showToast('Perubahan Disimpan', `Estimasi IMT Anda: ${bmi} (${category}).`);
+    const hM = h / 100;
+    const bmi = (w / (hM * hM)).toFixed(1);
+    const bmiVal = parseFloat(bmi);
+
+    let category = 'Normal';
+    let risk = 'Rendah';
+
+    if (bmiVal < 18.5) {
+      category = 'Kurus';
+      risk = 'Rendah';
+    } else if (bmiVal <= 22.9) {
+      category = 'Normal';
+      risk = 'Rendah';
+    } else if (bmiVal <= 24.9) {
+      category = 'Overweight';
+      risk = 'Sedang';
+    } else {
+      category = 'Obesitas';
+      risk = 'Tinggi';
+    }
+
+    const updatedData = {
+      bmi: bmi,
+      category: category,
+      risk: risk,
+      weight: w,
+      height: h,
+      age: a,
+      gender: selectedBmiGender
+    };
+
+    setUserBmiData(currentUser.email, updatedData);
+    updateHealthStatusCard(updatedData);
+
+    if (modalBmiConfirm) modalBmiConfirm.classList.add('hidden');
+    showScreen('bmi-result');
+    showToast('Perubahan Disimpan', `IMT Anda: ${bmi.replace('.', ',')} (${category}).`);
+  }
+
+  if (btnConfirmSaveBmi) {
+    btnConfirmSaveBmi.addEventListener('click', () => {
+      performSaveBmiCalculation();
     });
   }
 
   function renderBmiResultUI() {
     const data = getUserBmiData(currentUser.email);
     const bmiVal = parseFloat(data.bmi) || 22.8;
+    const formattedBmi = String(data.bmi || '22.8').replace('.', ',');
 
     const badge = document.getElementById('bmi-result-category-badge');
     const scoreBig = document.getElementById('bmi-result-score-big');
     const riskText = document.getElementById('bmi-result-risk-text');
     const desc = document.getElementById('bmi-result-description');
+    const descHeading = document.getElementById('imt-desc-heading');
     const pointerWrap = document.getElementById('bmi-gauge-pointer-wrap');
     const pointerText = document.getElementById('bmi-gauge-pointer-text');
     const summaryGender = document.getElementById('bmi-summary-gender');
@@ -3072,19 +3099,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (badge) {
       badge.textContent = catTitle;
-      badge.className = `bmi-result-tag ${catClass}`;
     }
 
     if (scoreBig) {
-      scoreBig.textContent = data.bmi;
-      if (catClass === 'kurus') scoreBig.style.color = '#0284C7';
-      else if (catClass === 'normal') scoreBig.style.color = '#16A34A';
-      else if (catClass === 'overweight') scoreBig.style.color = '#D97706';
-      else scoreBig.style.color = '#DC2626';
+      scoreBig.textContent = formattedBmi;
+    }
+
+    if (descHeading) {
+      descHeading.textContent = `Berat Badan Anda Dalam Kategori ${catTitle}.`;
     }
 
     if (riskText) {
-      riskText.textContent = `Risiko Obesitas: ${data.risk}`;
+      riskText.textContent = `Risiko Obesitas: ${data.risk || 'Rendah'}`;
     }
 
     if (desc) {
@@ -3093,7 +3119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Gauge pointer positioning (Min BMI 15 -> 4%, Max BMI 35 -> 96%)
     if (pointerWrap && pointerText) {
-      pointerText.textContent = data.bmi;
+      pointerText.textContent = formattedBmi;
       const minB = 15;
       const maxB = 35;
       const pct = Math.min(Math.max(((bmiVal - minB) / (maxB - minB)) * 100, 4), 96);
@@ -3103,8 +3129,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Physical summary
     if (summaryGender) summaryGender.textContent = data.gender || 'Perempuan';
     if (summaryAge) summaryAge.textContent = `${data.age || 22} Tahun`;
-    if (summaryWeight) summaryWeight.textContent = `${data.weight || 58} kg`;
-    if (summaryHeight) summaryHeight.textContent = `${data.height || 165} cm`;
+    if (summaryWeight) summaryWeight.textContent = `${data.weight || 58} KG`;
+    if (summaryHeight) summaryHeight.textContent = `${data.height || 165} CM`;
+
+    // Highlight row in category table
+    ['kurus', 'normal', 'overweight', 'obesitas'].forEach(k => {
+      const row = document.getElementById(`cat-row-${k}`);
+      if (row) {
+        if (k === key) row.classList.add('active-category');
+        else row.classList.remove('active-category');
+      }
+    });
 
     // Recommendations list
     if (recsList) {

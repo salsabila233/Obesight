@@ -263,7 +263,6 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                             icon: Icons.calendar_today_outlined,
                             controller: _ageController,
                             keyboardType: TextInputType.number,
-                            isDropdownStyle: true,
                             isDark: isDark,
                           ),
                           const SizedBox(height: 14),
@@ -465,7 +464,7 @@ class _PhysicalDataCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
@@ -503,7 +502,7 @@ class _PhysicalDataCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Kiri: Angka besar bold
+              // Kiri: Angka input
               Expanded(
                 child: TextField(
                   controller: controller,
@@ -512,10 +511,9 @@ class _PhysicalDataCard extends StatelessWidget {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
                   style: GoogleFonts.poppins(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     color: textColor,
-                    letterSpacing: -0.5,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -524,33 +522,17 @@ class _PhysicalDataCard extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
 
-              // Kanan: Satuan hijau bold
-              if (isDropdownStyle)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      unit,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: primaryGreen,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    Icon(Icons.keyboard_arrow_down_rounded, color: primaryGreen, size: 20),
-                  ],
-                )
-              else
-                Text(
-                  unit,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: primaryGreen,
-                  ),
+              // Kanan: Satuan hijau bold (tanpa tanda panah, digeser lebih ke kanan)
+              Text(
+                unit,
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: primaryGreen,
                 ),
+              ),
             ],
           ),
         ],
