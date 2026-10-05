@@ -172,7 +172,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      '15 menit',
+                                      '15 - 30 menit',
                                       style: GoogleFonts.poppins(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,

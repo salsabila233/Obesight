@@ -9,6 +9,7 @@ import 'screens/auth/reset_password_screen.dart';
 import 'screens/auth/verify_otp_screen.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'screens/splash/splash_screen.dart';
+import 'services/sleep_tracking_service.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -40,6 +41,9 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Initialize sleep tracking service observer for auto/manual detection
+  SleepTrackingService.instance.initialize();
 
   runApp(const ObeSightApp());
 }
