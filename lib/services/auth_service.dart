@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -25,16 +27,33 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
+  /// Web Client ID opsional yang dapat dikonfigurasi dari Firebase Console
+  /// (Authentication -> Sign-in method -> Google -> Web SDK configuration -> Web client ID)
+  static String? webClientId;
+
+  bool get isFirebaseAvailable => Firebase.apps.isNotEmpty;
   FirebaseAuth get _firebaseAuth => FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+
   GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
+    scopes: const ['email', 'profile'],
+    serverClientId: webClientId,
   );
   GoogleSignIn get googleSignIn => _googleSignIn;
 
   @visibleForTesting
   set googleSignInInstance(GoogleSignIn instance) {
     _googleSignIn = instance;
+  }
+
+  /// Memungkinkan konfigurasi client ID secara dinamis
+  void configureGoogleSignIn({String? serverClientId, String? clientId}) {
+    webClientId = serverClientId;
+    _googleSignIn = GoogleSignIn(
+      scopes: const ['email', 'profile'],
+      serverClientId: serverClientId,
+      clientId: clientId,
+    );
   }
 
   UserModel? _currentUser;
@@ -464,83 +483,134 @@ class AuthService {
   /// dan menghubungkan akun ke Firebase Auth & Cloud Firestore.
   Future<AuthResponse> signInWithGoogle() async {
     try {
-      // Pastikan sesi Google sebelumnya di-reset agar dialog pemilih akun Google
-      // asli bawaan sistem/perangkat pengguna selalu muncul setiap tombol diklik
-      try {
-        await _googleSignIn.signOut();
-      } catch (_) {}
-
-      // 1. Panggil langsung dialog akun Google native bawaan perangkat
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return const AuthResponse.failure('Proses masuk dengan Google dibatalkan.');
+      if (!isFirebaseAvailable) {
+        return const AuthResponse.failure(
+          'Firebase belum terinisialisasi. Pastikan koneksi internet aktif saat membuka aplikasi.',
+        );
       }
 
-      // 2. Dapatkan token autentikasi resmi dari akun Google yang dipilih
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      UserCredential userCredential;
+      String? fallbackDisplayName;
+      String? fallbackEmail;
+      String? fallbackPhotoUrl;
 
-      // 3. Buat kredensial OAuth untuk Firebase Auth
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+      // Platform Web: gunakan signInWithPopup resmi dari Firebase Auth
+      if (kIsWeb) {
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        userCredential = await _firebaseAuth.signInWithPopup(googleProvider);
+      } else {
+        // Platform Mobile (Android / iOS):
+        // 1. Reset sesi Google sebelumnya agar dialog pemilih akun Google native selalu muncul
+        try {
+          await _googleSignIn.signOut();
+        } catch (_) {}
 
-      // 4. Masuk ke Firebase Auth menggunakan kredensial Google
-      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+        // 2. Panggil dialog native Google Sign-In
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          return const AuthResponse.failure('Proses masuk dengan Google dibatalkan.');
+        }
+
+        fallbackDisplayName = googleUser.displayName;
+        fallbackEmail = googleUser.email;
+        fallbackPhotoUrl = googleUser.photoUrl;
+
+        // 3. Dapatkan token autentikasi resmi (accessToken & idToken)
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+        // 4. Validasi keberadaan token
+        if (googleAuth.idToken == null && googleAuth.accessToken == null) {
+          return const AuthResponse.failure(
+            'Tidak berhasil memperoleh token autentikasi dari Google. Pastikan Google Play Services aktif dan koneksi internet stabil.',
+          );
+        }
+
+        // 5. Buat kredensial OAuth untuk Firebase Auth
+        final OAuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        // 6. Masuk ke Firebase Auth menggunakan kredensial Google
+        userCredential = await _firebaseAuth.signInWithCredential(credential);
+      }
+
       final User? firebaseUser = userCredential.user;
-
       if (firebaseUser == null) {
         return const AuthResponse.failure('Gagal mendapatkan profil pengguna dari Google.');
       }
 
       final uid = firebaseUser.uid;
-      final name = firebaseUser.displayName ?? googleUser.displayName ?? 'Pengguna Google';
-      final email = firebaseUser.email ?? googleUser.email;
-      final photoUrl = firebaseUser.photoURL ?? googleUser.photoUrl ?? '';
-
-      // 5. Simpan / Perbarui data secara otomatis ke Firestore pada koleksi users/{uid}
-      final userDocRef = _firestore.collection('users').doc(uid);
-      final userDoc = await userDocRef.get();
+      final name = (firebaseUser.displayName != null && firebaseUser.displayName!.trim().isNotEmpty)
+          ? firebaseUser.displayName!.trim()
+          : ((fallbackDisplayName != null && fallbackDisplayName.trim().isNotEmpty)
+              ? fallbackDisplayName.trim()
+              : 'Pengguna Google');
+      final email = firebaseUser.email ?? fallbackEmail ?? '';
+      final photoUrl = firebaseUser.photoURL ?? fallbackPhotoUrl ?? '';
 
       bool isProfileCompleted = false;
       String dob = '';
       String gender = 'Perempuan';
       String phone = '';
 
-      if (!userDoc.exists) {
-        // Pengguna baru pertama kali login dengan Google
-        await userDocRef.set({
-          'uid': uid,
-          'name': name,
-          'email': email,
-          'photoUrl': photoUrl,
-          'photoPath': photoUrl,
-          'phone': '',
-          'dob': '',
-          'gender': '',
-          'role': 'user',
-          'isBiodataComplete': false,
-          'createdAt': FieldValue.serverTimestamp(),
-          'authProvider': 'google',
-        });
-      } else {
-        // Pengguna lama: ambil data profil yang sudah ada
-        final data = userDoc.data() ?? {};
-        dob = (data['dob'] as String?)?.trim() ?? '';
-        gender = (data['gender'] as String?)?.trim() ?? 'Perempuan';
-        phone = (data['phone'] as String?)?.trim() ?? '';
-        isProfileCompleted = dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty;
+      // 7. Simpan / Perbarui data ke Cloud Firestore users/{uid} secara aman dengan timeout & fallback
+      try {
+        final userDocRef = _firestore.collection('users').doc(uid);
+        final userDoc = await userDocRef.get().timeout(
+          const Duration(seconds: 6),
+          onTimeout: () => throw TimeoutException('Waktu sinkronisasi Firestore habis'),
+        );
 
-        // Pastikan foto dan nama terbaru tersinkronisasi jika diperbarui di akun Google
-        await userDocRef.set({
-          'name': name,
-          'email': email,
-          if (photoUrl.isNotEmpty) 'photoUrl': photoUrl,
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        if (!userDoc.exists) {
+          // Pengguna baru pertama kali login dengan Google
+          await userDocRef.set({
+            'uid': uid,
+            'name': name,
+            'email': email,
+            'photoUrl': photoUrl,
+            'photoPath': photoUrl,
+            'phone': '',
+            'dob': '',
+            'gender': '',
+            'role': 'user',
+            'isBiodataComplete': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastLoginAt': FieldValue.serverTimestamp(),
+            'authProvider': 'google',
+          }).timeout(const Duration(seconds: 6));
+        } else {
+          // Pengguna lama: ambil data profil yang sudah ada di Firestore
+          final data = userDoc.data() ?? {};
+          dob = (data['dob'] as String?)?.trim() ?? '';
+          gender = (data['gender'] as String?)?.trim() ?? 'Perempuan';
+          phone = (data['phone'] as String?)?.trim() ?? '';
+          isProfileCompleted = dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty;
+
+          // Sinkronisasikan foto profil dan nama terbaru jika ada pembaruan di akun Google
+          await userDocRef.set({
+            'name': name,
+            'email': email,
+            if (photoUrl.isNotEmpty) 'photoUrl': photoUrl,
+            if (photoUrl.isNotEmpty) 'photoPath': photoUrl,
+            'lastLoginAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true)).timeout(const Duration(seconds: 6));
+        }
+      } catch (firestoreError) {
+        debugPrint('Peringatan saat sinkronisasi Firestore users/$uid: $firestoreError');
+        // Fallback aman jika Firestore offline / lambat: gunakan data cache lokal
+        final cached = _userProfileCache[uid];
+        if (cached != null) {
+          dob = cached['dob'] ?? '';
+          gender = cached['gender'] ?? 'Perempuan';
+          phone = cached['phone'] ?? '';
+          isProfileCompleted = dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty;
+        }
       }
 
-      // 6. Update cache lokal
+      // 8. Update cache lokal aplikasi
       _userProfileCache[uid] = {
         'name': name,
         'dob': dob,
@@ -557,7 +627,7 @@ class AuthService {
         id: uid,
         name: name,
         email: email,
-        username: email.contains('@') ? email.split('@').first : email,
+        username: email.contains('@') ? email.split('@').first : (email.isNotEmpty ? email : 'user'),
         role: UserRole.user,
         avatarUrl: photoUrl.isNotEmpty ? photoUrl : null,
         photoPath: photoUrl.isNotEmpty ? photoUrl : null,
@@ -569,9 +639,54 @@ class AuthService {
 
       profileUpdateNotifier.value++;
       return AuthResponse.success(_currentUser);
+    } on PlatformException catch (e) {
+      debugPrint('PlatformException Google Sign-In: code=${e.code}, message=${e.message}, details=${e.details}');
+      if (e.code == 'sign_in_canceled' || e.code == '12501' || e.message?.contains('canceled') == true) {
+        return const AuthResponse.failure('Proses masuk dengan Google dibatalkan.');
+      }
+
+      final errorStr = '${e.code} ${e.message} ${e.details}'.toLowerCase();
+      String message = 'Gagal masuk dengan Google.';
+
+      if (errorStr.contains('10') || errorStr.contains('developer_error')) {
+        message = 'Konfigurasi Google Sign-In belum selesai di Firebase. Pastikan SHA-1 fingerprint perangkat sudah didaftarkan pada Firebase Console.';
+      } else if (errorStr.contains('12500') || errorStr.contains('sign_in_failed')) {
+        message = 'Layanan Google Play gagal memproses login. Pastikan akun Google terhubung di perangkat dan Google Play Services telah diperbarui.';
+      } else if (errorStr.contains('network') || errorStr.contains('7')) {
+        message = 'Koneksi jaringan terganggu. Silakan periksa koneksi internet Anda.';
+      } else {
+        message = 'Gagal masuk dengan Google: ${e.message ?? e.code}';
+      }
+      return AuthResponse.failure(message);
     } on FirebaseAuthException catch (e) {
-      debugPrint('FirebaseAuthException Google: ${e.code} - ${e.message}');
-      return AuthResponse.failure(e.message ?? 'Terjadi kesalahan saat masuk dengan Google.');
+      debugPrint('FirebaseAuthException Google: code=${e.code}, message=${e.message}');
+      String message = 'Terjadi kesalahan autentikasi.';
+      switch (e.code) {
+        case 'account-exists-with-different-credential':
+          message = 'Akun email ini sudah terdaftar dengan metode masuk lain. Silakan masuk menggunakan email & kata sandi.';
+          break;
+        case 'invalid-credential':
+          message = 'Kredensial login Google tidak valid atau telah kedaluwarsa. Silakan coba lagi.';
+          break;
+        case 'user-disabled':
+          message = 'Akun ini telah dinonaktifkan oleh administrator.';
+          break;
+        case 'operation-not-allowed':
+          message = 'Metode masuk dengan Google belum diaktifkan di Firebase Authentication Console.';
+          break;
+        case 'network-request-failed':
+          message = 'Koneksi internet bermasalah. Periksa jaringan Anda dan coba lagi.';
+          break;
+        case 'invalid-id-token':
+          message = 'Token autentikasi Google tidak valid. Pastikan konfigurasi Firebase & SHA-1 telah sesuai.';
+          break;
+        default:
+          message = e.message ?? 'Terjadi kesalahan saat masuk dengan Google.';
+      }
+      return AuthResponse.failure(message);
+    } on FirebaseException catch (e) {
+      debugPrint('FirebaseException Google: code=${e.code}, message=${e.message}');
+      return AuthResponse.failure('Kendala layanan Firebase (${e.code}): ${e.message}');
     } catch (e) {
       debugPrint('Error signInWithGoogle: $e');
       return AuthResponse.failure('Gagal terhubung dengan layanan Google: $e');

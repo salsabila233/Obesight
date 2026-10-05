@@ -16,9 +16,12 @@ Future<void> main() async {
 
   // Initialize Firebase with platform-specific options
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      debugPrint('Firebase successfully initialized for project: ${DefaultFirebaseOptions.currentPlatform.projectId}');
+    }
   } catch (e) {
     debugPrint('Firebase initializeApp notice: $e');
   }

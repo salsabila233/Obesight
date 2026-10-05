@@ -11,8 +11,15 @@ import '../profile/complete_profile_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool _isGoogleLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -143,46 +150,56 @@ class WelcomeScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton(
-                  onPressed: () async {
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    final response = await AuthService().signInWithGoogle();
-                    if (!context.mounted) return;
+                  onPressed: _isGoogleLoading
+                      ? null
+                      : () async {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          setState(() {
+                            _isGoogleLoading = true;
+                          });
 
-                    if (response.isSuccess && response.user != null) {
-                      final signedUser = response.user!;
-                      if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => CompleteProfileScreen(
-                              user: signedUser,
-                              isGatedFlow: false,
-                              redirectToHomeAfterSave: true,
-                            ),
-                          ),
-                        );
-                      } else {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => signedUser.isAdmin
-                                ? AdminHomeScreen(user: signedUser)
-                                : UserHomeScreen(user: signedUser),
-                          ),
-                        );
-                      }
-                      return;
-                    }
+                          final response = await AuthService().signInWithGoogle();
+                          if (!mounted) return;
 
-                    if (response.errorMessage != null &&
-                        !response.errorMessage!.contains('dibatalkan')) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(response.errorMessage!),
-                          backgroundColor: const Color(0xFFDC2626),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  },
+                          setState(() {
+                            _isGoogleLoading = false;
+                          });
+
+                          if (response.isSuccess && response.user != null) {
+                            final signedUser = response.user!;
+                            if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => CompleteProfileScreen(
+                                    user: signedUser,
+                                    isGatedFlow: false,
+                                    redirectToHomeAfterSave: true,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => signedUser.isAdmin
+                                      ? AdminHomeScreen(user: signedUser)
+                                      : UserHomeScreen(user: signedUser),
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          if (response.errorMessage != null &&
+                              !response.errorMessage!.contains('dibatalkan')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(response.errorMessage!),
+                                backgroundColor: const Color(0xFFDC2626),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
                   style: OutlinedButton.styleFrom(
                     backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                     foregroundColor: isDark ? Colors.white : const Color(0xFF1F2937),
@@ -195,29 +212,38 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     elevation: 0,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/google_icon.svg',
-                        width: 20,
-                        height: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          'Lanjutkan dengan Google',
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : const Color(0xFF1F2937),
+                  child: _isGoogleLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryGreen),
                           ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/google_icon.svg',
+                              width: 20,
+                              height: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                'Lanjutkan dengan Google',
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : const Color(0xFF1F2937),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
 

@@ -231,8 +231,25 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final textDark = isDark ? Colors.white : const Color(0xFF0F172A);
     final textMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => widget.user.isAdmin
+                  ? AdminHomeScreen(user: widget.user)
+                  : UserHomeScreen(user: widget.user),
+            ),
+            (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF489874),
       appBar: AppBar(
         backgroundColor: const Color(0xFF489874),
         elevation: 0,
@@ -576,8 +593,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGenderOption({
     required String label,

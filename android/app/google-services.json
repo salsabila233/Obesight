@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "450892632554",
+    "project_id": "obesight",
+    "storage_bucket": "obesight.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:450892632554:android:884fc1e64bc1b935e36293",
+        "android_client_info": {
+          "package_name": "com.obesight.obesight"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJdEY9u-dfT6LCNKYuWUnzq37-51t45yo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
