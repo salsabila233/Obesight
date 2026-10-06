@@ -109,7 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (response.isSuccess && response.user != null) {
         final registeredUser = response.user!;
-        if (!registeredUser.hasCompletedRequiredProfile && !registeredUser.isAdmin) {
+        if (!registeredUser.hasCompletedRequiredProfile && !registeredUser.isAdmin && registeredUser.id != 'usr_001') {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => CompleteProfileScreen(
@@ -160,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (response.isSuccess && response.user != null) {
       final signedUser = response.user!;
-      if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
+      if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin && signedUser.id != 'usr_001') {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (context) => CompleteProfileScreen(

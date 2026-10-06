@@ -75,7 +75,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     });
 
     if (response.isSuccess && response.user != null) {
-      _navigateToDashboard(response.user!);
+      final user = response.user!;
+      if (!user.hasCompletedRequiredProfile && !user.isAdmin && user.id != 'usr_001') {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => CompleteProfileScreen(
+              user: user,
+              isGatedFlow: false,
+              redirectToHomeAfterSave: true,
+            ),
+          ),
+        );
+      } else {
+        _navigateToDashboard(user);
+      }
     } else {
       setState(() {
         _authErrorMessage = response.errorMessage ?? 'Email atau kata sandi salah';
@@ -130,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
     if (response.isSuccess && response.user != null) {
       final user = response.user!;
-      if (!user.hasCompletedRequiredProfile && !user.isAdmin) {
+      if (!user.hasCompletedRequiredProfile && !user.isAdmin && user.id != 'usr_001') {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => CompleteProfileScreen(

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../models/user_model.dart';
+import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../auth/welcome_screen.dart';
+import '../home/admin_home_screen.dart';
+import '../home/user_home_screen.dart';
+import '../profile/complete_profile_screen.dart';
 
 /// Halaman Splash Screen Dua Tahap:
 /// 1. Tahap 1: Latar belakang hijau tua (AppColors.darkGreen) dengan logo di tengah.
 /// 2. Tahap 2: Latar belakang bertransisi mulus menjadi putih bersih (Colors.white),
 ///    lalu teks merek "ObeSight" muncul di sebelah kanan logo dengan fade-in halus.
-/// 3. Navigasi: Bertransisi halus ke WelcomeScreen (halaman Login).
+/// 3. Navigasi Cerdas (Persistent Auth & Gating):
+///    - Jika belum login -> WelcomeScreen.
+///    - Jika sudah login di Firebase Auth & profil Firestore belum lengkap -> CompleteProfileScreen.
+///    - Jika sudah login & profil lengkap -> Beranda (UserHomeScreen / AdminHomeScreen).
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -34,9 +42,16 @@ class _SplashScreenState extends State<SplashScreen>
   bool _showText = false;
   bool _hasNavigated = false;
 
+  // Status pemulihan sesi persisten Firebase Auth & Firestore
+  UserModel? _restoredUser;
+  Future<UserModel?>? _sessionFuture;
+
   @override
   void initState() {
     super.initState();
+
+    // 0. Mulai verifikasi sesi persisten secara asinkron di latar belakang
+    _initSessionCheck();
 
     // 1. Controller Skala Logo
     _scaleController = AnimationController(
@@ -80,6 +95,21 @@ class _SplashScreenState extends State<SplashScreen>
     _startSplashSequence();
   }
 
+  void _initSessionCheck() {
+    if (AuthService().currentUser != null) {
+      _restoredUser = AuthService().currentUser;
+    }
+    _sessionFuture = AuthService().restorePersistentSession().then((user) {
+      if (mounted && user != null) {
+        _restoredUser = user;
+      }
+      return user;
+    }).catchError((error) {
+      debugPrint('SplashScreen session check notice: $error');
+      return null;
+    });
+  }
+
   Future<void> _startSplashSequence() async {
     // Jalankan animasi skala awal logo di layar hijau tua
     _scaleController.forward();
@@ -108,19 +138,57 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
-    // Masuk ke halaman Welcome / Login
-    _navigateToNextScreen();
+    // Ambil data user yang telah dipulihkan di latar belakang
+    UserModel? targetUser = _restoredUser ?? AuthService().currentUser;
+
+    // Jika pengguna terdeteksi login di Firebase Auth namun data Firestore masih dalam proses,
+    // tunggu sebentar agar pengguna tidak keliru diarahkan ke WelcomeScreen.
+    if (targetUser == null && AuthService().firebaseCurrentUser != null && _sessionFuture != null) {
+      try {
+        targetUser = await _sessionFuture!.timeout(
+          const Duration(seconds: 4),
+          onTimeout: () => _restoredUser ?? AuthService().currentUser,
+        );
+      } catch (e) {
+        debugPrint('SplashScreen wait for session error: $e');
+        targetUser = _restoredUser ?? AuthService().currentUser;
+      }
+    }
+
+    if (!mounted) return;
+
+    // Masuk ke halaman tujuan yang sesuai dengan status sesi & gating
+    _navigateToNextScreen(targetUser);
   }
 
-  void _navigateToNextScreen() {
+  void _navigateToNextScreen(UserModel? user) {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
+
+    Widget destination;
+
+    if (user == null) {
+      // 1. Belum login sama sekali -> Arahkan ke WelcomeScreen
+      destination = const WelcomeScreen();
+    } else if (!user.hasCompletedRequiredProfile && !user.isAdmin && user.id != 'usr_001') {
+      // 2. Sudah login di Firebase Auth, namun data diri di Firestore belum lengkap
+      //    -> Arahkan ke Lengkapi Profil (Gating & Onboarding)
+      destination = CompleteProfileScreen(
+        user: user,
+        isGatedFlow: false,
+        redirectToHomeAfterSave: true,
+      );
+    } else {
+      // 3. Sudah login dan profil lengkap (atau Admin) -> Langsung ke Beranda tanpa meminta login ulang!
+      destination = user.isAdmin
+          ? AdminHomeScreen(user: user)
+          : UserHomeScreen(user: user);
+    }
 
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const WelcomeScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => destination,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },

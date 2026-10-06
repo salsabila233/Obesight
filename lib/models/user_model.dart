@@ -42,8 +42,9 @@ class UserModel {
 
   String get roleDisplayName => isAdmin ? 'Administrator' : 'Pengguna Biasa';
 
-  /// True jika ketiga syarat gating (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) telah terisi
+  /// True jika status [isBiodataComplete] telah aktif atau ketiga syarat gating (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) telah terisi
   bool get hasCompletedRequiredProfile {
+    if (isBiodataComplete) return true;
     final validDob = dob != null && dob!.trim().isNotEmpty;
     final validGender = gender != null && gender!.trim().isNotEmpty;
     final validPhone = phone != null && phone!.trim().isNotEmpty;

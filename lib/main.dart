@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'screens/auth/auth_wrapper.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -65,6 +66,7 @@ class ObeSightApp extends StatelessWidget {
           initialRoute: '/',
           routes: {
             '/': (context) => const SplashScreen(),
+            '/auth-gate': (context) => const AuthWrapper(),
             '/login': (context) => const LoginScreen(),
             '/welcome': (context) => const WelcomeScreen(),
             '/register': (context) => const RegisterScreen(),

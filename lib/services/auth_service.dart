@@ -60,33 +60,71 @@ class AuthService {
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
+  /// Stream reaktif perubahan status autentikasi dari Firebase Auth
+  Stream<User?> get authStateChanges =>
+      isFirebaseAvailable ? _firebaseAuth.authStateChanges() : Stream.value(null);
+
+  /// Akun Firebase Auth aktif saat ini (jika ada)
+  User? get firebaseCurrentUser =>
+      isFirebaseAvailable ? _firebaseAuth.currentUser : null;
+
   static const String _keyActiveUserId = 'obesight_active_user_id';
   static const String _keyActiveUserEmail = 'obesight_active_user_email';
+  static const String _keyActiveUserName = 'obesight_active_user_name';
+  static const String _keyActiveUserDob = 'obesight_active_user_dob';
+  static const String _keyActiveUserGender = 'obesight_active_user_gender';
+  static const String _keyActiveUserPhone = 'obesight_active_user_phone';
+  static const String _keyActiveUserIsBiodataComplete = 'obesight_active_user_is_biodata_complete';
+  static const String _keyActiveUserRole = 'obesight_active_user_role';
+  static const String _keyActiveUserAvatar = 'obesight_active_user_avatar';
+  static const String _keyActiveUserBmiScore = 'obesight_active_user_bmi_score';
+  static const String _keyActiveUserBmiCategory = 'obesight_active_user_bmi_category';
+  static const String _keyActiveUserObesityRisk = 'obesight_active_user_obesity_risk';
 
-  Future<void> _saveSession(UserModel user) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyActiveUserId, user.id);
-      await prefs.setString(_keyActiveUserEmail, user.email);
-    } catch (e) {
+  void _saveSession(UserModel user) {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString(_keyActiveUserId, user.id);
+      prefs.setString(_keyActiveUserEmail, user.email);
+      prefs.setString(_keyActiveUserName, user.name);
+      prefs.setString(_keyActiveUserDob, user.dob ?? '');
+      prefs.setString(_keyActiveUserGender, user.gender ?? '');
+      prefs.setString(_keyActiveUserPhone, user.phone ?? '');
+      prefs.setBool(_keyActiveUserIsBiodataComplete, user.isBiodataComplete);
+      prefs.setString(_keyActiveUserRole, user.isAdmin ? 'admin' : 'user');
+      if (user.avatarUrl != null && user.avatarUrl!.isNotEmpty) {
+        prefs.setString(_keyActiveUserAvatar, user.avatarUrl!);
+      }
+      prefs.setDouble(_keyActiveUserBmiScore, user.bmiScore);
+      prefs.setString(_keyActiveUserBmiCategory, user.bmiCategory);
+      prefs.setString(_keyActiveUserObesityRisk, user.obesityRisk);
+    }).catchError((e) {
       debugPrint('Notice saving session to SharedPreferences: $e');
-    }
+    });
   }
 
-  Future<void> _clearSession() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_keyActiveUserId);
-      await prefs.remove(_keyActiveUserEmail);
-    } catch (e) {
+  void _clearSession() {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove(_keyActiveUserId);
+      prefs.remove(_keyActiveUserEmail);
+      prefs.remove(_keyActiveUserName);
+      prefs.remove(_keyActiveUserDob);
+      prefs.remove(_keyActiveUserGender);
+      prefs.remove(_keyActiveUserPhone);
+      prefs.remove(_keyActiveUserIsBiodataComplete);
+      prefs.remove(_keyActiveUserRole);
+      prefs.remove(_keyActiveUserAvatar);
+      prefs.remove(_keyActiveUserBmiScore);
+      prefs.remove(_keyActiveUserBmiCategory);
+      prefs.remove(_keyActiveUserObesityRisk);
+    }).catchError((e) {
       debugPrint('Notice clearing session from SharedPreferences: $e');
-    }
+    });
   }
 
-  /// Memulihkan sesi login pengguna secara persisten saat aplikasi dibuka kembali
-  /// 1. Cek sesi aktif di Firebase Authentication (currentUser)
-  /// 2. Ambil data profil, biodata lengkap, dan riwayat IMT langsung dari Cloud Firestore users/{uid}
-  /// 3. Jika Firebase offline / mode lokal, pulihkan dari SharedPreferences & cache lokal
+  /// Memulihkan sesi login pengguna secara persisten saat aplikasi dibuka kembali (Cold Start)
+  /// 1. Cek sesi aktif di Firebase Authentication (FirebaseAuth.instance.currentUser)
+  /// 2. Ambil data profil, kelengkapan biodata, dan riwayat IMT langsung dari Cloud Firestore users/{uid}
+  /// 3. Jika koneksi offline / lambat, pulihkan dari SharedPreferences & cache lokal tanpa logout
   Future<UserModel?> restorePersistentSession() async {
     try {
       // 1. Cek Firebase Authentication aktif
@@ -94,6 +132,39 @@ class AuthService {
         final firebaseUser = _firebaseAuth.currentUser;
         if (firebaseUser != null) {
           final uid = firebaseUser.uid;
+
+          // Baca SharedPreferences sebagai fallback instan (offline / slow network)
+          String? localName;
+          String? localEmail;
+          String? localDob;
+          String? localGender;
+          String? localPhone;
+          bool? localIsGated;
+          String? localRole;
+          String? localAvatar;
+          double? localBmi;
+          String? localCategory;
+          String? localRisk;
+
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            if (prefs.getString(_keyActiveUserId) == uid) {
+              localName = prefs.getString(_keyActiveUserName);
+              localEmail = prefs.getString(_keyActiveUserEmail);
+              localDob = prefs.getString(_keyActiveUserDob);
+              localGender = prefs.getString(_keyActiveUserGender);
+              localPhone = prefs.getString(_keyActiveUserPhone);
+              localIsGated = prefs.getBool(_keyActiveUserIsBiodataComplete);
+              localRole = prefs.getString(_keyActiveUserRole);
+              localAvatar = prefs.getString(_keyActiveUserAvatar);
+              localBmi = prefs.getDouble(_keyActiveUserBmiScore);
+              localCategory = prefs.getString(_keyActiveUserBmiCategory);
+              localRisk = prefs.getString(_keyActiveUserObesityRisk);
+            }
+          } catch (e) {
+            debugPrint('Prefs read notice on restore: $e');
+          }
+
           try {
             final doc = await _firestore.collection('users').doc(uid).get().timeout(
               const Duration(seconds: 4),
@@ -104,22 +175,26 @@ class AuthService {
               final data = doc.data()!;
               final name = (data['name'] as String?)?.trim() ??
                   firebaseUser.displayName ??
+                  localName ??
                   'Pengguna ObeSight';
               final email = (data['email'] as String?)?.trim() ??
                   firebaseUser.email ??
+                  localEmail ??
                   '';
               final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ??
-                  (firebaseUser.photoURL ?? '');
-              final dob = (data['dob'] as String?)?.trim() ?? '';
-              final gender = (data['gender'] as String?)?.trim() ?? 'Perempuan';
-              final phone = (data['phone'] as String?)?.trim() ?? '';
-              final roleStr = (data['role'] as String?) ?? 'user';
+                  (firebaseUser.photoURL ?? localAvatar ?? '');
+              final dob = (data['dob'] as String?)?.trim() ?? localDob ?? '';
+              final rawGender = (data['gender'] as String?)?.trim() ?? localGender ?? '';
+              final phone = (data['phone'] as String?)?.trim() ?? localPhone ?? '';
+              final roleStr = (data['role'] as String?) ?? localRole ?? 'user';
               final isGated = (data['isBiodataComplete'] == true) ||
-                  (dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty);
+                  (localIsGated == true) ||
+                  (dob.isNotEmpty && rawGender.isNotEmpty && phone.isNotEmpty);
+              final gender = rawGender.isNotEmpty ? rawGender : 'Perempuan';
 
-              final bmiScore = (data['bmiScore'] as num?)?.toDouble() ?? 22.8;
-              final bmiCategory = (data['bmiCategory'] as String?) ?? 'Normal';
-              final obesityRisk = (data['obesityRisk'] as String?) ?? 'Rendah';
+              final bmiScore = (data['bmiScore'] as num?)?.toDouble() ?? localBmi ?? 22.8;
+              final bmiCategory = (data['bmiCategory'] as String?) ?? localCategory ?? 'Normal';
+              final obesityRisk = (data['obesityRisk'] as String?) ?? localRisk ?? 'Rendah';
 
               // Sinkronisasi memori lokal
               _userProfileCache[uid] = {
@@ -160,7 +235,7 @@ class AuthService {
                 obesityRisk: obesityRisk,
               );
 
-              await _saveSession(_currentUser!);
+              _saveSession(_currentUser!);
               profileUpdateNotifier.value++;
               return _currentUser;
             }
@@ -169,28 +244,38 @@ class AuthService {
           }
 
           // Fallback lokal jika Firestore offline namun firebaseUser masih login
-          final cached = getUserProfile(uid);
-          final isGated = isBiodataCompleted(uid);
+          final cached = _userProfileCache[uid];
+          final isGated = (localIsGated == true) ||
+              (_biodataStatusCache[uid] == true) ||
+              ((localDob?.isNotEmpty ?? false) && (localGender?.isNotEmpty ?? false) && (localPhone?.isNotEmpty ?? false)) ||
+              isBiodataCompleted(uid);
           final bmiInfo = getUserBmi(uid);
+
+          final name = localName ?? (cached != null ? cached['name'] : null) ?? firebaseUser.displayName ?? 'Pengguna ObeSight';
+          final email = localEmail ?? (cached != null ? cached['email'] : null) ?? firebaseUser.email ?? '';
+          final dob = localDob ?? (cached != null ? cached['dob'] : null) ?? '';
+          final gender = localGender ?? (cached != null ? cached['gender'] : null) ?? 'Perempuan';
+          final phone = localPhone ?? (cached != null ? cached['phone'] : null) ?? '';
+          final photoUrl = localAvatar ?? (cached != null ? cached['avatar'] : null) ?? firebaseUser.photoURL;
 
           _currentUser = UserModel(
             id: uid,
-            name: cached['name'] ?? firebaseUser.displayName ?? 'Pengguna ObeSight',
-            email: cached['email'] ?? firebaseUser.email ?? '',
-            username: (cached['email'] ?? firebaseUser.email ?? 'user').split('@').first,
-            role: UserRole.user,
-            avatarUrl: cached['avatar'],
-            photoPath: cached['photo_path'],
-            dob: cached['dob'] ?? '',
-            gender: cached['gender'] ?? 'Perempuan',
-            phone: cached['phone'] ?? '',
+            name: name,
+            email: email,
+            username: (email.isNotEmpty ? email : 'user').split('@').first,
+            role: localRole == 'admin' ? UserRole.admin : UserRole.user,
+            avatarUrl: photoUrl,
+            photoPath: photoUrl,
+            dob: dob,
+            gender: gender,
+            phone: phone,
             isBiodataComplete: isGated,
-            bmiScore: (bmiInfo['bmi'] as num?)?.toDouble() ?? 22.8,
-            bmiCategory: (bmiInfo['category'] as String?) ?? 'Normal',
-            obesityRisk: (bmiInfo['risk'] as String?) ?? 'Rendah',
+            bmiScore: localBmi ?? (bmiInfo['bmi'] as num?)?.toDouble() ?? 22.8,
+            bmiCategory: localCategory ?? (bmiInfo['category'] as String?) ?? 'Normal',
+            obesityRisk: localRisk ?? (bmiInfo['risk'] as String?) ?? 'Rendah',
           );
 
-          await _saveSession(_currentUser!);
+          _saveSession(_currentUser!);
           profileUpdateNotifier.value++;
           return _currentUser;
         }
@@ -203,24 +288,32 @@ class AuthService {
         if (savedUid != null && savedUid.isNotEmpty) {
           // Cari di daftar akun preset atau cache lokal
           final cached = getUserProfile(savedUid);
-          final isGated = isBiodataCompleted(savedUid);
+          final isGated = prefs.getBool(_keyActiveUserIsBiodataComplete) ?? isBiodataCompleted(savedUid);
           final bmiInfo = getUserBmi(savedUid);
+          final savedName = prefs.getString(_keyActiveUserName) ?? cached['name'] ?? 'User';
+          final savedEmail = prefs.getString(_keyActiveUserEmail) ?? cached['email'] ?? '';
+          final savedDob = prefs.getString(_keyActiveUserDob) ?? cached['dob'] ?? '';
+          final savedGender = prefs.getString(_keyActiveUserGender) ?? cached['gender'] ?? 'Perempuan';
+          final savedPhone = prefs.getString(_keyActiveUserPhone) ?? cached['phone'] ?? '';
+          final savedRole = prefs.getString(_keyActiveUserRole) == 'admin' || savedUid == 'adm_001'
+              ? UserRole.admin
+              : UserRole.user;
 
           _currentUser = UserModel(
             id: savedUid,
-            name: cached['name'] ?? 'User',
-            email: cached['email'] ?? prefs.getString(_keyActiveUserEmail) ?? '',
-            username: (cached['email'] ?? 'user').split('@').first,
-            role: savedUid == 'adm_001' ? UserRole.admin : UserRole.user,
-            avatarUrl: cached['avatar'],
-            photoPath: cached['photo_path'],
-            dob: cached['dob'] ?? '',
-            gender: cached['gender'] ?? 'Perempuan',
-            phone: cached['phone'] ?? '',
+            name: savedName,
+            email: savedEmail,
+            username: (savedEmail.isNotEmpty ? savedEmail : 'user').split('@').first,
+            role: savedRole,
+            avatarUrl: prefs.getString(_keyActiveUserAvatar) ?? cached['avatar'],
+            photoPath: prefs.getString(_keyActiveUserAvatar) ?? cached['photo_path'],
+            dob: savedDob,
+            gender: savedGender,
+            phone: savedPhone,
             isBiodataComplete: isGated,
-            bmiScore: (bmiInfo['bmi'] as num?)?.toDouble() ?? 22.8,
-            bmiCategory: (bmiInfo['category'] as String?) ?? 'Normal',
-            obesityRisk: (bmiInfo['risk'] as String?) ?? 'Rendah',
+            bmiScore: prefs.getDouble(_keyActiveUserBmiScore) ?? (bmiInfo['bmi'] as num?)?.toDouble() ?? 22.8,
+            bmiCategory: prefs.getString(_keyActiveUserBmiCategory) ?? (bmiInfo['category'] as String?) ?? 'Normal',
+            obesityRisk: prefs.getString(_keyActiveUserObesityRisk) ?? (bmiInfo['risk'] as String?) ?? 'Rendah',
           );
 
           profileUpdateNotifier.value++;
@@ -443,6 +536,7 @@ class AuthService {
         photoPath: updatedMap['photo_path'],
         isBiodataComplete: isGatedComplete,
       );
+      _saveSession(_currentUser!);
     }
 
     // Persist to Cloud Firestore users/{uid}
@@ -764,7 +858,8 @@ class AuthService {
           dob = (data['dob'] as String?)?.trim() ?? '';
           gender = (data['gender'] as String?)?.trim() ?? 'Perempuan';
           phone = (data['phone'] as String?)?.trim() ?? '';
-          isProfileCompleted = dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty;
+          isProfileCompleted = (data['isBiodataComplete'] == true) ||
+              (dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty);
 
           // Sinkronisasikan foto profil dan nama terbaru jika ada pembaruan di akun Google
           await userDocRef.set({
@@ -772,6 +867,7 @@ class AuthService {
             'email': email,
             if (photoUrl.isNotEmpty) 'photoUrl': photoUrl,
             if (photoUrl.isNotEmpty) 'photoPath': photoUrl,
+            'isBiodataComplete': isProfileCompleted,
             'lastLoginAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true)).timeout(const Duration(seconds: 6));
         }
@@ -783,7 +879,8 @@ class AuthService {
           dob = cached['dob'] ?? '';
           gender = cached['gender'] ?? 'Perempuan';
           phone = cached['phone'] ?? '';
-          isProfileCompleted = dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty;
+          isProfileCompleted = (_biodataStatusCache[uid] == true) ||
+              (dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty);
         }
       }
 
@@ -814,6 +911,7 @@ class AuthService {
         isBiodataComplete: isProfileCompleted,
       );
 
+      _saveSession(_currentUser!);
       profileUpdateNotifier.value++;
       return AuthResponse.success(_currentUser);
     } on PlatformException catch (e) {
@@ -935,6 +1033,7 @@ class AuthService {
         isBiodataComplete: false,
       );
 
+      _saveSession(_currentUser!);
       profileUpdateNotifier.value++;
       return AuthResponse.success(_currentUser);
     } on FirebaseAuthException catch (e) {
@@ -973,6 +1072,7 @@ class AuthService {
         isBiodataComplete: false,
       );
 
+      _saveSession(_currentUser!);
       return AuthResponse.success(_currentUser);
     }
   }
@@ -995,6 +1095,7 @@ class AuthService {
         bmiCategory: bmiInfo['category'] as String,
         obesityRisk: bmiInfo['risk'] as String,
       );
+      _saveSession(_currentUser!);
       profileUpdateNotifier.value++;
       return AuthResponse.success(_currentUser);
     }
@@ -1009,6 +1110,7 @@ class AuthService {
         bmiCategory: bmiInfo['category'] as String,
         obesityRisk: bmiInfo['risk'] as String,
       );
+      _saveSession(_currentUser!);
       profileUpdateNotifier.value++;
       return AuthResponse.success(_currentUser);
     }
@@ -1023,6 +1125,7 @@ class AuthService {
         bmiCategory: bmiInfo['category'] as String,
         obesityRisk: bmiInfo['risk'] as String,
       );
+      _saveSession(_currentUser!);
       profileUpdateNotifier.value++;
       return AuthResponse.success(_currentUser);
     }
@@ -1045,9 +1148,11 @@ class AuthService {
         final email = (data['email'] as String?) ?? firebaseUser.email ?? cleanId;
         final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ?? '';
         final dob = (data['dob'] as String?) ?? '';
-        final gender = (data['gender'] as String?) ?? 'Perempuan';
+        final rawGender = (data['gender'] as String?)?.trim() ?? '';
         final phone = (data['phone'] as String?) ?? '';
-        final isGated = dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty;
+        final isGated = (data['isBiodataComplete'] == true) ||
+            (dob.isNotEmpty && rawGender.isNotEmpty && phone.isNotEmpty);
+        final gender = rawGender.isNotEmpty ? rawGender : 'Perempuan';
 
         _userProfileCache[uid] = {
           'name': name,
@@ -1075,6 +1180,7 @@ class AuthService {
           isBiodataComplete: isGated,
         );
 
+        _saveSession(_currentUser!);
         profileUpdateNotifier.value++;
         return AuthResponse.success(_currentUser);
       }
@@ -1135,8 +1241,47 @@ class AuthService {
       bmiCategory: bmiInfo['category'] as String,
       obesityRisk: bmiInfo['risk'] as String,
     );
+    _saveSession(_currentUser!);
     profileUpdateNotifier.value++;
     return AuthResponse.success(_currentUser);
+  }
+
+  /// Mengirim email resmi reset kata sandi melalui Firebase Authentication
+  Future<AuthResponse> sendPasswordResetEmail(String email) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail.isEmpty) {
+      return const AuthResponse.failure('Email tidak boleh kosong.');
+    }
+    if (!cleanEmail.contains('@') || !cleanEmail.contains('.')) {
+      return const AuthResponse.failure('Format email tidak valid.');
+    }
+
+    try {
+      if (isFirebaseAvailable) {
+        await _firebaseAuth.sendPasswordResetEmail(email: cleanEmail);
+        return const AuthResponse.success(null);
+      } else {
+        // Fallback untuk mode offline / testing
+        debugPrint('Firebase not initialized; simulated password reset for $cleanEmail');
+        return const AuthResponse.success(null);
+      }
+    } on FirebaseAuthException catch (e) {
+      debugPrint('FirebaseAuthException sendPasswordResetEmail: ${e.code} - ${e.message}');
+      String msg = 'Gagal mengirim email reset kata sandi.';
+      if (e.code == 'user-not-found') {
+        msg = 'Akun dengan email ini belum terdaftar.';
+      } else if (e.code == 'invalid-email') {
+        msg = 'Format alamat email tidak valid.';
+      } else if (e.code == 'network-request-failed') {
+        msg = 'Koneksi internet bermasalah. Periksa jaringan Anda.';
+      } else if (e.message != null && e.message!.isNotEmpty) {
+        msg = e.message!;
+      }
+      return AuthResponse.failure(msg);
+    } catch (e) {
+      debugPrint('General sendPasswordResetEmail error: $e');
+      return AuthResponse.failure('Terjadi kendala saat mengirim email: $e');
+    }
   }
 
   Future<void> logout() async {
@@ -1146,6 +1291,7 @@ class AuthService {
     try {
       await _firebaseAuth.signOut();
     } catch (_) {}
+    _clearSession();
     _currentUser = null;
     profileUpdateNotifier.value++;
   }

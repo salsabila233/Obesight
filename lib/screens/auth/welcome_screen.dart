@@ -165,10 +165,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             _isGoogleLoading = false;
                           });
 
+                          final nav = Navigator.of(context);
+                          final messenger = ScaffoldMessenger.of(context);
+
                           if (response.isSuccess && response.user != null) {
                             final signedUser = response.user!;
-                            if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin) {
-                              Navigator.of(context).pushReplacement(
+                            if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin && signedUser.id != 'usr_001') {
+                              nav.pushReplacement(
                                 MaterialPageRoute(
                                   builder: (context) => CompleteProfileScreen(
                                     user: signedUser,
@@ -178,7 +181,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 ),
                               );
                             } else {
-                              Navigator.of(context).pushReplacement(
+                              nav.pushReplacement(
                                 MaterialPageRoute(
                                   builder: (context) => signedUser.isAdmin
                                       ? AdminHomeScreen(user: signedUser)
@@ -191,7 +194,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                           if (response.errorMessage != null &&
                               !response.errorMessage!.contains('dibatalkan')) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            messenger.showSnackBar(
                               SnackBar(
                                 content: Text(response.errorMessage!),
                                 backgroundColor: const Color(0xFFDC2626),
