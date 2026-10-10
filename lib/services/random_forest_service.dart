@@ -450,10 +450,11 @@ class RandomForestService {
     // Obesitas I: IMT 25.0 - 29.9
     // Obesitas II: IMT 30.0 - 34.9
     // Obesitas III: IMT >= 35.0 (Morbid)
+    final normClass = canonicalClassName(rawMlClass);
 
     // Kasus 1: IMT < 18.5 (Underweight Klinis Ekstrem)
     if (bmi < 18.5) {
-      if (rawMlClass != 'Insufficient_Weight') {
+      if (normClass != 'Insufficient_Weight') {
         return _ReconciliationResult(
           clinicalClass: 'Insufficient_Weight',
           isAdjusted: true,
@@ -465,10 +466,10 @@ class RandomForestService {
 
     // Kasus 2: IMT 18.5 - 22.9 (Rentang Berat Badan Normal Kemenkes)
     if (bmi <= 22.9) {
-      if (rawMlClass == 'Normal_Weight') {
+      if (normClass == 'Normal_Weight') {
         return const _ReconciliationResult(clinicalClass: 'Normal_Weight', isAdjusted: false);
       }
-      if (rawMlClass == 'Insufficient_Weight') {
+      if (normClass == 'Insufficient_Weight') {
         return _ReconciliationResult(
           clinicalClass: 'Normal_Weight',
           isAdjusted: true,
@@ -485,7 +486,7 @@ class RandomForestService {
 
     // Kasus 3: IMT 23.0 - 24.9 (Overweight Tingkat I / Pre-obesitas Kemenkes)
     if (bmi <= 24.9) {
-      if (rawMlClass == 'Insufficient_Weight' || rawMlClass == 'Normal_Weight') {
+      if (normClass == 'Insufficient_Weight' || normClass == 'Normal_Weight') {
         return _ReconciliationResult(
           clinicalClass: 'Overweight_Level_I',
           isAdjusted: true,
@@ -497,7 +498,7 @@ class RandomForestService {
 
     // Kasus 4: IMT 25.0 - 27.0 (Overweight Tingkat II / Obesitas I awal)
     if (bmi <= 27.0) {
-      if (rawMlClass == 'Insufficient_Weight' || rawMlClass == 'Normal_Weight') {
+      if (normClass == 'Insufficient_Weight' || normClass == 'Normal_Weight') {
         return _ReconciliationResult(
           clinicalClass: 'Overweight_Level_II',
           isAdjusted: true,
@@ -509,7 +510,7 @@ class RandomForestService {
 
     // Kasus 5: IMT 27.1 - 29.9 (Obesitas Tingkat I Kemenkes)
     if (bmi <= 29.9) {
-      if (rawMlClass == 'Insufficient_Weight' || rawMlClass == 'Normal_Weight') {
+      if (normClass == 'Insufficient_Weight' || normClass == 'Normal_Weight') {
         return _ReconciliationResult(
           clinicalClass: 'Obesity_Type_I',
           isAdjusted: true,
@@ -521,7 +522,7 @@ class RandomForestService {
 
     // Kasus 6: IMT 30.0 - 34.9 (Obesitas Tingkat II)
     if (bmi <= 34.9) {
-      if (rawMlClass == 'Insufficient_Weight' || rawMlClass == 'Normal_Weight' || rawMlClass == 'Overweight_Level_I') {
+      if (normClass == 'Insufficient_Weight' || normClass == 'Normal_Weight' || normClass == 'Overweight_Level_I') {
         return _ReconciliationResult(
           clinicalClass: 'Obesity_Type_II',
           isAdjusted: true,
@@ -532,7 +533,7 @@ class RandomForestService {
     }
 
     // Kasus 7: IMT >= 35.0 (Obesitas Tingkat III / Morbid)
-    if (rawMlClass != 'Obesity_Type_III') {
+    if (normClass != 'Obesity_Type_III') {
       return _ReconciliationResult(
         clinicalClass: 'Obesity_Type_III',
         isAdjusted: true,
@@ -542,13 +543,67 @@ class RandomForestService {
     return const _ReconciliationResult(clinicalClass: 'Obesity_Type_III', isAdjusted: false);
   }
 
+  /// Normalisasi nama kelas ke standar kanonik (UCI Dataset: Type_I..III atau Level_I..III)
+  static String canonicalClassName(String raw) {
+    final clean = raw.trim();
+    final lower = clean.toLowerCase();
+
+    if (clean == 'Insufficient_Weight' || lower == 'insufficient weight' || lower == 'underweight') {
+      return 'Insufficient_Weight';
+    }
+    if (clean == 'Normal_Weight' || lower == 'normal weight' || lower == 'normal') {
+      return 'Normal_Weight';
+    }
+    if (clean == 'Overweight_Level_I' || lower == 'overweight level i' || lower == 'overweight i') {
+      return 'Overweight_Level_I';
+    }
+    if (clean == 'Overweight_Level_II' || lower == 'overweight level ii' || lower == 'overweight ii') {
+      return 'Overweight_Level_II';
+    }
+    if (clean == 'Obesity_Type_I' || clean == 'Obesity_Level_I' || lower == 'obesity level i' || lower == 'obesity type i' || lower == 'obesitas i' || lower == 'obesitas tingkat i') {
+      return 'Obesity_Type_I';
+    }
+    if (clean == 'Obesity_Type_II' || clean == 'Obesity_Level_II' || lower == 'obesity level ii' || lower == 'obesity type ii' || lower == 'obesitas ii' || lower == 'obesitas tingkat ii') {
+      return 'Obesity_Type_II';
+    }
+    if (clean == 'Obesity_Type_III' || clean == 'Obesity_Level_III' || lower == 'obesity level iii' || lower == 'obesity type iii' || lower == 'obesitas iii' || lower == 'obesitas tingkat iii') {
+      return 'Obesity_Type_III';
+    }
+    return clean;
+  }
+
+  /// Label tampilan kanonik satu baris untuk 7 kelas Random Forest
+  static String displayClassName(String rawClass) {
+    final canonical = canonicalClassName(rawClass);
+    switch (canonical) {
+      case 'Insufficient_Weight':
+        return 'Insufficient Weight';
+      case 'Normal_Weight':
+        return 'Normal Weight';
+      case 'Overweight_Level_I':
+        return 'Overweight Level I';
+      case 'Overweight_Level_II':
+        return 'Overweight Level II';
+      case 'Obesity_Type_I':
+        return 'Obesity Level I';
+      case 'Obesity_Type_II':
+        return 'Obesity Level II';
+      case 'Obesity_Type_III':
+        return 'Obesity Level III';
+      default:
+        return rawClass.replaceAll('_', ' ');
+    }
+  }
+
   /// Sinkronisasi label prediksi AI ke standar PAPDI / KMK Kemenkes 2025
   static _CategoryMeta _mapClassToCategory(String rawClass) {
-    switch (rawClass) {
+    final canonical = canonicalClassName(rawClass);
+
+    switch (canonical) {
       case 'Insufficient_Weight':
         return const _CategoryMeta(
           categoryKey: 'Underweight',
-          categoryTitle: 'Underweight\nLevel I',
+          categoryTitle: 'Insufficient\nWeight',
           categoryBadge: 'Berat badan di bawah rentang ideal',
         );
 
@@ -576,21 +631,21 @@ class RandomForestService {
       case 'Obesity_Type_I':
         return const _CategoryMeta(
           categoryKey: 'Obesitas I',
-          categoryTitle: 'Obesitas\nTingkat I',
+          categoryTitle: 'Obesity\nLevel I',
           categoryBadge: 'Berat badan tingkat obesitas I',
         );
 
       case 'Obesity_Type_II':
         return const _CategoryMeta(
           categoryKey: 'Obesitas II',
-          categoryTitle: 'Obesitas\nTingkat II',
+          categoryTitle: 'Obesity\nLevel II',
           categoryBadge: 'Berat badan tingkat obesitas II',
         );
 
       case 'Obesity_Type_III':
         return const _CategoryMeta(
           categoryKey: 'Obesitas III',
-          categoryTitle: 'Obesitas\nTingkat III',
+          categoryTitle: 'Obesity\nLevel III',
           categoryBadge: 'Berat badan tingkat obesitas III (Morbid)',
         );
 

@@ -176,15 +176,16 @@ class ProgressTrackingService extends ChangeNotifier {
     _category = data.classificationCategory;
     _startDate = DateTime.now();
 
-    if (_category.contains('Obesitas')) {
+    final cat = _category.toLowerCase();
+    if (cat.contains('obesitas') || cat.contains('obesity')) {
       _riskLevel = 'Tinggi';
       _cycleDays = 14;
       _nextScreeningDate = DateTime.now().add(const Duration(days: 14));
-    } else if (_category == 'Overweight') {
+    } else if (cat.contains('overweight')) {
       _riskLevel = 'Sedang';
       _cycleDays = 14;
       _nextScreeningDate = DateTime.now().add(const Duration(days: 14));
-    } else if (_category == 'Underweight') {
+    } else if (cat.contains('underweight') || cat.contains('insufficient')) {
       _riskLevel = 'Perhatian';
       _cycleDays = 21;
       _nextScreeningDate = DateTime.now().add(const Duration(days: 21));

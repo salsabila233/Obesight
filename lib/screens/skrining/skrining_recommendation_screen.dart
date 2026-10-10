@@ -303,22 +303,21 @@ class SkriningRecommendationScreen extends StatelessWidget {
   }
 
   Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Normal':
-        return const Color(0xFF16A34A);
-      case 'Overweight':
-        return const Color(0xFFD97706);
-      case 'Obesitas I':
-        return const Color(0xFFEA580C);
-      case 'Obesitas II':
-        return const Color(0xFFDC2626);
-      case 'Obesitas III':
-        return const Color(0xFF991B1B);
-      case 'Underweight':
-        return const Color(0xFF2563EB);
-      default:
-        return const Color(0xFFD97706);
+    final cat = category.trim().toLowerCase();
+    if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
+      return const Color(0xFF2563EB); // Biru (Underweight / Insufficient Weight)
+    } else if (cat.contains('normal')) {
+      return const Color(0xFF16A34A); // Hijau (Normal Weight)
+    } else if (cat.contains('overweight') || cat.contains('lebih')) {
+      return const Color(0xFFD97706); // Amber (Overweight Level I / II)
+    } else if (cat.contains('iii') || cat.contains('morbid') || cat.contains('3')) {
+      return const Color(0xFF991B1B); // Merah Gelap (Obesity Level III / Morbid)
+    } else if (cat.contains('ii') || cat.contains('2')) {
+      return const Color(0xFFDC2626); // Merah (Obesity Level II)
+    } else if (cat.contains('obesitas') || cat.contains('obesity') || cat.contains('type_i') || cat.contains('level_i') || cat.contains('1')) {
+      return const Color(0xFFEA580C); // Oranye (Obesity Level I)
     }
+    return const Color(0xFFD97706);
   }
 
   void _showSaveProgressDialog(BuildContext context, UserModel currentUser, CategoryRecommendation rec) {

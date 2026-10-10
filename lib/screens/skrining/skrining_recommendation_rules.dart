@@ -34,30 +34,43 @@ class CategoryRecommendation {
 
 class SkriningRecommendationRules {
   /// Mendapatkan rekomendasi spesifik berdasarkan kategori hasil klasifikasi model/skrining
+  /// Mendukung 7 kelas teknis Random Forest ('Insufficient_Weight', 'Normal_Weight',
+  /// 'Overweight_Level_I', 'Overweight_Level_II', 'Obesity_Type_I', 'Obesity_Type_II', 'Obesity_Type_III')
+  /// maupun kategori klinis PAPDI/Kemenkes ('Normal', 'Overweight', 'Obesitas I..III', 'Underweight').
   static CategoryRecommendation getRecommendationByCategory(String category) {
-    switch (category) {
-      case 'Normal':
-        return _normalRecommendation;
+    final cat = category.trim().toLowerCase();
 
-      case 'Overweight':
-        return _overweightRecommendation;
-
-      case 'Obesitas I':
-        return _obesitas1Recommendation;
-
-      case 'Obesitas II':
-        return _obesitas2Recommendation;
-
-      case 'Obesitas III':
-        return _obesitas3Recommendation;
-
-      case 'Underweight':
-        return _underweightRecommendation;
-
-      default:
-        // Default fallback ke Overweight jika kategori tidak teridentifikasi
-        return _overweightRecommendation;
+    // 1. Underweight / Insufficient Weight
+    if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
+      return _underweightRecommendation;
     }
+
+    // 2. Normal Weight
+    if (cat.contains('normal')) {
+      return _normalRecommendation;
+    }
+
+    // 3. Overweight (Level I & Level II)
+    if (cat.contains('overweight') || cat.contains('lebih')) {
+      return _overweightRecommendation;
+    }
+
+    // 4. Obesitas / Obesity Tingkat III (Morbid)
+    if (cat.contains('iii') || cat.contains('morbid') || cat.contains('3')) {
+      return _obesitas3Recommendation;
+    }
+
+    // 5. Obesitas / Obesity Tingkat II
+    if (cat.contains('ii') || cat.contains('2')) {
+      return _obesitas2Recommendation;
+    }
+
+    // 6. Obesitas / Obesity Tingkat I
+    if (cat.contains('obesitas') || cat.contains('obesity') || cat.contains('type_i') || cat.contains('level_i') || cat.contains('1')) {
+      return _obesitas1Recommendation;
+    }
+
+    return _overweightRecommendation;
   }
 
   // =========================================================================

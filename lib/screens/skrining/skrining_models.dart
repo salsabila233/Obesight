@@ -123,6 +123,9 @@ class SkriningData {
   }
 
   // Category title matching UI reference (prioritas hasil Random Forest yang valid)
+  // Konsisten dengan 7 kelas dataset & model:
+  // 1. Insufficient Weight, 2. Normal Weight, 3. Overweight Level I,
+  // 4. Overweight Level II, 5. Obesity Level I, 6. Obesity Level II, 7. Obesity Level III
   String get categoryTitle {
     if (isPredictionSuccess && aiCategoryTitle != null && aiCategoryTitle!.isNotEmpty) {
       return aiCategoryTitle!;
@@ -130,17 +133,19 @@ class SkriningData {
 
     final currentBmi = bmi;
     if (currentBmi < 18.5) {
-      return 'Underweight\nLevel I';
+      return 'Insufficient\nWeight';
     } else if (currentBmi <= 22.9) {
       return 'Normal\nWeight';
     } else if (currentBmi <= 24.9) {
       return 'Overweight\nLevel I';
+    } else if (currentBmi <= 27.0) {
+      return 'Overweight\nLevel II';
     } else if (currentBmi <= 29.9) {
-      return 'Obesitas\nTingkat I';
+      return 'Obesity\nLevel I';
     } else if (currentBmi <= 34.9) {
-      return 'Obesitas\nTingkat II';
+      return 'Obesity\nLevel II';
     } else {
-      return 'Obesitas\nTingkat III';
+      return 'Obesity\nLevel III';
     }
   }
 
@@ -156,7 +161,9 @@ class SkriningData {
     } else if (currentBmi <= 22.9) {
       return 'Berat badan dalam rentang ideal';
     } else if (currentBmi <= 24.9) {
-      return 'Berat badan sedikit diatas rentang ideal';
+      return 'Kelebihan berat badan tingkat I';
+    } else if (currentBmi <= 27.0) {
+      return 'Kelebihan berat badan tingkat II';
     } else if (currentBmi <= 29.9) {
       return 'Berat badan tingkat obesitas I';
     } else if (currentBmi <= 34.9) {
@@ -169,13 +176,13 @@ class SkriningData {
   // Risk Title (selaras dengan kategori klasifikasi hasil AI & IMT)
   String get riskTitle {
     final cat = classificationCategory.toLowerCase();
-    if (cat.contains('obesitas iii') || cat.contains('morbid')) {
+    if (cat.contains('obesitas iii') || cat.contains('obesity level iii') || cat.contains('morbid')) {
       return 'Risiko Sangat Tinggi';
-    } else if (cat.contains('obesitas')) {
+    } else if (cat.contains('obesitas') || cat.contains('obesity')) {
       return 'Risiko Tinggi';
     } else if (cat.contains('overweight') || cat.contains('lebih')) {
       return 'Risiko Meningkat';
-    } else if (cat.contains('underweight') || cat.contains('kurang')) {
+    } else if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
       return 'Perlu Perhatian';
     }
 

@@ -27,20 +27,20 @@ class SkriningResultScreen extends StatelessWidget {
 
   Color _getCategoryRingColor(String category, bool isDark) {
     final cat = category.toLowerCase();
-    if (cat.contains('underweight') || cat.contains('kurang')) {
+    if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
       return const Color(0xFF93C5FD); // Soft blue
     } else if (cat.contains('normal')) {
       return const Color(0xFF86EFAC); // Soft fresh green
     } else if (cat.contains('overweight') || cat.contains('kelebihan')) {
       return const Color(0xFFFDE047); // Soft sunny amber/yellow
     } else {
-      return const Color(0xFFFCA5A5); // Soft coral/rose red for Obesitas
+      return const Color(0xFFFCA5A5); // Soft coral/rose red for Obesitas / Obesity
     }
   }
 
   Color _getCategoryBadgeBg(String category, bool isDark) {
     final cat = category.toLowerCase();
-    if (cat.contains('underweight') || cat.contains('kurang')) {
+    if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
       return isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE0F2FE);
     } else if (cat.contains('normal')) {
       return isDark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7);
@@ -53,7 +53,7 @@ class SkriningResultScreen extends StatelessWidget {
 
   Color _getCategoryBadgeTextColor(String category, bool isDark) {
     final cat = category.toLowerCase();
-    if (cat.contains('underweight') || cat.contains('kurang')) {
+    if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
       return isDark ? const Color(0xFFBFDBFE) : const Color(0xFF0369A1);
     } else if (cat.contains('normal')) {
       return isDark ? const Color(0xFF86EFAC) : const Color(0xFF15803D);
