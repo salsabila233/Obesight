@@ -9,7 +9,6 @@ import '../profile/profile_screen.dart';
 import '../profile/complete_profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../progress/progress_screen.dart';
-import '../progress/physical_activity_screen.dart';
 import '../progress/screening_history_screen.dart';
 import '../article/health_article_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
@@ -376,11 +375,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               // 5. Section Status Kesehatan (IMT & Risiko Obesitas)
               _buildHealthStatusCard(isDark),
 
-              const SizedBox(height: 20),
-
-              // Section Rekomendasi Aktivitas Fisik (5 Latihan)
-              _buildPhysicalActivityBanner(isDark),
-
               const SizedBox(height: 22),
 
               // 6. Section Artikel Kesehatan (Horizontal Scroll Bar)
@@ -421,136 +415,133 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  // 2. Section Banner Skrining Obesitas
+  // 2. Section Banner Skrining Obesitas (Tampilan Visual / Banner Informasi)
   Widget _buildScreeningSection() {
-    return GestureDetector(
-      onTap: _showScreeningModal,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF4EA07D), Color(0xFF368260)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF368260).withValues(alpha: 0.25),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4EA07D), Color(0xFF368260)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 6,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Skrining Risiko\nObesitas',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      height: 1.25,
-                    ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF368260).withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Skrining Risiko\nObesitas',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.25,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Kenali tingkat risiko obesitas berdasarka pola hidupmu.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      height: 1.35,
-                    ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Kenali tingkat risiko obesitas berdasarkan pola hidupmu.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    height: 1.35,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            // Illustration container matching the design art
-            Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 50,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+          ),
+          const SizedBox(width: 8),
+          // Illustration container matching the design art
+          Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF368260),
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF368260),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        ...List.generate(3, (i) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.check_rounded, size: 8, color: Color(0xFF16A34A)),
-                              const SizedBox(width: 3),
-                              Expanded(
-                                child: Container(
-                                  height: 3,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFCBD5E1),
-                                    borderRadius: BorderRadius.circular(1.5),
-                                  ),
+                      ),
+                      const SizedBox(height: 6),
+                      ...List.generate(3, (i) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_rounded, size: 8, color: Color(0xFF16A34A)),
+                            const SizedBox(width: 3),
+                            Expanded(
+                              child: Container(
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFCBD5E1),
+                                  borderRadius: BorderRadius.circular(1.5),
                                 ),
                               ),
-                            ],
-                          ),
-                        )),
-                      ],
+                            ),
+                          ],
+                        ),
+                      )),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF368260),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.search_rounded,
+                      color: Colors.white,
+                      size: 16,
                     ),
                   ),
-                  Positioned(
-                    right: 6,
-                    bottom: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF368260),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.search_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -640,17 +631,17 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     final items = [
       {
         'title': 'Skrining\nObesitas',
-        'icon': Icons.search_rounded,
+        'icon': Icons.manage_search_rounded,
         'action': _showScreeningModal,
       },
       {
         'title': 'Kalkulator\nIMT',
-        'icon': Icons.calculate_outlined,
+        'icon': Icons.calculate_rounded,
         'action': _openBmiCalculationScreen,
       },
       {
         'title': 'Progress',
-        'icon': Icons.history_rounded,
+        'icon': Icons.trending_up_rounded,
         'action': () {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -661,7 +652,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       },
       {
         'title': 'Riwayat\nSkrining',
-        'icon': Icons.monitor_heart_outlined,
+        'icon': Icons.medical_information_rounded,
         'action': () {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -726,261 +717,158 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  // 5. Section Status Kesehatan
+  // 5. Section Status Kesehatan (Tampilan Informasi)
   Widget _buildHealthStatusCard(bool isDark) {
-    return GestureDetector(
-      onTap: _openBmiCalculationScreen,
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Status Kesehatan',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Kolom IMT (dengan Expanded dan constraints aman)
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.calculate_outlined,
-                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
-                              size: 26,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'IMT',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                  ),
-                                ),
-                                Text(
-                                  _currentBmi.toStringAsFixed(1),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                    height: 1.15,
-                                  ),
-                                ),
-                                Text(
-                                  _currentBmiCategory,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: _getBmiStatusColor(_currentBmi),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Divider vertikal yang fleksibel
-                    Container(
-                      width: 1,
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
-                    ),
-                    // Kolom Risiko Obesitas
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.directions_walk_rounded,
-                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
-                              size: 26,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Risiko Obesitas',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _currentObesityRisk,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: _getBmiStatusColor(_currentBmi),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-    );
-  }
-
-  // Rekomendasi Aktivitas Fisik Banner
-  Widget _buildPhysicalActivityBanner(bool isDark) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PhysicalActivityScreen()),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status Kesehatan',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.all(10),
-              child: Image.asset(
-                'assets/progress/clean/icon_shoe.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.directions_run_rounded,
-                  color: Color(0xFF0284C7),
-                  size: 26,
-                ),
-              ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 6,
-                    children: [
-                      Text(
-                        'Aktivitas Fisik',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '5 Latihan',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                  // Kolom IMT (dengan Expanded dan constraints aman)
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.calculate_outlined,
                             color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
+                            size: 26,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'IMT',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                ),
+                              ),
+                              Text(
+                                _currentBmi.toStringAsFixed(1),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  height: 1.15,
+                                ),
+                              ),
+                              Text(
+                                _currentBmiCategory,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: _getBmiStatusColor(_currentBmi),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Jogging, Sepeda, Gym, Yoga & HIIT.',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  // Divider vertikal yang fleksibel
+                  Container(
+                    width: 1,
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  // Kolom Risiko Obesitas
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.directions_walk_rounded,
+                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Risiko Obesitas',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _currentObesityRisk,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: _getBmiStatusColor(_currentBmi),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
