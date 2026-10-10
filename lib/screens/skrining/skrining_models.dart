@@ -26,12 +26,28 @@ class SkriningData {
   String? transportation; // 'Jalan kaki', 'Sepeda', 'Motor', 'Mobil', 'Transportasi umum'
 
   // Hasil Inferensi Model AI (Random Forest)
-  String? aiPredictedClass; // 'Normal_Weight', 'Obesity_Type_I', etc.
-  String? aiCategoryKey; // 'Normal', 'Overweight', 'Obesitas I', etc.
-  String? aiCategoryTitle; // 'Normal\nWeight', 'Overweight\nLevel I', etc.
-  String? aiCategoryBadge; // 'Berat badan dalam rentang ideal'
+  String? aiRawClass; // Prediksi murni RF: 'Normal_Weight', 'Overweight_Level_I', etc.
+  String? aiRawCategoryKey;
+  String? aiRawCategoryTitle;
+
+  String? aiClinicalClass; // Kelas setelah validasi klinis
+  String? aiCategoryKey;
+  String? aiCategoryTitle;
+  String? aiCategoryBadge;
+
+  bool isClinicallyAdjusted = false;
+  String? clinicalAdjustmentReason;
+
   double? aiConfidence; // e.g. 85.0
   Map<String, int>? aiVotes; // Distribusi suara 100 decision trees
+  Map<String, double>? aiProbabilities;
+
+  bool isPredictionSuccess = false;
+  String? predictionErrorMessage;
+
+  /// Getter penyesuaian backwards compatibility
+  String? get aiPredictedClass => aiRawClass;
+  set aiPredictedClass(String? val) => aiRawClass = val;
 
   SkriningData({
     this.gender = 'Perempuan',
@@ -50,13 +66,26 @@ class SkriningData {
     this.screenTime,
     this.alcohol,
     this.transportation,
-    this.aiPredictedClass,
+    this.aiRawClass,
+    this.aiRawCategoryKey,
+    this.aiRawCategoryTitle,
+    this.aiClinicalClass,
     this.aiCategoryKey,
     this.aiCategoryTitle,
     this.aiCategoryBadge,
+    this.isClinicallyAdjusted = false,
+    this.clinicalAdjustmentReason,
     this.aiConfidence,
     this.aiVotes,
-  });
+    this.aiProbabilities,
+    this.isPredictionSuccess = false,
+    this.predictionErrorMessage,
+    String? aiPredictedClass,
+  }) {
+    if (aiPredictedClass != null && aiRawClass == null) {
+      aiRawClass = aiPredictedClass;
+    }
+  }
 
   // Calculate BMI
   double get bmi {
@@ -74,17 +103,17 @@ class SkriningData {
   // Official classification category key (PAPDI & KMK No. HK.01.07-MENKES-509-2025)
   // Memprioritaskan hasil prediksi model Random Forest yang telah tervalidasi klinis
   String get classificationCategory {
+    if (isPredictionSuccess && aiCategoryKey != null && aiCategoryKey!.isNotEmpty) {
+      return aiCategoryKey!;
+    }
     final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Underweight';
     } else if (currentBmi <= 22.9) {
       return 'Normal';
-    } else if (currentBmi <= 27.0) {
+    } else if (currentBmi <= 24.9) {
       return 'Overweight';
     } else if (currentBmi <= 29.9) {
-      if (aiCategoryKey != null && (aiCategoryKey == 'Obesitas I' || aiCategoryKey == 'Overweight')) {
-        return aiCategoryKey!;
-      }
       return 'Obesitas I';
     } else if (currentBmi <= 34.9) {
       return 'Obesitas II';
@@ -95,24 +124,16 @@ class SkriningData {
 
   // Category title matching UI reference (prioritas hasil Random Forest yang valid)
   String get categoryTitle {
-    final currentBmi = bmi;
-    // Validasi pencegahan inkonsistensi AI
-    if (aiCategoryTitle != null && aiCategoryTitle!.isNotEmpty) {
-      final isNormalAI = aiCategoryTitle!.contains('Normal');
-      if (currentBmi >= 23.0 && isNormalAI) {
-        // AI salah prediksi Normal padahal IMT berlebih -> gunakan standar klinis
-      } else if (currentBmi < 18.5 && isNormalAI) {
-        // AI salah prediksi Normal padahal IMT kurang -> gunakan standar klinis
-      } else {
-        return aiCategoryTitle!;
-      }
+    if (isPredictionSuccess && aiCategoryTitle != null && aiCategoryTitle!.isNotEmpty) {
+      return aiCategoryTitle!;
     }
 
+    final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Underweight\nLevel I';
     } else if (currentBmi <= 22.9) {
       return 'Normal\nWeight';
-    } else if (currentBmi <= 27.0) {
+    } else if (currentBmi <= 24.9) {
       return 'Overweight\nLevel I';
     } else if (currentBmi <= 29.9) {
       return 'Obesitas\nTingkat I';
@@ -125,23 +146,16 @@ class SkriningData {
 
   // Category badge matching UI reference
   String get categoryBadge {
-    final currentBmi = bmi;
-    if (aiCategoryBadge != null && aiCategoryBadge!.isNotEmpty) {
-      final isNormalBadge = aiCategoryBadge!.contains('ideal');
-      if (currentBmi >= 23.0 && isNormalBadge) {
-        // Gunakan badge akurat
-      } else if (currentBmi < 18.5 && isNormalBadge) {
-        // Gunakan badge akurat
-      } else {
-        return aiCategoryBadge!;
-      }
+    if (isPredictionSuccess && aiCategoryBadge != null && aiCategoryBadge!.isNotEmpty) {
+      return aiCategoryBadge!;
     }
 
+    final currentBmi = bmi;
     if (currentBmi < 18.5) {
       return 'Berat badan di bawah rentang ideal';
     } else if (currentBmi <= 22.9) {
       return 'Berat badan dalam rentang ideal';
-    } else if (currentBmi <= 27.0) {
+    } else if (currentBmi <= 24.9) {
       return 'Berat badan sedikit diatas rentang ideal';
     } else if (currentBmi <= 29.9) {
       return 'Berat badan tingkat obesitas I';
@@ -152,21 +166,24 @@ class SkriningData {
     }
   }
 
-  // Risk Title
+  // Risk Title (selaras dengan kategori klasifikasi hasil AI & IMT)
   String get riskTitle {
-    final currentBmi = bmi;
-    if (currentBmi < 18.5) {
-      return 'Perlu Perhatian';
-    } else if (currentBmi <= 22.9) {
-      if (highCalorieFood == 'Ya' || physicalActivity == 'Tidak pernah') {
-        return 'Risiko Rendah - Sedang';
-      }
-      return 'Risiko Terkendali';
-    } else if (currentBmi <= 27.0) {
-      return 'Risiko Meningkat';
-    } else {
+    final cat = classificationCategory.toLowerCase();
+    if (cat.contains('obesitas iii') || cat.contains('morbid')) {
+      return 'Risiko Sangat Tinggi';
+    } else if (cat.contains('obesitas')) {
       return 'Risiko Tinggi';
+    } else if (cat.contains('overweight') || cat.contains('lebih')) {
+      return 'Risiko Meningkat';
+    } else if (cat.contains('underweight') || cat.contains('kurang')) {
+      return 'Perlu Perhatian';
     }
+
+    // Jika Kategori Normal:
+    if (highCalorieFood == 'Ya' || physicalActivity == 'Tidak pernah') {
+      return 'Risiko Rendah - Sedang';
+    }
+    return 'Risiko Terkendali';
   }
 
   // Risk Description matching clinical risk profile

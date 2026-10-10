@@ -311,6 +311,48 @@ class SkriningResultScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                              if (data.aiConfidence != null) ...[
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.auto_awesome_rounded,
+                                      size: 13,
+                                      color: primaryGreen,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        'AI Random Forest • Keyakinan ${data.aiConfidence!.toStringAsFixed(0)}%',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                          color: textMuted,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              if (data.isClinicallyAdjusted) ...[
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'Diselaraskan dengan ambang batas IMT Kemenkes',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),

@@ -2918,7 +2918,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const bmiCalcErrorBanner = document.getElementById('bmi-calc-error-banner');
   const bmiCalcErrorText = document.getElementById('bmi-calc-error-text');
   const btnSaveBmiCalc = document.getElementById('btn-save-bmi-calc');
-  const modalBmiConfirm = document.getElementById('modal-bmi-confirm-backdrop');
   const btnCancelBmiConfirm = document.getElementById('btn-cancel-bmi-confirm');
   const btnConfirmSaveBmi = document.getElementById('btn-confirm-save-bmi');
   const btnBackFromBmiCalc = document.getElementById('btn-back-from-bmi-calc');
