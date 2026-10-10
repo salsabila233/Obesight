@@ -149,14 +149,49 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     // 1. Eksekusi inferensi Model Random Forest (100 Decision Trees)
     try {
       final prediction = await RandomForestService.instance.predict(_data);
-      _data.aiPredictedClass = prediction.rawClass;
+      _data.aiRawClass = prediction.rawClass;
+      _data.aiRawCategoryKey = prediction.rawCategoryKey;
+      _data.aiRawCategoryTitle = prediction.rawCategoryTitle;
+
+      _data.aiClinicalClass = prediction.clinicalClass;
       _data.aiCategoryKey = prediction.categoryKey;
       _data.aiCategoryTitle = prediction.categoryTitle;
       _data.aiCategoryBadge = prediction.categoryBadge;
+
+      _data.isClinicallyAdjusted = prediction.isClinicallyAdjusted;
+      _data.clinicalAdjustmentReason = prediction.adjustmentReason;
+
       _data.aiConfidence = prediction.confidence;
       _data.aiVotes = prediction.votes;
-    } catch (e) {
-      debugPrint('Error predicting with RandomForestService: $e');
+      _data.aiProbabilities = prediction.probabilities;
+
+      _data.isPredictionSuccess = true;
+      _data.predictionErrorMessage = null;
+    } catch (e, stackTrace) {
+      debugPrint('[SkriningWizardScreen] Error predicting with RandomForestService: $e');
+      debugPrint(stackTrace.toString());
+      _data.isPredictionSuccess = false;
+      _data.predictionErrorMessage = e.toString();
+
+      if (!mounted) return;
+      setState(() {
+        _isAnalyzing = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menjalankan analisis Random Forest: $e'),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'Coba Lagi',
+            textColor: Colors.white,
+            onPressed: _finishScreening,
+          ),
+        ),
+      );
+      return; // Hentikan alur agar tidak menampilkan hasil palsu
     }
 
     if (!mounted) return;
@@ -166,6 +201,12 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     final calculatedBmi = _data.bmi;
     final category = _data.categoryTitle.replaceAll('\n', ' ');
     final risk = _data.riskTitle;
+
+    debugPrint('[SkriningWizardScreen] Sukses inferensi. Meneruskan ke SkriningResultScreen:');
+    debugPrint('   - Kelas Murni RF: ${_data.aiRawClass}');
+    debugPrint('   - Kategori Tampilan: $category');
+    debugPrint('   - Penyesuaian Klinis: ${_data.isClinicallyAdjusted ? "YA (${_data.clinicalAdjustmentReason})" : "TIDAK"}');
+    debugPrint('   - Keyakinan AI: ${_data.aiConfidence?.toStringAsFixed(1)}%');
 
     AuthService().updateUserBmi(
       userId: userId,
