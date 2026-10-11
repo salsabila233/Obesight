@@ -90,17 +90,25 @@ void main() {
     expect(find.byType(UserHomeScreen), findsOneWidget);
   });
 
-  testWidgets('4. Feature menu icons are updated and all 4 buttons navigate correctly', (tester) async {
+  testWidgets('4. Feature menu under banner has 3 items and Progress is navigated via bottom nav', (tester) async {
     setPhoneViewport(tester);
     await tester.pumpWidget(createTestWidget());
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
 
-    // Verify the updated modern icons exist
+    // Verify 3 menu items exist under banner
     expect(find.byIcon(Icons.manage_search_rounded), findsOneWidget);
     expect(find.byIcon(Icons.calculate_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.trending_up_rounded), findsOneWidget);
     expect(find.byIcon(Icons.medical_information_rounded), findsOneWidget);
+
+    // Verify Progress is NOT in the menu row under banner
+    expect(find.byIcon(Icons.trending_up_rounded), findsNothing);
+    expect(find.text('Progress'), findsNothing);
+
+    // Verify bottom navigation bar has 3 icons: Home, Progress/Bar Chart, Settings
+    expect(find.byIcon(Icons.home_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.bar_chart_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
 
     // Test Kalkulator IMT menu button works
     await tester.tap(find.text('Kalkulator\nIMT'));
@@ -115,19 +123,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(UserHomeScreen), findsOneWidget);
 
-    // Test Progress menu button works
-    await tester.tap(find.text('Progress'));
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
-    expect(find.byType(ProgressScreen), findsOneWidget);
-
-    // Go back from ProgressScreen (uses arrow_back_ios_new_rounded)
-    final backBtnProgress = find.byIcon(Icons.arrow_back_ios_new_rounded).first;
-    await tester.tap(backBtnProgress);
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
-    expect(find.byType(UserHomeScreen), findsOneWidget);
-
     // Test Riwayat Skrining menu button works
     await tester.tap(find.text('Riwayat\nSkrining'));
     await tester.pump(const Duration(milliseconds: 500));
@@ -137,6 +132,19 @@ void main() {
     // Go back from ScreeningHistoryScreen (uses arrow_back_ios_new_rounded)
     final backBtnHistory = find.byIcon(Icons.arrow_back_ios_new_rounded).first;
     await tester.tap(backBtnHistory);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.byType(UserHomeScreen), findsOneWidget);
+
+    // Test Progress navigation via middle icon on bottom navigation bar
+    await tester.tap(find.byIcon(Icons.bar_chart_rounded));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.byType(ProgressScreen), findsOneWidget);
+
+    // Go back from ProgressScreen (uses arrow_back_ios_new_rounded)
+    final backBtnProgress = find.byIcon(Icons.arrow_back_ios_new_rounded).first;
+    await tester.tap(backBtnProgress);
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
     expect(find.byType(UserHomeScreen), findsOneWidget);

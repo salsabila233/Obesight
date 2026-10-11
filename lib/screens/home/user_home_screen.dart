@@ -367,7 +367,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               // 3. Conditional Card Lengkapi Biodata (Tampil jika belum lengkap)
               _buildReminderCard(isDark),
 
-              // 4. Baris Menu Ikon (Skrining Obesitas, Kalkulator IMT, Progress, Riwayat Skrining)
+              // 4. Baris Menu Ikon (Skrining Obesitas, Kalkulator IMT, Riwayat Skrining)
               _buildMenuIconsRow(isDark),
 
               const SizedBox(height: 20),
@@ -626,7 +626,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  // 4. Baris Menu Ikon (4 Kolom)
+  // 4. Baris Menu Ikon (3 Kolom: Skrining Obesitas, Kalkulator IMT, Riwayat Skrining)
   Widget _buildMenuIconsRow(bool isDark) {
     final items = [
       {
@@ -638,17 +638,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         'title': 'Kalkulator\nIMT',
         'icon': Icons.calculate_rounded,
         'action': _openBmiCalculationScreen,
-      },
-      {
-        'title': 'Progress',
-        'icon': Icons.trending_up_rounded,
-        'action': () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ProgressScreen(user: widget.user),
-            ),
-          );
-        },
       },
       {
         'title': 'Riwayat\nSkrining',
@@ -1092,13 +1081,21 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             MaterialPageRoute(
               builder: (_) => ProgressScreen(user: widget.user),
             ),
-          );
+          ).then((_) {
+            if (mounted) {
+              _syncUserData();
+            }
+          });
         } else if (index == 2) {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => SettingsScreen(user: widget.user),
             ),
-          );
+          ).then((_) {
+            if (mounted) {
+              _syncUserData();
+            }
+          });
         } else {
           setState(() {
             _selectedTabIndex = 0;
