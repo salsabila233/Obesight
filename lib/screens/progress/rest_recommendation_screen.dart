@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../widgets/progress_page_scaffold.dart';
 import 'day_rest_detail_screen.dart';
 import 'night_sleep_detail_screen.dart';
 import 'activity_rest_detail_screen.dart';
@@ -46,25 +47,8 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
     final now = DateTime.now();
     final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () => Navigator.of(context).pop(), // Kembali ke Halaman Progress
-        ),
-        title: Text(
-          'Rekomendasi Waktu Istirahat',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
+    return ProgressPageScaffold(
+      title: 'Rekomendasi Waktu Istirahat',
       body: Stack(
         children: [
           // Scrollable Body

@@ -4,6 +4,7 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/nutrition_service.dart';
 import '../../services/progress_tracking_service.dart';
+import '../../widgets/progress_page_scaffold.dart';
 import '../profile/complete_profile_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 import 'night_sleep_detail_screen.dart';
@@ -27,7 +28,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8);
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return ListenableBuilder(
@@ -40,28 +40,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
         final currentDrink = NutritionService.instance.myDrink;
         final progressService = ProgressTrackingService.instance;
 
-        return Scaffold(
-          backgroundColor: scaffoldBg,
-          appBar: AppBar(
-            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: Text(
-              'Progress',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            centerTitle: true,
-            // Gambar jam/riwayat skrining di pojok kanan atas telah dihapus sesuai permintaan
-          ),
+        return ProgressPageScaffold(
+          title: 'Progress',
           body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 40),
+            physics: const BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

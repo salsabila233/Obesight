@@ -135,7 +135,7 @@ class _NutritionDetailScreenState extends State<NutritionDetailScreen>
     final headerHeight = MediaQuery.of(context).size.height * 0.35;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF36785A),
       body: Stack(
         children: [
           // 1. Scrollable Content with Parallax & Collapsing Toolbar
@@ -245,7 +245,7 @@ class _NutritionDetailScreenState extends State<NutritionDetailScreen>
                     color: Colors.white,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                   ),
-                  transform: Matrix4.translationValues(0, -12, 0),
+                  transform: Matrix4.translationValues(0, -20, 0),
                   padding: const EdgeInsets.fromLTRB(22, 24, 22, 36),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

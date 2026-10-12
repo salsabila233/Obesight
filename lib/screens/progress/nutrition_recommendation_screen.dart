@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/nutrition_service.dart';
+import '../../widgets/progress_page_scaffold.dart';
 import 'nutrition_detail_screen.dart';
 
 enum NutritionFilter {
@@ -91,36 +92,10 @@ class _NutritionRecommendationScreenState
     final now = DateTime.now();
     final itemsToDisplay = _filteredItems;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
-      // Sticky AppBar at the top of the screen
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-            size: 20,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: Text(
-            _headerTitle,
-            key: ValueKey<String>(_headerTitle),
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        centerTitle: true,
-      ),
+    return ProgressPageScaffold(
+      title: _headerTitle,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 40),
         physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/physical_activity_service.dart';
+import '../../widgets/progress_page_scaffold.dart';
 import 'activity_detail_screen.dart';
 
 class PhysicalActivityScreen extends StatefulWidget {
@@ -249,7 +250,6 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     final now = DateTime.now();
     final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8);
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return ListenableBuilder(
@@ -260,27 +260,11 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
         final selectedDateKey = PhysicalActivityService.instance.formatDateKey(selectedDate);
         final completedCount = PhysicalActivityService.instance.getCompletedCountForDate(selectedDateKey);
 
-        return Scaffold(
-          backgroundColor: scaffoldBg,
-          appBar: AppBar(
-            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: Text(
-              'Rekomendasi Aktivitas Fisik',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            centerTitle: true,
-          ),
+        return ProgressPageScaffold(
+          title: 'Rekomendasi Aktivitas Fisik',
           body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 40),
+            physics: const BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

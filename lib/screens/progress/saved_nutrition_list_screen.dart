@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/nutrition_service.dart';
+import '../../widgets/progress_page_scaffold.dart';
 import 'nutrition_detail_screen.dart';
 import 'nutrition_recommendation_screen.dart';
 
@@ -16,29 +17,8 @@ class SavedNutritionListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final title = isFood ? 'Makananku' : 'Minumanku';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-            size: 20,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 17.5,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
+    return ProgressPageScaffold(
+      title: title,
       body: ListenableBuilder(
         listenable: NutritionService.instance,
         builder: (context, _) {

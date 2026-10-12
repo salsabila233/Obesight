@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/activity_timer_service.dart';
 import 'activity_timer_screen.dart';
 import 'activity_rest_detail_screen.dart';
 
@@ -53,9 +54,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     final tipsTitle = widget.activity['tipsTitle'] as String? ?? 'Tips Melakukan Latihan';
     final tips = (widget.activity['tips'] as List<dynamic>?)?.cast<String>() ?? [];
     final refLink = widget.activity['refLink'] as String? ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
+      backgroundColor: const Color(0xFF36785A),
       body: Stack(
         children: [
           // 1. Scrollable Content with Parallax Hero & Collapsing Toolbar
@@ -216,10 +218,15 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                 ),
               ),
 
-              // Content Sliver
+              // Content Sliver in curved container sheet
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 150),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  ),
+                  transform: Matrix4.translationValues(0, -20, 0),
+                  padding: const EdgeInsets.fromLTRB(18, 24, 18, 150),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -441,39 +448,52 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               child: SafeArea(
                 child: SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF36785A),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                    onPressed: () async {
-                      final result = await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ActivityTimerScreen(
-                            activity: widget.activity,
-                            dateKey: widget.dateKey,
-                          ),
+                  child: ListenableBuilder(
+                    listenable: ActivityTimerService.instance,
+                    builder: (context, _) {
+                      final service = ActivityTimerService.instance;
+                      final actId = widget.activity['id'] as String? ?? '';
+                      final isRunningThis = service.hasActiveSession &&
+                          (service.activeActivity?['id'] == actId);
+
+                      return ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF36785A),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          elevation: 0,
+                        ),
+                        onPressed: () async {
+                          final result = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ActivityTimerScreen(
+                                activity: widget.activity,
+                                dateKey: widget.dateKey,
+                              ),
+                            ),
+                          );
+                          if (!context.mounted) return;
+                          if (result == 'rest') {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (_) => const ActivityRestDetailScreen(),
+                              ),
+                            );
+                          } else if (result == true) {
+                            Navigator.of(context).pop(true);
+                          }
+                        },
+                        icon: Icon(
+                          isRunningThis ? Icons.timer_rounded : Icons.play_arrow_rounded,
+                          size: 22,
+                        ),
+                        label: Text(
+                          isRunningThis ? 'Lanjutkan Latihan' : 'Mulai Latihan',
+                          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
                         ),
                       );
-                      if (!context.mounted) return;
-                      if (result == 'rest') {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (_) => const ActivityRestDetailScreen(),
-                          ),
-                        );
-                      } else if (result == true) {
-                        Navigator.of(context).pop(true);
-                      }
                     },
-                    icon: const Icon(Icons.play_arrow_rounded, size: 22),
-                    label: Text(
-                      'Mulai Latihan',
-                      style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
-                    ),
                   ),
                 ),
               ),
