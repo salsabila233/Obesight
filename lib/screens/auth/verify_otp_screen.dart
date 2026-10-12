@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/auth_service.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   const VerifyOtpScreen({super.key});
@@ -19,7 +20,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   String? _errorMessage;
   int _cooldownSeconds = 60;
   Timer? _cooldownTimer;
-  String _email = 'zahraalfitiarisa@gmail.com';
+  String _email = 'zahraafitriana@gmail.com';
 
   @override
   void initState() {
@@ -64,22 +65,37 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     super.dispose();
   }
 
-  void _handleResendCode() {
+  Future<void> _handleResendCode() async {
     if (_cooldownSeconds > 0) return;
     _startCooldown();
     for (final c in _controllers) {
       c.clear();
     }
     _focusNodes[0].requestFocus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Kode verifikasi baru telah dikirimkan ke $_email',
-          style: GoogleFonts.poppins(fontSize: 13),
+
+    final res = await AuthService().generateAndSendOtp(_email);
+    if (!mounted) return;
+    if (res.isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Kode verifikasi OTP baru: ${res.otp}',
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: const Color(0xFF235B42),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 8),
         ),
-        backgroundColor: const Color(0xFF4F9B77),
-      ),
-    );
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res.errorMessage ?? 'Gagal mengirim ulang kode OTP.'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
   }
 
   Future<void> _handleVerify() async {
@@ -99,19 +115,23 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       _isLoading = true;
     });
 
-    // Simulate backend verification
-    await Future.delayed(const Duration(milliseconds: 600));
+    final res = await AuthService().verifyOtp(email: _email, otp: otp);
 
     if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
 
-    // Navigate to Reset Password Screen
-    Navigator.of(context).pushNamed(
-      '/reset-password',
-      arguments: {'email': _email},
-    );
+    if (res.isSuccess) {
+      Navigator.of(context).pushNamed(
+        '/reset-password',
+        arguments: {'email': _email},
+      );
+    } else {
+      setState(() {
+        _errorMessage = res.errorMessage ?? 'Kode verifikasi tidak sesuai.';
+      });
+    }
   }
 
   @override

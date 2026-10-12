@@ -441,7 +441,6 @@ class _PhysicalDataCard extends StatelessWidget {
   final IconData icon;
   final TextEditingController controller;
   final TextInputType keyboardType;
-  final bool isDropdownStyle;
   final bool isDark;
 
   const _PhysicalDataCard({
@@ -450,7 +449,6 @@ class _PhysicalDataCard extends StatelessWidget {
     required this.icon,
     required this.controller,
     required this.keyboardType,
-    this.isDropdownStyle = false,
     this.isDark = false,
   });
 

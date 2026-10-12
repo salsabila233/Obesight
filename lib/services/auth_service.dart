@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,6 +21,17 @@ class AuthResponse {
   const AuthResponse.failure(this.errorMessage)
       : isSuccess = false,
         user = null;
+}
+
+class OtpResponse {
+  final bool isSuccess;
+  final String? otp;
+  final String? errorMessage;
+
+  const OtpResponse.success(this.otp, [this.errorMessage]) : isSuccess = true;
+  const OtpResponse.failure(this.errorMessage)
+      : isSuccess = false,
+        otp = null;
 }
 
 class AuthService {
@@ -81,6 +93,16 @@ class AuthService {
   static const String _keyActiveUserBmiCategory = 'obesight_active_user_bmi_category';
   static const String _keyActiveUserObesityRisk = 'obesight_active_user_obesity_risk';
 
+  static const String _keyDeletedAccounts = 'obesight_deleted_accounts';
+  static const String _keyCustomPasswords = 'obesight_custom_passwords';
+  static const String _keyCustomEmails = 'obesight_custom_emails';
+
+  final Set<String> _deletedAccounts = {};
+  final Map<String, String> _customPasswords = {};
+  final Map<String, String> _customEmails = {};
+  final Map<String, String> _activeOtps = {};
+  final Map<String, DateTime> _activeOtpExpiry = {};
+
   void _saveSession(UserModel user) {
     SharedPreferences.getInstance().then((prefs) {
       prefs.setString(_keyActiveUserId, user.id);
@@ -127,11 +149,24 @@ class AuthService {
   /// 3. Jika koneksi offline / lambat, pulihkan dari SharedPreferences & cache lokal tanpa logout
   Future<UserModel?> restorePersistentSession() async {
     try {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final deleted = prefs.getStringList(_keyDeletedAccounts);
+        if (deleted != null) {
+          _deletedAccounts.addAll(deleted.map((e) => e.toLowerCase()));
+        }
+      } catch (_) {}
+
       // 1. Cek Firebase Authentication aktif
       if (isFirebaseAvailable) {
         final firebaseUser = _firebaseAuth.currentUser;
         if (firebaseUser != null) {
           final uid = firebaseUser.uid;
+
+          if (_deletedAccounts.contains(firebaseUser.email?.toLowerCase())) {
+            await logout();
+            return null;
+          }
 
           // Baca SharedPreferences sebagai fallback instan (offline / slow network)
           String? localName;
@@ -1085,9 +1120,21 @@ class AuthService {
     final cleanId = identifier.trim().toLowerCase();
     final cleanPass = password.trim();
 
+    // 0. Cek apakah akun telah dihapus secara permanen
+    if (_deletedAccounts.contains(cleanId)) {
+      return const AuthResponse.failure('Akun ini telah dihapus permanen dan tidak dapat digunakan.');
+    }
+
+    final effectiveEmail = _customEmails[cleanId] ?? cleanId;
+    if (_deletedAccounts.contains(effectiveEmail)) {
+      return const AuthResponse.failure('Akun ini telah dihapus permanen dan tidak dapat digunakan.');
+    }
+
+    final customPass = _customPasswords[effectiveEmail] ?? _customPasswords[cleanId];
+
     // 1. Cek Admin preset untuk kenyamanan pengujian
-    if ((cleanId == 'admin@obesight.com' || cleanId == 'admin') &&
-        cleanPass == 'admin123') {
+    if ((effectiveEmail == 'admin@obesight.com' || cleanId == 'admin') &&
+        (cleanPass == (customPass ?? 'admin123'))) {
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
       _currentUser = defaultAdminAccount.copyWith(
         isBiodataComplete: isBiodataCompleted(defaultAdminAccount.id),
@@ -1101,8 +1148,8 @@ class AuthService {
     }
 
     // 2. Cek User preset 1 (zahraafitriana)
-    if ((cleanId == 'zahraafitriana@gmail.com' || cleanId == 'zahraafitriana') &&
-        (cleanPass == 'Zahra1234' || cleanPass == 'zahra1234')) {
+    if ((effectiveEmail == 'zahraafitriana@gmail.com' || cleanId == 'zahraafitriana') &&
+        (cleanPass == (customPass ?? 'Zahra1234') || cleanPass == (customPass ?? 'zahra1234'))) {
       final bmiInfo = getUserBmi(defaultUserAccount.id);
       _currentUser = defaultUserAccount.copyWith(
         isBiodataComplete: isBiodataCompleted(defaultUserAccount.id),
@@ -1116,8 +1163,8 @@ class AuthService {
     }
 
     // 3. Cek User preset 2 (zahrafitrie)
-    if ((cleanId == 'zahrafitrie@gmail.com' || cleanId == 'zahrafitrie') &&
-        cleanPass == 'zohf1234') {
+    if ((effectiveEmail == 'zahrafitrie@gmail.com' || cleanId == 'zahrafitrie') &&
+        cleanPass == (customPass ?? 'zohf1234')) {
       final bmiInfo = getUserBmi(alternativeUserAccount.id);
       _currentUser = alternativeUserAccount.copyWith(
         isBiodataComplete: isBiodataCompleted(alternativeUserAccount.id),
@@ -1133,7 +1180,7 @@ class AuthService {
     // 4. Coba login dengan Firebase Authentication
     try {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: cleanId,
+        email: effectiveEmail,
         password: cleanPass,
       );
 
@@ -1144,8 +1191,15 @@ class AuthService {
         final doc = await _firestore.collection('users').doc(uid).get();
         final data = doc.data() ?? {};
 
-        final name = (data['name'] as String?) ?? firebaseUser.displayName ?? cleanId.split('@').first;
-        final email = (data['email'] as String?) ?? firebaseUser.email ?? cleanId;
+        // Validasi jika akun telah dihapus di Firestore
+        if (data['isDeleted'] == true || data['status'] == 'deleted') {
+          await _firebaseAuth.signOut();
+          _deletedAccounts.add(effectiveEmail);
+          return const AuthResponse.failure('Akun ini telah dihapus permanen dan tidak dapat digunakan.');
+        }
+
+        final name = (data['name'] as String?) ?? firebaseUser.displayName ?? effectiveEmail.split('@').first;
+        final email = (data['email'] as String?) ?? firebaseUser.email ?? effectiveEmail;
         final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ?? '';
         final dob = (data['dob'] as String?) ?? '';
         final rawGender = (data['gender'] as String?)?.trim() ?? '';
@@ -1186,6 +1240,10 @@ class AuthService {
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('FirebaseAuthException login: ${e.code} - ${e.message}');
+      // Cek apakah kata sandi cocok dengan hasil update OTP kustom
+      if (customPass == cleanPass || await _checkFirestoreCustomPassword(effectiveEmail, cleanPass)) {
+        return await _restoreProfileForEmail(effectiveEmail);
+      }
       String msg = 'Email atau kata sandi salah.';
       if (e.code == 'user-not-found') {
         msg = 'Akun dengan email ini belum terdaftar.';
@@ -1195,6 +1253,10 @@ class AuthService {
       return AuthResponse.failure(msg);
     } catch (e) {
       debugPrint('General login error: $e');
+    }
+
+    if (customPass == cleanPass || await _checkFirestoreCustomPassword(effectiveEmail, cleanPass)) {
+      return await _restoreProfileForEmail(effectiveEmail);
     }
 
     return const AuthResponse.failure('Email atau kata sandi salah');
@@ -1282,6 +1344,410 @@ class AuthService {
       debugPrint('General sendPasswordResetEmail error: $e');
       return AuthResponse.failure('Terjadi kendala saat mengirim email: $e');
     }
+  }
+
+  /// Hapus akun permanen dari Firebase Auth dan Cloud Firestore
+  Future<AuthResponse> deleteAccount({required String password}) async {
+    try {
+      final user = firebaseCurrentUser;
+      final currentEmail = user?.email ?? _currentUser?.email ?? '';
+      final currentUid = user?.uid ?? _currentUser?.id ?? '';
+      final cleanPass = password.trim();
+
+      // 1. Re-autentikasi pengguna Firebase jika ada
+      if (user != null && currentEmail.isNotEmpty) {
+        try {
+          final cred = EmailAuthProvider.credential(
+            email: currentEmail,
+            password: cleanPass,
+          );
+          await user.reauthenticateWithCredential(cred);
+        } on FirebaseAuthException catch (e) {
+          debugPrint('Reauth deleteAccount error: ${e.code}');
+          if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+            return const AuthResponse.failure('Kata sandi yang Anda masukkan salah.');
+          }
+        }
+      }
+
+      // 2. Tandai blokir permanen dan hapus dokumen profil di Firestore (users/{uid})
+      if (currentUid.isNotEmpty && isFirebaseAvailable) {
+        try {
+          await _firestore.collection('users').doc(currentUid).set({
+            'isDeleted': true,
+            'status': 'deleted',
+            'deletedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+
+          await _firestore.collection('users').doc(currentUid).delete();
+        } catch (e) {
+          debugPrint('Notice deleting Firestore document: $e');
+        }
+      }
+
+      // 3. Hapus akun di Firebase Authentication (user.delete())
+      if (user != null) {
+        try {
+          await user.delete();
+        } on FirebaseAuthException catch (e) {
+          debugPrint('FirebaseAuth user.delete() error: ${e.code} - ${e.message}');
+          if (e.code == 'requires-recent-login') {
+            return const AuthResponse.failure('Sesi telah berakhir. Silakan masuk kembali sebelum menghapus akun.');
+          }
+        }
+      }
+
+      // 4. Daftarkan email ke daftar akun yang dihapus permanen
+      if (currentEmail.isNotEmpty) {
+        _deletedAccounts.add(currentEmail.toLowerCase());
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList(_keyDeletedAccounts, _deletedAccounts.toList());
+      }
+
+      // 5. Bersihkan cache lokal & sesi
+      if (currentUid.isNotEmpty) {
+        _userProfileCache.remove(currentUid);
+        _biodataStatusCache.remove(currentUid);
+        _userBmiCache.remove(currentUid);
+      }
+      _clearSession();
+      _currentUser = null;
+
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+      if (isFirebaseAvailable) {
+        try {
+          await _firebaseAuth.signOut();
+        } catch (_) {}
+      }
+
+      profileUpdateNotifier.value++;
+      return const AuthResponse.success(null);
+    } catch (e) {
+      debugPrint('Error deleteAccount: $e');
+      return AuthResponse.failure('Gagal menghapus akun: $e');
+    }
+  }
+
+  /// Ubah kata sandi di Firebase Authentication & Cloud Firestore
+  Future<AuthResponse> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final cleanOldPass = currentPassword.trim();
+    final cleanNewPass = newPassword.trim();
+    final user = _firebaseAuth.currentUser;
+    final email = user?.email ?? _currentUser?.email ?? '';
+    final uid = user?.uid ?? _currentUser?.id ?? '';
+
+    try {
+      // 1. Re-autentikasi dan perbarui di Firebase Auth jika user aktif
+      if (user != null && email.isNotEmpty) {
+        try {
+          final cred = EmailAuthProvider.credential(
+            email: email,
+            password: cleanOldPass,
+          );
+          await user.reauthenticateWithCredential(cred);
+          await user.updatePassword(cleanNewPass);
+        } on FirebaseAuthException catch (e) {
+          debugPrint('FirebaseAuthException changePassword: ${e.code} - ${e.message}');
+          if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+            return const AuthResponse.failure('Kata sandi saat ini tidak cocok.');
+          } else if (e.code == 'weak-password') {
+            return const AuthResponse.failure('Kata sandi baru terlalu lemah.');
+          } else if (e.code == 'requires-recent-login') {
+            return const AuthResponse.failure('Sesi Anda telah kedaluwarsa. Silakan masuk kembali.');
+          }
+          return AuthResponse.failure(e.message ?? 'Gagal memperbarui kata sandi di Firebase Auth.');
+        }
+      }
+
+      // 2. Simpan ke Firestore users/{uid}
+      if (uid.isNotEmpty) {
+        try {
+          await _firestore.collection('users').doc(uid).set({
+            'customPassword': cleanNewPass,
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } catch (e) {
+          debugPrint('Notice saving password to Firestore: $e');
+        }
+      }
+
+      // 3. Simpan ke persistent preferences
+      if (email.isNotEmpty) {
+        _customPasswords[email.toLowerCase()] = cleanNewPass;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('${_keyCustomPasswords}_${email.toLowerCase()}', cleanNewPass);
+      }
+
+      return AuthResponse.success(_currentUser);
+    } catch (e) {
+      debugPrint('Error changePassword: $e');
+      return AuthResponse.failure('Terjadi kesalahan: $e');
+    }
+  }
+
+  /// Ubah email di Firebase Authentication & Cloud Firestore
+  Future<AuthResponse> changeEmail({
+    required String currentPassword,
+    required String newEmail,
+  }) async {
+    final cleanEmail = newEmail.trim().toLowerCase();
+    final cleanPassword = currentPassword.trim();
+
+    if (!cleanEmail.contains('@') || !cleanEmail.contains('.')) {
+      return const AuthResponse.failure('Alamat email baru tidak valid.');
+    }
+
+    final user = _firebaseAuth.currentUser;
+    final oldEmail = user?.email ?? _currentUser?.email ?? '';
+    final uid = user?.uid ?? _currentUser?.id ?? '';
+
+    try {
+      // 1. Re-autentikasi dan perbarui di Firebase Auth
+      if (user != null && oldEmail.isNotEmpty) {
+        try {
+          final cred = EmailAuthProvider.credential(
+            email: oldEmail,
+            password: cleanPassword,
+          );
+          await user.reauthenticateWithCredential(cred);
+          await user.verifyBeforeUpdateEmail(cleanEmail);
+        } on FirebaseAuthException catch (e) {
+          debugPrint('FirebaseAuthException changeEmail: ${e.code} - ${e.message}');
+          if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+            return const AuthResponse.failure('Kata sandi saat ini tidak cocok.');
+          } else if (e.code == 'email-already-in-use') {
+            return const AuthResponse.failure('Alamat email baru sudah terdaftar.');
+          } else if (e.code == 'invalid-email') {
+            return const AuthResponse.failure('Format email tidak valid.');
+          } else if (e.code == 'requires-recent-login') {
+            return const AuthResponse.failure('Sesi Anda telah kedaluwarsa. Silakan masuk kembali.');
+          }
+          return AuthResponse.failure(e.message ?? 'Gagal memperbarui email di Firebase Auth.');
+        }
+      }
+
+      // 2. Simpan ke Firestore users/{uid} dan perbarui profil
+      await updateUserProfile(
+        userId: uid.isNotEmpty ? uid : 'usr_001',
+        email: cleanEmail,
+      );
+
+      // 3. Simpan relasi pembaruan email
+      if (oldEmail.isNotEmpty) {
+        _customEmails[oldEmail.toLowerCase()] = cleanEmail;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('${_keyCustomEmails}_${oldEmail.toLowerCase()}', cleanEmail);
+      }
+
+      return AuthResponse.success(_currentUser);
+    } catch (e) {
+      debugPrint('Error changeEmail: $e');
+      return AuthResponse.failure('Terjadi kesalahan: $e');
+    }
+  }
+
+  /// Menghasilkan kode OTP 6 digit custom dan menyimpannya ke Cloud Firestore
+  Future<OtpResponse> generateAndSendOtp(String email) async {
+    final cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail.isEmpty) {
+      return const OtpResponse.failure('Email tidak boleh kosong.');
+    }
+    if (!cleanEmail.contains('@') || !cleanEmail.contains('.')) {
+      return const OtpResponse.failure('Format alamat email tidak valid.');
+    }
+
+    if (_deletedAccounts.contains(cleanEmail)) {
+      return const OtpResponse.failure('Akun ini telah dihapus permanen.');
+    }
+
+    // Buat kode OTP acak 6 digit
+    final random = Random();
+    final otpCode = (100000 + random.nextInt(900000)).toString();
+    final expiry = DateTime.now().add(const Duration(minutes: 10));
+
+    // Simpan ke memory cache lokal
+    _activeOtps[cleanEmail] = otpCode;
+    _activeOtpExpiry[cleanEmail] = expiry;
+
+    // Simpan ke Firestore koleksi otp_verifications/{email}
+    if (isFirebaseAvailable) {
+      try {
+        await _firestore.collection('otp_verifications').doc(cleanEmail).set({
+          'email': cleanEmail,
+          'otp': otpCode,
+          'createdAt': FieldValue.serverTimestamp(),
+          'expiresAt': Timestamp.fromDate(expiry),
+          'verified': false,
+        });
+      } catch (e) {
+        debugPrint('Notice saving OTP to Firestore: $e');
+      }
+    }
+
+    return OtpResponse.success(otpCode, 'Kode OTP berhasil dibuat.');
+  }
+
+  /// Verifikasi kode OTP yang dimasukkan oleh pengguna
+  Future<AuthResponse> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanOtp = otp.trim();
+
+    if (cleanOtp.length != 6) {
+      return const AuthResponse.failure('Masukkan lengkap 6 digit kode OTP.');
+    }
+
+    // 1. Cek memory cache lokal
+    final cachedOtp = _activeOtps[cleanEmail];
+    final expiry = _activeOtpExpiry[cleanEmail];
+    if (cachedOtp != null && expiry != null) {
+      if (DateTime.now().isAfter(expiry)) {
+        return const AuthResponse.failure('Kode OTP telah kedaluwarsa. Silakan minta kode baru.');
+      }
+      if (cachedOtp == cleanOtp) {
+        return const AuthResponse.success(null);
+      }
+    }
+
+    // 2. Cek Cloud Firestore
+    if (isFirebaseAvailable) {
+      try {
+        final doc = await _firestore.collection('otp_verifications').doc(cleanEmail).get();
+        if (doc.exists) {
+          final data = doc.data() ?? {};
+          final dbOtp = data['otp'] as String?;
+          final expTimestamp = data['expiresAt'] as Timestamp?;
+          if (expTimestamp != null && DateTime.now().isAfter(expTimestamp.toDate())) {
+            return const AuthResponse.failure('Kode OTP telah kedaluwarsa. Silakan minta kode baru.');
+          }
+          if (dbOtp == cleanOtp) {
+            await doc.reference.update({'verified': true});
+            return const AuthResponse.success(null);
+          }
+        }
+      } catch (e) {
+        debugPrint('Notice verifying OTP with Firestore: $e');
+      }
+    }
+
+    return const AuthResponse.failure('Kode verifikasi tidak sesuai. Periksa kembali 6 digit kode OTP Anda.');
+  }
+
+  /// Reset kata sandi pengguna dengan OTP yang telah divalidasi
+  Future<AuthResponse> resetPasswordWithOtp({
+    required String email,
+    required String newPassword,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanNewPass = newPassword.trim();
+
+    if (cleanNewPass.length < 8) {
+      return const AuthResponse.failure('Kata sandi minimal 8 karakter.');
+    }
+
+    try {
+      // 1. Simpan kata sandi baru ke Firestore users
+      if (isFirebaseAvailable) {
+        try {
+          final query = await _firestore.collection('users').where('email', isEqualTo: cleanEmail).limit(1).get();
+          if (query.docs.isNotEmpty) {
+            await query.docs.first.reference.update({
+              'customPassword': cleanNewPass,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+          }
+        } catch (e) {
+          debugPrint('Notice updating user password in Firestore: $e');
+        }
+      }
+
+      // 2. Simpan ke memory & persistent preferences
+      _customPasswords[cleanEmail] = cleanNewPass;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('${_keyCustomPasswords}_$cleanEmail', cleanNewPass);
+      } catch (_) {}
+
+      // 3. Jika sesi aktif di Firebase Auth sama dengan target email, update
+      final user = firebaseCurrentUser;
+      if (user != null && user.email?.toLowerCase() == cleanEmail) {
+        try {
+          await user.updatePassword(cleanNewPass);
+        } catch (_) {}
+      }
+
+      // 4. Hapus OTP aktif
+      _activeOtps.remove(cleanEmail);
+      _activeOtpExpiry.remove(cleanEmail);
+      if (isFirebaseAvailable) {
+        try {
+          await _firestore.collection('otp_verifications').doc(cleanEmail).delete();
+        } catch (_) {}
+      }
+
+      return const AuthResponse.success(null);
+    } catch (e) {
+      debugPrint('Error resetPasswordWithOtp: $e');
+      return AuthResponse.failure('Gagal memperbarui kata sandi: $e');
+    }
+  }
+
+  Future<AuthResponse> _restoreProfileForEmail(String email) async {
+    try {
+      final query = await _firestore.collection('users').where('email', isEqualTo: email).limit(1).get();
+      if (query.docs.isNotEmpty) {
+        final doc = query.docs.first;
+        final data = doc.data();
+        final uid = doc.id;
+        final name = (data['name'] as String?) ?? email.split('@').first;
+        final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ?? '';
+        final dob = (data['dob'] as String?) ?? '';
+        final rawGender = (data['gender'] as String?)?.trim() ?? '';
+        final phone = (data['phone'] as String?) ?? '';
+        final isGated = (data['isBiodataComplete'] == true) ||
+            (dob.isNotEmpty && rawGender.isNotEmpty && phone.isNotEmpty);
+        final gender = rawGender.isNotEmpty ? rawGender : 'Perempuan';
+
+        _currentUser = UserModel(
+          id: uid,
+          name: name,
+          email: email,
+          username: email.split('@').first,
+          role: (data['role'] == 'admin') ? UserRole.admin : UserRole.user,
+          avatarUrl: photoUrl,
+          photoPath: photoUrl,
+          dob: dob,
+          gender: gender,
+          phone: phone,
+          isBiodataComplete: isGated,
+        );
+        _saveSession(_currentUser!);
+        profileUpdateNotifier.value++;
+        return AuthResponse.success(_currentUser);
+      }
+    } catch (e) {
+      debugPrint('Error _restoreProfileForEmail: $e');
+    }
+    return const AuthResponse.failure('Gagal memulihkan profil.');
+  }
+
+  Future<bool> _checkFirestoreCustomPassword(String email, String password) async {
+    try {
+      final query = await _firestore.collection('users').where('email', isEqualTo: email).limit(1).get();
+      if (query.docs.isNotEmpty) {
+        final data = query.docs.first.data();
+        if (data['isDeleted'] == true || data['status'] == 'deleted') return false;
+        return data['customPassword'] == password;
+      }
+    } catch (_) {}
+    return false;
   }
 
   Future<void> logout() async {

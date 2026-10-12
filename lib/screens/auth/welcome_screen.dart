@@ -153,7 +153,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   onPressed: _isGoogleLoading
                       ? null
                       : () async {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          final messenger = ScaffoldMessenger.of(context);
+                          final nav = Navigator.of(context);
+                          messenger.hideCurrentSnackBar();
                           setState(() {
                             _isGoogleLoading = true;
                           });
@@ -164,9 +166,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           setState(() {
                             _isGoogleLoading = false;
                           });
-
-                          final nav = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.of(context);
 
                           if (response.isSuccess && response.user != null) {
                             final signedUser = response.user!;

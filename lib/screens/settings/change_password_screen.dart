@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/auth_service.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -20,6 +21,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _hasMinLength = false;
   bool _hasDigit = false;
   bool _hasUpperAndLower = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -44,7 +46,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     });
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
+    if (_isLoading) return;
+
     final oldPass = _oldPasswordController.text.trim();
     final newPass = _newPasswordController.text.trim();
     final confirmPass = _confirmPasswordController.text.trim();
@@ -66,6 +70,25 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     if (oldPass == newPass) {
       _showWarningSnackBar('Kata sandi baru tidak boleh sama dengan kata sandi lama');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final res = await AuthService().changePassword(
+      currentPassword: oldPass,
+      newPassword: newPass,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (!res.isSuccess) {
+      _showWarningSnackBar(res.errorMessage ?? 'Gagal memperbarui kata sandi.');
       return;
     }
 
@@ -281,21 +304,32 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _handleSave,
+                  onPressed: _isLoading ? null : _handleSave,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF36785A),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF36785A).withValues(alpha: 0.6),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Simpan Kata Sandi',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Simpan Kata Sandi',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ],

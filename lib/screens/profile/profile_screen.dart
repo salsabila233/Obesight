@@ -135,11 +135,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final joined = _profileData['joined'] ?? 'Bergabung sejak Juni 2026';
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFF489874),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
+        backgroundColor: const Color(0xFF489874),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -155,229 +157,239 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        child: Column(
-          children: [
-            // Card 1: Ringkasan Akun (Summary Card)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: isDark ? 0.2 : 0.05),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            children: [
+              // Card 1: Ringkasan Akun (Summary Card)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: isDark ? 0.2 : 0.04),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(color: cardBorder),
                 ),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      // Avatar Pengguna
-                      Container(
-                        width: 68,
-                        height: 68,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF36785A), width: 2),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        // Avatar Pengguna dengan border & shadow serasi dengan Edit Profil
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFF36785A), width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF36785A).withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: _buildAvatar(),
+                          ),
                         ),
-                        child: ClipOval(
-                          child: _buildAvatar(),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              email,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12.5,
-                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              const SizedBox(height: 2),
+                              Text(
+                                email,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.5,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            // Informasi Tanggal Bergabung dalam format Bulan & Tahun
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.calendar_today_rounded,
-                                    size: 11,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    joined,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                              const SizedBox(height: 8),
+                              // Informasi Tanggal Bergabung
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today_rounded,
+                                      size: 11,
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      joined,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Divider(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                    height: 1,
-                  ),
-                  const SizedBox(height: 12),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Divider(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                      height: 1,
+                    ),
+                    const SizedBox(height: 14),
 
-                  // Tombol Masuk ke Halaman Edit Profil
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _openEditProfile,
-                      icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: Text(
-                        'Edit Profil',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
+                    // Tombol Masuk ke Halaman Edit Profil
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _openEditProfile,
+                        icon: const Icon(Icons.edit_rounded, size: 16, color: Colors.white),
+                        label: Text(
+                          'Edit Profil',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
-                        side: BorderSide(
-                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
-                          width: 1.2,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF36785A),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 11),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Card 2: Informasi Pribadi Lengkap
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: isDark ? 0.2 : 0.05),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ],
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.badge_outlined, size: 18, color: Color(0xFF36785A)),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Informasi Pribadi',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                    height: 1,
-                  ),
-                  const SizedBox(height: 12),
 
-                  _buildInfoRow(
-                    isDark: isDark,
-                    icon: Icons.person_outline_rounded,
-                    iconBg: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                    iconColor: const Color(0xFF64748B),
-                    label: 'Nama Lengkap',
-                    value: name,
-                  ),
-                  _buildInfoRow(
-                    isDark: isDark,
-                    icon: Icons.cake_outlined,
-                    iconBg: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE0F2FE),
-                    iconColor: const Color(0xFF0284C7),
-                    label: 'Tanggal Lahir',
-                    value: dob,
-                  ),
-                  _buildInfoRow(
-                    isDark: isDark,
-                    icon: Icons.wc_outlined,
-                    iconBg: isDark ? const Color(0xFF4A1D36) : const Color(0xFFFCE7F3),
-                    iconColor: const Color(0xFFDB2777),
-                    label: 'Jenis Kelamin',
-                    value: gender,
-                  ),
-                  _buildInfoRow(
-                    isDark: isDark,
-                    icon: Icons.mail_outline_rounded,
-                    iconBg: isDark ? const Color(0xFF4A2A1A) : const Color(0xFFFFEDD5),
-                    iconColor: const Color(0xFFEA580C),
-                    label: 'Email',
-                    value: email,
-                  ),
-                  _buildInfoRow(
-                    isDark: isDark,
-                    icon: Icons.phone_outlined,
-                    iconBg: isDark ? const Color(0xFF133E2B) : const Color(0xFFDCFCE7),
-                    iconColor: const Color(0xFF16A34A),
-                    label: 'Telepon',
-                    value: phone,
-                    isLast: true,
-                  ),
-                ],
+              const SizedBox(height: 18),
+
+              // Card 2: Informasi Pribadi Lengkap
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: isDark ? 0.2 : 0.04),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(color: cardBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.badge_outlined, size: 18, color: Color(0xFF36785A)),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Informasi Pribadi',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Divider(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                      height: 1,
+                    ),
+                    const SizedBox(height: 14),
+
+                    _buildInfoRow(
+                      isDark: isDark,
+                      icon: Icons.person_outline_rounded,
+                      iconBg: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                      iconColor: const Color(0xFF64748B),
+                      label: 'Nama Lengkap',
+                      value: name,
+                    ),
+                    _buildInfoRow(
+                      isDark: isDark,
+                      icon: Icons.cake_outlined,
+                      iconBg: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE0F2FE),
+                      iconColor: const Color(0xFF0284C7),
+                      label: 'Tanggal Lahir',
+                      value: dob,
+                    ),
+                    _buildInfoRow(
+                      isDark: isDark,
+                      icon: Icons.wc_outlined,
+                      iconBg: isDark ? const Color(0xFF4A1D36) : const Color(0xFFFCE7F3),
+                      iconColor: const Color(0xFFDB2777),
+                      label: 'Jenis Kelamin',
+                      value: gender,
+                    ),
+                    _buildInfoRow(
+                      isDark: isDark,
+                      icon: Icons.mail_outline_rounded,
+                      iconBg: isDark ? const Color(0xFF4A2A1A) : const Color(0xFFFFEDD5),
+                      iconColor: const Color(0xFFEA580C),
+                      label: 'Email',
+                      value: email,
+                    ),
+                    _buildInfoRow(
+                      isDark: isDark,
+                      icon: Icons.phone_outlined,
+                      iconBg: isDark ? const Color(0xFF133E2B) : const Color(0xFFDCFCE7),
+                      iconColor: const Color(0xFF16A34A),
+                      label: 'Telepon',
+                      value: phone,
+                      isLast: true,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

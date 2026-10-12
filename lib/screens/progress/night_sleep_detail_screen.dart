@@ -1192,12 +1192,12 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
 class _NightSleepStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double topPadding;
   final VoidCallback onBack;
-  final VoidCallback onSimulate;
+  final VoidCallback? onSimulate;
 
   _NightSleepStickyHeaderDelegate({
     required this.topPadding,
     required this.onBack,
-    required this.onSimulate,
+    this.onSimulate,
   });
 
   @override
@@ -1295,11 +1295,6 @@ class _NightSleepStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                               ),
                             ),
                           ),
-                          IconButton(
-                            tooltip: 'Simulasi deteksi HP tidak aktif',
-                            icon: const Icon(Icons.flash_on_rounded, color: Color(0xFFEAB308), size: 22),
-                            onPressed: onSimulate,
-                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -1363,11 +1358,6 @@ class _NightSleepStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
                             color: const Color(0xFF235B42),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        tooltip: 'Simulasi deteksi HP',
-                        icon: const Icon(Icons.flash_on_rounded, color: Color(0xFFEAB308), size: 20),
-                        onPressed: onSimulate,
                       ),
                     ],
                   ),

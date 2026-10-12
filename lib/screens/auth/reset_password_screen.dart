@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/auth_service.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -17,6 +18,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _isConfirmObscured = true;
   bool _isLoading = false;
   String? _errorMessage;
+  String _email = '';
 
   // Criteria
   bool _hasMinLength = false;
@@ -27,6 +29,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void initState() {
     super.initState();
     _newPasswordController.addListener(_validateCriteria);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args['email'] is String) {
+      _email = args['email'];
+    }
   }
 
   void _validateCriteria() {
@@ -113,21 +124,32 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       _isLoading = true;
     });
 
-    // Simulate backend update
-    await Future.delayed(const Duration(milliseconds: 600));
+    final res = await AuthService().resetPasswordWithOtp(
+      email: _email,
+      newPassword: newPwd,
+    );
 
     if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
 
+    if (!res.isSuccess) {
+      setState(() {
+        _errorMessage = res.errorMessage ?? 'Gagal memperbarui kata sandi.';
+      });
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.',
-          style: GoogleFonts.poppins(fontSize: 13),
+          style: GoogleFonts.poppins(fontSize: 13, color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF4F9B77),
+        backgroundColor: const Color(0xFF235B42),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
       ),
     );
 

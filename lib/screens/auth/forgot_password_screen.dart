@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
-import '../../theme/app_colors.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -15,8 +14,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _errorMessage;
-  bool _isEmailSent = false;
-  String _sentEmail = '';
 
   @override
   void dispose() {
@@ -24,7 +21,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  Future<void> _handleSendResetLink() async {
+  Future<void> _handleSendOtp() async {
     setState(() {
       _errorMessage = null;
     });
@@ -44,7 +41,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _isLoading = true;
     });
 
-    final response = await AuthService().sendPasswordResetEmail(targetEmail);
+    final response = await AuthService().generateAndSendOtp(targetEmail);
 
     if (!mounted) return;
     setState(() {
@@ -52,13 +49,34 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
 
     if (response.isSuccess) {
-      setState(() {
-        _isEmailSent = true;
-        _sentEmail = targetEmail;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.mark_email_read_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Kode OTP verifikasi Anda: ${response.otp}',
+                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF235B42),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+
+      Navigator.of(context).pushNamed(
+        '/verify-otp',
+        arguments: {'email': targetEmail, 'otp': response.otp},
+      );
     } else {
       setState(() {
-        _errorMessage = response.errorMessage ?? 'Gagal mengirim email reset kata sandi.';
+        _errorMessage = response.errorMessage ?? 'Gagal membuat kode OTP verifikasi.';
       });
     }
   }
@@ -71,7 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: _isEmailSent ? _buildSuccessView() : _buildFormView(),
+            child: _buildFormView(),
           ),
         ),
       ),
@@ -115,7 +133,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Masukkan email akun Anda untuk menerima tautan resmi reset kata sandi dari Firebase.',
+                  'Masukkan email akun Anda untuk menerima 6 digit kode OTP verifikasi kata sandi.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
@@ -212,11 +230,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
           const SizedBox(height: 24),
 
-          // Button: Kirim Tautan Reset
+          // Button: Kirim Kode Verifikasi
           SizedBox(
             height: 48,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _handleSendResetLink,
+              onPressed: _isLoading ? null : _handleSendOtp,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4F9B77),
                 foregroundColor: Colors.white,
@@ -235,7 +253,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     )
                   : Text(
-                      'Kirim Tautan Reset',
+                      'Kirim Kode Verifikasi',
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -264,135 +282,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSuccessView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Sent Icon Card
-        Center(
-          child: Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primaryGreen.withValues(alpha: 0.12),
-            ),
-            child: const Icon(
-              Icons.mark_email_read_rounded,
-              size: 42,
-              color: AppColors.primaryGreen,
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
-
-        Center(
-          child: Text(
-            'Tautan Terkirim!',
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF234C37),
-              letterSpacing: -0.3,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            children: [
-              Text(
-                'Tautan reset kata sandi resmi telah dikirim ke email:',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _sentEmail,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1E293B),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              const SizedBox(height: 12),
-              Text(
-                'Silakan periksa kotak masuk (Inbox) atau folder Spam pada email Anda, lalu klik tautan tersebut untuk membuat kata sandi baru secara aman.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  color: const Color(0xFF64748B),
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Button: Kembali ke Halaman Masuk
-        SizedBox(
-          height: 48,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4F9B77),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(11),
-              ),
-            ),
-            child: Text(
-              'Kembali ke Halaman Masuk',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Button: Kirim Ulang Email
-        Center(
-          child: TextButton(
-            onPressed: () {
-              setState(() {
-                _isEmailSent = false;
-              });
-            },
-            child: Text(
-              'Kirim ulang ke email lain',
-              style: GoogleFonts.poppins(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF4F9B77),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

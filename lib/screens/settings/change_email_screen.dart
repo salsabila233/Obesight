@@ -18,6 +18,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final _newEmailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -33,7 +34,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     super.dispose();
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
+    if (_isLoading) return;
+
     final newEmail = _newEmailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -52,11 +55,24 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       return;
     }
 
-    // Update in auth cache
-    _authService.updateUserProfile(
-      userId: widget.user.id,
-      email: newEmail,
+    setState(() {
+      _isLoading = true;
+    });
+
+    final res = await _authService.changeEmail(
+      currentPassword: password,
+      newEmail: newEmail,
     );
+
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (!res.isSuccess) {
+      _showWarningSnackBar(res.errorMessage ?? 'Gagal memperbarui email.');
+      return;
+    }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
@@ -353,21 +369,32 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _handleSave,
+                  onPressed: _isLoading ? null : _handleSave,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF36785A),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF36785A).withValues(alpha: 0.6),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Simpan Email',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Simpan Email',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ],

@@ -19,6 +19,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   int _selectedReason = 0;
   bool _agreedToConsequences = false;
   bool _obscurePassword = true;
+  bool _isDeleting = false;
 
   final List<String> _reasons = [
     'Sudah mencapai target berat badan ideal',
@@ -35,6 +36,8 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   }
 
   void _confirmDeletion() {
+    if (_isDeleting) return;
+
     if (!_agreedToConsequences) {
       _showWarningSnackBar('Centang persetujuan terlebih dahulu sebelum melanjutkan');
       return;
@@ -126,21 +129,39 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
     );
   }
 
-  void _executeDelete() {
-    _authService.logout();
+  Future<void> _executeDelete() async {
+    setState(() {
+      _isDeleting = true;
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Akun Anda telah berhasil dihapus.', style: GoogleFonts.poppins(fontSize: 12.5)),
-        backgroundColor: const Color(0xFF0F172A),
-        behavior: SnackBarBehavior.floating,
-      ),
+    final res = await _authService.deleteAccount(
+      password: _passwordController.text.trim(),
     );
 
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+    if (!mounted) return;
+    setState(() {
+      _isDeleting = false;
+    });
+
+    if (res.isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Akun Anda telah berhasil dihapus secara permanen.',
+            style: GoogleFonts.poppins(fontSize: 12.5),
+          ),
+          backgroundColor: const Color(0xFF0F172A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } else {
+      _showWarningSnackBar(res.errorMessage ?? 'Gagal menghapus akun.');
+    }
   }
 
   void _showWarningSnackBar(String message) {
@@ -398,23 +419,40 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
               // 4. Tombol Merah Hapus Akun
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _confirmDeletion,
+                child: ElevatedButton(
+                  onPressed: _isDeleting ? null : _confirmDeletion,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFDC2626),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFFDC2626).withValues(alpha: 0.6),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
-                  icon: const Icon(Icons.delete_forever_rounded, size: 20),
-                  label: Text(
-                    'Hapus Akun Saya',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: _isDeleting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.delete_forever_rounded, size: 20, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Hapus Akun Saya',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
               ),
               const SizedBox(height: 20),
