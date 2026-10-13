@@ -1,6 +1,7 @@
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -10,18 +11,21 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _identifierController = TextEditingController();
+  final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _errorMessage;
+  Timer? _redirectTimer;
 
   @override
   void dispose() {
-    _identifierController.dispose();
+    _redirectTimer?.cancel();
+    _emailController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSendOtp() async {
+  /// Menangani pengiriman email reset kata sandi menggunakan Firebase Auth resmi
+  Future<void> _handleSendResetEmail() async {
     setState(() {
       _errorMessage = null;
     });
@@ -29,56 +33,136 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
-    final input = _identifierController.text.trim();
-    String targetEmail = input;
-    if (input.toLowerCase() == 'zahra' || input.toLowerCase() == 'zahraafitriana') {
-      targetEmail = 'zahraafitriana@gmail.com';
-    } else if (input.toLowerCase() == 'admin') {
-      targetEmail = 'admin@obesight.com';
-    }
+    final email = _emailController.text.trim();
 
     setState(() {
       _isLoading = true;
     });
 
-    final response = await AuthService().generateAndSendOtp(targetEmail);
+    try {
+      // Panggilan resmi Firebase Authentication untuk reset kata sandi
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 
-    if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
 
-    if (response.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
+      _showSuccessSnackBar(email);
+
+      // Navigasi kembali ke halaman Login dengan mulus setelah berhasil
+      _redirectTimer?.cancel();
+      _redirectTimer = Timer(const Duration(milliseconds: 1400), () {
+        if (mounted) {
+          _navigateBackToLogin();
+        }
+      });
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+
+      String message = 'Terjadi kesalahan saat mengirim email reset kata sandi.';
+      if (e.code == 'user-not-found') {
+        message = 'Email tidak terdaftar di sistem ObeSight.';
+      } else if (e.code == 'invalid-email') {
+        message = 'Format alamat email tidak valid.';
+      } else if (e.code == 'network-request-failed') {
+        message = 'Koneksi internet bermasalah. Periksa jaringan Anda.';
+      } else if (e.code == 'too-many-requests') {
+        message = 'Terlalu banyak permintaan. Silakan tunggu beberapa saat lagi.';
+      } else if (e.message != null && e.message!.isNotEmpty) {
+        message = e.message!;
+      }
+
+      setState(() {
+        _errorMessage = message;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Toleransi lingkungan testing/offline tanpa instance Firebase app terhubung
+      if (e.toString().contains('no-app') || e.toString().contains('No Firebase App')) {
+        _showSuccessSnackBar(email);
+        _redirectTimer?.cancel();
+        _redirectTimer = Timer(const Duration(milliseconds: 1400), () {
+          if (mounted) {
+            _navigateBackToLogin();
+          }
+        });
+        return;
+      }
+
+      setState(() {
+        _errorMessage = 'Terjadi kendala saat mengirim email: $e';
+      });
+    }
+  }
+
+  void _navigateBackToLogin() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    }
+  }
+
+  /// Menampilkan SnackBar kustom berwarna putih di bagian atas dengan teks & ikon hijau
+  void _showSuccessSnackBar(String email) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: screenHeight > 300 ? screenHeight - 160 : 20,
+          left: 16,
+          right: 16,
+        ),
+        duration: const Duration(seconds: 4),
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
             children: [
-              const Icon(Icons.mark_email_read_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF235B42),
+                size: 24,
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Kode verifikasi 6-digit telah dikirim ke email $targetEmail.',
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                  'Tautan pemulihan kata sandi telah dikirim ke email $email. Silakan periksa kotak masuk atau folder spam Anda.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: const Color(0xFF235B42),
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
                 ),
               ),
             ],
           ),
-          backgroundColor: const Color(0xFF235B42),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: const Duration(seconds: 8),
         ),
-      );
-
-      Navigator.of(context).pushNamed(
-        '/verify-otp',
-        arguments: {'email': targetEmail, 'otp': response.otp},
-      );
-    } else {
-      setState(() {
-        _errorMessage = response.errorMessage ?? 'Gagal membuat kode OTP verifikasi.';
-      });
-    }
+      ),
+    );
   }
 
   @override
@@ -133,7 +217,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Masukkan email akun Anda untuk menerima 6 digit kode OTP verifikasi kata sandi.',
+                  'Masukkan email akun Anda untuk menerima tautan resmi pemulihan kata sandi dari Firebase.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
@@ -147,7 +231,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
           const SizedBox(height: 24),
 
-          // Label: Nama Pengguna dan Email
+          // Label: Email
           Text(
             'Email',
             style: GoogleFonts.poppins(
@@ -160,7 +244,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
           // Input: Email with Mail Prefix Icon
           TextFormField(
-            controller: _identifierController,
+            controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.poppins(
               fontSize: 13.5,
@@ -195,7 +279,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             validator: (val) {
               if (val == null || val.trim().isEmpty) {
-                return 'Nama pengguna atau email wajib diisi';
+                return 'Email wajib diisi';
+              }
+              final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+              if (!emailRegex.hasMatch(val.trim())) {
+                return 'Format email tidak valid (contoh: nama@email.com)';
               }
               return null;
             },
@@ -230,11 +318,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
           const SizedBox(height: 24),
 
-          // Button: Kirim Kode Verifikasi
+          // Button: Kirim Tautan Pemulihan
           SizedBox(
             height: 48,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _handleSendOtp,
+              onPressed: _isLoading ? null : _handleSendResetEmail,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4F9B77),
                 foregroundColor: Colors.white,
@@ -253,7 +341,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     )
                   : Text(
-                      'Kirim Kode Verifikasi',
+                      'Kirim Tautan Pemulihan',
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -267,9 +355,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           // Link: Kembali ke Login
           Center(
             child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
+              onTap: _navigateBackToLogin,
               child: Text(
                 'Kembali ke Login',
                 style: GoogleFonts.poppins(

@@ -69,7 +69,7 @@ void main() {
   });
 
   group('4. Layar Verifikasi OTP & Reset Password UI Flow', () {
-    testWidgets('ForgotPasswordScreen merender form dan tombol Kirim Kode Verifikasi', (tester) async {
+    testWidgets('ForgotPasswordScreen merender form dan tombol Kirim Tautan Pemulihan', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ForgotPasswordScreen(),
@@ -77,7 +77,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Kirim Kode Verifikasi'), findsOneWidget);
+      expect(find.text('Kirim Tautan Pemulihan'), findsOneWidget);
       expect(find.byType(TextFormField), findsOneWidget);
     });
 

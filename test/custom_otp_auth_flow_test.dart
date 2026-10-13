@@ -79,12 +79,12 @@ void main() {
       expect(successLogin.user?.email, equals(testEmail));
     });
 
-    testWidgets('ForgotPasswordScreen SnackBar confirms OTP email sent without leaking code', (tester) async {
+    testWidgets('ForgotPasswordScreen SnackBar confirms password reset email sent via FirebaseAuth', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           routes: {
             '/': (_) => const ForgotPasswordScreen(),
-            '/verify-otp': (_) => const Scaffold(body: Text('Halaman Verifikasi OTP')),
+            '/login': (_) => const Scaffold(body: Text('Halaman Login')),
           },
         ),
       );
@@ -94,13 +94,18 @@ void main() {
       await tester.enterText(inputField, 'tester_mail@obesight.com');
       await tester.pumpAndSettle();
 
-      final submitBtn = find.text('Kirim Kode Verifikasi');
+      final submitBtn = find.text('Kirim Tautan Pemulihan');
       await tester.tap(submitBtn);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // SnackBar harus menampilkan informasi terkirim ke email tanpa membocorkan kode
-      expect(find.textContaining('Kode verifikasi 6-digit telah dikirim ke email tester_mail@obesight.com'), findsOneWidget);
+      // SnackBar harus menampilkan informasi tautan pemulihan terkirim
+      expect(find.textContaining('Tautan pemulihan kata sandi telah dikirim ke email tester_mail@obesight.com'), findsOneWidget);
+      expect(find.text('Kembali ke Login'), findsOneWidget);
+
+      // Tunggu hingga timer redirect selesai dan navigasi ke halaman login selesai
+      await tester.pump(const Duration(milliseconds: 1500));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('VerifyOtpScreen input rejects less than 6 digits and submits when complete', (tester) async {
