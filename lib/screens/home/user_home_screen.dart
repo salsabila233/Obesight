@@ -39,7 +39,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _currentUserName = widget.user.name;
+    final initialProfile = AuthService().getUserProfile(widget.user.id);
+    _currentUserName = (initialProfile['name'] != null && initialProfile['name']!.trim().isNotEmpty && initialProfile['name'] != 'Pengguna ObeSight')
+        ? initialProfile['name']!
+        : widget.user.name;
     _isBiodataComplete = widget.user.isBiodataComplete || AuthService().isBiodataCompleted(widget.user.id);
     
     final bmiInfo = AuthService().getUserBmi(widget.user.id);
@@ -49,6 +52,21 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
     // Listen to real-time profile updates across screens
     AuthService().profileUpdateNotifier.addListener(_syncUserData);
+
+    // Ambil data profil terbaru langsung dari Cloud Firestore users/{uid}
+    AuthService().fetchUserProfile(widget.user.id).then((freshUser) {
+      if (mounted && freshUser != null) {
+        setState(() {
+          _currentUserName = freshUser.name;
+          _isBiodataComplete = freshUser.hasCompletedRequiredProfile;
+          _currentBmi = freshUser.bmiScore;
+          _currentBmiCategory = freshUser.bmiCategory;
+          _currentObesityRisk = freshUser.obesityRisk;
+        });
+      }
+    }).catchError((e) {
+      debugPrint('UserHomeScreen fetchUserProfile notice: $e');
+    });
 
     // Brief check (300ms) to ensure smooth anti-flicker loading
     Future.delayed(const Duration(milliseconds: 300), () {

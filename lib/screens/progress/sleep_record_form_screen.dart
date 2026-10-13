@@ -191,22 +191,58 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
     _showSuccessAndPop();
   }
 
-  void _showSuccessAndPop() {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          widget.recordToEdit != null
-              ? 'Catatan tidur berhasil diperbarui'
-              : 'Catatan tidur baru berhasil disimpan',
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-        ),
-        backgroundColor: const Color(0xFF36785A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
+ void _showSuccessAndPop() {
+  if (!mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      behavior: SnackBarBehavior.floating,
+      // Mengatur posisi agar muncul di bagian atas layar
+      margin: EdgeInsets.only(
+        bottom: MediaQuery.of(context).size.height - 150,
+        left: 16,
+        right: 16,
       ),
-    );
+      content: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white, // Latar belakang putih
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_rounded, 
+              color: Color(0xFF36785A), // Ikon warna hijau
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                widget.recordToEdit != null
+                    ? 'Catatan tidur berhasil diperbarui'
+                    : 'Catatan tidur baru berhasil disimpan',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFF36785A), // Teks warna hijau
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      duration: const Duration(seconds: 2),
+    ),
+  );
     Navigator.of(context).pop();
   }
 

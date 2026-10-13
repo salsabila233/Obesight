@@ -141,9 +141,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Ambil data user yang telah dipulihkan di latar belakang
     UserModel? targetUser = _restoredUser ?? AuthService().currentUser;
 
-    // Jika pengguna terdeteksi login di Firebase Auth namun data Firestore masih dalam proses,
-    // tunggu sebentar agar pengguna tidak keliru diarahkan ke WelcomeScreen.
-    if (targetUser == null && AuthService().firebaseCurrentUser != null && _sessionFuture != null) {
+    // Jika proses pemulihan sesi masih berjalan di latar belakang, tunggu hingga selesai
+    if (targetUser == null && _sessionFuture != null) {
       try {
         targetUser = await _sessionFuture!.timeout(
           const Duration(seconds: 4),
@@ -154,6 +153,8 @@ class _SplashScreenState extends State<SplashScreen>
         targetUser = _restoredUser ?? AuthService().currentUser;
       }
     }
+
+    targetUser ??= AuthService().currentUser;
 
     if (!mounted) return;
 

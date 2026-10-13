@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import 'email_service.dart';
 
 class AuthResponse {
   final bool isSuccess;
@@ -157,9 +158,20 @@ class AuthService {
         }
       } catch (_) {}
 
-      // 1. Cek Firebase Authentication aktif
+      // 1. Cek Firebase Authentication aktif (dengan toleransi cold start async)
       if (isFirebaseAvailable) {
-        final firebaseUser = _firebaseAuth.currentUser;
+        User? firebaseUser = _firebaseAuth.currentUser;
+        if (firebaseUser == null) {
+          try {
+            firebaseUser = await _firebaseAuth
+                .authStateChanges()
+                .first
+                .timeout(const Duration(milliseconds: 1200));
+          } catch (_) {
+            firebaseUser = _firebaseAuth.currentUser;
+          }
+        }
+
         if (firebaseUser != null) {
           final uid = firebaseUser.uid;
 
@@ -208,15 +220,22 @@ class AuthService {
 
             if (doc.exists && doc.data() != null) {
               final data = doc.data()!;
-              final name = (data['name'] as String?)?.trim() ??
-                  firebaseUser.displayName ??
-                  localName ??
-                  'Pengguna ObeSight';
-              final email = (data['email'] as String?)?.trim() ??
-                  firebaseUser.email ??
-                  localEmail ??
-                  '';
-              final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ??
+              // Prioritaskan dokumen Cloud Firestore users/{uid} yang memuat update terbaru dari Edit Profil
+              final rawDocName = (data['name'] as String?)?.trim();
+              final name = (rawDocName != null && rawDocName.isNotEmpty)
+                  ? rawDocName
+                  : (firebaseUser.displayName?.trim().isNotEmpty == true
+                      ? firebaseUser.displayName!.trim()
+                      : (localName?.trim().isNotEmpty == true ? localName!.trim() : 'Pengguna ObeSight'));
+
+              final rawDocEmail = (data['email'] as String?)?.trim();
+              final email = (rawDocEmail != null && rawDocEmail.isNotEmpty)
+                  ? rawDocEmail
+                  : (firebaseUser.email?.trim().isNotEmpty == true
+                      ? firebaseUser.email!.trim()
+                      : (localEmail?.trim().isNotEmpty == true ? localEmail!.trim() : ''));
+
+              final photoUrl = (data['photoUrl'] ?? data['photoPath'] ?? data['avatar']) as String? ??
                   (firebaseUser.photoURL ?? localAvatar ?? '');
               final dob = (data['dob'] as String?)?.trim() ?? localDob ?? '';
               final rawGender = (data['gender'] as String?)?.trim() ?? localGender ?? '';
@@ -231,7 +250,7 @@ class AuthService {
               final bmiCategory = (data['bmiCategory'] as String?) ?? localCategory ?? 'Normal';
               final obesityRisk = (data['obesityRisk'] as String?) ?? localRisk ?? 'Rendah';
 
-              // Sinkronisasi memori lokal
+              // Sinkronisasi memori lokal dengan data Firestore terbaru
               _userProfileCache[uid] = {
                 'name': name,
                 'dob': dob,
@@ -271,6 +290,14 @@ class AuthService {
               );
 
               _saveSession(_currentUser!);
+
+              // Sinkronisasi displayName di Firebase Auth jika belum diperbarui
+              if (firebaseUser.displayName != name && name != 'Pengguna ObeSight') {
+                try {
+                  await firebaseUser.updateDisplayName(name);
+                } catch (_) {}
+              }
+
               profileUpdateNotifier.value++;
               return _currentUser;
             }
@@ -521,22 +548,23 @@ class AuthService {
     return _firestore.collection('users').doc(userId).snapshots();
   }
 
-  /// Get current cached profile data
+  /// Get current cached profile data (Memprioritaskan data profil pengguna aktif yang terbaru)
   Map<String, String> getUserProfile(String userId) {
+    if (_currentUser != null && _currentUser!.id == userId) {
+      final cached = _userProfileCache[userId];
+      return {
+        'name': _currentUser!.name.isNotEmpty ? _currentUser!.name : (cached?['name'] ?? 'Pengguna ObeSight'),
+        'dob': _currentUser!.dob ?? cached?['dob'] ?? '',
+        'gender': _currentUser!.gender ?? cached?['gender'] ?? 'Perempuan',
+        'email': _currentUser!.email.isNotEmpty ? _currentUser!.email : (cached?['email'] ?? ''),
+        'phone': _currentUser!.phone ?? cached?['phone'] ?? '',
+        'joined': cached?['joined'] ?? 'Bergabung sejak Juni 2026',
+        'avatar': _currentUser!.avatarUrl ?? cached?['avatar'] ?? 'assets/avatar_zahra.png',
+        'photo_path': _currentUser!.photoPath ?? cached?['photo_path'] ?? '',
+      };
+    }
     if (_userProfileCache.containsKey(userId)) {
       return _userProfileCache[userId]!;
-    }
-    if (_currentUser != null && _currentUser!.id == userId) {
-      return {
-        'name': _currentUser!.name,
-        'dob': _currentUser!.dob ?? '',
-        'gender': _currentUser!.gender ?? 'Perempuan',
-        'email': _currentUser!.email,
-        'phone': _currentUser!.phone ?? '',
-        'joined': 'Bergabung sejak Juni 2026',
-        'avatar': _currentUser!.avatarUrl ?? 'assets/avatar_zahra.png',
-        'photo_path': _currentUser!.photoPath ?? '',
-      };
     }
     return {
       'name': 'Pengguna ObeSight',
@@ -548,6 +576,69 @@ class AuthService {
       'avatar': 'assets/avatar_zahra.png',
       'photo_path': '',
     };
+  }
+
+  /// Mengambil data profil terbaru langsung dari dokumen Cloud Firestore (`users/{uid}`)
+  Future<UserModel?> fetchUserProfile(String userId) async {
+    if (!isFirebaseAvailable) return _currentUser;
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get().timeout(
+        const Duration(seconds: 4),
+        onTimeout: () => throw TimeoutException('Firestore timeout'),
+      );
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        final rawName = (data['name'] as String?)?.trim();
+        final rawEmail = (data['email'] as String?)?.trim();
+        final photoUrl = (data['photoUrl'] ?? data['photoPath'] ?? data['avatar']) as String?;
+        final dob = (data['dob'] as String?)?.trim() ?? '';
+        final rawGender = (data['gender'] as String?)?.trim() ?? '';
+        final phone = (data['phone'] as String?)?.trim() ?? '';
+        final roleStr = data['role'] as String? ?? 'user';
+        final isComplete = (data['isBiodataComplete'] == true) ||
+            (dob.isNotEmpty && rawGender.isNotEmpty && phone.isNotEmpty);
+        final gender = rawGender.isNotEmpty ? rawGender : 'Perempuan';
+
+        final existingProfile = getUserProfile(userId);
+        final name = (rawName != null && rawName.isNotEmpty) ? rawName : existingProfile['name']!;
+        final email = (rawEmail != null && rawEmail.isNotEmpty) ? rawEmail : existingProfile['email']!;
+
+        final updatedProfile = {
+          'name': name,
+          'dob': dob,
+          'gender': gender,
+          'email': email,
+          'phone': phone,
+          'joined': (data['joined'] as String?) ?? existingProfile['joined'] ?? 'Bergabung sejak ${DateTime.now().year}',
+          'avatar': (photoUrl != null && photoUrl.isNotEmpty) ? photoUrl : (existingProfile['avatar'] ?? 'assets/avatar_zahra.png'),
+          'photo_path': photoUrl ?? existingProfile['photo_path'] ?? '',
+        };
+
+        _userProfileCache[userId] = updatedProfile;
+        _biodataStatusCache[userId] = isComplete;
+
+        if (_currentUser != null && _currentUser!.id == userId) {
+          _currentUser = _currentUser!.copyWith(
+            name: name,
+            email: email,
+            dob: dob,
+            gender: gender,
+            phone: phone,
+            avatarUrl: photoUrl,
+            photoPath: photoUrl,
+            role: roleStr == 'admin' ? UserRole.admin : UserRole.user,
+            isBiodataComplete: isComplete,
+          );
+          _saveSession(_currentUser!);
+        }
+
+        profileUpdateNotifier.value++;
+        return _currentUser;
+      }
+    } catch (e) {
+      debugPrint('Error fetching latest user profile from Firestore: $e');
+    }
+    return _currentUser;
   }
 
   /// Update user profile both locally and automatically to Firestore (users/{uid})
@@ -617,6 +708,13 @@ class AuthService {
       await _firestore.collection('users').doc(userId).set(firestoreData, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Notice saving to Firestore user doc: $e');
+    }
+
+    // Sinkronkan displayName pada akun Firebase Auth aktif
+    if (firebaseCurrentUser != null && updatedMap['name'] != null && updatedMap['name']!.trim().isNotEmpty) {
+      try {
+        await firebaseCurrentUser!.updateDisplayName(updatedMap['name']!.trim());
+      } catch (_) {}
     }
 
     // Notify listeners for real-time reactivity
@@ -871,7 +969,7 @@ class AuthService {
       }
 
       final uid = firebaseUser.uid;
-      final name = (firebaseUser.displayName != null && firebaseUser.displayName!.trim().isNotEmpty)
+      final defaultName = (firebaseUser.displayName != null && firebaseUser.displayName!.trim().isNotEmpty)
           ? firebaseUser.displayName!.trim()
           : ((fallbackDisplayName != null && fallbackDisplayName.trim().isNotEmpty)
               ? fallbackDisplayName.trim()
@@ -883,6 +981,7 @@ class AuthService {
       String dob = '';
       String gender = 'Perempuan';
       String phone = '';
+      String name = defaultName;
 
       // 7. Simpan / Perbarui data ke Cloud Firestore users/{uid} secara aman dengan timeout & fallback
       try {
@@ -896,7 +995,7 @@ class AuthService {
           // Pengguna baru pertama kali login dengan Google
           await userDocRef.set({
             'uid': uid,
-            'name': name,
+            'name': defaultName,
             'email': email,
             'photoUrl': photoUrl,
             'photoPath': photoUrl,
@@ -912,18 +1011,22 @@ class AuthService {
         } else {
           // Pengguna lama: ambil data profil yang sudah ada di Firestore
           final data = userDoc.data() ?? {};
+          final firestoreName = (data['name'] as String?)?.trim();
+          if (firestoreName != null && firestoreName.isNotEmpty) {
+            name = firestoreName; // Prioritaskan nama terbaru dari dokumen Firestore users/{uid}!
+          }
           dob = (data['dob'] as String?)?.trim() ?? '';
           gender = (data['gender'] as String?)?.trim() ?? 'Perempuan';
           phone = (data['phone'] as String?)?.trim() ?? '';
           isProfileCompleted = (data['isBiodataComplete'] == true) ||
               (dob.isNotEmpty && gender.isNotEmpty && phone.isNotEmpty);
 
-          // Sinkronisasikan foto profil dan nama terbaru jika ada pembaruan di akun Google
+          // Update timestamp login tanpa menimpa nama profil kustom pengguna di Firestore
           await userDocRef.set({
             'name': name,
             'email': email,
-            if (photoUrl.isNotEmpty) 'photoUrl': photoUrl,
-            if (photoUrl.isNotEmpty) 'photoPath': photoUrl,
+            if (photoUrl.isNotEmpty && ((data['photoUrl'] as String?)?.isEmpty ?? true)) 'photoUrl': photoUrl,
+            if (photoUrl.isNotEmpty && ((data['photoPath'] as String?)?.isEmpty ?? true)) 'photoPath': photoUrl,
             'isBiodataComplete': isProfileCompleted,
             'lastLoginAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true)).timeout(const Duration(seconds: 6));
@@ -933,6 +1036,10 @@ class AuthService {
         // Fallback aman jika Firestore offline / lambat: gunakan data cache lokal
         final cached = _userProfileCache[uid];
         if (cached != null) {
+          final cachedName = cached['name']?.trim();
+          if (cachedName != null && cachedName.isNotEmpty) {
+            name = cachedName;
+          }
           dob = cached['dob'] ?? '';
           gender = cached['gender'] ?? 'Perempuan';
           phone = cached['phone'] ?? '';
@@ -1077,6 +1184,11 @@ class AuthService {
         'photo_path': '',
       };
       _biodataStatusCache[uid] = false;
+      _customPasswords[cleanEmail.toLowerCase()] = cleanPass;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('${_keyCustomPasswords}_${cleanEmail.toLowerCase()}', cleanPass);
+      } catch (_) {}
 
       _currentUser = UserModel(
         id: uid,
@@ -1119,6 +1231,11 @@ class AuthService {
         'photo_path': '',
       };
       _biodataStatusCache[uid] = false;
+      _customPasswords[cleanEmail.toLowerCase()] = cleanPass;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('${_keyCustomPasswords}_${cleanEmail.toLowerCase()}', cleanPass);
+      } catch (_) {}
 
       _currentUser = UserModel(
         id: uid,
@@ -1152,7 +1269,17 @@ class AuthService {
       return const AuthResponse.failure('Akun ini telah dihapus permanen dan tidak dapat digunakan.');
     }
 
-    final customPass = _customPasswords[effectiveEmail] ?? _customPasswords[cleanId];
+    String? customPass = _customPasswords[effectiveEmail] ?? _customPasswords[cleanId];
+    if (customPass == null) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        customPass = prefs.getString('${_keyCustomPasswords}_$effectiveEmail') ??
+            prefs.getString('${_keyCustomPasswords}_$cleanId');
+        if (customPass != null) {
+          _customPasswords[effectiveEmail] = customPass;
+        }
+      } catch (_) {}
+    }
 
     // 1. Cek Admin preset untuk kenyamanan pengujian
     if ((effectiveEmail == 'admin@obesight.com' || cleanId == 'admin') &&
@@ -1611,7 +1738,20 @@ class AuthService {
       }
     }
 
-    return OtpResponse.success(otpCode, 'Kode OTP berhasil dibuat.');
+    // Kirim kode OTP langsung ke email pengguna menggunakan EmailService
+    try {
+      await EmailService().sendOtpEmail(
+        recipientEmail: cleanEmail,
+        otpCode: otpCode,
+      );
+    } catch (e) {
+      debugPrint('Notice sending OTP email: $e');
+    }
+
+    return OtpResponse.success(
+      otpCode,
+      'Kode verifikasi OTP berhasil dikirim ke email $cleanEmail.',
+    );
   }
 
   /// Verifikasi kode OTP yang dimasukkan oleh pengguna
@@ -1757,7 +1897,45 @@ class AuthService {
     } catch (e) {
       debugPrint('Error _restoreProfileForEmail: $e');
     }
-    return const AuthResponse.failure('Gagal memulihkan profil.');
+
+    // Fallback ke memory profile cache (offline / local testing)
+    for (final entry in _userProfileCache.entries) {
+      if (entry.value['email']?.toLowerCase() == email.toLowerCase()) {
+        final uid = entry.key;
+        final prof = entry.value;
+        final isGated = _biodataStatusCache[uid] ?? false;
+        _currentUser = UserModel(
+          id: uid,
+          name: prof['name'] ?? email.split('@').first,
+          email: email,
+          username: email.split('@').first,
+          role: UserRole.user,
+          avatarUrl: prof['photo_path'] ?? prof['avatar'],
+          photoPath: prof['photo_path'],
+          dob: prof['dob'],
+          gender: prof['gender'],
+          phone: prof['phone'],
+          isBiodataComplete: isGated,
+        );
+        _saveSession(_currentUser!);
+        profileUpdateNotifier.value++;
+        return AuthResponse.success(_currentUser);
+      }
+    }
+
+    // Fallback akun lokal default untuk email tersebut
+    final uid = 'usr_${email.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}';
+    _currentUser = UserModel(
+      id: uid,
+      name: email.split('@').first,
+      email: email,
+      username: email.split('@').first,
+      role: UserRole.user,
+      isBiodataComplete: true,
+    );
+    _saveSession(_currentUser!);
+    profileUpdateNotifier.value++;
+    return AuthResponse.success(_currentUser);
   }
 
   Future<bool> _checkFirestoreCustomPassword(String email, String password) async {

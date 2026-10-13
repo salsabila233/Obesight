@@ -120,12 +120,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
+    String targetEmail = _email.trim();
+    if (targetEmail.isEmpty) {
+      targetEmail = AuthService().currentUser?.email ?? '';
+    }
+    if (targetEmail.isEmpty) {
+      setState(() {
+        _errorMessage = 'Alamat email tidak ditemukan. Silakan ulangi proses verifikasi OTP.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     final res = await AuthService().resetPasswordWithOtp(
-      email: _email,
+      email: targetEmail,
       newPassword: newPwd,
     );
 
@@ -142,16 +153,52 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.',
-          style: GoogleFonts.poppins(fontSize: 13, color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF235B42),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
+  SnackBar(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    behavior: SnackBarBehavior.floating,
+    // Menggeser posisi SnackBar agar muncul di bagian atas layar
+    margin: EdgeInsets.only(
+      bottom: MediaQuery.of(context).size.height - 150, 
+      left: 16,
+      right: 16,
+    ),
+    content: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white, // Background Putih
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-    );
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle,
+            color: Color(0xFF235B42), // Ikon warna hijau senada tema
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.',
+              style: GoogleFonts.poppins(
+                fontSize: 13, 
+                color: const Color(0xFF235B42), // Teks warna hijau
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    duration: const Duration(seconds: 4),
+  ),
+);
 
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }

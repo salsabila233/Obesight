@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:obesight/screens/auth/login_screen.dart';
+import 'package:obesight/services/auth_service.dart';
 import 'package:obesight/theme/app_theme.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  tearDown(() async {
+    await AuthService().logout();
+  });
   testWidgets('LoginScreen initial state renders all required elements', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.75;

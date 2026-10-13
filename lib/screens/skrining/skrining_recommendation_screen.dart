@@ -459,36 +459,48 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                           // Show top success banner / notification
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.check_circle_rounded,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      'Rekomendasi berhasil dilanjutkan sebagai progres!',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: const Color(0xFF2E7D5B),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
+  SnackBar(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    behavior: SnackBarBehavior.floating,
+    margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+    content: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white, // Latar belakang putih
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle_rounded,
+            color: Color(0xFF2E7D5B), // Ikon warna hijau
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Rekomendasi berhasil dilanjutkan sebagai progres!',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2E7D5B), // Teks warna hijau
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    duration: const Duration(seconds: 2),
+  ),
+);
 
                           // Navigate to ProgressScreen
                           Navigator.of(context).push(

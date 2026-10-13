@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:obesight/screens/progress/day_rest_detail_screen.dart';
 import 'package:obesight/screens/progress/rest_reminder_setting_screen.dart';
 import 'package:obesight/services/rest_reminder_service.dart';
+import 'package:obesight/widgets/rest_tracking_widgets.dart';
 import 'package:obesight/theme/app_theme.dart';
 
 void main() {
@@ -34,8 +35,8 @@ void main() {
     // Pastikan menggunakan Icon Matahari, bukan bulan
     expect(find.byIcon(Icons.wb_sunny_rounded), findsWidgets);
 
-    // 3. Klik "Atur Pengingat" -> Masuk ke Halaman Input (Gambar 2)
-    final aturBtn = find.text('Atur pengingat');
+    // 3. Klik Status Card -> Masuk ke Halaman Input (Gambar 2)
+    final aturBtn = find.byType(RestStatusCard);
     await tester.ensureVisible(aturBtn);
     await tester.tap(aturBtn);
     await tester.pumpAndSettle();
@@ -55,8 +56,8 @@ void main() {
     expect(find.text('-- j -- m'), findsOneWidget); // Tetap kosong
 
     // 5. Masuk lagi & Simpan
-    await tester.ensureVisible(find.text('Atur pengingat'));
-    await tester.tap(find.text('Atur pengingat'));
+    await tester.ensureVisible(find.byType(RestStatusCard));
+    await tester.tap(find.byType(RestStatusCard));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Simpan'));

@@ -57,7 +57,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Kode OTP verifikasi Anda: ${response.otp}',
+                  'Kode verifikasi 6-digit telah dikirim ke email $targetEmail.',
                   style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
                 ),
               ),

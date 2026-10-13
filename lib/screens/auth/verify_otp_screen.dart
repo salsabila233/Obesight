@@ -78,14 +78,22 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     if (res.isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Kode verifikasi OTP baru: ${res.otp}',
-            style: GoogleFonts.poppins(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w600),
+          content: Row(
+            children: [
+              const Icon(Icons.mark_email_read_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Kode verifikasi OTP baru telah dikirim ke email $_email.',
+                  style: GoogleFonts.poppins(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
           backgroundColor: const Color(0xFF235B42),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: const Duration(seconds: 8),
+          duration: const Duration(seconds: 6),
         ),
       );
     } else {

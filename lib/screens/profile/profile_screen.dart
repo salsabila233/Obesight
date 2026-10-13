@@ -23,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _loadProfileData();
     _authService.profileUpdateNotifier.addListener(_loadProfileData);
+    _authService.fetchUserProfile(widget.user.id);
   }
 
   @override
@@ -57,24 +58,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 22),
-              const SizedBox(width: 10),
-              Text(
-                'Profil berhasil diperbarui!',
-                style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF2D6A4F), // Latar belakang hijau
+          elevation: 0,
+          backgroundColor: Colors.transparent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.all(16),
+          // Mengatur posisi agar muncul di bagian atas layar
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 150,
+            left: 16,
+            right: 16,
+          ),
+          content: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white, // Latar belakang putih
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded, 
+                  color: Color(0xFF2D6A4F), // Ikon warna hijau
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Profil berhasil diperbarui!',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2D6A4F), // Teks warna hijau
+                  ),
+                ),
+              ],
+            ),
+          ),
           duration: const Duration(seconds: 3),
         ),
       );

@@ -181,25 +181,54 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     );
 
     // 2. Tampilkan notifikasi sukses sebelum berpindah halaman
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Berhasil menyimpan profil',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    behavior: SnackBarBehavior.floating,
+    // Mengatur posisi agar muncul di bagian atas layar
+    margin: EdgeInsets.only(
+      bottom: MediaQuery.of(context).size.height - 150,
+      left: 16,
+      right: 16,
+    ),
+    content: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white, // Background Putih
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle_rounded, 
+            color: Color(0xFF16A34A), // Ikon warna hijau
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Berhasil menyimpan profil',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600, 
+                color: Color(0xFF16A34A), // Teks warna hijau
+                fontSize: 13,
               ),
             ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF16A34A),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
+          ),
+        ],
       ),
-    );
+    ),
+    duration: const Duration(seconds: 2),
+  ),
+);
 
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;

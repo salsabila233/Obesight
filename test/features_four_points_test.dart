@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:obesight/models/user_model.dart';
 import 'package:obesight/screens/auth/login_screen.dart';
 import 'package:obesight/screens/profile/complete_profile_screen.dart';
@@ -12,12 +13,20 @@ import 'package:obesight/theme/app_theme.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   void setPhoneViewport(WidgetTester tester) {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
   }
+
+  tearDown(() async {
+    await AuthService().logout();
+  });
 
   group('Poin 1: Google Sign-In Native & No Custom Mock Sheet', () {
     testWidgets('LoginScreen shows "Masuk dengan Google" button and never renders custom mock sheet', (tester) async {
