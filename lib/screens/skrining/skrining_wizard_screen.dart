@@ -229,11 +229,15 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     });
 
     // 3. Navigate to Hasil Skrining
+    final latestUser = (AuthService().currentUser?.id == widget.user?.id
+            ? AuthService().currentUser
+            : null) ??
+        widget.user;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => SkriningResultScreen(
           data: _data,
-          user: widget.user,
+          user: latestUser,
         ),
       ),
     );

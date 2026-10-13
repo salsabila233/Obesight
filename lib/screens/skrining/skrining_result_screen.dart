@@ -91,8 +91,35 @@ class SkriningResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
-    final userName = currentUser.name.isNotEmpty ? currentUser.name : 'Zahra Fitriana';
+    final authUser = AuthService().currentUser;
+    final effectiveUser = (authUser != null && (user == null || authUser.id == user!.id))
+        ? authUser
+        : (user ?? authUser);
+    final userId = effectiveUser?.id;
+    final profileData = userId != null ? AuthService().getUserProfile(userId) : null;
+
+    final String userName;
+    final profileName = profileData?['name']?.trim();
+    if (profileName != null && profileName.isNotEmpty && profileName != 'Pengguna ObeSight') {
+      userName = profileName;
+    } else if (effectiveUser != null && effectiveUser.name.trim().isNotEmpty) {
+      userName = effectiveUser.name.trim();
+    } else if (profileName != null && profileName.isNotEmpty) {
+      userName = profileName;
+    } else {
+      userName = 'Pengguna ObeSight';
+    }
+
+    final currentUser = effectiveUser?.copyWith(name: userName) ??
+        AuthService().currentUser ??
+        UserModel(
+          id: userId ?? 'usr_guest',
+          name: userName,
+          email: profileData?['email'] ?? '',
+          username: userName.toLowerCase().replaceAll(' ', ''),
+          role: UserRole.user,
+        );
+
     final dateString = _formatTodayDate();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -311,48 +338,6 @@ class SkriningResultScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              if (data.aiConfidence != null) ...[
-                                const SizedBox(height: 5),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.auto_awesome_rounded,
-                                      size: 13,
-                                      color: primaryGreen,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        'AI Random Forest • Keyakinan ${data.aiConfidence!.toStringAsFixed(0)}%',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w500,
-                                          color: textMuted,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                              if (data.isClinicallyAdjusted) ...[
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFFEF3C7),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'Diselaraskan dengan ambang batas IMT Kemenkes',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
-                                    ),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ),

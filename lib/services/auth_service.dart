@@ -293,6 +293,17 @@ class AuthService {
           final phone = localPhone ?? (cached != null ? cached['phone'] : null) ?? '';
           final photoUrl = localAvatar ?? (cached != null ? cached['avatar'] : null) ?? firebaseUser.photoURL;
 
+          _userProfileCache[uid] = {
+            'name': name,
+            'dob': dob,
+            'gender': gender,
+            'email': email,
+            'phone': phone,
+            'joined': cached?['joined'] ?? 'Bergabung sejak ${DateTime.now().year}',
+            'avatar': photoUrl ?? 'assets/avatar_zahra.png',
+            'photo_path': photoUrl ?? '',
+          };
+
           _currentUser = UserModel(
             id: uid,
             name: name,
@@ -333,6 +344,17 @@ class AuthService {
           final savedRole = prefs.getString(_keyActiveUserRole) == 'admin' || savedUid == 'adm_001'
               ? UserRole.admin
               : UserRole.user;
+
+          _userProfileCache[savedUid] = {
+            'name': savedName,
+            'dob': savedDob,
+            'gender': savedGender,
+            'email': savedEmail,
+            'phone': savedPhone,
+            'joined': cached['joined'] ?? 'Bergabung sejak Juni 2026',
+            'avatar': prefs.getString(_keyActiveUserAvatar) ?? cached['avatar'] ?? 'assets/avatar_zahra.png',
+            'photo_path': prefs.getString(_keyActiveUserAvatar) ?? cached['photo_path'] ?? '',
+          };
 
           _currentUser = UserModel(
             id: savedUid,

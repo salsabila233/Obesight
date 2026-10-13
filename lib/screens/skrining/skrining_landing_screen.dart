@@ -58,9 +58,13 @@ class _SkriningLandingScreenState extends State<SkriningLandingScreen> {
       return;
     }
 
+    final latestUser = (AuthService().currentUser?.id == widget.user?.id
+            ? AuthService().currentUser
+            : null) ??
+        widget.user;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SkriningWizardScreen(user: widget.user),
+        builder: (_) => SkriningWizardScreen(user: latestUser),
       ),
     ).then((_) => _checkBiodataStatus());
   }

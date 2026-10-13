@@ -134,9 +134,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     }
 
     if (!mounted) return;
+    final latestUser = (AuthService().currentUser?.id == widget.user.id
+            ? AuthService().currentUser
+            : null) ??
+        widget.user;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SkriningLandingScreen(user: widget.user),
+        builder: (_) => SkriningLandingScreen(user: latestUser),
       ),
     ).then((_) {
       if (mounted) {

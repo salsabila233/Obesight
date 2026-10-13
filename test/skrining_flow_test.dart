@@ -111,6 +111,10 @@ void main() {
       physicalActivity: 'Kadang-kadang',
       highCalorieFood: 'Ya',
       vegetableIntake: 'Jarang',
+      aiCategoryKey: 'Overweight',
+      aiCategoryTitle: 'Overweight\nLevel I',
+      aiCategoryBadge: 'Berat badan sedikit diatas rentang ideal',
+      isPredictionSuccess: true,
     );
 
     await tester.pumpWidget(
