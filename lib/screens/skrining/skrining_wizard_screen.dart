@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/progress_tracking_service.dart';
 import '../../services/random_forest_service.dart';
+import '../../services/screening_history_service.dart';
 import 'skrining_models.dart';
 import 'skrining_result_screen.dart';
 
@@ -197,19 +199,23 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     if (!mounted) return;
 
     // 2. Save updated BMI and risk profile to AuthService
-    final userId = widget.user?.id ?? AuthService().currentUser?.id ?? 'usr_001';
+    final resolvedUserId = ScreeningHistoryService.instance.resolveUserKey(
+      widget.user?.id ?? AuthService().currentUser?.id,
+      widget.user?.email ?? AuthService().currentUser?.email,
+    );
     final calculatedBmi = _data.bmi;
     final category = _data.categoryTitle.replaceAll('\n', ' ');
     final risk = _data.riskTitle;
 
     debugPrint('[SkriningWizardScreen] Sukses inferensi. Meneruskan ke SkriningResultScreen:');
+    debugPrint('   - Akun Pengguna: $resolvedUserId');
     debugPrint('   - Kelas Murni RF: ${_data.aiRawClass}');
     debugPrint('   - Kategori Tampilan: $category');
     debugPrint('   - Penyesuaian Klinis: ${_data.isClinicallyAdjusted ? "YA (${_data.clinicalAdjustmentReason})" : "TIDAK"}');
     debugPrint('   - Keyakinan AI: ${_data.aiConfidence?.toStringAsFixed(1)}%');
 
     AuthService().updateUserBmi(
-      userId: userId,
+      userId: resolvedUserId,
       bmi: calculatedBmi,
       category: category,
       risk: risk,
@@ -220,9 +226,16 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     );
 
     AuthService().updateBiodataStatus(
-      userId: userId,
+      userId: resolvedUserId,
       isComplete: true,
     );
+
+    // Simpan ke Riwayat Skrining khusus akun ini & update pemantauan progres
+    _data.date = DateTime.now();
+    await ScreeningHistoryService.instance.addHistory(resolvedUserId, _data);
+    ProgressTrackingService.instance.updateFromScreening(_data);
+
+    if (!mounted) return;
 
     setState(() {
       _isAnalyzing = false;

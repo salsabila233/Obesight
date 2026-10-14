@@ -44,6 +44,7 @@ class SkriningData {
 
   bool isPredictionSuccess = false;
   String? predictionErrorMessage;
+  DateTime? date;
 
   /// Getter penyesuaian backwards compatibility
   String? get aiPredictedClass => aiRawClass;
@@ -80,6 +81,7 @@ class SkriningData {
     this.aiProbabilities,
     this.isPredictionSuccess = false,
     this.predictionErrorMessage,
+    this.date,
     String? aiPredictedClass,
   }) {
     if (aiPredictedClass != null && aiRawClass == null) {
@@ -265,5 +267,73 @@ class SkriningData {
     }
 
     return factors;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'gender': gender,
+      'age': age,
+      'height': height,
+      'weight': weight,
+      'familyHistory': familyHistory,
+      'highCalorieFood': highCalorieFood,
+      'vegetableIntake': vegetableIntake,
+      'mainMealFrequency': mainMealFrequency,
+      'snackFrequency': snackFrequency,
+      'smoking': smoking,
+      'waterIntake': waterIntake,
+      'monitorCalories': monitorCalories,
+      'physicalActivity': physicalActivity,
+      'screenTime': screenTime,
+      'alcohol': alcohol,
+      'transportation': transportation,
+      'aiRawClass': aiRawClass,
+      'aiRawCategoryKey': aiRawCategoryKey,
+      'aiRawCategoryTitle': aiRawCategoryTitle,
+      'aiClinicalClass': aiClinicalClass,
+      'aiCategoryKey': aiCategoryKey,
+      'aiCategoryTitle': aiCategoryTitle,
+      'aiCategoryBadge': aiCategoryBadge,
+      'isClinicallyAdjusted': isClinicallyAdjusted,
+      'clinicalAdjustmentReason': clinicalAdjustmentReason,
+      'aiConfidence': aiConfidence,
+      'isPredictionSuccess': isPredictionSuccess,
+      'predictionErrorMessage': predictionErrorMessage,
+      'date': date?.toIso8601String(),
+    };
+  }
+
+  factory SkriningData.fromMap(Map<String, dynamic> map) {
+    return SkriningData(
+      gender: map['gender'] as String?,
+      age: (map['age'] as num?)?.toInt(),
+      height: (map['height'] as num?)?.toDouble(),
+      weight: (map['weight'] as num?)?.toDouble(),
+      familyHistory: map['familyHistory'] as String?,
+      highCalorieFood: map['highCalorieFood'] as String?,
+      vegetableIntake: map['vegetableIntake'] as String?,
+      mainMealFrequency: map['mainMealFrequency'] as String?,
+      snackFrequency: map['snackFrequency'] as String?,
+      smoking: map['smoking'] as String?,
+      waterIntake: map['waterIntake'] as String?,
+      monitorCalories: map['monitorCalories'] as String?,
+      physicalActivity: map['physicalActivity'] as String?,
+      screenTime: map['screenTime'] as String?,
+      alcohol: map['alcohol'] as String?,
+      transportation: map['transportation'] as String?,
+      aiRawClass: map['aiRawClass'] as String?,
+      aiRawCategoryKey: map['aiRawCategoryKey'] as String?,
+      aiRawCategoryTitle: map['aiRawCategoryTitle'] as String?,
+      aiClinicalClass: map['aiClinicalClass'] as String?,
+      aiCategoryKey: map['aiCategoryKey'] as String?,
+      aiCategoryTitle: map['aiCategoryTitle'] as String?,
+      aiCategoryBadge: map['aiCategoryBadge'] as String?,
+      isClinicallyAdjusted: map['isClinicallyAdjusted'] as bool? ?? false,
+      clinicalAdjustmentReason: map['clinicalAdjustmentReason'] as String?,
+      aiConfidence: (map['aiConfidence'] as num?)?.toDouble(),
+      isPredictionSuccess: map['isPredictionSuccess'] as bool? ?? false,
+      predictionErrorMessage: map['predictionErrorMessage'] as String?,
+      date: map['date'] != null ? DateTime.tryParse(map['date'] as String) : null,
+    );
   }
 }

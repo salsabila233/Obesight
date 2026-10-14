@@ -9,20 +9,22 @@ import 'skrining_recommendation_screen.dart';
 class SkriningResultScreen extends StatelessWidget {
   final SkriningData data;
   final UserModel? user;
+  final bool isFromHistory;
 
   const SkriningResultScreen({
     super.key,
     required this.data,
     this.user,
+    this.isFromHistory = false,
   });
 
   String _formatTodayDate() {
-    final now = DateTime.now();
+    final targetDate = data.date ?? DateTime.now();
     const months = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
-    return '${now.day} ${months[now.month - 1]} ${now.year}';
+    return '${targetDate.day} ${months[targetDate.month - 1]} ${targetDate.year}';
   }
 
   Color _getCategoryRingColor(String category, bool isDark) {
@@ -138,10 +140,16 @@ class SkriningResultScreen extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.chevron_left_rounded, color: textDark, size: 28),
           onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => UserHomeScreen(user: currentUser)),
-              (route) => false,
-            );
+            if (isFromHistory && Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => UserHomeScreen(user: currentUser)),
+                (route) => false,
+              );
+            }
           },
         ),
         title: Text(

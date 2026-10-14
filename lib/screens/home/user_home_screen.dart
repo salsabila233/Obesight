@@ -667,9 +667,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         'action': () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => const ScreeningHistoryScreen(),
+              builder: (_) => ScreeningHistoryScreen(user: widget.user),
             ),
-          );
+          ).then((_) {
+            if (mounted) {
+              _syncUserData();
+            }
+          });
         },
       },
     ];
@@ -1281,8 +1285,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             borderRadius: BorderRadius.circular(16),
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ScreeningHistoryScreen()),
-              );
+                MaterialPageRoute(builder: (_) => ScreeningHistoryScreen(user: widget.user)),
+              ).then((_) {
+                if (mounted) {
+                  _syncUserData();
+                }
+              });
             },
             child: Container(
               padding: const EdgeInsets.all(16),

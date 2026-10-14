@@ -1,258 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../models/screening_history_model.dart';
+import '../../models/user_model.dart';
+import '../../services/auth_service.dart';
+import '../../services/screening_history_service.dart';
+import '../settings/settings_screen.dart';
+import '../skrining/skrining_landing_screen.dart';
+import '../skrining/skrining_result_screen.dart';
 
-class ScreeningHistoryScreen extends StatelessWidget {
-  const ScreeningHistoryScreen({super.key});
+class ScreeningHistoryScreen extends StatefulWidget {
+  final UserModel? user;
 
-  final List<Map<String, dynamic>> _historyData = const [
-    {
-      'day': '11',
-      'monthYear': 'Ags 2026',
-      'fullDate': '11 Agustus 2026',
-      'bmi': '26,8',
-      'risk': 'Sedang',
-      'category': 'Kategori Overweight (IMT 25–27)',
-      'riskColor': Color(0xFFD97706),
-      'riskBg': Color(0xFFFEF3C7),
-      'riskDesc': 'Risiko sedang terhadap komplikasi metabolik. Disarankan meningkatkan aktivitas fisik rutin dan memperhatikan porsi makan.',
-      'recommendations': [
-        'Aktivitas aerobik minimal 150 menit per minggu.',
-        'Kurangi makanan tinggi gula dan lemak jenuh.',
-        'Perbanyak konsumsi sayur, buah, dan air putih.',
-      ],
-    },
-    {
-      'day': '16',
-      'monthYear': 'Jul 2026',
-      'fullDate': '16 Juli 2026',
-      'bmi': '27,5',
-      'risk': 'Tinggi',
-      'category': 'Kategori Obesitas (IMT > 27)',
-      'riskColor': Color(0xFFDC2626),
-      'riskBg': Color(0xFFFEE2E2),
-      'riskDesc': 'Risiko tinggi terhadap gangguan kardiovaskular dan resistensi insulin. Sangat dianjurkan konsultasi dengan dokter atau ahli gizi.',
-      'recommendations': [
-        'Konsultasikan target penurunan berat badan dengan tenaga medis.',
-        'Mulai latihan bertahap dengan olahraga low-impact seperti jalan cepat atau bersepeda.',
-        'Catat asupan kalori harian secara disiplin.',
-      ],
-    },
-    {
-      'day': '05',
-      'monthYear': 'Jul 2026',
-      'fullDate': '05 Juli 2026',
-      'bmi': '28,0',
-      'risk': 'Tinggi',
-      'category': 'Kategori Obesitas (IMT > 27)',
-      'riskColor': Color(0xFFDC2626),
-      'riskBg': Color(0xFFFEE2E2),
-      'riskDesc': 'Skrining awal: Indeks Massa Tubuh berada pada tingkat obesitas. Diperlukan intervensi gaya hidup sehat secara konsisten.',
-      'recommendations': [
-        'Fokus pada pembentukan kebiasaan makan sehat secara bertahap.',
-        'Hindari minuman berpemanis dalam kemasan.',
-        'Tidur teratur 7-8 jam per malam untuk menjaga metabolisme tubuh.',
-      ],
-    },
-  ];
+  const ScreeningHistoryScreen({
+    super.key,
+    this.user,
+  });
 
-  void _showDetailModal(BuildContext context, Map<String, dynamic> item) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final modalBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
-    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final cardInnerBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
-    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+  @override
+  State<ScreeningHistoryScreen> createState() => _ScreeningHistoryScreenState();
+}
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
-        decoration: BoxDecoration(
-          color: modalBg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
+class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
+  late String _userId;
 
-            // Modal Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Detail Hasil Skrining',
-                      style: GoogleFonts.poppins(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
-                      ),
-                    ),
-                    Text(
-                      item['fullDate'] as String,
-                      style: GoogleFonts.poppins(fontSize: 12, color: textSecondary),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: item['riskBg'] as Color,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    'Risiko ${item['risk']}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: item['riskColor'] as Color,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
+  UserModel get _effectiveUser {
+    return widget.user ??
+        AuthService().currentUser ??
+        UserModel(
+          id: 'usr_guest',
+          name: 'Pengguna ObeSight',
+          email: '',
+          username: 'user',
+          role: UserRole.user,
+        );
+  }
 
-            // BMI Highlight Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardInnerBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: cardBorder),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF36785A).withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.monitor_heart_rounded, color: Color(0xFF36785A), size: 26),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Indeks Massa Tubuh (IMT)',
-                          style: GoogleFonts.poppins(fontSize: 11.5, color: textSecondary),
-                        ),
-                        Text(
-                          '${item['bmi']} kg/m²',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: textPrimary,
-                          ),
-                        ),
-                        Text(
-                          item['category'] as String,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: item['riskColor'] as Color,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+  @override
+  void initState() {
+    super.initState();
+    final effective = _effectiveUser;
+    _userId = ScreeningHistoryService.instance.resolveUserKey(effective.id, effective.email);
 
-            // Description
-            Text(
-              'Analisis & Rekomendasi:',
-              style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: textPrimary),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              item['riskDesc'] as String,
-              style: GoogleFonts.poppins(
-                fontSize: 12.5,
-                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Recommendations List
-            ...((item['recommendations'] as List<String>).map((rec) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.check_circle_rounded,
-                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
-                        size: 15,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          rec,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ))),
-
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF36785A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                ),
-                onPressed: () => Navigator.pop(ctx),
-                child: Text('Tutup', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    // Muat riwayat tersimpan spesifik untuk akun pengguna saat ini
+    ScreeningHistoryService.instance.loadHistory(_userId);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8);
+    final primaryGreen = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final sheetBg = isDark ? const Color(0xFF0F172A) : Colors.white;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
-      backgroundColor: scaffoldBg,
+      backgroundColor: primaryGreen,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
+        backgroundColor: primaryGreen,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -263,344 +67,695 @@ class ScreeningHistoryScreen extends StatelessWidget {
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Section 1: Ringkasan
-            Text(
-              'Ringkasan',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: textPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
+      body: AnimatedBuilder(
+        animation: ScreeningHistoryService.instance,
+        builder: (context, _) {
+          final items = ScreeningHistoryService.instance.getHistory(_userId);
+          final totalCount = ScreeningHistoryService.instance.getTotalCount(_userId);
+          final highRiskCount = ScreeningHistoryService.instance.getHighRiskCount(_userId);
+          final mediumRiskCount = ScreeningHistoryService.instance.getMediumRiskCount(_userId);
+          final lowRiskCount = ScreeningHistoryService.instance.getLowRiskCount(_userId);
 
-            // 4 Stats Cards Grid (Total Skrining, Risiko Tinggi, Sedang, Rendah)
-            Row(
-              children: [
-                _buildStatCard(
-                  number: '3',
-                  label: 'Total Skrining',
-                  bgColor: const Color(0xFFFDF2F8),
-                  borderColor: const Color(0xFFFCE7F3),
-                  numColor: const Color(0xFFDB2777),
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 10),
-                _buildStatCard(
-                  number: '2',
-                  label: 'Risiko Tinggi',
-                  bgColor: const Color(0xFFFEF2F2),
-                  borderColor: const Color(0xFFFEE2E2),
-                  numColor: const Color(0xFFDC2626),
-                  isDark: isDark,
-                ),
-              ],
+          return Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: sheetBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _buildStatCard(
-                  number: '1',
-                  label: 'Risiko Sedang',
-                  bgColor: const Color(0xFFFFFBEB),
-                  borderColor: const Color(0xFFFEF3C7),
-                  numColor: const Color(0xFFD97706),
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 10),
-                _buildStatCard(
-                  number: '0',
-                  label: 'Risiko Rendah',
-                  bgColor: const Color(0xFFF0FDF4),
-                  borderColor: const Color(0xFFDCFCE7),
-                  numColor: const Color(0xFF16A34A),
-                  isDark: isDark,
-                ),
-              ],
-            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 22, 18, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ==========================================
+                    // 1. SEKSI RINGKASAN (4 KARTU STATISTIK)
+                    // (0 Semua jika akun belum pernah skrining)
+                    // ==========================================
+                    Text(
+                      'Ringkasan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
 
-            const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        // Card 1: Total Skrining
+                        Expanded(
+                          child: _buildSummaryCard(
+                            count: totalCount,
+                            label: 'Total Skrining',
+                            bgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFFBEAF4),
+                            borderColor: isDark ? const Color(0xFF334155) : const Color(0xFFF5D6EB),
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
 
-            // Section 2: Motivation Sparkle Banner
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [const Color(0xFF1E293B), const Color(0xFF1B382B)]
-                      : [const Color(0xFFE6F7F0), const Color(0xFFD4F1E4)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFC4ECDA),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF36785A).withValues(alpha: 0.06),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF36785A).withValues(alpha: 0.15),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+                        // Card 2: Risiko Tinggi
+                        Expanded(
+                          child: _buildSummaryCard(
+                            count: highRiskCount,
+                            label: 'Risiko Tinggi',
+                            bgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFFDEAEB),
+                            borderColor: isDark ? const Color(0xFF334155) : const Color(0xFFFCD4D7),
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Card 3: Risiko Sedang
+                        Expanded(
+                          child: _buildSummaryCard(
+                            count: mediumRiskCount,
+                            label: 'Risiko Sedang',
+                            bgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEF8E3),
+                            borderColor: isDark ? const Color(0xFF334155) : const Color(0xFFFDEEBB),
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Card 4: Risiko Rendah
+                        Expanded(
+                          child: _buildSummaryCard(
+                            count: lowRiskCount,
+                            label: 'Risiko Rendah',
+                            bgColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFEAF1FB),
+                            borderColor: isDark ? const Color(0xFF334155) : const Color(0xFFD2E3F8),
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                          ),
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.auto_awesome_rounded,
-                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2D6A4F),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      'Terus pertahankan kebiasaan baikmu! Perkembangan kecil setiap hari membawa perubahan besar untuk kesehatanmu.',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: isDark ? Colors.white : const Color(0xFF112A1F),
-                        height: 1.45,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 24),
+                    const SizedBox(height: 18),
 
-            // Section 3: Daftar Riwayat
-            Text(
-              'Daftar Riwayat',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: textPrimary,
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Timeline List of Entries
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _historyData.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = _historyData[index];
-                return _buildTimelineCard(context, item, isDark);
-              },
-            ),
-
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required String number,
-    required String label,
-    required Color bgColor,
-    required Color borderColor,
-    required Color numColor,
-    required bool isDark,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : bgColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? const Color(0xFF334155) : borderColor),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              number,
-              style: GoogleFonts.poppins(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: numColor,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimelineCard(BuildContext context, Map<String, dynamic> item, bool isDark) {
-    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final dateBoxBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
-    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
-    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () => _showDetailModal(context, item),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                // Date Box
-                Container(
-                  width: 58,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: dateBoxBg,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: cardBorder),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        item['day'] as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
+                    // ==========================================
+                    // 2. BANNER MOTIVASI (SPARKLE BADGE)
+                    // ==========================================
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEDF7F2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFD3EFE0),
+                          width: 1.2,
                         ),
                       ),
-                      Text(
-                        item['monthYear'] as String,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w600,
-                          color: textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 14),
-
-                // Info Box (IMT Value + Badge + Category Desc)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                      child: Row(
                         children: [
-                          Text(
-                            'IMT: ',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              color: textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            item['bmi'] as String,
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: textPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            width: 38,
+                            height: 38,
                             decoration: BoxDecoration(
-                              color: item['riskBg'] as Color,
-                              borderRadius: BorderRadius.circular(6),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFD8F1E4),
+                              shape: BoxShape.circle,
                             ),
+                            child: Icon(
+                              Icons.auto_awesome_rounded,
+                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
                             child: Text(
-                              item['risk'] as String,
+                              'Terus pertahankan kebiasaan baikmu! Perkembangan kecil setiap hari membawa perubahan besar untuk kesehatanmu.',
                               style: GoogleFonts.poppins(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                color: item['riskColor'] as Color,
+                                fontSize: 11.5,
+                                color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF2E6B4F),
+                                height: 1.4,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['category'] as String,
-                        style: GoogleFonts.poppins(
-                          fontSize: 11.5,
-                          color: textSecondary,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ==========================================
+                    // 3. SEKSI DAFTAR RIWAYAT (TIMELINE CARDS)
+                    // ==========================================
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Daftar Riwayat',
+                          style: GoogleFonts.poppins(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
                         ),
+                        if (items.isNotEmpty)
+                          InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => SkriningLandingScreen(user: _effectiveUser),
+                                ),
+                              ).then((_) {
+                                if (mounted) {
+                                  ScreeningHistoryService.instance.loadHistory(_userId);
+                                }
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.add_circle_outline_rounded,
+                                    size: 16,
+                                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Skrining Baru',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    if (items.isEmpty)
+                      _buildEmptyState(context, isDark, textPrimary, textSecondary)
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: items.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 14),
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          final isFirst = index == 0;
+                          final isLast = index == items.length - 1;
+                          final screeningNumber = items.length - index;
+
+                          return _buildTimelineRow(
+                            context: context,
+                            item: item,
+                            screeningNumber: screeningNumber,
+                            isFirst: isFirst,
+                            isLast: isLast,
+                            isDark: isDark,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                          );
+                        },
+                      ),
+
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+
+      // ==========================================
+      // 4. FLOATING BOTTOM NAVIGATION BAR
+      // ==========================================
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+          child: _buildFloatingBottomNav(isDark),
+        ),
+      ),
+    );
+  }
+
+  /// Kartu Ringkasan Statistik Horizontal
+  Widget _buildSummaryCard({
+    required int count,
+    required String label,
+    required Color bgColor,
+    required Color borderColor,
+    required Color textPrimary,
+    required Color textSecondary,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor, width: 1.2),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '$count',
+            style: GoogleFonts.poppins(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: textSecondary,
+              height: 1.15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Baris Timeline yang menghubungkan garis vertikal dengan dot berwarna dan kartu hasil
+  Widget _buildTimelineRow({
+    required BuildContext context,
+    required ScreeningHistoryItem item,
+    required int screeningNumber,
+    required bool isFirst,
+    required bool isLast,
+    required bool isDark,
+    required Color textPrimary,
+    required Color textSecondary,
+  }) {
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFEAEAEA);
+    final dateBoxBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final dateBoxBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Indikator Garis Vertikal & Titik Dot Berwarna
+          SizedBox(
+            width: 22,
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    width: 2,
+                    color: isFirst ? Colors.transparent : const Color(0xFFCBD5E1),
+                  ),
+                ),
+                Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: item.dotColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: isDark ? const Color(0xFF0F172A) : Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: item.dotColor.withValues(alpha: 0.35),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
                       ),
                     ],
                   ),
                 ),
-
-                // Chevron Arrow
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF94A3B8),
-                  size: 22,
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    width: 2,
+                    color: isLast ? Colors.transparent : const Color(0xFFCBD5E1),
+                  ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
+
+          // Kartu Riwayat
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: cardBorder, width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    // Navigasi ke halaman hasil skrining yang pernah dilakukan
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => SkriningResultScreen(
+                          data: item.skriningData,
+                          user: _effectiveUser,
+                          isFromHistory: true,
+                        ),
+                      ),
+                    ).then((_) {
+                      if (mounted) {
+                        ScreeningHistoryService.instance.loadHistory(_userId);
+                      }
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    child: Row(
+                      children: [
+                        // Kotak Tanggal di Kiri
+                        Container(
+                          width: 54,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: dateBoxBg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: dateBoxBorder),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                item.day,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: textPrimary,
+                                  height: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item.monthYear,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: textSecondary,
+                                  height: 1.15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+
+                        // Informasi IMT & Kategori
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Skrining #$screeningNumber',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2E6B4F),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'IMT',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: textSecondary,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    item.formattedBmi,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                      color: textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: item.riskBg,
+                                      borderRadius: BorderRadius.circular(7),
+                                    ),
+                                    child: Text(
+                                      item.risk,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: item.riskColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'Kategori',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: textSecondary,
+                                ),
+                              ),
+                              Text(
+                                item.category,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Panah Chevron Kanan
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: Color(0xFF94A3B8),
+                          size: 22,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tampilan Kosong jika akun belum pernah melakukan skrining (0 semua)
+  Widget _buildEmptyState(
+    BuildContext context,
+    bool isDark,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF489874).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.assignment_outlined,
+              color: Color(0xFF489874),
+              size: 38,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Belum Ada Riwayat Skrining',
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Akun ini belum pernah melakukan skrining obesitas.\nLakukan skrining pertamamu untuk mulai memantau perkembangan kesehatan.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 18),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.play_arrow_rounded, size: 20),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF489874),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => SkriningLandingScreen(user: _effectiveUser),
+                ),
+              ).then((_) {
+                if (mounted) {
+                  ScreeningHistoryService.instance.loadHistory(_userId);
+                }
+              });
+            },
+            label: Text(
+              'Mulai Skrining Sekarang',
+              style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Custom Floating Bottom Navigation Bar (Home, Analytics/Chart [Active], Settings)
+  Widget _buildFloatingBottomNav(bool isDark) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : Colors.transparent,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : const Color(0xFF2E6B4F).withValues(alpha: 0.35),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          // Tab 0: Home (Kembali ke Beranda)
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.home_rounded,
+                color: isDark ? const Color(0xFF94A3B8) : Colors.white.withValues(alpha: 0.8),
+                size: 24,
+              ),
+            ),
+          ),
+
+          // Tab 1: Stats / Bar Chart (Aktif pada Halaman Riwayat Skrining)
+          Container(
+            width: 44,
+            height: 38,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF334155) : Colors.white.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.bar_chart_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+
+          // Tab 2: Settings (Pengaturan)
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => SettingsScreen(user: _effectiveUser),
+                ),
+              );
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.settings_rounded,
+                color: isDark ? const Color(0xFF94A3B8) : Colors.white.withValues(alpha: 0.8),
+                size: 24,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

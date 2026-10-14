@@ -387,7 +387,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ScreeningHistoryScreen()),
+                      MaterialPageRoute(builder: (_) => ScreeningHistoryScreen(user: widget.user)),
                     );
                   },
                   icon: const Icon(Icons.history_rounded, size: 16),
