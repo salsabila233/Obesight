@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sleep_record_model.dart';
 import 'auth_service.dart';
 import 'rest_reminder_service.dart';
@@ -120,9 +123,12 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   factory SleepTrackingService() => _instance;
   static SleepTrackingService get instance => _instance;
 
-  SleepTrackingService._internal() {
-    _initDefaults();
-  }
+  static const String _keyRecords = 'obesight_sleep_records_v1';
+  static const String _keyPendingAuto = 'obesight_pending_auto_v1';
+  static const String _keyLastInactive = 'obesight_last_inactive_time_v1';
+  static const MethodChannel _platformChannel = MethodChannel('com.obesight.obesight/device_activity');
+
+  SleepTrackingService._internal();
 
   bool _isInitialized = false;
 
@@ -200,11 +206,14 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     return '$dayName, ${date.day} $monthName ${date.year}';
   }
 
-  /// Initialize observer & start tracking
-  void initialize() {
-    if (_isInitialized) return;
-    _isInitialized = true;
-    WidgetsBinding.instance.addObserver(this);
+  /// Initialize observer & start tracking, loading data from local SharedPreferences
+  Future<void> initialize() async {
+    if (!_isInitialized) {
+      _isInitialized = true;
+      WidgetsBinding.instance.addObserver(this);
+    }
+    await _loadFromLocal();
+    await checkDeviceInactivityCandidate();
     _loadFromFirestore();
   }
 
@@ -213,30 +222,132 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     _isInitialized = false;
   }
 
+  // ==========================================
+  // LOCAL STORAGE (SharedPreferences)
+  // ==========================================
+
+  Future<void> _loadFromLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final recordsJson = prefs.getString(_keyRecords);
+      if (recordsJson != null && recordsJson.isNotEmpty) {
+        final List<dynamic> decoded = jsonDecode(recordsJson);
+        _records.clear();
+        for (final item in decoded) {
+          if (item is Map) {
+            _records.add(SleepRecord.fromMap(Map<String, dynamic>.from(item)));
+          }
+        }
+      }
+
+      final pendingJson = prefs.getString(_keyPendingAuto);
+      if (pendingJson != null && pendingJson.isNotEmpty) {
+        try {
+          _pendingAutoDetectedRecord = SleepRecord.fromMap(Map<String, dynamic>.from(jsonDecode(pendingJson)));
+        } catch (_) {}
+      }
+
+      final lastInactiveStr = prefs.getString(_keyLastInactive);
+      if (lastInactiveStr != null && lastInactiveStr.isNotEmpty) {
+        _lastInactiveTime = DateTime.tryParse(lastInactiveStr);
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Load local error: $e');
+    }
+  }
+
+  Future<void> _saveToLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = _records.map((r) => r.toMap()).toList();
+      await prefs.setString(_keyRecords, jsonEncode(jsonList));
+
+      if (_pendingAutoDetectedRecord != null) {
+        await prefs.setString(_keyPendingAuto, jsonEncode(_pendingAutoDetectedRecord!.toMap()));
+      } else {
+        await prefs.remove(_keyPendingAuto);
+      }
+
+      if (_lastInactiveTime != null) {
+        await prefs.setString(_keyLastInactive, _lastInactiveTime!.toIso8601String());
+      } else {
+        await prefs.remove(_keyLastInactive);
+      }
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Save local error: $e');
+    }
+  }
+
+  /// Bersihkan seluruh data (berguna untuk testing atau logout)
+  Future<void> clearAll() async {
+    _records.clear();
+    _pendingAutoDetectedRecord = null;
+    _lastInactiveTime = null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyRecords);
+      await prefs.remove(_keyPendingAuto);
+      await prefs.remove(_keyLastInactive);
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  // ==========================================
+  // DEVICE INACTIVITY & SCREEN MONITORING
+  // ==========================================
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      // Pengguna berhenti menggunakan HP / layar HP mati
+      // Pengguna meletakkan HP / layar dimatikan
       _lastInactiveTime = DateTime.now();
+      _saveToLocal();
       debugPrint('[SleepTracker] Inactive at $_lastInactiveTime');
     } else if (state == AppLifecycleState.resumed) {
-      // HP kembali aktif / digunakan
-      if (_lastInactiveTime != null) {
-        final resumeTime = DateTime.now();
-        final diff = resumeTime.difference(_lastInactiveTime!);
-        debugPrint('[SleepTracker] Resumed after ${diff.inMinutes} minutes');
-
-        // Cek apakah melampaui batas minimum tidak aktif (contoh: 15 menit)
-        if (diff.inMinutes >= _minimumInactivityMinutes) {
-          _recordAutomaticSleepCandidate(_lastInactiveTime!, resumeTime);
-        }
-        _lastInactiveTime = null;
-      }
+      // HP kembali aktif / dibuka kembali
+      checkDeviceInactivityCandidate();
     }
   }
 
-  /// Membuat kandidat pencatatan tidur otomatis
+  /// Memeriksa aktivitas layar mati dan nyala dari native Android atau lifecycle
+  Future<void> checkDeviceInactivityCandidate() async {
+    try {
+      // 1. Coba periksa native Android BroadcastReceiver timestamp via Platform Channel
+      final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
+      final lastOnMillis = await _platformChannel.invokeMethod<int>('getLastScreenOn');
+
+      if (lastOffMillis != null && lastOffMillis > 0 && lastOnMillis != null && lastOnMillis > lastOffMillis) {
+        final offDt = DateTime.fromMillisecondsSinceEpoch(lastOffMillis);
+        final onDt = DateTime.fromMillisecondsSinceEpoch(lastOnMillis);
+        final diffMinutes = onDt.difference(offDt).inMinutes;
+
+        if (diffMinutes >= _minimumInactivityMinutes) {
+          _recordAutomaticSleepCandidate(offDt, onDt);
+          await _platformChannel.invokeMethod('clearScreenTimes');
+          return;
+        }
+      }
+    } catch (_) {
+      // Platform channel tidak tersedia di environment test / non-Android
+    }
+
+    // 2. Fallback: Gunakan lifecycle waktu tidak aktif Flutter yang tersimpan
+    if (_lastInactiveTime != null) {
+      final resumeTime = DateTime.now();
+      final diff = resumeTime.difference(_lastInactiveTime!);
+      debugPrint('[SleepTracker] Resumed after ${diff.inMinutes} minutes');
+
+      if (diff.inMinutes >= _minimumInactivityMinutes) {
+        _recordAutomaticSleepCandidate(_lastInactiveTime!, resumeTime);
+      }
+      _lastInactiveTime = null;
+      _saveToLocal();
+    }
+  }
+
+  /// Membuat calon (kandidat) perkiraan waktu tidur otomatis untuk ditinjau pengguna
   void _recordAutomaticSleepCandidate(DateTime start, DateTime end) {
     final dateKey = formatDateKey(end);
     final autoRecord = SleepRecord(
@@ -250,16 +361,16 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       updatedAt: DateTime.now(),
     );
 
-    // Cek apakah ada konflik tumpang tindih dengan data yang ada
-    final overlap = findOverlappingRecord(start, end, dateKey);
-    if (overlap == null) {
-      // Otomatis disimpan dan dijadikan pending confirmation
-      _records.add(autoRecord);
-      _syncToRestReminder(autoRecord);
-      _syncToFirestore(autoRecord);
-    }
-
+    // Disimpan sebagai calon/kandidat pending untuk diverifikasi pengguna via "Catat waktu ini"
     _pendingAutoDetectedRecord = autoRecord;
+    _saveToLocal();
+    notifyListeners();
+  }
+
+  /// Menetapkan kandidat tidur otomatis secara manual/testing
+  void setPendingAutoRecord(SleepRecord? record) {
+    _pendingAutoDetectedRecord = record;
+    _saveToLocal();
     notifyListeners();
   }
 
@@ -274,25 +385,33 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     _recordAutomaticSleepCandidate(start, end);
   }
 
-  /// Menerima / mengonfirmasi rekaman perkiraan waktu tidur otomatis
-  void acceptPendingAutoRecord() {
+  /// Menerima / mengonfirmasi rekaman perkiraan waktu tidur otomatis (Tombol "Catat waktu ini")
+  Future<bool> acceptPendingAutoRecord() async {
     if (_pendingAutoDetectedRecord != null) {
-      final exists = _records.any((r) => r.id == _pendingAutoDetectedRecord!.id);
-      if (!exists) {
-        _records.add(_pendingAutoDetectedRecord!);
-        _syncToRestReminder(_pendingAutoDetectedRecord!);
-        _syncToFirestore(_pendingAutoDetectedRecord!);
-      }
+      final candidate = _pendingAutoDetectedRecord!;
+      // Hapus data yang sama jika ada sebelumnya
+      _records.removeWhere((r) =>
+          r.userId == candidate.userId &&
+          r.date == candidate.date &&
+          r.startTime == candidate.startTime &&
+          r.endTime == candidate.endTime);
+
+      _records.add(candidate);
       _pendingAutoDetectedRecord = null;
+      await _saveToLocal();
+      _syncToRestReminder(candidate);
+      _syncToFirestore(candidate);
       notifyListeners();
+      return true;
     }
+    return false;
   }
 
   /// Menolak kandidat otomatis
-  void dismissPendingAutoRecord() {
+  Future<void> dismissPendingAutoRecord() async {
     if (_pendingAutoDetectedRecord != null) {
-      _records.removeWhere((r) => r.id == _pendingAutoDetectedRecord!.id);
       _pendingAutoDetectedRecord = null;
+      await _saveToLocal();
       notifyListeners();
     }
   }
@@ -582,10 +701,14 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Mendeteksi apakah waktu baru tumpang tindih dengan data tidur yang sudah ada
   SleepRecord? findOverlappingRecord(DateTime start, DateTime end, String dateKey, {String? excludeId}) {
+    final effectiveEnd = end.isBefore(start) ? end.add(const Duration(days: 1)) : end;
     final list = _records.where((r) => r.userId == currentUserId && r.date == dateKey && r.id != excludeId);
     for (final existing in list) {
+      final existingEnd = existing.endTime.isBefore(existing.startTime)
+          ? existing.endTime.add(const Duration(days: 1))
+          : existing.endTime;
       // Overlap terjadi jika rentang saling berpotongan
-      if (start.isBefore(existing.endTime) && end.isAfter(existing.startTime)) {
+      if (start.isBefore(existingEnd) && effectiveEnd.isAfter(existing.startTime)) {
         return existing;
       }
     }
@@ -602,6 +725,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         r.endTime == record.endTime);
 
     _records.add(record);
+    await _saveToLocal();
     _syncToRestReminder(record);
     _syncToFirestore(record);
     notifyListeners();
@@ -612,6 +736,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     final index = _records.indexWhere((r) => r.id == updated.id);
     if (index != -1) {
       _records[index] = updated;
+      await _saveToLocal();
       _syncToRestReminder(updated);
       _syncToFirestore(updated);
       notifyListeners();
@@ -621,6 +746,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   /// Hapus periode tidur
   Future<void> deleteRecord(String id) async {
     _records.removeWhere((r) => r.id == id);
+    await _saveToLocal();
     _deleteFromFirestore(id);
     notifyListeners();
   }
@@ -691,68 +817,19 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        _records.clear();
         for (final doc in snapshot.docs) {
-          _records.add(SleepRecord.fromMap(doc.data(), doc.id));
+          final rec = SleepRecord.fromMap(doc.data(), doc.id);
+          final exists = _records.any((r) => r.id == rec.id);
+          if (!exists) {
+            _records.add(rec);
+          }
         }
+        await _saveToLocal();
         notifyListeners();
       }
     } catch (e) {
       debugPrint('[SleepTrackingService] Load Firestore error: $e');
     }
   }
-
-  // Default seed dataset untuk 30 hari terakhir agar visualisasi grafik (Jam, Hari, Minggu, Bulan) langsung tampil indah & fungsional
-  void _initDefaults() {
-    final now = DateTime.now();
-    // Default sample durasi untuk beberapa hari (6-8 jam)
-    final cycleDurations = [
-      const Duration(hours: 7, minutes: 20),
-      const Duration(hours: 6, minutes: 45),
-      const Duration(hours: 8, minutes: 0),
-      const Duration(hours: 7, minutes: 30),
-      const Duration(hours: 6, minutes: 50),
-      const Duration(hours: 8, minutes: 10),
-      const Duration(hours: 7, minutes: 15),
-    ];
-
-    // Seed 30 hari ke belakang (kecuali hari ini)
-    for (int i = 30; i >= 1; i--) {
-      final day = now.subtract(Duration(days: i));
-      final dateKey = formatDateKey(day);
-      final dur = cycleDurations[i % cycleDurations.length];
-
-      final startTime = DateTime(day.year, day.month, day.day, 22, 30);
-      final endTime = startTime.add(dur);
-
-      _records.add(SleepRecord(
-        id: 'seed_${day.year}_${day.month}_${day.day}',
-        userId: currentUserId,
-        date: dateKey,
-        startTime: startTime,
-        endTime: endTime,
-        durationMinutes: dur.inMinutes,
-        source: 'manual',
-        createdAt: day,
-        updatedAt: day,
-      ));
-    }
-
-    // Default perkiraan tidur otomatis hari ini berdasarkan aktivitas HP (sesuai Gambar 1: 5j 10m)
-    // Sesi menutup HP pukul 23.30 hingga membuka HP pukul 04.40 (5 jam 10 menit)
-    final todayCandidateEnd = DateTime(now.year, now.month, now.day, 4, 40);
-    final todayCandidateStart = todayCandidateEnd.subtract(const Duration(hours: 5, minutes: 10));
-
-    _pendingAutoDetectedRecord = SleepRecord(
-      id: 'auto_${now.year}_${now.month}_${now.day}',
-      userId: currentUserId,
-      date: formatDateKey(now),
-      startTime: todayCandidateStart,
-      endTime: todayCandidateEnd,
-      durationMinutes: 310, // 5j 10m
-      source: 'automatic',
-      createdAt: now,
-      updatedAt: now,
-    );
-  }
 }
+

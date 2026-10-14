@@ -15,13 +15,14 @@ class SleepRecord {
     required this.userId,
     required this.date,
     required this.startTime,
-    required this.endTime,
+    required DateTime endTime,
     int? durationMinutes,
     this.source = 'manual',
     DateTime? createdAt,
     DateTime? updatedAt,
     this.note,
-  })  : durationMinutes = durationMinutes ?? calculateDurationMinutes(startTime, endTime),
+  })  : endTime = (endTime.isBefore(startTime)) ? endTime.add(const Duration(days: 1)) : endTime,
+        durationMinutes = durationMinutes ?? calculateDurationMinutes(startTime, endTime),
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 

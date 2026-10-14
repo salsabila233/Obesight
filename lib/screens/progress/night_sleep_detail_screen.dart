@@ -15,11 +15,15 @@ class NightSleepDetailScreen extends StatefulWidget {
 class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   // 0: Jam, 1: Hari, 2: Minggu, 3: Bulan (default: Hari matching Gambar 1 & 4)
   int _selectedFilterTab = 1;
+  DateTime _selectedDate = DateTime.now();
 
   void _openForm({SleepRecord? recordToEdit}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SleepRecordFormScreen(recordToEdit: recordToEdit),
+        builder: (_) => SleepRecordFormScreen(
+          recordToEdit: recordToEdit,
+          initialDate: _selectedDate,
+        ),
       ),
     );
   }
@@ -94,27 +98,32 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final now = DateTime.now();
 
     return ListenableBuilder(
       listenable: SleepTrackingService.instance,
       builder: (context, _) {
         final service = SleepTrackingService.instance;
-        final todayRecs = service.todayRecords;
-        final hasTodayData = todayRecs.isNotEmpty;
-        final totalMinutes = service.todayTotalMinutes;
-        final awakeMinutes = service.todayAwakeMinutes;
-        final statusText = service.getSleepStatus(totalMinutes);
-        final pendingAuto = service.pendingAutoDetectedRecord;
-        final summaries = service.getPast7DaysSummaries();
+        final isSelectedToday = _selectedDate.year == now.year &&
+            _selectedDate.month == now.month &&
+            _selectedDate.day == now.day;
 
-        // Tampilan durasi hari ini
+        final recordsForSelectedDate = service.getRecordsForDate(_selectedDate);
+        final hasDataForSelectedDate = recordsForSelectedDate.isNotEmpty;
+        final totalMinutesSelected = service.getTotalSleepMinutesForDate(_selectedDate);
+        final awakeMinutesSelected = service.getAwakeMinutesForDate(_selectedDate);
+        final statusText = service.getSleepStatus(totalMinutesSelected);
+        final pendingAuto = service.pendingAutoDetectedRecord;
+        final summaries = service.getPast7DaysSummaries(now);
+
+        // Tampilan durasi hari yang dipilih
         final String totalDurationFormatted;
-        if (hasTodayData) {
-          totalDurationFormatted = totalMinutes >= 60
-              ? '${totalMinutes ~/ 60} j ${totalMinutes % 60} m'
-              : '$totalMinutes m';
-        } else if (pendingAuto != null) {
-          // Durasi estimasi otomatis perangkat (sesuai Gambar 1: 5 j 10 m)
+        if (hasDataForSelectedDate) {
+          totalDurationFormatted = totalMinutesSelected >= 60
+              ? '${totalMinutesSelected ~/ 60} j ${totalMinutesSelected % 60} m'
+              : '$totalMinutesSelected m';
+        } else if (isSelectedToday && pendingAuto != null) {
+          // Durasi estimasi otomatis perangkat
           final h = pendingAuto.durationHours;
           final m = pendingAuto.durationRemainingMinutes;
           totalDurationFormatted = '$h j $m m';
@@ -122,12 +131,12 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           totalDurationFormatted = '-- j -- m';
         }
 
-        final firstStart = hasTodayData
-            ? todayRecs.first.startTimeFormatted
-            : (pendingAuto != null ? pendingAuto.startTimeFormatted : '22.00');
-        final lastEnd = hasTodayData
-            ? todayRecs.last.endTimeFormatted
-            : (pendingAuto != null ? pendingAuto.endTimeFormatted : '06.00');
+        final firstStart = hasDataForSelectedDate
+            ? recordsForSelectedDate.first.startTimeFormatted
+            : (isSelectedToday && pendingAuto != null ? pendingAuto.startTimeFormatted : '22.00');
+        final lastEnd = hasDataForSelectedDate
+            ? recordsForSelectedDate.last.endTimeFormatted
+            : (isSelectedToday && pendingAuto != null ? pendingAuto.endTimeFormatted : '06.00');
 
         return Scaffold(
           backgroundColor: const Color(0xFFF3F6F8),
@@ -137,7 +146,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
               CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // 1. Hero Image Header (Aset bersih hero_malam_clean.png)
+                  // 1. Hero Image Header (HD Asset hero_malam_hd.jpg)
                   SliverToBoxAdapter(
                     child: Stack(
                       children: [
@@ -145,17 +154,21 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                           height: 245,
                           width: double.infinity,
                           child: Image.asset(
-                            'assets/progress/rest/hero_malam_clean.png',
+                            'assets/progress/rest/hero_malam_hd.jpg',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => Image.asset(
-                              'assets/progress/clean/hero_malam_clean.png',
+                              'assets/progress/rest/hero_malam_clean.png',
                               fit: BoxFit.cover,
                               errorBuilder: (c, e, s) => Image.asset(
-                                'assets/progress/rest/hero_malam.png',
+                                'assets/progress/clean/hero_malam_clean.png',
                                 fit: BoxFit.cover,
-                                errorBuilder: (ctx, err, st) => Container(
-                                  height: 245,
-                                  color: const Color(0xFF1E4D3E),
+                                errorBuilder: (ctx, err, st) => Image.asset(
+                                  'assets/progress/rest/hero_malam.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (ctx2, err2, st2) => Container(
+                                    height: 245,
+                                    color: const Color(0xFF1E4D3E),
+                                  ),
                                 ),
                               ),
                             ),
@@ -234,11 +247,13 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         children: [
                           const SizedBox(height: 12),
 
-                          // --- CARD 1: Status Waktu Tidur Hari Ini (Matching Gambar 1 & 4) ---
+                          // --- CARD 1: Status Waktu Tidur (Matching Gambar 1, 3, & 4) ---
                           _buildTodaySleepStatusCard(
                             service: service,
-                            todayRecs: todayRecs,
-                            hasTodayData: hasTodayData,
+                            selectedRecs: recordsForSelectedDate,
+                            hasDataForSelectedDate: hasDataForSelectedDate,
+                            isSelectedToday: isSelectedToday,
+                            selectedDate: _selectedDate,
                             totalDurationFormatted: totalDurationFormatted,
                             statusText: statusText,
                             pendingAuto: pendingAuto,
@@ -249,7 +264,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                           _buildHistoryChartCard(
                             service: service,
                             summaries: summaries,
-                            hasTodayData: hasTodayData,
+                            hasDataForSelectedDate: hasDataForSelectedDate,
                           ),
                           const SizedBox(height: 20),
 
@@ -257,17 +272,15 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                           _buildInfoCards(
                             startTimeStr: firstStart,
                             wakeTimeStr: lastEnd,
-                            durationStr: hasTodayData
-                                ? (totalMinutes >= 60
-                                    ? '${totalMinutes ~/ 60} jam ${totalMinutes % 60} mnt'
-                                    : '$totalMinutes mnt')
-                                : (pendingAuto != null
+                            durationStr: hasDataForSelectedDate
+                                ? (totalMinutesSelected >= 60
+                                    ? '${totalMinutesSelected ~/ 60} jam ${totalMinutesSelected % 60} mnt'
+                                    : '$totalMinutesSelected mnt')
+                                : (isSelectedToday && pendingAuto != null
                                     ? '${pendingAuto.durationHours} jam ${pendingAuto.durationRemainingMinutes} mnt'
                                     : '7 - 8 jam'),
-                            awakeMinutes: awakeMinutes,
+                            awakeMinutes: awakeMinutesSelected,
                           ),
-                          const SizedBox(height: 20),
-
                           // --- CARD 4: Manfaat & Tips ---
                           _buildBenefitsSection(),
                           const SizedBox(height: 20),
@@ -323,19 +336,23 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   // ==========================================
-  // CARD 1: Status Waktu Tidur Hari Ini
+  // CARD 1: Status Waktu Tidur
   // ==========================================
   Widget _buildTodaySleepStatusCard({
     required SleepTrackingService service,
-    required List<SleepRecord> todayRecs,
-    required bool hasTodayData,
+    required List<SleepRecord> selectedRecs,
+    required bool hasDataForSelectedDate,
+    required bool isSelectedToday,
+    required DateTime selectedDate,
     required String totalDurationFormatted,
     required String statusText,
     required SleepRecord? pendingAuto,
   }) {
-    final now = DateTime.now();
     const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    final dateStr = 'Hari ini, ${now.day} ${monthNames[now.month]} ${now.year}';
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    final dateStr = isSelectedToday
+        ? 'Hari ini, ${selectedDate.day} ${monthNames[selectedDate.month]} ${selectedDate.year}'
+        : '${dayNames[selectedDate.weekday % 7]}, ${selectedDate.day} ${monthNames[selectedDate.month]} ${selectedDate.year}';
 
     return Container(
       width: double.infinity,
@@ -407,11 +424,23 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    if (hasTodayData)
+                    if (hasDataForSelectedDate)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(
-                          '${todayRecs.first.startTimeFormatted.replaceAll(':', '.')} - ${todayRecs.last.endTimeFormatted.replaceAll(':', '.')}',
+                          '${selectedRecs.first.startTimeFormatted.replaceAll(':', '.')} - ${selectedRecs.last.endTimeFormatted.replaceAll(':', '.')}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF36785A),
+                          ),
+                        ),
+                      )
+                    else if (isSelectedToday && pendingAuto != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          '${pendingAuto.startTimeFormatted.replaceAll(':', '.')} - ${pendingAuto.endTimeFormatted.replaceAll(':', '.')}',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -423,20 +452,41 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                 ),
               ),
 
-              // Tombol Aksi Pill "Catat waktu ini" (Matching Gambar 1)
-              if (pendingAuto != null && !hasTodayData)
+              // Tombol Aksi Pill "Catat waktu ini" (Matching Gambar 1 & Requirement 3)
+              if (!hasDataForSelectedDate)
                 InkWell(
-                  onTap: () {
-                    service.acceptPendingAutoRecord();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Perkiraan waktu tidur (${pendingAuto.timeRangeFormatted}) berhasil dicatat.',
-                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                  onTap: () async {
+                    if (isSelectedToday && pendingAuto != null) {
+                      await service.acceptPendingAutoRecord();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Perkiraan waktu tidur (${pendingAuto.timeRangeFormatted}) berhasil dicatat.',
+                              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                            ),
+                            backgroundColor: const Color(0xFF36785A),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Data perkiraan waktu tidur belum tersedia. Silakan gunakan tombol "Masukkan data" di bawah untuk melengkapi data tidur Anda.',
+                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
+                          ),
+                          backgroundColor: const Color(0xFF475569),
+                          behavior: SnackBarBehavior.floating,
+                          action: SnackBarAction(
+                            label: 'Masukkan',
+                            textColor: const Color(0xFF86EFAC),
+                            onPressed: () => _openForm(),
+                          ),
                         ),
-                        backgroundColor: const Color(0xFF36785A),
-                      ),
-                    );
+                      );
+                    }
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
@@ -455,19 +505,26 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                     ),
                   ),
                 )
-              else if (hasTodayData)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEDF7F2),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: GoogleFonts.poppins(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF265C45),
+              else
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 125),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEDF7F2),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        statusText,
+                        maxLines: 1,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF265C45),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -475,16 +532,16 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           ),
 
           // Jika ada lebih dari satu periode tidur hari ini
-          if (todayRecs.length > 1) ...[
+          if (selectedRecs.length > 1) ...[
             const SizedBox(height: 12),
             const Divider(height: 1, color: Color(0xFFF1F5F9)),
             const SizedBox(height: 10),
             Text(
-              'Rincian Periode Tidur Hari Ini:',
+              'Rincian Periode Tidur:',
               style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: const Color(0xFF334155)),
             ),
             const SizedBox(height: 6),
-            ...todayRecs.asMap().entries.map((entry) {
+            ...selectedRecs.asMap().entries.map((entry) {
               final idx = entry.key;
               final rec = entry.value;
               return Padding(
@@ -553,12 +610,11 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   // ==========================================
   // CARD 2: Grafik Riwayat Tidur
   // Opsi: Jam | Hari | Minggu | Bulan
-  // Bebas dari error bottom overflowed menggunakan flexible layout
   // ==========================================
   Widget _buildHistoryChartCard({
     required SleepTrackingService service,
     required List<DailySleepSummary> summaries,
-    required bool hasTodayData,
+    required bool hasDataForSelectedDate,
   }) {
     String cardTitle;
     switch (_selectedFilterTab) {
@@ -634,7 +690,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
               tabIndex: _selectedFilterTab,
               service: service,
               summaries: summaries,
-              hasTodayData: hasTodayData,
+              hasDataForSelectedDate: hasDataForSelectedDate,
             ),
           ),
         ],
@@ -693,7 +749,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     required int tabIndex,
     required SleepTrackingService service,
     required List<DailySleepSummary> summaries,
-    required bool hasTodayData,
+    required bool hasDataForSelectedDate,
   }) {
     switch (tabIndex) {
       case 0:
@@ -708,8 +764,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
       case 1:
       default:
         // Tab Hari (7 Hari Terakhir)
-        if (!hasTodayData) {
-          // Empty State Illustration saat belum ada data tidur hari ini (Matching Gambar 1)
+        final hasAny7DayData = summaries.any((s) => s.hasData);
+        if (!hasAny7DayData) {
+          // Empty State Illustration saat belum ada data tidur hari ini (Matching Gambar 1 & 3)
           return Column(
             key: const ValueKey('daily_empty'),
             children: [
@@ -759,16 +816,28 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                 ),
               ),
               const SizedBox(height: 18),
-              // Axis days horizontal (18 19 20 21 22 23 24)
+              // Axis days horizontal
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: summaries.map((s) {
-                  return Text(
-                    s.dayNumber,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: s.isToday ? FontWeight.w700 : FontWeight.w500,
-                      color: s.isToday ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+                  final isSelected = s.dateKey == SleepTrackingService.formatDateKey(_selectedDate);
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        _selectedDate = s.date;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Text(
+                        s.dayNumber,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+                        ),
+                      ),
                     ),
                   );
                 }).toList(),
@@ -794,7 +863,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
         children: summaries.map((s) {
           final hours = s.totalMinutes / 60.0;
           final fraction = (hours / 9.0).clamp(0.0, 1.0);
-          final isHighlighted = s.isToday;
+          final isHighlighted = s.dateKey == SleepTrackingService.formatDateKey(_selectedDate);
 
           return _buildFlexibleBar(
             topLabel: s.hasData ? s.formattedDuration : '',
@@ -802,6 +871,11 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             fraction: fraction,
             isHighlighted: isHighlighted,
             hasData: s.hasData,
+            onTap: () {
+              setState(() {
+                _selectedDate = s.date;
+              });
+            },
           );
         }).toList(),
       ),
@@ -809,11 +883,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   Widget _buildHourlyChart(SleepTrackingService service) {
-    final now = DateTime.now();
-    final hourly = service.getHourlySleepForDate(now);
+    final hourly = service.getHourlySleepForDate(_selectedDate);
 
     // Tampilkan jam tidur malam - pagi yang relevan (20.00 hingga 08.00)
-    // yaitu jam 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8
     final relevantHours = [20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8];
     final selectedHourly = relevantHours.map((h) => hourly[h]).toList();
 
@@ -849,7 +921,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   Widget _buildWeeklyChart(SleepTrackingService service) {
-    final weeks = service.getPast4WeeksSummaries();
+    final weeks = service.getPast4WeeksSummaries(_selectedDate);
     return SizedBox(
       key: const ValueKey('weekly_chart'),
       height: 135,
@@ -873,7 +945,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   Widget _buildMonthlyChart(SleepTrackingService service) {
-    final months = service.getPastMonthsSummaries(6);
+    final months = service.getPastMonthsSummaries(6, _selectedDate);
     return SizedBox(
       key: const ValueKey('monthly_chart'),
       height: 135,
@@ -902,71 +974,76 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     required double fraction,
     required bool isHighlighted,
     required bool hasData,
+    VoidCallback? onTap,
   }) {
     return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Column(
-          children: [
-            // Label durasi di atas bar
-            SizedBox(
-              height: 18,
-              child: Center(
-                child: hasData && topLabel.isNotEmpty
-                    ? FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          topLabel,
-                          style: GoogleFonts.poppins(
-                            fontSize: 9,
-                            fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
-                            color: isHighlighted ? const Color(0xFF265C45) : const Color(0xFF475569),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Column(
+            children: [
+              // Label durasi di atas bar
+              SizedBox(
+                height: 18,
+                child: Center(
+                  child: hasData && topLabel.isNotEmpty
+                      ? FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            topLabel,
+                            style: GoogleFonts.poppins(
+                              fontSize: 9,
+                              fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
+                              color: isHighlighted ? const Color(0xFF265C45) : const Color(0xFF475569),
+                            ),
                           ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                        )
+                      : const SizedBox.shrink(),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
+              const SizedBox(height: 4),
 
-            // Track Bar: Menggunakan Expanded dan FractionallySizedBox sehingga kebal overflow
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: FractionallySizedBox(
-                  heightFactor: hasData ? fraction.clamp(0.08, 1.0) : 0.04,
-                  widthFactor: 0.55,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: hasData
-                          ? (isHighlighted ? const Color(0xFF265C45) : const Color(0xFFA5D6C1))
-                          : const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(6),
+              // Track Bar: Menggunakan Expanded dan FractionallySizedBox sehingga kebal overflow
+              Expanded(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: FractionallySizedBox(
+                    heightFactor: hasData ? fraction.clamp(0.08, 1.0) : 0.04,
+                    widthFactor: 0.55,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: hasData
+                            ? (isHighlighted ? const Color(0xFF265C45) : const Color(0xFFA5D6C1))
+                            : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
+              const SizedBox(height: 6),
 
-            // Label sumbu X di bawah bar
-            SizedBox(
-              height: 20,
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    bottomLabel,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
-                      color: isHighlighted ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+              // Label sumbu X di bawah bar
+              SizedBox(
+                height: 20,
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      bottomLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
+                        color: isHighlighted ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

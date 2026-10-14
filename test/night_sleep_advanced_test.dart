@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:obesight/screens/progress/night_sleep_detail_screen.dart';
 import 'package:obesight/screens/progress/sleep_record_form_screen.dart';
 import 'package:obesight/services/sleep_tracking_service.dart';
@@ -8,9 +9,13 @@ import 'package:obesight/theme/app_theme.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
-    // Reset service state before each test
-    SleepTrackingService.instance.initialize();
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await SleepTrackingService.instance.clearAll();
+    // Simulasi deteksi waktu tidak aktif HP 5 jam 10 menit
+    SleepTrackingService.instance.simulateInactivity(
+      durationMinutes: 310,
+    );
   });
 
   testWidgets('Waktu Tidur Malam: Desain Awal, Sticky Header, Opsi Grafik & Catat Otomatis', (WidgetTester tester) async {
