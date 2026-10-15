@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
-import '../../services/nutrition_service.dart';
 import '../../services/progress_tracking_service.dart';
 import '../../widgets/progress_page_scaffold.dart';
 import '../profile/complete_profile_screen.dart';
@@ -10,7 +9,6 @@ import '../skrining/skrining_landing_screen.dart';
 import 'night_sleep_detail_screen.dart';
 import 'nutrition_recommendation_screen.dart';
 import 'physical_activity_screen.dart';
-import 'saved_nutrition_list_screen.dart';
 import 'screening_history_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
@@ -31,13 +29,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return ListenableBuilder(
-      listenable: Listenable.merge([
-        NutritionService.instance,
-        ProgressTrackingService.instance,
-      ]),
+      listenable: ProgressTrackingService.instance,
       builder: (context, _) {
-        final currentFood = NutritionService.instance.myFood;
-        final currentDrink = NutritionService.instance.myDrink;
         final progressService = ProgressTrackingService.instance;
 
         return ProgressPageScaffold(
@@ -61,14 +54,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 // 3. GRAFIK EVALUASI CAPAIAN PROGRES RENTANG WAKTU
                 _buildEvaluationProgressChartCard(progressService, isDark, textPrimary),
 
-                const SizedBox(height: 20),
-
-                // 4. Quick Cards Grid (Makananku & Minumanku)
-                _buildQuickNutritionGrid(currentFood, currentDrink, isDark, textPrimary),
-
                 const SizedBox(height: 22),
 
-                // 5. Section Pantau Kesehatanmu
+                // Section Pantau Kesehatanmu
                 Text(
                   'Pantau Kesehatanmu',
                   style: GoogleFonts.poppins(
@@ -923,202 +911,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   // ==========================================
-  // 4. QUICK NUTRITION GRID (Makananku & Minumanku)
-  // ==========================================
-  Widget _buildQuickNutritionGrid(
-    Map<String, dynamic>? currentFood,
-    Map<String, dynamic>? currentDrink,
-    bool isDark,
-    Color textPrimary,
-  ) {
-    return Row(
-      children: [
-        // Makananku
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SavedNutritionListScreen(isFood: true),
-                ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF5EB),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFFFE7D4),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      height: 95,
-                      width: double.infinity,
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFEF3C7),
-                      child: Image.asset(
-                        currentFood?['thumbImg'] as String? ?? 'assets/progress/nutrition/food_oatmeal.png',
-                        width: double.infinity,
-                        height: 95,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Center(
-                          child: Icon(Icons.restaurant, size: 36, color: Color(0xFFD97706)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Makananku',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: textPrimary,
-                                ),
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFF94A3B8)),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          currentFood != null
-                              ? (currentFood['title'] as String? ?? 'Oatmeal + Pisang + Almond')
-                              : 'Belum ada menu',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFD97706),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-
-        // Minumanku
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SavedNutritionListScreen(isFood: false),
-                ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEFBEA),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFFDF5CF),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      height: 95,
-                      width: double.infinity,
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
-                      child: Image.asset(
-                        currentDrink?['thumbImg'] as String? ?? 'assets/progress/nutrition/drink_infused_lemon.png',
-                        width: double.infinity,
-                        height: 95,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Center(
-                          child: Icon(Icons.local_drink, size: 36, color: Color(0xFF0284C7)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Minumanku',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: textPrimary,
-                                ),
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFF94A3B8)),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          currentDrink != null
-                              ? (currentDrink['title'] as String? ?? 'Infused Water Lemon')
-                              : 'Belum ada menu',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF0284C7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================
-  // 5. FEATURE TILE BUILDER
+  // 4. FEATURE TILE BUILDER
   // ==========================================
   Widget _buildFeatureTile({
     required String iconImg,
