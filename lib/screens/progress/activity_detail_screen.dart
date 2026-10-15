@@ -53,6 +53,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     final specs = widget.activity['specs'] as Map<String, dynamic>? ?? {};
     final tipsTitle = widget.activity['tipsTitle'] as String? ?? 'Tips Melakukan Latihan';
     final tips = (widget.activity['tips'] as List<dynamic>?)?.cast<String>() ?? [];
+    final safetyNotes = widget.activity['safetyNotes'] as String?;
     final refLink = widget.activity['refLink'] as String? ?? '';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -275,6 +276,59 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                           ],
                         ),
                       ),
+
+                      if (safetyNotes != null && safetyNotes.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF2D2314) : const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.health_and_safety_rounded,
+                                color: Color(0xFFD97706),
+                                size: 22,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Catatan Keselamatan & Klinis',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      safetyNotes,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11.5,
+                                        color: isDark
+                                            ? const Color(0xFFFDE68A).withValues(alpha: 0.9)
+                                            : const Color(0xFF92400E),
+                                        height: 1.45,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 22),
 

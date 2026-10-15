@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/progress_tracking_service.dart';
+import '../progress/physical_activity_screen.dart';
 import '../progress/progress_screen.dart';
 import 'skrining_models.dart';
 import 'skrining_recommendation_rules.dart';
@@ -198,6 +199,17 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       titleColor: const Color(0xFF2563EB),
                       iconWidget: _buildActivityIllustration(),
                       points: rec.physicalActivityRecommendations,
+                      actionLabel: 'Lihat Pilihan Aktivitas Fisik',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PhysicalActivityScreen(
+                              skriningData: data,
+                              user: currentUser,
+                            ),
+                          ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 14),
@@ -544,6 +556,8 @@ class SkriningRecommendationScreen extends StatelessWidget {
     required Color titleColor,
     required Widget iconWidget,
     required List<String> points,
+    VoidCallback? onTap,
+    String? actionLabel,
   }) {
     return Container(
       width: double.infinity,
@@ -623,6 +637,35 @@ class SkriningRecommendationScreen extends StatelessWidget {
               ),
             ],
           ),
+
+          if (onTap != null && actionLabel != null) ...[
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        actionLabel,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: titleColor,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_rounded, size: 14, color: titleColor),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

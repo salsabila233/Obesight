@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../models/user_model.dart';
+import '../../services/auth_service.dart';
 import '../../services/physical_activity_service.dart';
+import '../../services/screening_history_service.dart';
 import '../../widgets/progress_page_scaffold.dart';
+import '../skrining/skrining_landing_screen.dart';
+import '../skrining/skrining_models.dart';
+import '../skrining/skrining_recommendation_rules.dart';
 import 'activity_detail_screen.dart';
 
 class PhysicalActivityScreen extends StatefulWidget {
-  const PhysicalActivityScreen({super.key});
+  final SkriningData? skriningData;
+  final UserModel? user;
+
+  const PhysicalActivityScreen({
+    super.key,
+    this.skriningData,
+    this.user,
+  });
 
   @override
   State<PhysicalActivityScreen> createState() => _PhysicalActivityScreenState();
@@ -15,205 +28,22 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
   late final ScrollController _dateScrollController;
   final int _todayOffset = 7; // Index of today in [-7 .. +13] (total 21 days)
   late int _selectedDayIndex;
+  late String _userKey;
 
-  final List<Map<String, dynamic>> _activities = [
-    {
-      'id': 'jogging',
-      'title': 'Jogging',
-      'name': 'Jogging',
-      'targetText': '30-60 menit',
-      'heroImg': 'assets/progress/clean/hero_jogging.png',
-      'thumbImg': 'assets/progress/clean/thumb_jogging.png',
-      'thumb': 'assets/progress/clean/rec_thumb_jogging.png',
-      'icon': 'assets/progress/clean/rec_icon_jogging.png',
-      'desc': 'Membantu meningkatkan daya tahan tubuh, membakar kalori dan menjaga kesehatan jantung.',
-      'duration': '30-60 menit',
-      'frequency': '3-5x/minggu',
-      'calories': '200-400 kkal',
-      'aboutTitle': 'Tentang Jogging',
-      'aboutDesc':
-          'Jogging merupakan salah satu jenis latihan aerobik yang dapat meningkatkan kebugaran kardiorespirasi, membantu pembakaran kalori, serta mendukung penurunan berat badan. Aktivitas ini juga berkontribusi pada peningkatan kesehatan jantung dan metabolisme tubuh.',
-      'benefits': [
-        'Meningkatkan kebugaran jantung dan paru-paru',
-        'Membantu pembakaran kalori dan lemak tubuh',
-        'Menurunkan berat badan secara berkelanjutan',
-        'Meningkatkan suasana hati dan mengurangi stres harian',
-      ],
-      'specs': {
-        'duration': '30-60 menit',
-        'frequency': '3-5 kali/minggu',
-        'intensity': 'Sedang (60-70% HRmax)',
-        'calories': '200-400 kkal',
-      },
-      'tipsTitle': 'Tips Melakukan Jogging',
-      'tips': [
-        'Lakukan pemanasan selama 5-10 menit sebelum mulai.',
-        'Gunakan sepatu yang nyaman dan sesuai dengan bantalan yang baik.',
-        'Jaga postur tubuh tetap tegak dan rileks saat melangkah.',
-        'Tingkatkan durasi dan intensitas secara bertahap.',
-        'Pastikan tubuh tetap terhidrasi dengan cukup minum air.',
-      ],
-      'refLink': 'https://doi.org/10.25182/jgp.2016.11.3.%25p',
-    },
-    {
-      'id': 'bodyweight',
-      'title': 'Latihan Kekuatan (Bodyweight/Gym)',
-      'name': 'Latihan Kekuatan (Bodyweight/Gym)',
-      'targetText': '20-45 menit',
-      'heroImg': 'assets/progress/clean/hero_bodyweight.png',
-      'thumbImg': 'assets/progress/clean/thumb_bodyweight.png',
-      'thumb': 'assets/progress/clean/rec_thumb_bodyweight.png',
-      'icon': 'assets/progress/clean/rec_icon_bodyweight.png',
-      'desc': 'Meningkatkan masa otot, memperkuat tulang, serta meningkatkan metabolisme.',
-      'duration': '20-45 menit',
-      'frequency': '2-4x/minggu',
-      'calories': '150-350 kkal',
-      'aboutTitle': 'Tentang Latihan Bodyweight & Kekuatan',
-      'aboutDesc':
-          'Latihan kekuatan (strength training) adalah aktivitas fisik yang melibatkan kontraksi otot untuk meningkatkan massa otot, kekuatan, dan daya tahan tubuh. Selain membantu membentuk tubuh, latihan kekuatan juga berperan dalam meningkatkan metabolisme istirahat (BMR) dan menjaga kesehatan tulang.',
-      'benefits': [
-        'Meningkatkan massa dan kekuatan otot secara menyeluruh',
-        'Mempercepat metabolisme pembakaran energi istirahat',
-        'Meningkatkan kepadatan tulang dan persendian',
-        'Memperbaiki postur tubuh dan keseimbangan fisik',
-      ],
-      'specs': {
-        'duration': '20-45 menit',
-        'frequency': '2-4 kali/minggu',
-        'intensity': 'Sedang-Tinggi (60-80% HRmax)',
-        'calories': '150-350 kkal',
-      },
-      'tipsTitle': 'Tips Melakukan Bodyweight',
-      'tips': [
-        'Lakukan pemanasan selama 5-10 menit sebelum mulai.',
-        'Fokus pada gerakan yang benar dan kontrol penuh tubuh.',
-        'Mulai dengan variasi gerakan sesuai kemampuan dasar (push-up, squat, plank).',
-        'Istirahat antar set selama 30-60 detik.',
-        'Lakukan pendinginan dan peregangan otot setelah selesai.',
-      ],
-      'refLink': 'https://doi.org/10.21831/jk.v8i1.31208',
-    },
-    {
-      'id': 'cycling',
-      'title': 'Bersepeda',
-      'name': 'Bersepeda',
-      'targetText': '30-60 menit',
-      'heroImg': 'assets/progress/clean/hero_cycling.png',
-      'thumbImg': 'assets/progress/clean/thumb_cycling.png',
-      'thumb': 'assets/progress/clean/rec_thumb_cycling.png',
-      'icon': 'assets/progress/clean/rec_icon_cycling.png',
-      'desc': 'Melatih daya tahan kardiovaskular, memperkuat otot kaki dan membakar kalori.',
-      'duration': '30-60 menit',
-      'frequency': '3-5x/minggu',
-      'calories': '200-400 kkal',
-      'aboutTitle': 'Tentang Bersepeda',
-      'aboutDesc':
-          'Bersepeda merupakan salah satu bentuk aktivitas aerobik low-impact yang sangat ramah terhadap sendi lutut, sekaligus sangat efektif untuk melatih kebugaran kardiorespirasi dan membakar timbunan kalori.',
-      'benefits': [
-        'Meningkatkan kebugaran jantung dan paru tanpa membebani sendi',
-        'Membantu pembakaran energi dan lemak tubuh',
-        'Melatih kekuatan dan daya tahan otot paha dan betis',
-        'Menyegarkan pikiran dengan menikmati pemandangan sekitar',
-      ],
-      'specs': {
-        'duration': '30-60 menit',
-        'frequency': '3-5 kali/minggu',
-        'intensity': 'Sedang (50-70% HRmax)',
-        'calories': '200-400 kkal',
-      },
-      'tipsTitle': 'Tips Melakukan Bersepeda',
-      'tips': [
-        'Pastikan sepeda dalam kondisi baik dan ketinggian sadel tepat.',
-        'Gunakan perlengkapan keselamatan helm pelindung.',
-        'Mulai dengan kayuhan santai lalu tingkatkan secara bertahap.',
-        'Jaga postur punggung tetap ergonomis dan rileks.',
-        'Pilih rute yang aman, bebas polusi, dan hindari jalanan padat.',
-      ],
-      'refLink': 'https://doi.org/10.21831/medikora.v14i2.7937',
-    },
-    {
-      'id': 'yoga',
-      'title': 'Yoga & Stretching',
-      'name': 'Yoga / Stretching',
-      'targetText': '20-40 menit',
-      'heroImg': 'assets/progress/clean/hero_yoga.png',
-      'thumbImg': 'assets/progress/clean/thumb_yoga.png',
-      'thumb': 'assets/progress/clean/rec_thumb_yoga.png',
-      'icon': 'assets/progress/clean/rec_icon_yoga.png',
-      'desc': 'Meningkatkan fleksibilitas, mengurangi stres, dan memperbaiki postur tubuh.',
-      'duration': '20-40 menit',
-      'frequency': '3-5x/minggu',
-      'calories': '100-200 kkal',
-      'aboutTitle': 'Tentang Yoga & Peregangan',
-      'aboutDesc':
-          'Yoga dan stretching merupakan aktivitas fisik yang memadukan teknik pernapasan mendalam, kelenturan tubuh, dan relaksasi pikiran. Latihan ini membantu mengurangi ketegangan otot dan menurunkan hormon stres kortisol.',
-      'benefits': [
-        'Meningkatkan fleksibilitas sendi dan kelenturan otot',
-        'Mendukung kestabilan hormon dan kesehatan mental',
-        'Mengurangi hormon stres kortisol pemicu nafsu makan berlebih',
-        'Memperbaiki kualitas tidur dan relaksasi malam hari',
-      ],
-      'specs': {
-        'duration': '20-40 menit',
-        'frequency': '3-5 kali/minggu',
-        'intensity': 'Ringan-Sedang (40-60% HRmax)',
-        'calories': '100-200 kkal',
-      },
-      'tipsTitle': 'Tips Melakukan Yoga',
-      'tips': [
-        'Lakukan gerakan secara perlahan dan fokus penuh pada pernapasan.',
-        'Gunakan pakaian yang lentur, nyaman, dan menyerap keringat.',
-        'Pilih ruangan yang tenang, sejuk, dan gunakan matras yoga.',
-        'Jangan memaksakan peregangan melebihi batas kenyamanan tubuh.',
-        'Tahan setiap pose selama 15-30 detik dengan napas teratur.',
-      ],
-      'refLink': 'https://doi.org/10.48144/jiks.v9i2.56',
-    },
-    {
-      'id': 'hiit',
-      'title': 'High-Intensity Interval Training (HIIT)',
-      'name': 'Latihan HIIT (High Intensity)',
-      'targetText': '15-30 menit',
-      'heroImg': 'assets/progress/clean/hero_hiit.png',
-      'thumbImg': 'assets/progress/clean/thumb_hiit.png',
-      'thumb': 'assets/progress/clean/rec_thumb_hiit.png',
-      'icon': 'assets/progress/clean/rec_icon_hiit.png',
-      'desc': 'Membakar kalori intensif dalam waktu singkat dan meningkatkan kapasitas paru-paru.',
-      'duration': '15-30 menit',
-      'frequency': '2-3x/minggu',
-      'calories': '250-450 kkal',
-      'aboutTitle': 'Tentang Latihan HIIT',
-      'aboutDesc':
-          'High-Intensity Interval Training (HIIT) merupakan metode latihan yang menggabungkan interval gerakan intensif singkat dengan jeda pemulihan aktif secara bergantian. Sangat efisien bagi yang memiliki waktu terbatas.',
-      'benefits': [
-        'Membakar kalori tinggi dalam waktu yang sangat singkat',
-        'Memicu efek Afterburn (EPOC) pembakaran kalori pasca latihan',
-        'Meningkatkan kebugaran VO2max secara cepat',
-        'Efektif menurunkan persentase lemak visceral perut',
-      ],
-      'specs': {
-        'duration': '15-30 menit',
-        'frequency': '2-3 kali/minggu',
-        'intensity': 'Tinggi (80-90% HRmax)',
-        'calories': '250-450 kkal',
-      },
-      'tipsTitle': 'Tips Melakukan HIIT',
-      'tips': [
-        'Wajib lakukan pemanasan komprehensif selama 5-10 menit.',
-        'Kombinasikan 30 detik sprint/gerakan intens dengan 15-30 detik jalan santai.',
-        'Prioritaskan bentuk gerakan yang aman sebelum menambah kecepatan.',
-        'Batasi frekuensi maksimal 2-3 kali seminggu untuk memberi otot waktu pulih.',
-        'Pastikan minum air sebelum, di sela, dan sesudah latihan.',
-      ],
-      'refLink': 'https://doi.org/10.15294/jpes.v8i2.31208',
-    },
-  ];
+  UserModel get _effectiveUser =>
+      widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
 
   @override
   void initState() {
     super.initState();
     _selectedDayIndex = _todayOffset;
     _dateScrollController = ScrollController();
+
+    final user = _effectiveUser;
+    _userKey = ScreeningHistoryService.instance.resolveUserKey(user.id, user.email);
+
+    // Muat riwayat tersimpan spesifik untuk akun pengguna saat ini
+    ScreeningHistoryService.instance.loadHistory(_userKey);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_dateScrollController.hasClients) {
@@ -245,20 +75,87 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     );
   }
 
+  Color _getCategoryColor(String category) {
+    final cat = category.trim().toLowerCase();
+    if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
+      return const Color(0xFF2563EB); // Biru (Underweight)
+    } else if (cat.contains('normal')) {
+      return const Color(0xFF16A34A); // Hijau (Normal)
+    } else if (cat.contains('overweight') || cat.contains('lebih')) {
+      return const Color(0xFFD97706); // Amber (Overweight)
+    } else if (cat.contains('iii') || cat.contains('morbid') || cat.contains('3')) {
+      return const Color(0xFF991B1B); // Merah Gelap (Obesitas III)
+    } else if (cat.contains('ii') || cat.contains('2')) {
+      return const Color(0xFFDC2626); // Merah (Obesitas II)
+    } else if (cat.contains('obesitas') ||
+        cat.contains('obesity') ||
+        cat.contains('type_i') ||
+        cat.contains('level_i') ||
+        cat.contains('1')) {
+      return const Color(0xFFEA580C); // Oranye (Obesitas I)
+    }
+    return const Color(0xFFD97706);
+  }
+
+  String _getCategoryActivityFocusSubtitle(String categoryKey) {
+    final cat = categoryKey.trim().toLowerCase();
+    if (cat.contains('underweight') || cat.contains('insufficient') || cat.contains('kurang')) {
+      return 'Disesuaikan untuk stimulasi pembentukan massa otot & minim kardio berlebih';
+    } else if (cat.contains('iii') || cat.contains('morbid') || cat.contains('3')) {
+      return 'Disesuaikan tanpa beban gravitasi sendi (hydrotherapy, recumbent & duduk)';
+    } else if (cat.contains('ii') || cat.contains('2')) {
+      return 'Disesuaikan proteksi sendi maksimal (terapi air, reclined & latihan kursi)';
+    } else if (cat.contains('obesitas') || cat.contains('obesity') || cat.contains('1')) {
+      return 'Disesuaikan untuk latihan rendah beban sendi (aquarobics & sepeda statis)';
+    } else if (cat.contains('overweight') || cat.contains('lebih')) {
+      return 'Disesuaikan untuk pembakaran kalori ramah sendi (brisk walk & low-impact)';
+    }
+    return 'Disesuaikan untuk kebugaran kardiorespirasi & ketahanan fisik optimal';
+  }
+
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
-    return ListenableBuilder(
-      listenable: PhysicalActivityService.instance,
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        PhysicalActivityService.instance,
+        ScreeningHistoryService.instance,
+      ]),
       builder: (context, _) {
         final offset = _selectedDayIndex - _todayOffset;
         final selectedDate = now.add(Duration(days: offset));
         final selectedDateKey = PhysicalActivityService.instance.formatDateKey(selectedDate);
-        final completedCount = PhysicalActivityService.instance.getCompletedCountForDate(selectedDateKey);
+
+        // 1. Dapatkan hasil skrining pengguna yang sedang login
+        SkriningData? activeSkrining = widget.skriningData;
+        if (activeSkrining == null) {
+          final history = ScreeningHistoryService.instance.getHistory(_userKey);
+          if (history.isNotEmpty) {
+            activeSkrining = history.first.skriningData;
+          }
+        }
+
+        final bool hasScreening = activeSkrining != null;
+        final String categoryKey = hasScreening
+            ? activeSkrining.classificationCategory
+            : 'Normal';
+        final CategoryRecommendation rec =
+            SkriningRecommendationRules.getRecommendationByCategory(categoryKey);
+
+        final List<Map<String, dynamic>> activities = hasScreening
+            ? PhysicalActivityService.instance.getActivitiesForCategory(
+                categoryKey,
+                skriningData: activeSkrining,
+              )
+            : const [];
+
+        final completedCount =
+            PhysicalActivityService.instance.getCompletedCountForDate(selectedDateKey);
 
         return ProgressPageScaffold(
           title: 'Rekomendasi Aktivitas Fisik',
@@ -374,42 +271,78 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Section Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Pilihan Aktivitas Olahraga',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
+                // 2. KONDISI BELUM ADA SKRINING
+                if (!hasScreening) ...[
+                  _buildNoScreeningState(context, isDark, textPrimary, textSecondary),
+                ] else ...[
+                  // 3. KARTU HASIL SKRINING & TARGET KLINIS PENGGUNA
+                  _buildScreeningSummaryCard(
+                    activeSkrining,
+                    rec,
+                    categoryKey,
+                    isDark,
+                    textPrimary,
+                    textSecondary,
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Section Header: Pilihan Aktivitas Olahraga
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Pilihan Aktivitas Olahraga',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: textPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
+                              borderRadius: BorderRadius.circular(8),
+                              border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+                            ),
+                            child: Text(
+                              '$completedCount/${activities.length} Selesai',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
-                        borderRadius: BorderRadius.circular(8),
-                        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-                      ),
-                      child: Text(
-                        '$completedCount/5 Selesai',
+                      const SizedBox(height: 3),
+                      Text(
+                        _getCategoryActivityFocusSubtitle(categoryKey),
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+                          fontWeight: FontWeight.w500,
+                          color: textSecondary,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
-                // 5 Activity Cards with Read-Only Checklist
-                ..._activities.map((act) => _buildActivityCard(act, isDark, selectedDateKey)),
+                  // Daftar Vertikal Kartu Aktivitas Fisik Sesuai Hasil Skrining
+                  ...activities.map((act) => _buildActivityCard(act, isDark, selectedDateKey)),
+                ],
 
                 const SizedBox(height: 20),
               ],
@@ -417,6 +350,292 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
           ),
         );
       },
+    );
+  }
+
+  /// Kartu Ringkasan Hasil Skrining & Target Klinis
+  Widget _buildScreeningSummaryCard(
+    SkriningData data,
+    CategoryRecommendation rec,
+    String categoryKey,
+    bool isDark,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
+    final catColor = _getCategoryColor(categoryKey);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    // Kategori khusus yang butuh proteksi sendi / pengawasan
+    final isObesitySpecialCare = categoryKey.contains('Obesitas II') ||
+        categoryKey.contains('Obesitas III') ||
+        categoryKey.contains('Obesitas I');
+    final isUnderweightCare = categoryKey.contains('Underweight');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: cardBorder, width: 1.1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Hasil Skrining',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: textSecondary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Spacer(),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: catColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: catColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    data.riskTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                      color: catColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: catColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.assignment_turned_in_rounded,
+                  size: 20,
+                  color: catColor,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      rec.categoryDisplayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: catColor,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      'IMT ${data.formattedBmi} kg/m²',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.track_changes_rounded,
+                  size: 14,
+                  color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Target: ${rec.clinicalGoal}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.5,
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isObesitySpecialCare || isUnderweightCare) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF2D2314) : const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 14,
+                    color: Color(0xFFD97706),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      isUnderweightCare
+                          ? 'Perhatian: Fokuskan latihan pada pembentukan massa otot dan batasi kardio panjang.'
+                          : 'Perhatian Klinis: Olahraga difokuskan ramah sendi (low/non-weight bearing). Hindari gerakan hentakan tinggi/melompat.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Tampilan Kosong jika pengguna belum pernah melakukan skrining
+  Widget _buildNoScreeningState(
+    BuildContext context,
+    bool isDark,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                  .withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.directions_run_rounded,
+              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Belum Ada Hasil Skrining',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Rekomendasi aktivitas fisik dipersonalisasi berdasarkan hasil skrining kesehatan dan kategori IMT Anda.\nSilakan lakukan skrining terlebih dahulu.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: textSecondary,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => SkriningLandingScreen(user: _effectiveUser),
+                ),
+              ).then((_) {
+                if (mounted) {
+                  ScreeningHistoryService.instance.loadHistory(_userKey);
+                }
+              });
+            },
+            icon: const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white),
+            label: Text(
+              'Mulai Skrining Sekarang',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 0,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -538,13 +757,15 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                       ),
                       const SizedBox(height: 8),
 
-                      // 3 Pills: Duration, Frequency, Calories
+                      // Pills: Duration, Frequency, Intensity, Calories
                       Wrap(
                         spacing: 6,
                         runSpacing: 4,
                         children: [
                           _buildPill(Icons.access_time_rounded, act['duration'] as String, isDark),
                           _buildPill(Icons.calendar_today_rounded, act['frequency'] as String, isDark),
+                          if (act['intensity'] != null)
+                            _buildPill(Icons.speed_rounded, (act['intensity'] as String).split(' ').first, isDark),
                           _buildPill(Icons.local_fire_department_rounded, act['calories'] as String, isDark),
                         ],
                       ),

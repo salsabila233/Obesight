@@ -105,7 +105,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const PhysicalActivityScreen()),
+                      MaterialPageRoute(builder: (_) => PhysicalActivityScreen(user: widget.user)),
                     );
                   },
                 ),
