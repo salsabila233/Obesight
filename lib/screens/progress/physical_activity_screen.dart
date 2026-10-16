@@ -154,9 +154,6 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
               )
             : const [];
 
-        final completedCount =
-            PhysicalActivityService.instance.getCompletedCountForDate(selectedDateKey);
-
         return ProgressPageScaffold(
           title: 'Rekomendasi Aktivitas Fisik',
           body: SingleChildScrollView(
@@ -293,39 +290,13 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Pilihan Aktivitas Olahraga',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: textPrimary,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
-                              borderRadius: BorderRadius.circular(8),
-                              border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-                            ),
-                            child: Text(
-                              '$completedCount/${activities.length} Selesai',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Pilihan Aktivitas Olahraga',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 3),
                       Text(

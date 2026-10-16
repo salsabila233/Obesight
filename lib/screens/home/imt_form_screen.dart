@@ -454,24 +454,23 @@ class _PhysicalDataCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF3B8E67);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
-    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cardBorder),
+        border: Border.all(color: cardBorder, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -481,19 +480,19 @@ class _PhysicalDataCard extends StatelessWidget {
           // Baris Atas: Icon kecil hijau outline + label
           Row(
             children: [
-              Icon(icon, size: 16, color: primaryGreen),
+              Icon(icon, size: 17, color: primaryGreen),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.poppins(
-                  fontSize: 13,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: labelColor,
+                  color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
 
           // Baris Bawah: Row dengan MainAxisAlignment.spaceBetween
           Row(
@@ -508,9 +507,10 @@ class _PhysicalDataCard extends StatelessWidget {
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
+                  cursorColor: primaryGreen,
                   style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                     color: textColor,
                   ),
                   decoration: const InputDecoration(
@@ -522,13 +522,20 @@ class _PhysicalDataCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
 
-              // Kanan: Satuan hijau bold (tanpa tanda panah, digeser lebih ke kanan)
-              Text(
-                unit,
-                style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: primaryGreen,
+              // Kanan: Satuan dalam pill badge abu-abu muda
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  unit,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                  ),
                 ),
               ),
             ],
@@ -555,25 +562,18 @@ class _GenderSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
-    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final labelColor = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(Icons.wc_rounded, size: 16, color: primaryGreen),
-            const SizedBox(width: 8),
-            Text(
-              'Jenis Kelamin',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: labelColor,
-              ),
-            ),
-          ],
+        Text(
+          'Jenis Kelamin',
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: labelColor,
+          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -581,8 +581,7 @@ class _GenderSelector extends StatelessWidget {
             Expanded(
               child: _buildGenderOption(
                 label: 'Laki-laki',
-                symbol: '♂',
-                symbolColor: const Color(0xFF00BBA7),
+                icon: Icons.male_rounded,
                 isSelected: selectedGender.toLowerCase().contains('laki'),
                 onTap: () => onChanged('Laki-laki'),
                 isDark: isDark,
@@ -592,8 +591,7 @@ class _GenderSelector extends StatelessWidget {
             Expanded(
               child: _buildGenderOption(
                 label: 'Perempuan',
-                symbol: '♀',
-                symbolColor: const Color(0xFFD946EF),
+                icon: Icons.female_rounded,
                 isSelected: selectedGender.toLowerCase().contains('perempuan'),
                 onTap: () => onChanged('Perempuan'),
                 isDark: isDark,
@@ -607,56 +605,53 @@ class _GenderSelector extends StatelessWidget {
 
   Widget _buildGenderOption({
     required String label,
-    required String symbol,
-    required Color symbolColor,
+    required IconData icon,
     required bool isSelected,
     required VoidCallback onTap,
     required bool isDark,
   }) {
-    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
-    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFF0FAF5);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF3B8E67);
+    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFEFF8F3);
     final inactiveBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final inactiveBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final activeText = isDark ? const Color(0xFF6EE7B7) : primaryGreen;
-    final inactiveText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final activeText = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF1E5B3E);
+    final inactiveText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF334155);
+    final greyIconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: 50,
+        duration: const Duration(milliseconds: 180),
+        height: 48,
         decoration: BoxDecoration(
           color: isSelected ? activeBg : inactiveBg,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? primaryGreen : inactiveBorder,
-            width: isSelected ? 1.6 : 1.2,
+            width: isSelected ? 1.5 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              symbol,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: symbolColor,
-              ),
+            Icon(
+              icon,
+              size: 20,
+              color: greyIconColor,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 13.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                 color: isSelected ? activeText : inactiveText,
               ),
             ),

@@ -314,8 +314,6 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                         Expanded(
                           child: _buildGenderCard(
                             gender: 'Laki-laki',
-                            symbol: '♂',
-                            symbolColor: const Color(0xFF00BBA7),
                             isSelected: _selectedGender == 'Laki-laki',
                             isDark: isDark,
                           ),
@@ -324,15 +322,13 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                         Expanded(
                           child: _buildGenderCard(
                             gender: 'Perempuan',
-                            symbol: '♀',
-                            symbolColor: const Color(0xFFD946EF),
                             isSelected: _selectedGender == 'Perempuan',
                             isDark: isDark,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // C. INPUT DATA (Berat Badan & Tinggi Badan Cards)
                     _buildInputCard(
@@ -351,7 +347,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
                     _buildInputCard(
                       label: 'Tinggi Badan',
@@ -369,7 +365,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
                     _buildInputCard(
                       label: 'Usia',
@@ -387,7 +383,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
                     // E. CARD INFORMASI IMT
                     Container(
@@ -493,17 +489,20 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
 
   Widget _buildGenderCard({
     required String gender,
-    required String symbol,
-    required Color symbolColor,
     required bool isSelected,
     required bool isDark,
   }) {
-    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFF0FAF5);
+    final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFEFF8F3);
     final inactiveBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final activeBorder = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final activeBorder = isDark ? const Color(0xFF58AF86) : const Color(0xFF3B8E67);
     final inactiveBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final activeTextColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F);
-    final inactiveTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final activeColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF1E5B3E);
+    final inactiveColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF334155);
+    final greyIconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
+    final IconData icon = gender == 'Laki-laki'
+        ? Icons.male_rounded
+        : Icons.female_rounded;
 
     return GestureDetector(
       onTap: () {
@@ -513,32 +512,29 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        height: 50,
+        height: 48,
         decoration: BoxDecoration(
           color: isSelected ? activeBg : inactiveBg,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? activeBorder : inactiveBorder,
-            width: isSelected ? 1.6 : 1.2,
+            width: isSelected ? 1.5 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              symbol,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: symbolColor,
-              ),
+            Icon(
+              icon,
+              size: 20,
+              color: greyIconColor,
             ),
             const SizedBox(width: 8),
             Text(
@@ -546,9 +542,9 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? activeTextColor : inactiveTextColor,
+                fontSize: 13.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: isSelected ? activeColor : inactiveColor,
               ),
             ),
           ],
@@ -572,15 +568,16 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
     required Color textSecondary,
   }) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 14, 8),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cardBorder),
+        border: Border.all(color: cardBorder, width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -590,20 +587,25 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
-              const SizedBox(width: 6),
+              Icon(
+                icon,
+                size: 17,
+                color: isDark ? const Color(0xFF58AF86) : const Color(0xFF3B8E67),
+              ),
+              const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: textSecondary,
+                  color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 8),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: TextField(
@@ -617,20 +619,21 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                       });
                     }
                   },
+                  cursorColor: const Color(0xFF3B8E67),
                   style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                     color: textPrimary,
                   ),
                   decoration: InputDecoration(
                     isDense: true,
                     hintText: hintText,
                     hintStyle: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                       color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                    contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -638,17 +641,17 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   suffixText,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: textSecondary,
+                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                   ),
                 ),
               ),
