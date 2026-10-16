@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
+import '../../services/activity_alarm_service.dart';
 import '../../services/physical_activity_service.dart';
 import 'activity_rest_detail_screen.dart';
 
@@ -54,8 +55,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     if (!mounted) return;
     final service = ActivityTimerService.instance;
     if (service.isCompleted && !_hasShownDialog) {
+      _hasShownDialog = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || _hasShownDialog) return;
+        if (!mounted) return;
         _onTimerFinishedNaturally();
       });
     }
@@ -63,6 +65,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
   @override
   void dispose() {
+    ActivityAlarmService.instance.stopAlarm();
     ActivityTimerService.instance.removeListener(_handleTimerServiceUpdate);
     _scrollController.dispose();
     super.dispose();
@@ -179,6 +182,8 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
   }
 
   void _selectPreset(int seconds) {
+    _hasShownDialog = false;
+    ActivityAlarmService.instance.stopAlarm();
     ActivityTimerService.instance.setPreset(seconds);
   }
 
@@ -369,6 +374,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                 icon: const Icon(Icons.close_rounded, size: 22, color: Color(0xFF94A3B8)),
                 splashRadius: 18,
                 onPressed: () {
+                  ActivityAlarmService.instance.stopAlarm();
                   Navigator.pop(ctx);
                   service.cancelSession();
                   Navigator.of(context).pop(true);
@@ -440,6 +446,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                   elevation: 2,
                 ),
                 onPressed: () {
+                  ActivityAlarmService.instance.stopAlarm();
                   Navigator.pop(ctx); // Tutup dialog
                   service.cancelSession();
                   // Arahkan langsung ke halaman Istirahat Setelah Aktivitas
@@ -463,6 +470,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
         ),
       ),
     ).then((_) {
+      ActivityAlarmService.instance.stopAlarm();
       // Jika pengguna menutup popup via tap di luar dialog
       if (mounted && Navigator.of(context).canPop()) {
         service.cancelSession();
@@ -516,6 +524,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               onPressed: () {
+                ActivityAlarmService.instance.stopAlarm();
                 Navigator.pop(ctx);
                 service.cancelSession();
                 Navigator.of(context).pop();
@@ -529,6 +538,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
         ],
       ),
     ).then((_) {
+      ActivityAlarmService.instance.stopAlarm();
       if (mounted && Navigator.of(context).canPop()) {
         service.cancelSession();
         Navigator.of(context).pop();
@@ -558,36 +568,42 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
         final isRunning = service.isRunning;
         final selectedPreset = service.selectedPreset;
 
-        return Scaffold(
-          backgroundColor: const Color(0xFF36785A),
-          body: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Sticky Collapsing SliverAppBar dengan tombol back & title yang tetap menempel di atas
-              SliverAppBar(
-                expandedHeight: 230,
-                pinned: true,
-                elevation: _isSticky ? 2 : 0,
-                backgroundColor: const Color(0xFF36785A),
-                leading: IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: _isSticky ? Colors.transparent : Colors.black.withValues(alpha: 0.38),
-                      shape: BoxShape.circle,
+        return PopScope(
+          canPop: true,
+          onPopInvokedWithResult: (didPop, result) {
+            ActivityAlarmService.instance.stopAlarm();
+          },
+          child: Scaffold(
+            backgroundColor: const Color(0xFF36785A),
+            body: CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Sticky Collapsing SliverAppBar dengan tombol back & title yang tetap menempel di atas
+                SliverAppBar(
+                  expandedHeight: 230,
+                  pinned: true,
+                  elevation: _isSticky ? 2 : 0,
+                  backgroundColor: const Color(0xFF36785A),
+                  leading: IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: _isSticky ? Colors.transparent : Colors.black.withValues(alpha: 0.38),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                    onPressed: () {
+                      ActivityAlarmService.instance.stopAlarm();
+                      // Keluar dari halaman timer tanpa membatalkan sesi background
+                      Navigator.of(context).pop();
+                    },
                   ),
-                  onPressed: () {
-                    // Keluar dari halaman timer tanpa membatalkan sesi background
-                    Navigator.of(context).pop();
-                  },
-                ),
                 title: AnimatedOpacity(
                   opacity: _isSticky ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 200),
@@ -830,6 +846,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                         // "Batal" Action Button - Menghentikan dan menghapus state timer
                         TextButton(
                           onPressed: () {
+                            ActivityAlarmService.instance.stopAlarm();
                             service.cancelSession();
                             Navigator.of(context).pop();
                           },
@@ -851,8 +868,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
               ),
             ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'physical_activity_service.dart';
+import 'activity_alarm_service.dart';
 
 enum ActivityTimerStatus {
   idle,
@@ -31,6 +32,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   int _accumulatedElapsedSeconds = 0;
   DateTime? _segmentStartTime;
   ActivityTimerStatus _status = ActivityTimerStatus.idle;
+  bool _alarmTriggeredForSession = false;
 
   Timer? _ticker;
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -43,6 +45,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   int get targetDuration => _targetDuration;
   int? get selectedPreset => _selectedPreset;
   ActivityTimerStatus get status => _status;
+  bool get alarmTriggeredForSession => _alarmTriggeredForSession;
   bool get isRunning => _status == ActivityTimerStatus.running;
   bool get isPaused => _status == ActivityTimerStatus.paused;
   bool get isCompleted => _status == ActivityTimerStatus.completed;
@@ -217,6 +220,8 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     int? presetSeconds,
     String? dateKey,
   }) {
+    ActivityAlarmService.instance.stopAlarm();
+    _alarmTriggeredForSession = false;
     _activeActivity = activity;
     _dateKey = dateKey ?? PhysicalActivityService.instance.todayKey;
     _selectedPreset = presetSeconds;
@@ -231,6 +236,8 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Mengubah pilihan preset durasi (misal 30m, 45m, 60m)
   void setPreset(int seconds) {
+    ActivityAlarmService.instance.stopAlarm();
+    _alarmTriggeredForSession = false;
     _selectedPreset = seconds;
     _targetDuration = seconds;
     _accumulatedElapsedSeconds = 0;
@@ -276,6 +283,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
     _stopTicker();
     _cancelNotification();
+    ActivityAlarmService.instance.stopAlarm();
     notifyListeners();
   }
 
@@ -301,7 +309,24 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     // Auto-save checklist ke PhysicalActivityService
     _autoSaveChecklistIfEligible();
 
+    // Mainkan alarm tepat satu kali per sesi
+    if (!_alarmTriggeredForSession) {
+      _alarmTriggeredForSession = true;
+      final isRest = _activeActivity?['isRest'] == true;
+      if (isRest) {
+        ActivityAlarmService.instance.playRestAlarm();
+      } else {
+        ActivityAlarmService.instance.playActivityAlarm();
+      }
+    }
+
     notifyListeners();
+  }
+
+  /// Helper untuk pengujian unit saat waktu timer habis secara alami (00:00)
+  @visibleForTesting
+  void triggerTimeCompletedForTesting() {
+    _onTimeCompleted();
   }
 
   /// Auto-save checklist jika memenuhi syarat (>= 50% target atau selesai)
@@ -329,6 +354,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     }
     _stopTicker();
     _cancelNotification();
+    ActivityAlarmService.instance.stopAlarm();
     _segmentStartTime = null;
 
     final isEligible = meetsMinimum50Percent;
@@ -348,6 +374,8 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   void cancelSession() {
     _stopTicker();
     _cancelNotification();
+    ActivityAlarmService.instance.stopAlarm();
+    _alarmTriggeredForSession = false;
     _activeActivity = null;
     _dateKey = null;
     _targetDuration = 0;
@@ -378,6 +406,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _stopTicker();
+    ActivityAlarmService.instance.stopAlarm();
     super.dispose();
   }
 }

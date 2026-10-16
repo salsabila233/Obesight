@@ -199,17 +199,6 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       titleColor: const Color(0xFF2563EB),
                       iconWidget: _buildActivityIllustration(),
                       points: rec.physicalActivityRecommendations,
-                      actionLabel: 'Lihat Pilihan Aktivitas Fisik',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => PhysicalActivityScreen(
-                              skriningData: data,
-                              user: currentUser,
-                            ),
-                          ),
-                        );
-                      },
                     ),
 
                     const SizedBox(height: 14),
@@ -221,7 +210,6 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       iconWidget: _buildHydrationIllustration(),
                       points: rec.hydrationRecommendations,
                     ),
-
                     const SizedBox(height: 14),
 
                     // CARD 4: Istirahat yang cukup
