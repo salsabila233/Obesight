@@ -49,11 +49,11 @@ void main() {
     // Verifikasi tombol "Atur pengingat" sudah dihapus
     expect(find.text('Atur pengingat'), findsNothing);
 
-    // Verifikasi opsi filter grafik ada
-    expect(find.text('Jam'), findsOneWidget);
-    expect(find.text('Hari'), findsOneWidget);
-    expect(find.text('Minggu'), findsOneWidget);
-    expect(find.text('Bulan'), findsOneWidget);
+    // Verifikasi card grafik hari ini bersih dan filter jam/minggu/bulan telah dipindahkan ke riwayat
+    expect(find.text('Waktu tidur selama 7 hari terakhir'), findsOneWidget);
+    expect(find.text('Jam'), findsNothing);
+    expect(find.text('Minggu'), findsNothing);
+    expect(find.text('Bulan'), findsNothing);
 
     // 4. Test tombol Back -> Harus kembali ke ProgressScreen
     final backBtn = find.byIcon(Icons.arrow_back_ios_new_rounded).first;

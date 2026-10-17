@@ -193,44 +193,50 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _selectedHistoryDate = _selectedHistoryDate.subtract(const Duration(days: 1));
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+              Expanded(
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedHistoryDate = _selectedHistoryDate.subtract(const Duration(days: 1));
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+                      ),
                     ),
-                  ),
-                  Text(
-                    _formatDateIndo(_selectedHistoryDate),
-                    style: GoogleFonts.poppins(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E293B),
+                    Expanded(
+                      child: Text(
+                        _formatDateIndo(_selectedHistoryDate),
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _selectedHistoryDate = _selectedHistoryDate.add(const Duration(days: 1));
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedHistoryDate = _selectedHistoryDate.add(const Duration(days: 1));
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              if (totalMinutes > 0)
+              if (totalMinutes > 0) ...[
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -246,6 +252,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                     ),
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 6),
@@ -605,43 +612,49 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _currentWeekEnd = _currentWeekEnd.subtract(const Duration(days: 7));
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+              Expanded(
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _currentWeekEnd = _currentWeekEnd.subtract(const Duration(days: 7));
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+                      ),
                     ),
-                  ),
-                  Text(
-                    singleWeek.weekLabel,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E293B),
+                    Expanded(
+                      child: Text(
+                        singleWeek.weekLabel,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _currentWeekEnd = _currentWeekEnd.add(const Duration(days: 7));
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _currentWeekEnd = _currentWeekEnd.add(const Duration(days: 7));
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -796,8 +809,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 const SizedBox(height: 10),
                 const Divider(height: 1, color: Color(0xFFC7E5D6)),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  alignment: WrapAlignment.spaceBetween,
                   children: [
                     Text(
                       'Rata-rata tidur: ${singleWeek.averageBedtime}',
@@ -845,53 +860,59 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        // Mundur 1 bulan kalender
-                        final prevMonth = _currentWeekEnd.month == 1 ? 12 : _currentWeekEnd.month - 1;
-                        final prevYear = _currentWeekEnd.month == 1 ? _currentWeekEnd.year - 1 : _currentWeekEnd.year;
-                        final daysInPrev = DateTime(prevYear, prevMonth + 1, 0).day;
-                        final safeDay = _currentWeekEnd.day.clamp(1, daysInPrev);
-                        _currentWeekEnd = DateTime(prevYear, prevMonth, safeDay);
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+              Expanded(
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          // Mundur 1 bulan kalender
+                          final prevMonth = _currentWeekEnd.month == 1 ? 12 : _currentWeekEnd.month - 1;
+                          final prevYear = _currentWeekEnd.month == 1 ? _currentWeekEnd.year - 1 : _currentWeekEnd.year;
+                          final daysInPrev = DateTime(prevYear, prevMonth + 1, 0).day;
+                          final safeDay = _currentWeekEnd.day.clamp(1, daysInPrev);
+                          _currentWeekEnd = DateTime(prevYear, prevMonth, safeDay);
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+                      ),
                     ),
-                  ),
-                  Text(
-                    monthSummary.monthLabel,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E293B),
+                    Expanded(
+                      child: Text(
+                        monthSummary.monthLabel,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        // Maju 1 bulan kalender
-                        final nextMonth = _currentWeekEnd.month == 12 ? 1 : _currentWeekEnd.month + 1;
-                        final nextYear = _currentWeekEnd.month == 12 ? _currentWeekEnd.year + 1 : _currentWeekEnd.year;
-                        final daysInNext = DateTime(nextYear, nextMonth + 1, 0).day;
-                        final safeDay = _currentWeekEnd.day.clamp(1, daysInNext);
-                        _currentWeekEnd = DateTime(nextYear, nextMonth, safeDay);
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(10),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          // Maju 1 bulan kalender
+                          final nextMonth = _currentWeekEnd.month == 12 ? 1 : _currentWeekEnd.month + 1;
+                          final nextYear = _currentWeekEnd.month == 12 ? _currentWeekEnd.year + 1 : _currentWeekEnd.year;
+                          final daysInNext = DateTime(nextYear, nextMonth + 1, 0).day;
+                          final safeDay = _currentWeekEnd.day.clamp(1, daysInNext);
+                          _currentWeekEnd = DateTime(nextYear, nextMonth, safeDay);
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -1304,39 +1325,6 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF36785A)),
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () async {
-                await service.requestNotificationPermission();
-                await service.showInstantTestNotification();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Notifikasi pengingat tidur telah dikirim ke status bar!'),
-                      backgroundColor: Color(0xFF265C45),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.notifications_active_outlined, size: 18, color: Color(0xFF36785A)),
-              label: Text(
-                'Uji Notifikasi Sekarang',
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF36785A),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

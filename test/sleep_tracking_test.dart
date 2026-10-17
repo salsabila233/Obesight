@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:obesight/models/sleep_record_model.dart';
 import 'package:obesight/services/sleep_tracking_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -81,19 +82,15 @@ void main() {
   group('SleepTrackingService Logic Tests', () {
     late SleepTrackingService service;
 
-    setUp(() {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
       service = SleepTrackingService.instance;
+      await service.clearAll();
     });
 
-    test('Mendukung beberapa periode tidur dalam satu hari dan menjumlahkannya', () async {
+    test('1 Tanggal = 1 Data unik: Menimpa rekaman lama jika tanggal sama', () async {
       final testDate = DateTime(2026, 10, 10);
       final dateKey = SleepTrackingService.formatDateKey(testDate);
-
-      // Bersihkan record pada tanggal testDate jika ada
-      final existing = service.getRecordsForDate(testDate);
-      for (final r in existing) {
-        await service.deleteRecord(r.id);
-      }
 
       // Periode 1: 22:30 - 02:00 (3 jam 30 menit = 210 menit)
       final p1 = SleepRecord(
@@ -106,29 +103,29 @@ void main() {
       );
       await service.addRecord(p1);
 
-      // Periode 2: 02:30 - 06:30 (4 jam = 240 menit)
+      expect(service.getRecordsForDate(testDate).length, 1);
+      expect(service.getTotalSleepMinutesForDate(testDate), 210);
+
+      // Periode 2: Input baru pada tanggal yang sama (misal perbaikan / 7 jam = 420 menit)
+      // Harus menimpa rekaman lama p1
       final p2 = SleepRecord(
         id: 'multi_p2',
         userId: service.currentUserId,
         date: dateKey,
-        startTime: DateTime(2026, 10, 10, 2, 30),
-        endTime: DateTime(2026, 10, 10, 6, 30),
-        source: 'manual',
+        startTime: DateTime(2026, 10, 9, 23, 0),
+        endTime: DateTime(2026, 10, 10, 6, 0),
+        source: 'automatic',
       );
       await service.addRecord(p2);
 
       final records = service.getRecordsForDate(testDate);
-      expect(records.length, 2);
+      expect(records.length, 1);
+      expect(records.first.id, 'multi_p2');
 
-      // Total durasi = 210 + 240 = 450 menit (7 jam 30 menit)
       final totalMinutes = service.getTotalSleepMinutesForDate(testDate);
-      expect(totalMinutes, 450);
+      expect(totalMinutes, 420);
       expect(totalMinutes ~/ 60, 7);
-      expect(totalMinutes % 60, 30);
-
-      // Waktu terjaga di antara periode 1 & 2 = 02:00 -> 02:30 = 30 menit
-      final awakeMinutes = service.getAwakeMinutesForDate(testDate);
-      expect(awakeMinutes, 30);
+      expect(totalMinutes % 60, 0);
     });
 
     test('Deteksi tumpang tindih (overlap) untuk mencegah data ganda', () async {

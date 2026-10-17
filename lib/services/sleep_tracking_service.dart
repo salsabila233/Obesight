@@ -252,11 +252,15 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? get lastInactiveTime => _lastInactiveTime;
   SleepRecord? get pendingAutoDetectedRecord => _pendingAutoDetectedRecord;
 
-  /// Seluruh catatan tidur yang tersimpan (baik dari rekaman otomatis maupun input mandiri)
+  /// Seluruh catatan tidur yang tersimpan (1 Tanggal = Maksimal 1 Data Unik)
   List<SleepRecord> get allRecords {
+    final Map<String, SleepRecord> uniqueByDate = {};
     final list = List<SleepRecord>.from(_records);
     list.sort((a, b) => b.startTime.compareTo(a.startTime));
-    return list;
+    for (final rec in list) {
+      uniqueByDate.putIfAbsent(rec.date, () => rec);
+    }
+    return uniqueByDate.values.toList();
   }
 
   /// Memeriksa ketersediaan ekosistem kesehatan bawaan OS (Health Connect / Google Fit / Samsung Health)
@@ -688,17 +692,32 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     try {
-      // 1. Coba periksa native Android BroadcastReceiver timestamp via Platform Channel
+      // 1. Coba periksa native Android BroadcastReceiver & Sensor timestamp via Platform Channel
       final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
       final lastOnMillis = await _platformChannel.invokeMethod<int>('getLastScreenOn');
+      final lastDarkMillis = await _platformChannel.invokeMethod<int>('getLastDarkTime');
+      final lastLightRiseMillis = await _platformChannel.invokeMethod<int>('getLastLightRiseTime');
 
       if (lastOffMillis != null && lastOffMillis > 0) {
-        final offDt = DateTime.fromMillisecondsSinceEpoch(lastOffMillis);
+        var offDt = DateTime.fromMillisecondsSinceEpoch(lastOffMillis);
+        
+        // Sempurnakan dengan sensor cahaya: jika lampu kamar dimatikan (ruangan gelap) sekitar waktu layar mati
+        if (lastDarkMillis != null && lastDarkMillis > 0) {
+          final darkDt = DateTime.fromMillisecondsSinceEpoch(lastDarkMillis);
+          // Jika waktu gelap terjadi dalam rentang 45 menit dari layar mati di malam hari
+          if (darkDt.isAfter(offDt) && darkDt.difference(offDt).inMinutes <= 45) {
+            offDt = darkDt;
+          }
+        }
+
         final isNightStart = offDt.hour >= 20 || offDt.hour < 5;
 
         DateTime onDt;
         if (lastOnMillis != null && lastOnMillis > lastOffMillis) {
           onDt = DateTime.fromMillisecondsSinceEpoch(lastOnMillis);
+        } else if (lastLightRiseMillis != null && lastLightRiseMillis > lastOffMillis) {
+          // Terdeteksi cahaya pagi / lampu dinyalakan di pagi hari
+          onDt = DateTime.fromMillisecondsSinceEpoch(lastLightRiseMillis);
         } else if (now.hour >= 5 && now.hour <= 14 && now.isAfter(offDt)) {
           // Pengguna membuka HP pada pagi hari
           onDt = now;
@@ -709,8 +728,8 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         final diffMinutes = onDt.difference(offDt).inMinutes;
 
         // Syarat sesi tidur malam:
-        // Titik terakhir layar mati di rentang malam (>= 20.00 atau < 05.00),
-        // layar nyala di pagi hari, dan durasi istirahat substansial minimal 3 jam (180 menit) s.d. 14 jam (840 menit)
+        // Titik terakhir layar mati / gelap di rentang malam (>= 20.00 atau < 05.00),
+        // layar nyala / terang di pagi hari, dan durasi istirahat substansial minimal 3 jam (180 menit) s.d. 14 jam (840 menit)
         if (isNightStart && diffMinutes >= _minimumNightSleepMinutes && diffMinutes <= 840) {
           _recordAutomaticSleepCandidate(offDt, onDt);
           await _platformChannel.invokeMethod('clearScreenTimes');
@@ -779,14 +798,19 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   Future<bool> acceptPendingAutoRecord() async {
     if (_pendingAutoDetectedRecord != null) {
       final candidate = _pendingAutoDetectedRecord!;
-      // Hapus data yang sama jika ada sebelumnya
-      _records.removeWhere((r) =>
-          r.userId == candidate.userId &&
-          r.date == candidate.date &&
-          r.startTime == candidate.startTime &&
-          r.endTime == candidate.endTime);
+      // 1 Tanggal = Maksimal 1 Data Unik:
+      // Jika sudah ada catatan pada tanggal yang sama, ganti (timpa) catatan tersebut
+      final existingIndex = _records.indexWhere((r) => r.userId == candidate.userId && r.date == candidate.date);
+      if (existingIndex != -1) {
+        final oldRecord = _records[existingIndex];
+        if (oldRecord.id != candidate.id) {
+          _deleteFromFirestore(oldRecord.id);
+        }
+        _records[existingIndex] = candidate;
+      } else {
+        _records.add(candidate);
+      }
 
-      _records.add(candidate);
       _pendingAutoDetectedRecord = null;
       await _saveToLocal();
       _syncToRestReminder(candidate);
@@ -1282,32 +1306,46 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     return null;
   }
 
-  /// Tambah periode tidur baru (mendukung multi-periode)
+  /// Tambah atau perbarui catatan tidur (1 Tanggal = Maksimal 1 Data Unik)
   Future<void> addRecord(SleepRecord record) async {
-    // Validasi: tidak boleh duplikat persis
-    _records.removeWhere((r) =>
-        r.userId == record.userId &&
-        r.date == record.date &&
-        r.startTime == record.startTime &&
-        r.endTime == record.endTime);
+    // 1 Tanggal = Maksimal 1 Data Unik:
+    // Jika sudah ada catatan pada tanggal yang sama, ganti (timpa) catatan tersebut
+    final existingIndex = _records.indexWhere((r) => r.userId == record.userId && r.date == record.date);
+    if (existingIndex != -1) {
+      final oldRecord = _records[existingIndex];
+      if (oldRecord.id != record.id) {
+        _deleteFromFirestore(oldRecord.id);
+      }
+      _records[existingIndex] = record;
+    } else {
+      _records.add(record);
+    }
 
-    _records.add(record);
     await _saveToLocal();
     _syncToRestReminder(record);
     _syncToFirestore(record);
     notifyListeners();
   }
 
-  /// Perbarui periode tidur yang sudah ada
+  /// Perbarui periode tidur yang sudah ada (1 Tanggal = Maksimal 1 Data Unik)
   Future<void> updateRecord(SleepRecord updated) async {
+    // 1 Tanggal = 1 Data Unik: Hapus catatan lain pada tanggal yang sama jika id berbeda
+    final sameDateOther = _records.where((r) => r.userId == updated.userId && r.date == updated.date && r.id != updated.id).toList();
+    for (final other in sameDateOther) {
+      _deleteFromFirestore(other.id);
+    }
+    _records.removeWhere((r) => r.userId == updated.userId && r.date == updated.date && r.id != updated.id);
+
     final index = _records.indexWhere((r) => r.id == updated.id);
     if (index != -1) {
       _records[index] = updated;
-      await _saveToLocal();
-      _syncToRestReminder(updated);
-      _syncToFirestore(updated);
-      notifyListeners();
+    } else {
+      _records.add(updated);
     }
+    await _saveToLocal();
+    _syncToRestReminder(updated);
+    _syncToFirestore(updated);
+    notifyListeners();
   }
 
   /// Hapus periode tidur

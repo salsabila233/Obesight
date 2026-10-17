@@ -88,9 +88,9 @@ void main() {
     });
 
     // -------------------------------------------------------------------------
-    // POIN 3: Penyesuaian Grafik & Opsi Filter (Default: Hari Ini Saja)
+    // POIN 3: Pembersihan Filter Grafik di Halaman Utama & Navigasi ke Filter Lengkap
     // -------------------------------------------------------------------------
-    testWidgets('Poin 3: Opsi filter grafik (Default: Hari ini saja, Jam, Minggu, Bulan)', (tester) async {
+    testWidgets('Poin 3: Filter jam/minggu/bulan dihapus dari beranda, navigasi ke statistik lengkap', (tester) async {
       setPhoneViewport(tester);
 
       await tester.pumpWidget(
@@ -101,36 +101,50 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Default awal adalah Tab Hari (fokus hari ini saja)
-      expect(find.text('Waktu tidur hari ini'), findsOneWidget);
+      // 1. Verifikasi judul Card 2 adalah 'Waktu tidur selama 7 hari terakhir'
+      expect(find.text('Waktu tidur selama 7 hari terakhir'), findsOneWidget);
 
-      // Pindah ke tab Jam
-      final jamTab = find.text('Jam');
-      await tester.tap(jamTab);
-      await tester.pumpAndSettle();
-      expect(find.text('Distribusi tidur per jam hari ini'), findsOneWidget);
-      expect(find.byKey(const ValueKey('hourly_chart')), findsOneWidget);
+      // 2. Verifikasi tombol filter 'Jam', 'Minggu', 'Bulan' TIDAK ADA di halaman utama
+      expect(find.text('Jam'), findsNothing);
+      expect(find.text('Minggu'), findsNothing);
+      expect(find.text('Bulan'), findsNothing);
 
-      // Pindah ke tab Minggu (rentang 7 hari)
-      final mingguTab = find.text('Minggu');
-      await tester.tap(mingguTab);
-      await tester.pumpAndSettle();
-      expect(find.text('Waktu tidur selama 1 minggu (7 hari)'), findsOneWidget);
-      expect(find.byKey(const ValueKey('weekly_chart')), findsOneWidget);
+      // 3. State awal menampilkan data hari ini bersih (empty state)
+      expect(find.text('Belum ada data tidur hari ini'), findsOneWidget);
 
-      // Pindah ke tab Bulan (1 bulan kalender)
-      final bulanTab = find.text('Bulan');
-      await tester.tap(bulanTab);
+      // 4. Klik judul navigasi card untuk membuka halaman statistik lengkap
+      await tester.tap(find.text('Waktu tidur selama 7 hari terakhir'));
       await tester.pumpAndSettle();
-      expect(find.text('Waktu tidur selama 1 bulan kalender'), findsOneWidget);
-      expect(find.byKey(const ValueKey('monthly_chart')), findsOneWidget);
+
+      // 5. Di halaman SleepHistoryDetailScreen, filter lengkap tersedia
+      expect(find.byType(SleepHistoryDetailScreen), findsOneWidget);
+      expect(find.text('Jam'), findsOneWidget);
+      expect(find.text('Hari'), findsOneWidget);
+      expect(find.text('Minggu'), findsOneWidget);
+      expect(find.text('Bulan'), findsOneWidget);
+
+      // 6. Uji interaksi filter di halaman statistik lengkap
+      await tester.tap(find.text('Jam'));
+      await tester.pumpAndSettle();
+      expect(find.text('Visualisasi jam tidur malam (20.00 – 08.00) secara kronologis untuk tanggal terpilih'), findsOneWidget);
+
+      await tester.tap(find.text('Minggu'));
+      await tester.pumpAndSettle();
+      expect(find.text('Statistik tidur harian selama 1 minggu penuh (7 hari)'), findsOneWidget);
+
+      await tester.tap(find.text('Bulan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Akumulasi data tidur selama 1 bulan kalender penuh'), findsOneWidget);
     });
 
     // -------------------------------------------------------------------------
-    // POIN 4: Pengingat Waktu Tidur & Notifikasi Sistem
+    // POIN 4: Otomatisasi Pengingat Waktu Tidur Tanpa Tombol Uji Notifikasi
     // -------------------------------------------------------------------------
-    testWidgets('Poin 4: Pengaturan pengingat dan tombol Uji Notifikasi Sekarang', (tester) async {
+    testWidgets('Poin 4: Pengingat otomatis di latar belakang dan tombol "Uji Notifikasi Sekarang" telah dihapus', (tester) async {
       setPhoneViewport(tester);
+
+      final service = SleepTrackingService.instance;
+      service.reminderEnabled = true;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -140,56 +154,82 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verifikasi switch pengingat waktu tidur ada
+      // 1. Verifikasi switch pengingat waktu tidur dan target waktu tidur ada
       expect(find.text('Pengingat Waktu Tidur'), findsOneWidget);
       expect(find.text('Target Waktu Tidur'), findsOneWidget);
 
-      // Verifikasi tombol "Uji Notifikasi Sekarang" tersedia
-      final testBtn = find.text('Uji Notifikasi Sekarang');
-      expect(testBtn, findsOneWidget);
+      // 2. Verifikasi tombol "Uji Notifikasi Sekarang" sudah dihapus dari layar
+      expect(find.text('Uji Notifikasi Sekarang'), findsNothing);
 
-      // Mengetuk tombol uji notifikasi
-      await tester.ensureVisible(testBtn);
-      await tester.tap(testBtn);
+      // 3. Verifikasi info penjadwalan otomatis di latar belakang tampil
+      expect(find.textContaining('Sistem pengingat aktif otomatis di latar belakang'), findsOneWidget);
+
+      // 4. Toggle pengingat otomatis mengubah state dan menjadwalkan notifikasi
+      final switchFinder = find.byType(Switch);
+      expect(switchFinder, findsOneWidget);
+      await tester.tap(switchFinder);
       await tester.pumpAndSettle();
-
-      // SnackBar konfirmasi muncul
-      expect(find.text('Notifikasi pengingat tidur telah dikirim ke status bar!'), findsOneWidget);
+      expect(service.reminderEnabled, isFalse);
     });
 
     // -------------------------------------------------------------------------
-    // POIN 5: Menampilkan Seluruh Riwayat Catatan Tidur (Otomatis & Manual)
+    // POIN 5: Validasi Data Unik pada Riwayat Catatan Tidur (1 Tanggal = 1 Data)
     // -------------------------------------------------------------------------
-    testWidgets('Poin 5: Menampilkan seluruh riwayat tidur dari rekaman otomatis dan input manual', (tester) async {
+    testWidgets('Poin 5: Validasi 1 Tanggal = 1 Data unik (menimpa rekaman lama jika tanggal sama)', (tester) async {
       setPhoneViewport(tester);
 
       final service = SleepTrackingService.instance;
       final now = DateTime.now();
+      final dateKey = SleepTrackingService.formatDateKey(now);
 
-      // 1. Tambah record otomatis
+      // 1. Tambah record awal untuk hari ini (durasi 6 jam)
       await service.addRecord(
         SleepRecord(
-          id: 'auto_rec_1',
+          id: 'rec_today_v1',
           userId: 'user_test',
-          date: SleepTrackingService.formatDateKey(now),
+          date: dateKey,
+          startTime: now.subtract(const Duration(hours: 6)),
+          endTime: now,
+          source: 'manual',
+        ),
+      );
+      expect(service.allRecords.length, 1);
+      expect(service.allRecords.first.durationMinutes, 360);
+
+      // 2. Simpan record baru pada tanggal yang sama (misal hasil perbaikan / "Catat waktu ini" 8 jam)
+      // Harus menimpa record sebelumnya, TIDAK menghasilkan 2 data pada 1 tanggal
+      await service.addRecord(
+        SleepRecord(
+          id: 'rec_today_v2',
+          userId: 'user_test',
+          date: dateKey,
           startTime: now.subtract(const Duration(hours: 8)),
           endTime: now,
           source: 'automatic',
         ),
       );
 
-      // 2. Tambah record manual kemarin
+      expect(service.allRecords.length, 1);
+      expect(service.allRecords.first.id, 'rec_today_v2');
+      expect(service.allRecords.first.durationMinutes, 480);
+      expect(service.allRecords.first.isAutomatic, isTrue);
+
+      // 3. Tambah record untuk tanggal berbeda (kemarin)
       final yesterday = now.subtract(const Duration(days: 1));
+      final yesterdayKey = SleepTrackingService.formatDateKey(yesterday);
       await service.addRecord(
         SleepRecord(
-          id: 'manual_rec_2',
+          id: 'rec_yesterday',
           userId: 'user_test',
-          date: SleepTrackingService.formatDateKey(yesterday),
+          date: yesterdayKey,
           startTime: yesterday.subtract(const Duration(hours: 7)),
           endTime: yesterday,
           source: 'manual',
         ),
       );
+
+      // Total data harus tepat 2 (masing-masing tanggal unik)
+      expect(service.allRecords.length, 2);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -199,13 +239,36 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verifikasi section Riwayat Catatan Tidur
+      // Verifikasi di UI bahwa 2 tanggal unik ditampilkan
       expect(find.text('Riwayat Catatan Tidur'), findsOneWidget);
       expect(find.text('2 catatan'), findsOneWidget);
-
-      // Ikon ponsel (otomatis) dan ikon pensil (manual) muncul
       expect(find.byIcon(Icons.phone_android_rounded), findsOneWidget);
       expect(find.byIcon(Icons.edit_note_rounded), findsOneWidget);
+    });
+
+    // -------------------------------------------------------------------------
+    // POIN 6: Penyempurnaan Logika Deteksi Tidur Otomatis
+    // -------------------------------------------------------------------------
+    testWidgets('Poin 6: Logika deteksi tidur otomatis berdasarkan inaktivitas layar dan transisi cahaya', (tester) async {
+      final service = SleepTrackingService.instance;
+      final now = DateTime.now();
+
+      // Simulasi inaktivitas perangkat (tidur 7 jam)
+      service.simulateInactivity(
+        durationMinutes: 420,
+        customStart: now.subtract(const Duration(hours: 7)),
+        customEnd: now,
+      );
+
+      expect(service.pendingAutoDetectedRecord, isNotNull);
+      expect(service.pendingAutoDetectedRecord!.durationMinutes, 420);
+
+      // Terima kandidat otomatis
+      await service.acceptPendingAutoRecord();
+      expect(service.pendingAutoDetectedRecord, isNull);
+      expect(service.allRecords.length, 1);
+      expect(service.allRecords.first.isAutomatic, isTrue);
+      expect(service.allRecords.first.durationMinutes, 420);
     });
   });
 }

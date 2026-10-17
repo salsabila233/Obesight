@@ -13,9 +13,7 @@ class NightSleepDetailScreen extends StatefulWidget {
 }
 
 class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
-  // 0: Jam, 1: Hari, 2: Minggu, 3: Bulan (default: Hari)
-  int _selectedFilterTab = 1;
-  DateTime _selectedDate = DateTime.now();
+  final DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -425,31 +423,14 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   // ==========================================
-  // CARD 2: Grafik Riwayat Tidur
-  // Opsi: Jam | Hari | Minggu | Bulan
+  // CARD 2: Grafik Riwayat Tidur (Hari Ini Saja)
+  // Menampilkan fokus hari ini, navigasi ke SleepHistoryDetailScreen untuk filter lengkap
   // ==========================================
   Widget _buildHistoryChartCard({
     required SleepTrackingService service,
     required List<DailySleepSummary> summaries,
     required bool hasDataForSelectedDate,
   }) {
-    String cardTitle;
-    switch (_selectedFilterTab) {
-      case 0:
-        cardTitle = 'Distribusi tidur per jam hari ini';
-        break;
-      case 2:
-        cardTitle = 'Waktu tidur selama 1 minggu (7 hari)';
-        break;
-      case 3:
-        cardTitle = 'Waktu tidur selama 1 bulan kalender';
-        break;
-      case 1:
-      default:
-        cardTitle = 'Waktu tidur hari ini';
-        break;
-    }
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -468,7 +449,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row with Arrow > (buka riwayat lengkap & navigasi kalender)
+          // Header Row with Arrow > (buka riwayat lengkap & filter statistik)
           InkWell(
             onTap: _openHistoryDetail,
             borderRadius: BorderRadius.circular(8),
@@ -479,7 +460,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      cardTitle,
+                      'Waktu tidur selama 7 hari terakhir',
                       style: GoogleFonts.poppins(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
@@ -487,6 +468,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   const Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 13,
@@ -498,98 +480,18 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 12),
-
-          // Segmented Tabs: [ Jam | Hari | Minggu | Bulan ]
-          _buildSegmentedFilterTabs(),
           const SizedBox(height: 16),
 
-          // Konten Grafik berdasarkan tab terpilih
+          // Konten Grafik: HANYA HARI INI SAJA SECARA BERSIH
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 140),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: _buildChartContentForTab(
-                tabIndex: _selectedFilterTab,
-                service: service,
-                summaries: summaries,
-                hasDataForSelectedDate: hasDataForSelectedDate,
-              ),
-            ),
+            child: !service.hasTodayData
+                ? _buildDailyEmptyState()
+                : _buildTodayOnlyChart(service, _selectedDate),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildSegmentedFilterTabs() {
-    final tabs = ['Jam', 'Hari', 'Minggu', 'Bulan'];
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: tabs.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final title = entry.value;
-          final isSelected = _selectedFilterTab == idx;
-
-          return Expanded(
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _selectedFilterTab = idx;
-                });
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF36785A) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? Colors.white : const Color(0xFF64748B),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildChartContentForTab({
-    required int tabIndex,
-    required SleepTrackingService service,
-    required List<DailySleepSummary> summaries,
-    required bool hasDataForSelectedDate,
-  }) {
-    switch (tabIndex) {
-      case 0:
-        return _buildHourlyChart(service);
-      case 2:
-        return _buildWeeklyChart(service);
-      case 3:
-        return _buildMonthlyChart(service);
-      case 1:
-      default:
-        // Pada halaman awal, grafik yang dimunculkan secara default adalah untuk HARI INI SAJA
-        if (!service.hasTodayData) {
-          return _buildDailyEmptyState();
-        }
-        return _buildTodayOnlyChart(service, _selectedDate);
-    }
   }
 
   Widget _buildTodayOnlyChart(SleepTrackingService service, DateTime date) {
@@ -772,12 +674,32 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Center(
-          child: Text(
-            'Grafik durasi tidur hari ini. Ketuk tab "Minggu" untuk melihat rentang 7 hari.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF64748B)),
+          child: InkWell(
+            onTap: _openHistoryDetail,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Lihat riwayat lengkap & statistik tidur',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF265C45),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF265C45)),
+                ],
+              ),
+            ),
           ),
         ),
       ],
@@ -827,211 +749,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-
-  Widget _buildHourlyChart(SleepTrackingService service) {
-    final selectedHourly = service.getChronologicalHourlySleep(_selectedDate);
-
-    return Column(
-      key: const ValueKey('hourly_chart'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: SizedBox(
-            width: 440,
-            height: 140,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: selectedHourly.map((h) {
-                final isHighlighted = h.isAsleep;
-                return _buildFlexibleBar(
-                  topLabel: h.minutesSlept > 0 ? '${h.minutesSlept}m' : '',
-                  bottomLabel: h.hour.toString().padLeft(2, '0'),
-                  fraction: h.fraction,
-                  isHighlighted: isHighlighted,
-                  hasData: h.isAsleep,
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            'Rentang waktu istirahat malam (20.00 – 08.00) secara kronologis',
-            style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF64748B)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Tampilkan HANYA 1 minggu (7 hari: Sen - Min)
-  Widget _buildWeeklyChart(SleepTrackingService service) {
-    final singleWeek = service.getSingleWeekSummary(_selectedDate);
-    return Column(
-      key: const ValueKey('weekly_chart'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 140,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: singleWeek.days.map((d) {
-              final hours = d.totalMinutes / 60.0;
-              final fraction = (hours / 9.0).clamp(0.0, 1.0);
-              final isHighlighted = d.dateKey == SleepTrackingService.formatDateKey(_selectedDate);
-
-              return _buildFlexibleBar(
-                topLabel: d.hasData ? d.formattedDuration : '',
-                bottomLabel: d.dayName,
-                fraction: fraction,
-                isHighlighted: isHighlighted,
-                hasData: d.hasData,
-                onTap: () {
-                  setState(() {
-                    _selectedDate = d.date;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            'Periode: ${singleWeek.weekLabel} • Total: ${singleWeek.totalHours}j ${singleWeek.totalRemainingMinutes}m',
-            style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF64748B)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Tampilkan HANYA 1 bulan kalender
-  Widget _buildMonthlyChart(SleepTrackingService service) {
-    final monthSummary = service.getCalendarMonthSummary(_selectedDate);
-    return Column(
-      key: const ValueKey('monthly_chart'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 140,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: monthSummary.weeklyChunks.map((w) {
-              final hours = w.averageMinutesPerDay / 60.0;
-              final fraction = (hours / 9.0).clamp(0.0, 1.0);
-
-              return _buildFlexibleBar(
-                topLabel: w.hasData ? w.formattedAverage : '',
-                bottomLabel: w.weekLabel,
-                fraction: fraction,
-                isHighlighted: w.isCurrentWeek,
-                hasData: w.hasData,
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            'Bulan: ${monthSummary.monthLabel} • Total: ${monthSummary.totalHours}j ${monthSummary.totalRemainingMinutes}m',
-            style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF64748B)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFlexibleBar({
-    required String topLabel,
-    required String bottomLabel,
-    required double fraction,
-    required bool isHighlighted,
-    required bool hasData,
-    VoidCallback? onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Column(
-            children: [
-              // Top duration label
-              Flexible(
-                flex: 0,
-                child: SizedBox(
-                  height: 18,
-                  child: Center(
-                    child: hasData && topLabel.isNotEmpty
-                        ? FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              topLabel,
-                              style: GoogleFonts.poppins(
-                                fontSize: 9,
-                                fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
-                                color: isHighlighted ? const Color(0xFF265C45) : const Color(0xFF475569),
-                              ),
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-
-              // Bar
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: FractionallySizedBox(
-                    heightFactor: hasData ? fraction.clamp(0.08, 1.0) : 0.04,
-                    widthFactor: 0.55,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: hasData
-                            ? (isHighlighted ? const Color(0xFF265C45) : const Color(0xFFA5D6C1))
-                            : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-
-              // Bottom day/axis label
-              Flexible(
-                flex: 0,
-                child: SizedBox(
-                  height: 18,
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        bottomLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
-                          color: isHighlighted ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

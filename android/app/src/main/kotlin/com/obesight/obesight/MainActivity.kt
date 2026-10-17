@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Build
 import android.os.PowerManager
 import io.flutter.embedding.android.FlutterActivity
@@ -14,6 +18,10 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.obesight.obesight/device_activity"
     private var screenReceiver: BroadcastReceiver? = null
+    private var sensorManager: SensorManager? = null
+    private var lightSensor: Sensor? = null
+    private var lightListener: SensorEventListener? = null
+    private var currentAmbientLux: Float = -1f
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -29,8 +37,24 @@ class MainActivity : FlutterActivity() {
                     val lastOn = prefs.getLong("last_screen_on_millis", 0L)
                     result.success(lastOn)
                 }
+                "getLastDarkTime" -> {
+                    val lastDark = prefs.getLong("last_dark_millis", 0L)
+                    result.success(lastDark)
+                }
+                "getLastLightRiseTime" -> {
+                    val lastLightRise = prefs.getLong("last_light_rise_millis", 0L)
+                    result.success(lastLightRise)
+                }
+                "getAmbientLux" -> {
+                    result.success(currentAmbientLux)
+                }
                 "clearScreenTimes" -> {
-                    prefs.edit().remove("last_screen_off_millis").remove("last_screen_on_millis").apply()
+                    prefs.edit()
+                        .remove("last_screen_off_millis")
+                        .remove("last_screen_on_millis")
+                        .remove("last_dark_millis")
+                        .remove("last_light_rise_millis")
+                        .apply()
                     result.success(true)
                 }
                 "isScreenInteractive" -> {
@@ -39,7 +63,6 @@ class MainActivity : FlutterActivity() {
                     result.success(isInteractive)
                 }
                 "checkHealthEcosystemAvailable" -> {
-                    // Check if Health Connect, Google Fit, or Samsung Health is installed
                     val healthPackages = listOf(
                         "com.google.android.apps.healthdata", // Android Health Connect
                         "com.google.android.apps.fitness",     // Google Fit
@@ -54,7 +77,6 @@ class MainActivity : FlutterActivity() {
                             break
                         } catch (_: Exception) {}
                     }
-                    // On Android 14+ (API 34+), Health Connect is built into the system platform
                     if (!available && Build.VERSION.SDK_INT >= 34) {
                         available = true
                     }
@@ -65,6 +87,7 @@ class MainActivity : FlutterActivity() {
         }
 
         registerScreenReceiver()
+        registerLightSensor()
     }
 
     private fun registerScreenReceiver() {
@@ -84,16 +107,15 @@ class MainActivity : FlutterActivity() {
 
                 when (intent?.action) {
                     Intent.ACTION_SCREEN_OFF -> {
-                        // Catat titik terakhir layar mati pada rentang malam (>= 20.00 atau < 05.00)
+                        // Titik terakhir layar mati pada rentang malam (>= 20.00 atau < 05.00)
                         if (hour >= 20 || hour < 5) {
                             prefs.edit().putLong("last_screen_off_millis", now).apply()
                         }
                     }
                     Intent.ACTION_USER_PRESENT, Intent.ACTION_SCREEN_ON -> {
-                        // Catat layar aktif pertama di pagi hari (>= 05.00 dan <= 14.00)
+                        // Titik bangun pertama di pagi hari (>= 05.00 dan <= 14.00)
                         val lastOff = prefs.getLong("last_screen_off_millis", 0L)
                         val lastOn = prefs.getLong("last_screen_on_millis", 0L)
-                        // Kunci waktu bangun pada unlock/layar aktif pertama di pagi hari (tidak tertimpa lagi)
                         if (lastOff > 0L && (hour in 5..14)) {
                             if (lastOn <= lastOff) {
                                 prefs.edit().putLong("last_screen_on_millis", now).apply()
@@ -106,14 +128,53 @@ class MainActivity : FlutterActivity() {
         registerReceiver(screenReceiver, filter)
     }
 
+    private fun registerLightSensor() {
+        try {
+            sensorManager = getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+            lightSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_LIGHT)
+            if (lightSensor != null) {
+                lightListener = object : SensorEventListener {
+                    override fun onSensorChanged(event: SensorEvent?) {
+                        val lux = event?.values?.getOrNull(0) ?: return
+                        currentAmbientLux = lux
+                        val prefs = getSharedPreferences("obesight_device_activity", Context.MODE_PRIVATE)
+                        val now = System.currentTimeMillis()
+                        val cal = java.util.Calendar.getInstance()
+                        val hour = cal.get(java.util.Calendar.HOUR_OF_DAY)
+
+                        // 1. Deteksi lampu dimatikan / ruangan gelap (< 5 lux) di malam hari
+                        if (lux < 5.0f && (hour >= 20 || hour < 5)) {
+                            prefs.edit().putLong("last_dark_millis", now).apply()
+                        }
+
+                        // 2. Deteksi transisi terang / matahari / lampu pagi (> 40 lux) di pagi hari
+                        if (lux > 40.0f && (hour in 5..11)) {
+                            val lastOff = prefs.getLong("last_screen_off_millis", 0L)
+                            val lastRise = prefs.getLong("last_light_rise_millis", 0L)
+                            if (lastOff > 0L && lastRise <= lastOff) {
+                                prefs.edit().putLong("last_light_rise_millis", now).apply()
+                            }
+                        }
+                    }
+
+                    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+                }
+                sensorManager?.registerListener(lightListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL)
+            }
+        } catch (_: Exception) {}
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         screenReceiver?.let {
             try {
                 unregisterReceiver(it)
-            } catch (e: Exception) {
-                // ignore
-            }
+            } catch (_: Exception) {}
+        }
+        lightListener?.let {
+            try {
+                sensorManager?.unregisterListener(it)
+            } catch (_: Exception) {}
         }
     }
 }
