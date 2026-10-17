@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class SleepRecord {
   final String id;
   final String userId;
@@ -22,18 +24,23 @@ class SleepRecord {
     DateTime? updatedAt,
     this.note,
   })  : endTime = (endTime.isBefore(startTime)) ? endTime.add(const Duration(days: 1)) : endTime,
-        durationMinutes = durationMinutes ?? calculateDurationMinutes(startTime, endTime),
+        durationMinutes = durationMinutes != null && durationMinutes > 0
+            ? durationMinutes
+            : calculateDurationMinutes(
+                startTime,
+                endTime.isBefore(startTime) ? endTime.add(const Duration(days: 1)) : endTime,
+              ),
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
   /// Menghitung durasi tidur dalam menit dengan benar, menangani pergantian hari (melewati tengah malam)
   static int calculateDurationMinutes(DateTime start, DateTime end) {
-    var diff = end.difference(start).inMinutes;
-    if (diff <= 0) {
-      // Jika waktu bangun terlihat lebih awal dari waktu mulai di hari yang sama,
-      // diasumsikan waktu bangun adalah hari berikutnya (+24 jam)
-      diff += 24 * 60;
+    if (start.isAtSameMomentAs(end)) return 0;
+    var effectiveEnd = end;
+    if (effectiveEnd.isBefore(start)) {
+      effectiveEnd = effectiveEnd.add(const Duration(days: 1));
     }
+    final diff = effectiveEnd.difference(start).inMinutes;
     return diff > 0 ? diff : 0;
   }
 
@@ -89,21 +96,51 @@ class SleepRecord {
       'id': id,
       'user_id': userId,
       'tanggal': date,
-      'waktu_mulai': startTime.toIso8601String(),
-      'waktu_bangun': endTime.toIso8601String(),
+      'waktu_mulai': startTime.toUtc().toIso8601String(),
+      'waktu_bangun': endTime.toUtc().toIso8601String(),
       'durasi': durationMinutes,
       'sumber_data': source,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
       'catatan': note,
     };
   }
 
+  Map<String, dynamic> toFirestoreMap() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'tanggal': date,
+      'waktu_mulai': Timestamp.fromDate(startTime.toUtc()),
+      'waktu_bangun': Timestamp.fromDate(endTime.toUtc()),
+      'durasi': durationMinutes,
+      'sumber_data': source,
+      'created_at': Timestamp.fromDate(createdAt.toUtc()),
+      'updated_at': Timestamp.fromDate(updatedAt.toUtc()),
+      'catatan': note,
+    };
+  }
+
+  static DateTime _parseDateTime(dynamic val, DateTime fallback) {
+    if (val == null) return fallback;
+    if (val is Timestamp) return val.toDate().toLocal();
+    if (val is DateTime) return val.toLocal();
+    if (val is int) return DateTime.fromMillisecondsSinceEpoch(val).toLocal();
+    if (val is String) {
+      final parsed = DateTime.tryParse(val);
+      if (parsed != null) return parsed.toLocal();
+    }
+    return fallback;
+  }
+
   factory SleepRecord.fromMap(Map<String, dynamic> map, [String? docId]) {
-    final startStr = map['waktu_mulai'] as String?;
-    final endStr = map['waktu_bangun'] as String?;
-    final start = startStr != null ? DateTime.parse(startStr) : DateTime.now();
-    final end = endStr != null ? DateTime.parse(endStr) : DateTime.now().add(const Duration(hours: 7));
+    final startRaw = map['waktu_mulai'] ?? map['startTime'];
+    final endRaw = map['waktu_bangun'] ?? map['endTime'];
+    final start = _parseDateTime(startRaw, DateTime.now());
+    final end = _parseDateTime(endRaw, start.add(const Duration(hours: 7)));
+
+    final createdRaw = map['created_at'] ?? map['createdAt'];
+    final updatedRaw = map['updated_at'] ?? map['updatedAt'];
 
     return SleepRecord(
       id: docId ?? (map['id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString()),
@@ -114,9 +151,9 @@ class SleepRecord {
       endTime: end,
       durationMinutes: (map['durasi'] ?? map['duration']) as int?,
       source: (map['sumber_data'] ?? map['source']) as String? ?? 'manual',
-      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at'] as String) : null,
-      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at'] as String) : null,
-      note: map['catatan'] as String?,
+      createdAt: createdRaw != null ? _parseDateTime(createdRaw, DateTime.now()) : null,
+      updatedAt: updatedRaw != null ? _parseDateTime(updatedRaw, DateTime.now()) : null,
+      note: (map['catatan'] ?? map['note']) as String?,
     );
   }
 

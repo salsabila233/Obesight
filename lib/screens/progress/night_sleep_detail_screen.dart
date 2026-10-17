@@ -14,6 +14,7 @@ class NightSleepDetailScreen extends StatefulWidget {
 
 class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   final DateTime _selectedDate = DateTime.now();
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -22,10 +23,14 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   void _openForm({SleepRecord? recordToEdit}) {
+    final service = SleepTrackingService.instance;
+    final recs = service.getRecordsForDate(_selectedDate);
+    final targetRecord = recordToEdit ?? (recs.isNotEmpty ? recs.first : null);
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SleepRecordFormScreen(
-          recordToEdit: recordToEdit,
+          recordToEdit: targetRecord,
           initialDate: _selectedDate,
         ),
       ),
@@ -335,37 +340,106 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             ],
                           ),
                         ),
-                        // Tombol Aksi "Catat waktu ini"
-                        if (!hasDataForSelectedDate)
-                          InkWell(
-                            onTap: () async {
-                              if (isSelectedToday && pendingAuto != null) {
-                                await service.acceptPendingAutoRecord();
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Perkiraan waktu tidur (${pendingAuto.timeRangeFormatted}) berhasil dicatat ke progres harian dan database.',
-                                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
-                                      ),
-                                      backgroundColor: const Color(0xFF36785A),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                }
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Data perkiraan waktu tidur belum tersedia. Silakan gunakan tombol Masukkan data.',
-                                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
-                                    ),
-                                    backgroundColor: const Color(0xFFE11D48),
-                                    behavior: SnackBarBehavior.floating,
+                        // Tombol Aksi: "Tersimpan" jika data sudah tercatat, atau "Catat waktu ini" jika belum
+                        if (hasDataForSelectedDate)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEDF7F2),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFA5D6C1)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 14,
+                                  color: Color(0xFF265C45),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Tersimpan',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF265C45),
                                   ),
-                                );
-                              }
-                            },
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          InkWell(
+                            onTap: _isSaving
+                                ? null
+                                : () async {
+                                    if (isSelectedToday && pendingAuto != null) {
+                                      setState(() {
+                                        _isSaving = true;
+                                      });
+                                      try {
+                                        final success = await service.acceptPendingAutoRecord();
+                                        if (success) {
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Perkiraan waktu tidur (${pendingAuto.timeRangeFormatted}) berhasil dicatat ke progres harian dan database.',
+                                                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
+                                                ),
+                                                backgroundColor: const Color(0xFF36785A),
+                                                behavior: SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Gagal menyimpan data tidur. Silakan coba lagi.',
+                                                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
+                                                ),
+                                                backgroundColor: const Color(0xFFEF4444),
+                                                behavior: SnackBarBehavior.floating,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Terjadi kesalahan saat menyimpan data: $e',
+                                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
+                                              ),
+                                              backgroundColor: const Color(0xFFEF4444),
+                                              behavior: SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
+                                      } finally {
+                                        if (mounted) {
+                                          setState(() {
+                                            _isSaving = false;
+                                          });
+                                        }
+                                      }
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Data perkiraan waktu tidur belum tersedia. Silakan gunakan tombol Masukkan data.',
+                                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
+                                          ),
+                                          backgroundColor: const Color(0xFFE11D48),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    }
+                                  },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -373,14 +447,23 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                 color: const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: Text(
-                                'Catat waktu ini',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1E293B),
-                                ),
-                              ),
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                                      ),
+                                    )
+                                  : Text(
+                                      'Catat waktu ini',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF1E293B),
+                                      ),
+                                    ),
                             ),
                           ),
                       ],
@@ -482,19 +565,23 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 16),
 
-          // Konten Grafik: HANYA HARI INI SAJA SECARA BERSIH
+          // Konten Grafik: HARI INI & 7 HARI TERAKHIR
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 140),
-            child: !service.hasTodayData
+            child: !hasDataForSelectedDate
                 ? _buildDailyEmptyState()
-                : _buildTodayOnlyChart(service, _selectedDate),
+                : _buildTodayOnlyChart(service, _selectedDate, summaries),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTodayOnlyChart(SleepTrackingService service, DateTime date) {
+  Widget _buildTodayOnlyChart(
+    SleepTrackingService service,
+    DateTime date,
+    List<DailySleepSummary> summaries,
+  ) {
     final recs = service.getRecordsForDate(date);
     final totalMinutes = recs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
     final targetM = service.targetSleepMinutes;
@@ -672,34 +759,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        Center(
-          child: InkWell(
-            onTap: _openHistoryDetail,
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Lihat riwayat lengkap & statistik tidur',
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF265C45),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF265C45)),
-                ],
-              ),
-            ),
           ),
         ),
       ],

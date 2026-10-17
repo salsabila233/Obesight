@@ -567,7 +567,15 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         _records.clear();
         for (final item in decoded) {
           if (item is Map) {
-            _records.add(SleepRecord.fromMap(Map<String, dynamic>.from(item)));
+            final rec = SleepRecord.fromMap(Map<String, dynamic>.from(item));
+            final existingIdx = _records.indexWhere((r) => r.userId == rec.userId && r.date == rec.date);
+            if (existingIdx != -1) {
+              if (rec.updatedAt.isAfter(_records[existingIdx].updatedAt)) {
+                _records[existingIdx] = rec;
+              }
+            } else {
+              _records.add(rec);
+            }
           }
         }
       }
@@ -804,7 +812,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       if (existingIndex != -1) {
         final oldRecord = _records[existingIndex];
         if (oldRecord.id != candidate.id) {
-          _deleteFromFirestore(oldRecord.id);
+          await _deleteFromFirestore(oldRecord.id);
         }
         _records[existingIndex] = candidate;
       } else {
@@ -814,7 +822,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       _pendingAutoDetectedRecord = null;
       await _saveToLocal();
       _syncToRestReminder(candidate);
-      _syncToFirestore(candidate);
+      await _syncToFirestore(candidate);
       notifyListeners();
       return true;
     }
@@ -1035,6 +1043,17 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
           final oEnd2 = rEnd.isBefore(hourEndPrevDay) ? rEnd : hourEndPrevDay;
           if (oEnd2.isAfter(oStart2)) {
             minutesInThisHour += oEnd2.difference(oStart2).inMinutes;
+          }
+        }
+
+        // Overlap di hari berikutnya (khusus jam pagi h < 12)
+        if (h < 12) {
+          final hourStartNextDay = DateTime(date.year, date.month, date.day + 1, h, 0);
+          final hourEndNextDay = hourStartNextDay.add(const Duration(hours: 1));
+          final oStart3 = rStart.isAfter(hourStartNextDay) ? rStart : hourStartNextDay;
+          final oEnd3 = rEnd.isBefore(hourEndNextDay) ? rEnd : hourEndNextDay;
+          if (oEnd3.isAfter(oStart3)) {
+            minutesInThisHour += oEnd3.difference(oStart3).inMinutes;
           }
         }
       }
@@ -1314,16 +1333,20 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     if (existingIndex != -1) {
       final oldRecord = _records[existingIndex];
       if (oldRecord.id != record.id) {
-        _deleteFromFirestore(oldRecord.id);
+        await _deleteFromFirestore(oldRecord.id);
       }
       _records[existingIndex] = record;
     } else {
       _records.add(record);
     }
 
+    if (_pendingAutoDetectedRecord != null && _pendingAutoDetectedRecord!.date == record.date) {
+      _pendingAutoDetectedRecord = null;
+    }
+
     await _saveToLocal();
     _syncToRestReminder(record);
-    _syncToFirestore(record);
+    await _syncToFirestore(record);
     notifyListeners();
   }
 
@@ -1332,7 +1355,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     // 1 Tanggal = 1 Data Unik: Hapus catatan lain pada tanggal yang sama jika id berbeda
     final sameDateOther = _records.where((r) => r.userId == updated.userId && r.date == updated.date && r.id != updated.id).toList();
     for (final other in sameDateOther) {
-      _deleteFromFirestore(other.id);
+      await _deleteFromFirestore(other.id);
     }
     _records.removeWhere((r) => r.userId == updated.userId && r.date == updated.date && r.id != updated.id);
 
@@ -1342,9 +1365,14 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     } else {
       _records.add(updated);
     }
+
+    if (_pendingAutoDetectedRecord != null && _pendingAutoDetectedRecord!.date == updated.date) {
+      _pendingAutoDetectedRecord = null;
+    }
+
     await _saveToLocal();
     _syncToRestReminder(updated);
-    _syncToFirestore(updated);
+    await _syncToFirestore(updated);
     notifyListeners();
   }
 
@@ -1385,7 +1413,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
           .doc(uid)
           .collection('sleep_records')
           .doc(record.id)
-          .set(record.toMap(), SetOptions(merge: true));
+          .set(record.toFirestoreMap(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('[SleepTrackingService] Sync Firestore error: $e');
     }
@@ -1422,15 +1450,30 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
+        bool hasChanges = false;
         for (final doc in snapshot.docs) {
           final rec = SleepRecord.fromMap(doc.data(), doc.id);
-          final exists = _records.any((r) => r.id == rec.id);
-          if (!exists) {
+          final existingIdx = _records.indexWhere((r) => r.userId == rec.userId && r.date == rec.date);
+          if (existingIdx == -1) {
             _records.add(rec);
+            hasChanges = true;
+          } else {
+            if (rec.updatedAt.isAfter(_records[existingIdx].updatedAt)) {
+              final oldRec = _records[existingIdx];
+              if (oldRec.id != rec.id) {
+                _deleteFromFirestore(oldRec.id);
+              }
+              _records[existingIdx] = rec;
+              hasChanges = true;
+            } else if (_records[existingIdx].id != rec.id) {
+              _deleteFromFirestore(doc.id);
+            }
           }
         }
-        await _saveToLocal();
-        notifyListeners();
+        if (hasChanges) {
+          await _saveToLocal();
+          notifyListeners();
+        }
       }
     } catch (e) {
       debugPrint('[SleepTrackingService] Load Firestore error: $e');
@@ -1458,14 +1501,19 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         bool hasChanges = false;
         for (final doc in snapshot.docs) {
           final rec = SleepRecord.fromMap(doc.data(), doc.id);
-          final idx = _records.indexWhere((r) => r.id == rec.id);
-          if (idx == -1) {
+          final existingIdx = _records.indexWhere((r) => r.userId == rec.userId && r.date == rec.date);
+          if (existingIdx == -1) {
             _records.add(rec);
             hasChanges = true;
           } else {
-            if (_records[idx].updatedAt != rec.updatedAt ||
-                _records[idx].durationMinutes != rec.durationMinutes) {
-              _records[idx] = rec;
+            if (_records[existingIdx].id == rec.id) {
+              if (_records[existingIdx].updatedAt != rec.updatedAt ||
+                  _records[existingIdx].durationMinutes != rec.durationMinutes) {
+                _records[existingIdx] = rec;
+                hasChanges = true;
+              }
+            } else if (rec.updatedAt.isAfter(_records[existingIdx].updatedAt)) {
+              _records[existingIdx] = rec;
               hasChanges = true;
             }
           }

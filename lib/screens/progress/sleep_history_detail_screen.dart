@@ -1095,7 +1095,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   children: summaries.map((summary) {
                     final hours = summary.totalMinutes / 60.0;
                     final fraction = (hours / maxHours).clamp(0.0, 1.0);
-                    final barH = (fraction * (chartHeight - 34)).clamp(summary.hasData ? 14.0 : 4.0, chartHeight - 34);
+                    final barH = (fraction * (chartHeight - 44)).clamp(summary.hasData ? 14.0 : 4.0, chartHeight - 44);
                     final selectedKey = SleepTrackingService.formatDateKey(_selectedHistoryDate);
                     final isSelected = summary.dateKey == selectedKey;
 
