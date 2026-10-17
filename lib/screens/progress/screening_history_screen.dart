@@ -4,7 +4,6 @@ import '../../models/screening_history_model.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/screening_history_service.dart';
-import '../settings/settings_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 import '../skrining/skrining_result_screen.dart';
 
@@ -91,7 +90,7 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(18, 22, 18, 100),
+                padding: const EdgeInsets.fromLTRB(18, 22, 18, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -304,15 +303,6 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
         },
       ),
 
-      // ==========================================
-      // 4. FLOATING BOTTOM NAVIGATION BAR
-      // ==========================================
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-          child: _buildFloatingBottomNav(isDark),
-        ),
-      ),
     );
   }
 
@@ -668,91 +658,6 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
             label: Text(
               'Mulai Skrining Sekarang',
               style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Custom Floating Bottom Navigation Bar (Home, Analytics/Chart [Active], Settings)
-  Widget _buildFloatingBottomNav(bool isDark) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : Colors.transparent,
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : const Color(0xFF2E6B4F).withValues(alpha: 0.35),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Tab 0: Home (Kembali ke Beranda)
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.home_rounded,
-                color: isDark ? const Color(0xFF94A3B8) : Colors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
-            ),
-          ),
-
-          // Tab 1: Stats / Bar Chart (Aktif pada Halaman Riwayat Skrining)
-          Container(
-            width: 44,
-            height: 38,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF334155) : Colors.white.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.bar_chart_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-
-          // Tab 2: Settings (Pengaturan)
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => SettingsScreen(user: _effectiveUser),
-                ),
-              );
-            },
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.settings_rounded,
-                color: isDark ? const Color(0xFF94A3B8) : Colors.white.withValues(alpha: 0.8),
-                size: 24,
-              ),
             ),
           ),
         ],

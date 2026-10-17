@@ -166,6 +166,9 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
         elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
           onPressed: () => Navigator.of(context).pop(),

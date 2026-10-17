@@ -76,7 +76,11 @@ class ImtResultScreen extends StatelessWidget {
                     // HERO CARD HIJAU DENGAN ILUSTRASI PEREMPUAN BERLARI & ANGKA BESAR
                     Container(
                       width: double.infinity,
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+                      ),
+                      clipBehavior: Clip.antiAlias,
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
