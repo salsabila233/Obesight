@@ -51,10 +51,10 @@ class SkriningData {
   set aiPredictedClass(String? val) => aiRawClass = val;
 
   SkriningData({
-    this.gender = 'Perempuan',
-    this.age = 23,
-    this.height = 165,
-    this.weight = 72,
+    this.gender,
+    this.age,
+    this.height,
+    this.weight,
     this.familyHistory,
     this.highCalorieFood,
     this.vegetableIntake,
@@ -92,13 +92,14 @@ class SkriningData {
   // Calculate BMI
   double get bmi {
     if (height == null || weight == null || height! <= 0 || weight! <= 0) {
-      return 26.8;
+      return 0.0;
     }
     final hMeters = height! / 100.0;
     return weight! / (hMeters * hMeters);
   }
 
   String get formattedBmi {
+    if (bmi <= 0) return '0,0';
     return bmi.toStringAsFixed(1).replaceAll('.', ',');
   }
 
@@ -304,6 +305,22 @@ class SkriningData {
   }
 
   factory SkriningData.fromMap(Map<String, dynamic> map) {
+    DateTime? parsedDate;
+    final rawDate = map['date'] ?? map['createdAt'];
+    if (rawDate != null) {
+      if (rawDate is DateTime) {
+        parsedDate = rawDate;
+      } else if (rawDate.runtimeType.toString().contains('Timestamp')) {
+        try {
+          parsedDate = (rawDate as dynamic).toDate();
+        } catch (_) {}
+      } else if (rawDate is String) {
+        parsedDate = DateTime.tryParse(rawDate);
+      } else if (rawDate is int) {
+        parsedDate = DateTime.fromMillisecondsSinceEpoch(rawDate);
+      }
+    }
+
     return SkriningData(
       gender: map['gender'] as String?,
       age: (map['age'] as num?)?.toInt(),
@@ -333,7 +350,7 @@ class SkriningData {
       aiConfidence: (map['aiConfidence'] as num?)?.toDouble(),
       isPredictionSuccess: map['isPredictionSuccess'] as bool? ?? false,
       predictionErrorMessage: map['predictionErrorMessage'] as String?,
-      date: map['date'] != null ? DateTime.tryParse(map['date'] as String) : null,
+      date: parsedDate,
     );
   }
 }

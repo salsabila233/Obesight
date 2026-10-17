@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../screens/skrining/skrining_models.dart';
 
@@ -74,6 +75,7 @@ class ScreeningHistoryItem {
     return const Color(0xFF22C55E); // Green
   }
 
+  /// Format data untuk penyimpanan lokal (SharedPreferences)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -82,23 +84,128 @@ class ScreeningHistoryItem {
       'bmi': bmi,
       'risk': risk,
       'category': category,
+      'classificationCategory': skriningData.classificationCategory,
+      'categoryTitle': skriningData.categoryTitle,
+      'riskTitle': skriningData.riskTitle,
+      // 16 Variabel Input Skrining sebagai field individual
+      'gender': skriningData.gender,
+      'age': skriningData.age,
+      'height': skriningData.height,
+      'weight': skriningData.weight,
+      'familyHistory': skriningData.familyHistory,
+      'highCalorieFood': skriningData.highCalorieFood,
+      'vegetableIntake': skriningData.vegetableIntake,
+      'mainMealFrequency': skriningData.mainMealFrequency,
+      'snackFrequency': skriningData.snackFrequency,
+      'smoking': skriningData.smoking,
+      'waterIntake': skriningData.waterIntake,
+      'monitorCalories': skriningData.monitorCalories,
+      'physicalActivity': skriningData.physicalActivity,
+      'screenTime': skriningData.screenTime,
+      'alcohol': skriningData.alcohol,
+      'transportation': skriningData.transportation,
+      // Field Prediksi AI
+      'aiRawClass': skriningData.aiRawClass,
+      'aiRawCategoryKey': skriningData.aiRawCategoryKey,
+      'aiRawCategoryTitle': skriningData.aiRawCategoryTitle,
+      'aiClinicalClass': skriningData.aiClinicalClass,
+      'aiCategoryKey': skriningData.aiCategoryKey,
+      'aiCategoryTitle': skriningData.aiCategoryTitle,
+      'aiCategoryBadge': skriningData.aiCategoryBadge,
+      'isClinicallyAdjusted': skriningData.isClinicallyAdjusted,
+      'clinicalAdjustmentReason': skriningData.clinicalAdjustmentReason,
+      'aiConfidence': skriningData.aiConfidence,
+      'isPredictionSuccess': skriningData.isPredictionSuccess,
+      'predictionErrorMessage': skriningData.predictionErrorMessage,
+      'skriningData': skriningData.toMap(),
+    };
+  }
+
+  /// Format data untuk penyimpanan dokumen Cloud Firestore `users/{uid}/screenings/{id}`
+  Map<String, dynamic> toFirestoreMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'date': Timestamp.fromDate(date),
+      'dateIso': date.toIso8601String(),
+      'createdAt': FieldValue.serverTimestamp(),
+      'bmi': bmi,
+      'risk': risk,
+      'category': category,
+      'classificationCategory': skriningData.classificationCategory,
+      'categoryTitle': skriningData.categoryTitle,
+      'riskTitle': skriningData.riskTitle,
+      // 16 Variabel Input Skrining Lengkap dengan tipe data Firestore
+      'gender': skriningData.gender,
+      'age': skriningData.age,
+      'height': skriningData.height,
+      'weight': skriningData.weight,
+      'familyHistory': skriningData.familyHistory,
+      'highCalorieFood': skriningData.highCalorieFood,
+      'vegetableIntake': skriningData.vegetableIntake,
+      'mainMealFrequency': skriningData.mainMealFrequency,
+      'snackFrequency': skriningData.snackFrequency,
+      'smoking': skriningData.smoking,
+      'waterIntake': skriningData.waterIntake,
+      'monitorCalories': skriningData.monitorCalories,
+      'physicalActivity': skriningData.physicalActivity,
+      'screenTime': skriningData.screenTime,
+      'alcohol': skriningData.alcohol,
+      'transportation': skriningData.transportation,
+      // Field Prediksi AI
+      'aiRawClass': skriningData.aiRawClass,
+      'aiRawCategoryKey': skriningData.aiRawCategoryKey,
+      'aiRawCategoryTitle': skriningData.aiRawCategoryTitle,
+      'aiClinicalClass': skriningData.aiClinicalClass,
+      'aiCategoryKey': skriningData.aiCategoryKey,
+      'aiCategoryTitle': skriningData.aiCategoryTitle,
+      'aiCategoryBadge': skriningData.aiCategoryBadge,
+      'isClinicallyAdjusted': skriningData.isClinicallyAdjusted,
+      'clinicalAdjustmentReason': skriningData.clinicalAdjustmentReason,
+      'aiConfidence': skriningData.aiConfidence,
+      'isPredictionSuccess': skriningData.isPredictionSuccess,
+      'predictionErrorMessage': skriningData.predictionErrorMessage,
+      // Salinan nested untuk kompatibilitas rekonstruksi instan
       'skriningData': skriningData.toMap(),
     };
   }
 
   factory ScreeningHistoryItem.fromMap(Map<String, dynamic> map) {
-    final dt = DateTime.tryParse(map['date'] as String? ?? '') ?? DateTime.now();
-    final data = SkriningData.fromMap(
-      Map<String, dynamic>.from(map['skriningData'] as Map? ?? {}),
-    );
+    DateTime dt;
+    final dateVal = map['date'] ?? map['createdAt'];
+    if (dateVal is Timestamp) {
+      dt = dateVal.toDate();
+    } else if (dateVal is String) {
+      dt = DateTime.tryParse(dateVal) ?? DateTime.now();
+    } else if (dateVal is int) {
+      dt = DateTime.fromMillisecondsSinceEpoch(dateVal);
+    } else {
+      dt = DateTime.now();
+    }
+
+    // Rekonstruksi SkriningData: prioritaskan nested 'skriningData' jika ada,
+    // atau gunakan top-level fields jika disimpan secara datar
+    SkriningData data;
+    if (map['skriningData'] is Map && (map['skriningData'] as Map).isNotEmpty) {
+      data = SkriningData.fromMap(
+        Map<String, dynamic>.from(map['skriningData'] as Map),
+      );
+    } else {
+      data = SkriningData.fromMap(map);
+    }
     data.date = dt;
+
+    final bmiVal = (map['bmi'] as num?)?.toDouble() ?? data.bmi;
+    final riskVal = map['risk'] as String? ?? data.riskTitle;
+    final catVal = map['category'] as String? ?? data.categoryTitle.replaceAll('\n', ' ');
+
     return ScreeningHistoryItem(
       id: map['id'] as String? ?? 'scr_${dt.millisecondsSinceEpoch}',
       userId: map['userId'] as String? ?? 'usr_guest',
       date: dt,
-      bmi: (map['bmi'] as num?)?.toDouble() ?? data.bmi,
-      risk: map['risk'] as String? ?? 'Sedang',
-      category: map['category'] as String? ?? 'Overweight (IMT 25–27)',
+      bmi: bmiVal,
+      risk: riskVal,
+      category: catVal,
       skriningData: data,
     );
   }

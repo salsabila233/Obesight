@@ -90,10 +90,21 @@ void main() {
     expect(find.text('Tinggi Badan'), findsOneWidget);
     expect(find.text('Berat Badan'), findsOneWidget);
 
-    // Button "Berikutnya" should be enabled since data is pre-filled with valid values
+    // Button "Berikutnya" harus nonaktif (disabled) saat form baru dibuka karena input kosong
     final nextBtn = find.widgetWithText(ElevatedButton, 'Berikutnya');
     expect(nextBtn, findsOneWidget);
-    final elevatedButton = tester.widget<ElevatedButton>(nextBtn);
+    var elevatedButton = tester.widget<ElevatedButton>(nextBtn);
+    expect(elevatedButton.onPressed, isNull);
+
+    // Pengguna memilih jenis kelamin dan mengisi usia, TB, BB
+    await tester.tap(find.text('Perempuan'));
+    await tester.enterText(find.byType(TextField).at(0), '23');
+    await tester.enterText(find.byType(TextField).at(1), '165');
+    await tester.enterText(find.byType(TextField).at(2), '72');
+    await tester.pumpAndSettle();
+
+    // Setelah diisi secara valid, tombol "Berikutnya" menjadi aktif
+    elevatedButton = tester.widget<ElevatedButton>(nextBtn);
     expect(elevatedButton.onPressed, isNotNull);
   });
 
