@@ -332,7 +332,13 @@ class _NutritionRecommendationScreenState
                 const SizedBox(height: 12),
 
                 // 5. Daftar Card Menu Makanan & Minuman dengan Ceklis Manual
-                ...filteredMeals.map((meal) => _buildMealCard(meal, isDark, selectedDateKey, isSelectedDateToday)),
+                ...filteredMeals.map((meal) => _buildMealCard(
+                      meal,
+                      isDark,
+                      selectedDateKey,
+                      isSelectedDateToday,
+                      dailyMeals: dailyMeals,
+                    )),
 
                 const SizedBox(height: 20),
               ],
@@ -600,6 +606,7 @@ class _NutritionRecommendationScreenState
     required String dateKey,
     required NutritionMealModel meal,
     required bool isDark,
+    List<NutritionMealModel>? dailyMeals,
   }) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -683,7 +690,12 @@ class _NutritionRecommendationScreenState
     );
 
     if (confirmed == true) {
-      await NutritionChecklistService.instance.completeItem(dateKey, meal.id);
+      await NutritionChecklistService.instance.completeItem(
+        dateKey,
+        meal.id,
+        meal: meal,
+        dailyMeals: dailyMeals,
+      );
     }
   }
 
@@ -694,8 +706,9 @@ class _NutritionRecommendationScreenState
     NutritionMealModel meal,
     bool isDark,
     String dateKey,
-    bool isToday,
-  ) {
+    bool isToday, {
+    List<NutritionMealModel>? dailyMeals,
+  }) {
     final isCompleted = NutritionChecklistService.instance.isCompleted(dateKey, meal.id);
 
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
@@ -921,6 +934,7 @@ class _NutritionRecommendationScreenState
                       dateKey: dateKey,
                       meal: meal,
                       isDark: isDark,
+                      dailyMeals: dailyMeals,
                     );
                   },
                   child: Padding(

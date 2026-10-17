@@ -1216,4 +1216,21 @@ class MealPlanService {
       hasCustomPhoto: base.hasCustomPhoto,
     );
   }
+
+  /// Master list seluruh 35 menu makanan dan minuman rekomendasi ObeSight
+  static List<NutritionMealModel> get allMasterMeals => [
+    ..._breakfastPool,
+    ..._lunchPool,
+    ..._dinnerPool,
+    ..._snackPool,
+    ..._drinkPool,
+  ];
+
+  /// Mengambil objek menu berdasarkan id uniknya dari master pool
+  static NutritionMealModel? getMealById(String id) {
+    for (final meal in allMasterMeals) {
+      if (meal.id == id) return meal;
+    }
+    return null;
+  }
 }

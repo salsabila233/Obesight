@@ -1,0 +1,31 @@
+// ============================================================================
+// POTONGAN SECURITY RULES: NUTRITION PROGRESS & MASTER MEALS
+// Salin blok berikut ke dalam aturan Firebase Console Anda (di dalam blok
+// match /users/{userId} {...} atau match /databases/{database}/documents {...})
+// ============================================================================
+
+// 1. Letakkan blok ini DI DALAM blok `match /users/{userId} { ... }`:
+      // Sub-koleksi Catatan Progress Nutrisi Makanan & Minuman Harian
+      match /nutrition_progress/{dateKey} {
+        // Hanya pemilik akun yang dapat membaca dokumen progress-nya
+        allow read: if request.auth != null && request.auth.uid == userId;
+
+        // Pembuatan dokumen baru: wajib pemilik akun dan tanggal cocok dengan dateKey
+        allow create: if request.auth != null 
+          && request.auth.uid == userId 
+          && request.resource.data.date == dateKey;
+
+        // Pembaruan dokumen: hanya pemilik akun, dan item yang sudah diceklis tidak boleh berkurang
+        allow update: if request.auth != null 
+          && request.auth.uid == userId 
+          && request.resource.data.items.size() >= resource.data.items.size();
+
+        // Ceklis bersifat permanen: DOKUMEN TIDAK BOLEH DIHAPUS
+        allow delete: false;
+      }
+
+// 2. (Opsional jika memakai katalog Firestore) Letakkan ini DI DALAM `match /databases/{database}/documents { ... }`:
+    match /nutrition_meals/{mealId} {
+      allow read: if request.auth != null;
+      allow write: false; // Hanya dapat ditulis lewat Firebase Admin / Console
+    }
