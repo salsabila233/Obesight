@@ -252,6 +252,24 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? get lastInactiveTime => _lastInactiveTime;
   SleepRecord? get pendingAutoDetectedRecord => _pendingAutoDetectedRecord;
 
+  /// Seluruh catatan tidur yang tersimpan (baik dari rekaman otomatis maupun input mandiri)
+  List<SleepRecord> get allRecords {
+    final list = List<SleepRecord>.from(_records);
+    list.sort((a, b) => b.startTime.compareTo(a.startTime));
+    return list;
+  }
+
+  /// Memeriksa ketersediaan ekosistem kesehatan bawaan OS (Health Connect / Google Fit / Samsung Health)
+  Future<bool> checkHealthEcosystemAvailable() async {
+    if (kIsWeb) return false;
+    try {
+      final available = await _platformChannel.invokeMethod<bool>('checkHealthEcosystemAvailable');
+      return available ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   int get targetSleepMinutes => _targetSleepMinutes;
   set targetSleepMinutes(int val) {
     _targetSleepMinutes = val;
@@ -359,6 +377,23 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       await _notificationsPlugin.initialize(
         settings: initSettings,
       );
+
+      // Buat notification channel dengan prioritas tinggi di Android
+      const AndroidNotificationChannel sleepChannel = AndroidNotificationChannel(
+        _sleepChannelId,
+        _sleepChannelName,
+        description: 'Pengingat harian jadwal waktu istirahat tidur malam',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      final androidPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      if (androidPlugin != null) {
+        await androidPlugin.createNotificationChannel(sleepChannel);
+      }
+
       _notificationsInitialized = true;
 
       if (_reminderEnabled) {
@@ -419,9 +454,10 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         _sleepChannelId,
         _sleepChannelName,
         channelDescription: 'Pengingat harian jadwal waktu istirahat tidur malam',
-        importance: Importance.high,
+        importance: Importance.max,
         priority: Priority.high,
         playSound: true,
+        enableVibration: true,
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -435,15 +471,28 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         iOS: iosDetails,
       );
 
-      await _notificationsPlugin.zonedSchedule(
-        id: _sleepReminderNotificationId,
-        title: 'Pengingat Waktu Tidur 🌙',
-        body: 'Waktu tidurmu semakin dekat (Target: ${_bedtimeTarget.hour.toString().padLeft(2, '0')}.${_bedtimeTarget.minute.toString().padLeft(2, '0')}). Yuk mulai bersiap tidur.',
-        scheduledDate: tzScheduled,
-        notificationDetails: notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
+      try {
+        await _notificationsPlugin.zonedSchedule(
+          id: _sleepReminderNotificationId,
+          title: 'Pengingat Waktu Tidur 🌙',
+          body: 'Waktu tidurmu semakin dekat (Target: ${_bedtimeTarget.hour.toString().padLeft(2, '0')}.${_bedtimeTarget.minute.toString().padLeft(2, '0')}). Yuk mulai bersiap tidur.',
+          scheduledDate: tzScheduled,
+          notificationDetails: notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      } catch (_) {
+        // Fallback jika exact alarm memerlukan izin khusus di perangkat tertentu
+        await _notificationsPlugin.zonedSchedule(
+          id: _sleepReminderNotificationId,
+          title: 'Pengingat Waktu Tidur 🌙',
+          body: 'Waktu tidurmu semakin dekat (Target: ${_bedtimeTarget.hour.toString().padLeft(2, '0')}.${_bedtimeTarget.minute.toString().padLeft(2, '0')}). Yuk mulai bersiap tidur.',
+          scheduledDate: tzScheduled,
+          notificationDetails: notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time,
+        );
+      }
       debugPrint('[SleepTrackingService] Scheduled daily bedtime notification at $tzScheduled');
     } catch (e) {
       debugPrint('[SleepTrackingService] Error scheduling notification: $e');
@@ -643,15 +692,25 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
       final lastOnMillis = await _platformChannel.invokeMethod<int>('getLastScreenOn');
 
-      if (lastOffMillis != null && lastOffMillis > 0 && lastOnMillis != null && lastOnMillis > lastOffMillis) {
+      if (lastOffMillis != null && lastOffMillis > 0) {
         final offDt = DateTime.fromMillisecondsSinceEpoch(lastOffMillis);
-        final onDt = DateTime.fromMillisecondsSinceEpoch(lastOnMillis);
+        final isNightStart = offDt.hour >= 20 || offDt.hour < 5;
+
+        DateTime onDt;
+        if (lastOnMillis != null && lastOnMillis > lastOffMillis) {
+          onDt = DateTime.fromMillisecondsSinceEpoch(lastOnMillis);
+        } else if (now.hour >= 5 && now.hour <= 14 && now.isAfter(offDt)) {
+          // Pengguna membuka HP pada pagi hari
+          onDt = now;
+        } else {
+          onDt = offDt;
+        }
+
         final diffMinutes = onDt.difference(offDt).inMinutes;
 
-        // Syarat sesi tidur malam Samsung Health:
+        // Syarat sesi tidur malam:
         // Titik terakhir layar mati di rentang malam (>= 20.00 atau < 05.00),
         // layar nyala di pagi hari, dan durasi istirahat substansial minimal 3 jam (180 menit) s.d. 14 jam (840 menit)
-        final isNightStart = offDt.hour >= 20 || offDt.hour < 5;
         if (isNightStart && diffMinutes >= _minimumNightSleepMinutes && diffMinutes <= 840) {
           _recordAutomaticSleepCandidate(offDt, onDt);
           await _platformChannel.invokeMethod('clearScreenTimes');

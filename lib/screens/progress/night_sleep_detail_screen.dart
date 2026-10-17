@@ -103,65 +103,18 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- LAYOUT UTUH: Judul, Ikon Bulan Sabit (Kuning Terang Elegan), dan Deskripsi ---
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFF59E0B).withValues(alpha: 0.28),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.nightlight_round,
-                                size: 30,
-                                color: Color(0xFFF59E0B), // Kuning terang elegan
-                              ),
-                            ),
+                      // Deskripsi Singkat Modul (Judul Waktu Tidur Malam berada di Collapsible Header)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 16),
+                        child: Text(
+                          'Tidur yang cukup dan teratur membantu metabolisme tubuh tetap seimbang.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            height: 1.45,
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Waktu Tidur Malam',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                                    letterSpacing: -0.3,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Tidur yang cukup dan teratur membantu metabolisme tubuh tetap seimbang.',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: const Color(0xFF64748B),
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 18),
 
                       // --- CARD 1: Status / Estimasi Waktu Tidur (dengan Tombol "Catat waktu ini") ---
                       _buildTodaySleepStatusCard(
@@ -493,7 +446,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
         break;
       case 1:
       default:
-        cardTitle = 'Waktu tidur selama 7 hari terakhir';
+        cardTitle = 'Waktu tidur hari ini';
         break;
     }
 
@@ -631,12 +584,204 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
         return _buildMonthlyChart(service);
       case 1:
       default:
-        // Jika belum ada data tidur hari ini yang tersimpan resmi
+        // Pada halaman awal, grafik yang dimunculkan secara default adalah untuk HARI INI SAJA
         if (!service.hasTodayData) {
           return _buildDailyEmptyState();
         }
-        return _buildDailyBarChart(summaries);
+        return _buildTodayOnlyChart(service, _selectedDate);
     }
+  }
+
+  Widget _buildTodayOnlyChart(SleepTrackingService service, DateTime date) {
+    final recs = service.getRecordsForDate(date);
+    final totalMinutes = recs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
+    final targetM = service.targetSleepMinutes;
+    final hours = totalMinutes / 60.0;
+    final fraction = (hours / 9.0).clamp(0.0, 1.0);
+    final percent = targetM > 0 ? (totalMinutes / targetM * 100).round() : 100;
+    final status = service.getSleepStatus(totalMinutes);
+
+    return Column(
+      key: const ValueKey('daily_bars'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Single day bar representation
+              SizedBox(
+                width: 76,
+                height: 120,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 18,
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            totalMinutes >= 60
+                                ? '${totalMinutes ~/ 60}j ${totalMinutes % 60}m'
+                                : '${totalMinutes}m',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF265C45),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: FractionallySizedBox(
+                          heightFactor: fraction.clamp(0.12, 1.0),
+                          widthFactor: 0.55,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF36785A), Color(0xFF265C45)],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Hari Ini',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF265C45),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Detail metrics for today
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Capaian Target Ideal',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEDF7F2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$percent%',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF265C45),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: targetM > 0 ? (totalMinutes / targetM).clamp(0.0, 1.0) : 1.0,
+                        minHeight: 8,
+                        backgroundColor: const Color(0xFFE2E8F0),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.bedtime_outlined, size: 14, color: Color(0xFF36785A)),
+                            const SizedBox(width: 4),
+                            Text(
+                              recs.isNotEmpty ? 'Tidur: ${recs.first.startTimeFormatted}' : '-',
+                              style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF334155)),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.wb_sunny_outlined, size: 14, color: Color(0xFFEAB308)),
+                            const SizedBox(width: 4),
+                            Text(
+                              recs.isNotEmpty ? 'Bangun: ${recs.last.endTimeFormatted}' : '-',
+                              style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF334155)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Status: $status (Target: ${targetM ~/ 60} jam)',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF265C45),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            'Grafik durasi tidur hari ini. Ketuk tab "Minggu" untuk melihat rentang 7 hari.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF64748B)),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildDailyEmptyState() {
@@ -686,48 +831,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     );
   }
 
-  // ==========================================
-  // KOMPONEN BAR CHART FLEKSIBEL (ANTI-OVERFLOW)
-  // ==========================================
-  Widget _buildDailyBarChart(List<DailySleepSummary> summaries) {
-    return Column(
-      key: const ValueKey('daily_bars'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 140,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: summaries.map((s) {
-              final hours = s.totalMinutes / 60.0;
-              final fraction = (hours / 9.0).clamp(0.0, 1.0);
-              final isHighlighted = s.dateKey == SleepTrackingService.formatDateKey(_selectedDate);
-
-              return _buildFlexibleBar(
-                topLabel: s.hasData ? s.formattedDuration : '',
-                bottomLabel: s.dayNumber,
-                fraction: fraction,
-                isHighlighted: isHighlighted,
-                hasData: s.hasData,
-                onTap: () {
-                  setState(() {
-                    _selectedDate = s.date;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            'Ketuk tanggal untuk melihat data tidur pada hari tersebut',
-            style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF64748B)),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildHourlyChart(SleepTrackingService service) {
     final selectedHourly = service.getChronologicalHourlySleep(_selectedDate);
@@ -1035,8 +1138,7 @@ class _SleepCollapsibleHeaderDelegate extends SliverPersistentHeaderDelegate {
     final double t = collapseRange > 0 ? (shrinkOffset / collapseRange).clamp(0.0, 1.0) : 0.0;
     final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
 
-    return SizedBox(
-      height: maxExtent - shrinkOffset,
+    return SizedBox.expand(
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -1120,38 +1222,58 @@ class _SleepCollapsibleHeaderDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-          // 5. Judul & Ikon Bulan Sabit Kuning di Pinned AppBar (Hanya muncul saat di-scroll)
-          if (t > 0.3)
-            Positioned(
-              left: 60.0,
-              right: 16.0,
-              top: topPadding + 18.0,
-              child: Opacity(
-                opacity: ((t - 0.3) / 0.7).clamp(0.0, 1.0),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.nightlight_round,
-                      size: 18,
-                      color: Color(0xFFFBBF24),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        'Waktu Tidur Malam',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+          // 5. Judul & Ikon Bulan Sabit Transisi Mulus (Collapsible Title)
+          Positioned(
+            left: 20.0 + (58.0 - 20.0) * t,
+            right: 16.0,
+            top: (topPadding + 144.0) * (1.0 - t) + (topPadding + 18.0) * t,
+            child: Row(
+              children: [
+                Container(
+                  width: (30.0 + (22.0 - 30.0) * t),
+                  height: (30.0 + (22.0 - 30.0) * t),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFFEF3C7).withValues(alpha: (0.95 - 0.7 * t).clamp(0.0, 1.0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFF59E0B).withValues(alpha: (0.25 * (1.0 - t)).clamp(0.0, 1.0)),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.nightlight_round,
+                      size: (20.0 + (16.0 - 20.0) * t),
+                      color: const Color(0xFFF59E0B),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    'Waktu Tidur Malam',
+                    style: GoogleFonts.poppins(
+                      fontSize: (19.0 + (16.0 - 19.0) * t),
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: (0.75 * (1.0 - t) + 0.15 * t).clamp(0.0, 1.0)),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
+          ),
 
           // 6. Tombol Kembali
           Positioned(

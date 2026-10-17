@@ -41,8 +41,8 @@ void main() {
     expect(find.text('5 j 10 m'), findsOneWidget);
     expect(find.text('Catat waktu ini'), findsOneWidget);
 
-    // 3. Verifikasi Card 2: 7 Hari Terakhir State Awal (Belum ada data tidur hari ini)
-    expect(find.text('Waktu tidur selama 7 hari terakhir'), findsOneWidget);
+    // 3. Verifikasi Card 2: Hari Ini State Awal (Belum ada data tidur hari ini)
+    expect(find.text('Waktu tidur hari ini'), findsOneWidget);
     expect(find.text('Belum ada data tidur hari ini'), findsOneWidget);
 
     // 4. Verifikasi Tombol Bawah: Masukkan data

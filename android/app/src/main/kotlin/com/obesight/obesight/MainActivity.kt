@@ -4,6 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.PowerManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -29,6 +32,33 @@ class MainActivity : FlutterActivity() {
                 "clearScreenTimes" -> {
                     prefs.edit().remove("last_screen_off_millis").remove("last_screen_on_millis").apply()
                     result.success(true)
+                }
+                "isScreenInteractive" -> {
+                    val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
+                    val isInteractive = powerManager?.isInteractive ?: false
+                    result.success(isInteractive)
+                }
+                "checkHealthEcosystemAvailable" -> {
+                    // Check if Health Connect, Google Fit, or Samsung Health is installed
+                    val healthPackages = listOf(
+                        "com.google.android.apps.healthdata", // Android Health Connect
+                        "com.google.android.apps.fitness",     // Google Fit
+                        "com.sec.android.app.shealth"         // Samsung Health
+                    )
+                    var available = false
+                    val pm = packageManager
+                    for (pkg in healthPackages) {
+                        try {
+                            pm.getPackageInfo(pkg, 0)
+                            available = true
+                            break
+                        } catch (_: Exception) {}
+                    }
+                    // On Android 14+ (API 34+), Health Connect is built into the system platform
+                    if (!available && Build.VERSION.SDK_INT >= 34) {
+                        available = true
+                    }
+                    result.success(available)
                 }
                 else -> result.notImplemented()
             }
@@ -62,8 +92,12 @@ class MainActivity : FlutterActivity() {
                     Intent.ACTION_USER_PRESENT, Intent.ACTION_SCREEN_ON -> {
                         // Catat layar aktif pertama di pagi hari (>= 05.00 dan <= 14.00)
                         val lastOff = prefs.getLong("last_screen_off_millis", 0L)
+                        val lastOn = prefs.getLong("last_screen_on_millis", 0L)
+                        // Kunci waktu bangun pada unlock/layar aktif pertama di pagi hari (tidak tertimpa lagi)
                         if (lastOff > 0L && (hour in 5..14)) {
-                            prefs.edit().putLong("last_screen_on_millis", now).apply()
+                            if (lastOn <= lastOff) {
+                                prefs.edit().putLong("last_screen_on_millis", now).apply()
+                            }
                         }
                     }
                 }
