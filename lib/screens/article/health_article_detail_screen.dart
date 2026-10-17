@@ -13,7 +13,10 @@ class HealthArticleDetailScreen extends StatefulWidget {
             ? article
             : (article is Map<String, dynamic>
                 ? ArticleModel.fromMap(article)
-                : ArticleService().getArticles().first);
+                : (article is String
+                    ? (ArticleService().getArticleById(article) ??
+                        ArticleService().getArticles().first)
+                    : ArticleService().getArticles().first));
 
   @override
   State<HealthArticleDetailScreen> createState() => _HealthArticleDetailScreenState();
@@ -96,16 +99,27 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(
-                    article.imageAsset,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: article.headerColor,
-                      child: Center(
-                        child: Icon(article.icon, size: 80, color: Colors.white.withValues(alpha: 0.5)),
-                      ),
-                    ),
-                  ),
+                  (article.imageUrl != null && article.imageUrl!.trim().startsWith('http'))
+                      ? Image.network(
+                          article.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: article.headerColor,
+                            child: Center(
+                              child: Icon(article.icon, size: 80, color: Colors.white.withValues(alpha: 0.5)),
+                            ),
+                          ),
+                        )
+                      : Image.asset(
+                          article.imageAsset,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: article.headerColor,
+                            child: Center(
+                              child: Icon(article.icon, size: 80, color: Colors.white.withValues(alpha: 0.5)),
+                            ),
+                          ),
+                        ),
                   // Gradient overlay to ensure back button and text readability
                   Container(
                     decoration: BoxDecoration(
@@ -337,18 +351,31 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: Image.asset(
-                                otherArt.imageAsset,
-                                width: 56,
-                                height: 56,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  width: 56,
-                                  height: 56,
-                                  color: otherArt.headerColor.withValues(alpha: 0.15),
-                                  child: Icon(otherArt.icon, color: otherArt.headerColor, size: 24),
-                                ),
-                              ),
+                              child: (otherArt.imageUrl != null && otherArt.imageUrl!.trim().startsWith('http'))
+                                  ? Image.network(
+                                      otherArt.imageUrl!,
+                                      width: 56,
+                                      height: 56,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => Container(
+                                        width: 56,
+                                        height: 56,
+                                        color: otherArt.headerColor.withValues(alpha: 0.15),
+                                        child: Icon(otherArt.icon, color: otherArt.headerColor, size: 24),
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      otherArt.imageAsset,
+                                      width: 56,
+                                      height: 56,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => Container(
+                                        width: 56,
+                                        height: 56,
+                                        color: otherArt.headerColor.withValues(alpha: 0.15),
+                                        child: Icon(otherArt.icon, color: otherArt.headerColor, size: 24),
+                                      ),
+                                    ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(

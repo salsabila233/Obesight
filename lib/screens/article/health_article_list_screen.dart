@@ -32,9 +32,28 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final filteredArticles = ArticleService().searchArticles(_searchQuery);
 
-    return Scaffold(
+    return StreamBuilder<List<ArticleModel>>(
+      stream: ArticleService().getArticlesStream(),
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+        final hasError = snapshot.hasError;
+
+        // Fallback ke data lokal HANYA saat terjadi error / offline
+        final allArticles = hasError
+            ? ArticleService().initialArticles
+            : (snapshot.data ?? const <ArticleModel>[]);
+
+        final q = _searchQuery.trim().toLowerCase();
+        final filteredArticles = q.isEmpty
+            ? allArticles
+            : allArticles.where((art) {
+                return art.title.toLowerCase().contains(q) ||
+                    art.snippet.toLowerCase().contains(q) ||
+                    art.category.toLowerCase().contains(q);
+              }).toList();
+
+        return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
@@ -57,6 +76,50 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 40),
         physics: const BouncingScrollPhysics(),
         children: [
+          // Banner Status Error jika Firestore belum mengizinkan akses / offline
+          if (hasError)
+            Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? const Color(0xFFEF4444).withValues(alpha: 0.3) : const Color(0xFFFECACA),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: Color(0xFFEF4444), size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sinkronisasi Cloud Firestore',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : const Color(0xFF991B1B),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Menampilkan data artikel tersimpan. Data remote Cloud Firestore belum dapat diakses langsung (${snapshot.error}).',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.5,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFFB91C1C),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // Featured Banner Card
           Container(
             padding: const EdgeInsets.all(16),
@@ -205,8 +268,71 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Article Cards List (Image with Title underneath / modern clean cards)
-          if (filteredArticles.isEmpty)
+          // Loading State
+          if (isLoading)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Menghubungkan ke Cloud Firestore...',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          // Empty State (Koleksi Kosong / Belum Ada Artikel)
+          else if (allArticles.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(32),
+              margin: const EdgeInsets.only(top: 14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.article_outlined, size: 48, color: Color(0xFF94A3B8)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Belum Ada Artikel Terbit',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Belum ada artikel kesehatan dengan status terbit (isPublished == true) di Cloud Firestore.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          // Search Empty State
+          else if (filteredArticles.isEmpty)
             Container(
               padding: const EdgeInsets.all(32),
               margin: const EdgeInsets.only(top: 14),
@@ -231,7 +357,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Tidak ada artikel yang cocok dengan kata kunci pencarian.',
+                    'Tidak ada artikel yang cocok dengan kata kunci "$_searchQuery".',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
@@ -282,25 +408,57 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                         child: AspectRatio(
                           aspectRatio: 16 / 9,
-                          child: Image.asset(
-                            art.imageAsset,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              color: art.headerColor.withValues(alpha: 0.2),
-                              child: Center(
-                                child: Icon(art.icon, size: 48, color: art.headerColor),
-                              ),
-                            ),
-                          ),
+                          child: (art.imageUrl != null && art.imageUrl!.trim().startsWith('http'))
+                              ? Image.network(
+                                  art.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    color: art.headerColor.withValues(alpha: 0.2),
+                                    child: Center(
+                                      child: Icon(art.icon, size: 48, color: art.headerColor),
+                                    ),
+                                  ),
+                                )
+                              : Image.asset(
+                                  art.imageAsset,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    color: art.headerColor.withValues(alpha: 0.2),
+                                    child: Center(
+                                      child: Icon(art.icon, size: 48, color: art.headerColor),
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
 
-                      // Konten di bawah gambar (Judul, Snippet, Waktu Baca & Tombol Baca)
+                      // Konten di bawah gambar (Kategori, Judul, Snippet, Waktu Baca & Tombol Baca)
                       Padding(
                         padding: const EdgeInsets.all(14),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Kategori Badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E3A2F)
+                                    : const Color(0xFFE8F5EF),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                art.category.toUpperCase(),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
                             // Judul di bawah gambar
                             Text(
                               art.title,
@@ -378,6 +536,8 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
             }),
         ],
       ),
+    );
+      },
     );
   }
 }

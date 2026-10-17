@@ -1,0 +1,139 @@
+[
+  {
+    "id": "article_1",
+    "title": "Porsi piring gizi seimbang",
+    "snippet": "Panduan takaran proporsional Isi Piringku untuk memenuhi kebutuhan gizi seimbang harian.",
+    "date": "21 September 2026",
+    "category": "Nutrisi & Gizi",
+    "readTime": "4 Menit Baca",
+    "headerColorHex": "#E5BD87",
+    "iconName": "pie_chart",
+    "imageAsset": "assets/articles/article_porsi_piring_gizi_seimbang.jpg",
+    "imageUrl": "",
+    "author": "Tim Medis ObeSight",
+    "isPublished": true,
+    "publishedAt": "2026-09-21T08:00:00.000Z",
+    "updatedAt": "2026-09-21T08:00:00.000Z",
+    "takeaways": [
+      "Setengah piring makan terdiri dari kombinasi sayuran dan buah-buahan segar.",
+      "Pilihlah karbohidrat kompleks dengan indeks glikemik lebih rendah untuk menjaga rasa kenyang.",
+      "Batasi asupan Gula, Garam, dan Lemak (GGL) dalam pengolahan hidangan harian.",
+      "Penuhi kebutuhan hidrasi tubuh dengan minum air putih minimal 2 liter per hari."
+    ],
+    "content": "Konsep \"Isi Piringku\" merupakan panduan sajian makanan sehat yang dicetuskan oleh Kementerian Kesehatan Republik Indonesia untuk membantu masyarakat mengontrol porsi dan kualitas gizi makanan sehari-hari.\n\nDalam satu piring makan, porsi dibagi menjadi beberapa bagian utama:\n1. Makanan Pokok (Karbohidrat): Mengisi sepertiga (1/3) dari piring makan. Utamakan sumber karbohidrat kompleks seperti nasi merah, jagung, kentang rebus, atau ubi jalar yang kaya serat.\n\n2. Sayuran: Mengisi sepertiga (1/3) dari piring makan. Sayuran hijau dan berwarna seperti bayam, brokoli, wortel, dan buncis menyediakan vitamin, mineral, serta serat untuk kelancaran pencernaan.\n\n3. Lauk-Pauk (Protein): Mengisi seperenam (1/6) dari piring makan. Pilih sumber protein hewani atau nabati rendah lemak jenuh seperti ikan, tempe, tahu, dada ayam tanpa kulit, atau telur.\n\n4. Buah-buahan: Mengisi seperenam (1/6) dari piring makan sebagai sumber antioksidan, vitamin alami, dan pemanis alami pengganti gula buatan.\n\nSelain mengatur komposisi piring, lengkapi kebiasaan sehat dengan minum air putih minimal 8 gelas setiap hari, mencuci tangan dengan sabun sebelum makan, dan beraktivitas fisik secara rutin."
+  },
+  {
+    "id": "article_2",
+    "title": "5 pola makan",
+    "snippet": "Lima prinsip pola makan sehat untuk mengontrol berat badan dan menjaga metabolisme tubuh.",
+    "date": "20 September 2026",
+    "category": "Pola Makan",
+    "readTime": "5 Menit Baca",
+    "headerColorHex": "#7E96AC",
+    "iconName": "restaurant_menu",
+    "imageAsset": "assets/articles/article_5_pola_makan.jpg",
+    "imageUrl": "",
+    "author": "Tim Medis ObeSight",
+    "isPublished": true,
+    "publishedAt": "2026-09-20T08:00:00.000Z",
+    "updatedAt": "2026-09-20T08:00:00.000Z",
+    "takeaways": [
+      "Makan dengan jadwal teratur mencegah lonjakan rasa lapar mendadak.",
+      "Mengunyah secara perlahan memberi waktu otak untuk merespons sinyal kenyang lambung.",
+      "Pilih camilan sehat dan hindari minuman manis berpemanis buatan.",
+      "Kendalikan porsi makan dengan piring yang proporsional."
+    ],
+    "content": "Menjaga berat badan ideal dan mencegah obesitas bermula dari kebiasaan makan sehari-hari yang terencana dan disiplin. Berikut adalah 5 pola makan yang efektif diterapkan:\n\n1. Jadwalkan Waktu Makan Secara Teratur\nMakan pada jam yang konsisten setiap hari membantu tubuh mengatur siklus metabolisme dan mencegah rasa lapar berlebih yang memicu keinginan makan berlebihan pada waktu berikutnya.\n\n2. Utamakan Makanan Utuh (Whole Foods)\nPerbanyak konsumsi makanan utuh yang belum mengalami banyak proses industri (minimally processed). Biji-bijian utuh, kacang-kacangan, sayur, dan buah kaya akan nutrisi alami dan serat tinggi.\n\n3. Terapkan Mindful Eating\nMakanlah secara perlahan dan kunyah setiap suapan dengan baik (20-30 kali). Hindari makan sambil menonton TV atau bermain gawai agar otak dapat menerima sinyal kenyang tepat waktu.\n\n4. Kendalikan Ukuran Porsi\nGunakan piring berukuran sedang atau lebih kecil untuk membantu mengontrol porsi secara visual tanpa merasa kekurangan makanan.\n\n5. Batasi Camilan Olahan Tinggi Gula dan Garam\nGanti camilan manis atau gorengan dengan pilihan padat nutrisi seperti buah potong, kacang almond panggang, atau yogurt tawar."
+  },
+  {
+    "id": "article_3",
+    "title": "Pentingnya kualitas tidur",
+    "snippet": "Hubungan penting antara tidur berkualitas dan regulasi hormon pengatur nafsu makan.",
+    "date": "19 September 2026",
+    "category": "Pola Tidur",
+    "readTime": "4 Menit Baca",
+    "headerColorHex": "#818CF8",
+    "iconName": "nightlight",
+    "imageAsset": "assets/articles/article_kualitas_tidur.jpg",
+    "imageUrl": "",
+    "author": "Tim Medis ObeSight",
+    "isPublished": true,
+    "publishedAt": "2026-09-19T08:00:00.000Z",
+    "updatedAt": "2026-09-19T08:00:00.000Z",
+    "takeaways": [
+      "Tidur 7–8 jam setiap malam menjaga keseimbangan hormon nafsu makan (ghrelin dan leptin).",
+      "Kurang tidur memicu metabolisme lambat dan rasa ingin mengonsumsi makanan tinggi kalori.",
+      "Terapkan sleep hygiene dengan membatasi penggunaan gawai menjelang waktu istirahat."
+    ],
+    "content": "Tidur bukan sekadar waktu istirahat pasif, melainkan periode penting bagi tubuh untuk meregenerasi sel, memulihkan energi, dan menyeimbangkan hormon pengatur metabolisme.\n\nSaat seseorang kurang tidur atau mengalami gangguan tidur kronis, produksi hormon Ghrelin (hormon pemicu rasa lapar) akan meningkat tajam. Di saat yang sama, hormon Leptin (hormon pemberi rasa kenyang) mengalami penurunan drastis.\n\nKondisi ketidakseimbangan hormon ini menyebabkan seseorang merasa lebih cepat lapar, sulit merasa kenyang, dan memiliki dorongan kuat untuk mengonsumsi makanan manis, gurih, dan berkarbohidrat tinggi sepanjang hari.\n\nUntuk menjaga kualitas tidur yang optimal:\n• Targetkan durasi tidur 7–8 jam per malam untuk orang dewasa.\n• Hindari paparan cahaya biru dari layar gawai minimal 30 menit sebelum tidur.\n• Jaga suhu kamar tidur tetap sejuk, nyaman, dan minim cahaya.\n• Batasi konsumsi kafein dan hindari makan berat menjelang jam tidur."
+  },
+  {
+    "id": "article_4",
+    "title": "Obesitas sebagai pemicu komplikasi",
+    "snippet": "Memahami bagaimana kelebihan lemak tubuh dapat memicu berbagai risiko penyakit metabolik.",
+    "date": "18 September 2026",
+    "category": "Kesehatan Metabolik",
+    "readTime": "5 Menit Baca",
+    "headerColorHex": "#94A3B8",
+    "iconName": "medical_services",
+    "imageAsset": "assets/articles/article_obesitas_komplikasi.jpg",
+    "imageUrl": "",
+    "author": "Tim Medis ObeSight",
+    "isPublished": true,
+    "publishedAt": "2026-09-18T08:00:00.000Z",
+    "updatedAt": "2026-09-18T08:00:00.000Z",
+    "takeaways": [
+      "Obesitas memicu peradangan kronis dan resistensi insulin dalam tubuh.",
+      "Komplikasi meliputi diabetes tipe 2, penyakit kardiovaskular, dan perlemakan hati.",
+      "Penurunan berat badan bertahap sebesar 5–10% memberikan proteksi kesehatan yang besar.",
+      "Lakukan skrining risiko dan konsultasikan kondisi kesehatan Anda secara berkala."
+    ],
+    "content": "Obesitas merupakan penyakit metabolik kronis yang ditandai dengan penumpukan jaringan lemak berlebih, terutama di sekitar area rongga perut (lemak viseral).\n\nJaringan lemak viseral yang berlebihan bukan hanya cadangan energi, melainkan organ endokrin aktif yang terus-menerus melepaskan zat kimia pemicu peradangan (sitokin pro-inflamasi). Hal ini menyebabkan terjadinya resistensi insulin di dalam jaringan otot dan hati.\n\nBeberapa komplikasi kesehatan utama yang dipicu oleh obesitas meliputi:\n1. Diabetes Melitus Tipe 2 akibat resistensi insulin yang berkepanjangan.\n2. Hipertensi dan Penyakit Jantung Koroner akibat beban kerja pompa jantung yang meningkat dan penumpukan plak di pembuluh darah.\n3. Perlemakan Hati Non-Alkoholik (NAFLD) yang dapat mengganggu fungsi organ hati.\n4. Gangguan Pernapasan saat Tidur (Sleep Apnea) yang menurunkan suplai oksigen malam hari.\n5. Masalah Sendi dan Nyeri Lutut (Osteoartritis) akibat beban tumpuan tubuh yang berlebih.\n\nPenurunan berat badan sebesar 5% sampai 10% dari berat badan awal terbukti secara klinis mampu menurunkan risiko komplikasi ini secara signifikan."
+  },
+  {
+    "id": "article_5",
+    "title": "Aktivitas fisik ringan",
+    "snippet": "Gerakan aktif harian sederhana yang efektif membakar kalori dan meningkatkan kebugaran.",
+    "date": "17 September 2026",
+    "category": "Aktivitas Fisik",
+    "readTime": "4 Menit Baca",
+    "headerColorHex": "#58B29C",
+    "iconName": "directions_run",
+    "imageAsset": "assets/articles/article_aktivitas_fisik_ringan.jpg",
+    "imageUrl": "",
+    "author": "Tim Medis ObeSight",
+    "isPublished": true,
+    "publishedAt": "2026-09-17T08:00:00.000Z",
+    "updatedAt": "2026-09-17T08:00:00.000Z",
+    "takeaways": [
+      "Aktivitas fisik ringan membantu meningkatkan pembakaran kalori tanpa membebani tubuh.",
+      "Jalan kaki 30 menit per hari melancarkan aliran darah dan meningkatkan sensitivitas insulin.",
+      "Hindari duduk diam berjam-jam tanpa jeda bergerak.",
+      "Pilih aktivitas yang menyenangkan agar dapat dipertahankan menjadi rutinitas."
+    ],
+    "content": "Memulai kebiasaan hidup aktif tidak selalu memerlukan latihan beban berat di gym. Aktivitas fisik ringan yang dilakukan secara konsisten setiap hari memiliki kontribusi besar dalam pembakaran kalori harian (NEAT - Non-Exercise Activity Thermogenesis).\n\nBeberapa contoh aktivitas fisik ringan yang mudah diterapkan:\n• Jalan Kaki Santai atau Cepat: Melakukan jalan kaki selama 30 menit sehari (setara 3.000–5.000 langkah) membantu membakar sekitar 150–200 kalori dan melancarkan sirkulasi darah.\n• Menggunakan Tangga: Memilih tangga daripada lift untuk 1–2 lantai dapat mengaktifkan otot kaki dan meningkatkan detak jantung secara bertahap.\n• Peregangan di Sela Kerja: Berdiri dan lakukan peregangan ringan setiap 45–60 menit duduk bekerja di meja.\n• Pekerjaan Rumah Tangga: Menyapu, mengepel, atau merawat tanaman di pekarangan juga termasuk aktivitas fisik yang produktif.\n\nKombinasikan kebiasaan aktif ini dengan olahraga teratur minimal 150 menit per minggu untuk memperoleh tubuh yang bugar dan bertenaga."
+  },
+  {
+    "id": "article_6",
+    "title": "Yuk kenali pola hidup sehat",
+    "snippet": "Langkah terintegrasi membangun kebiasaan hidup sehat yang berkesinambungan dan bahagia.",
+    "date": "16 September 2026",
+    "category": "Gaya Hidup",
+    "readTime": "3 Menit Baca",
+    "headerColorHex": "#489874",
+    "iconName": "favorite",
+    "imageAsset": "assets/articles/article_kenali_pola_hidup_sehat.jpg",
+    "imageUrl": "",
+    "author": "Tim Medis ObeSight",
+    "isPublished": true,
+    "publishedAt": "2026-09-16T08:00:00.000Z",
+    "updatedAt": "2026-09-16T08:00:00.000Z",
+    "takeaways": [
+      "Pola hidup sehat merupakan kombinasi dari nutrisi, olahraga, istirahat, dan kesehatan mental.",
+      "Fokus pada konsistensi kebiasaan sehari-hari daripada hasil instan.",
+      "Kelola stres dengan baik untuk mencegah emotional eating dan kelelahan kronis.",
+      "Catat dan rayakan setiap pencapaian kesehatan Anda."
+    ],
+    "content": "Menerapkan pola hidup sehat adalah sebuah perjalanan berkelanjutan untuk merawat tubuh dan pikiran, bukan sekadar program diet ketat yang membatasi segalanya secara ekstrem.\n\nEmpat pilar utama pola hidup sehat yang seimbang:\n1. Nutrisi Seimbang: Mengonsumsi makanan bergizi lengkap, memperhatikan proporsi piring makan, dan membatasi makanan olahan tinggi lemak serta gula.\n\n2. Aktivitas Fisik Rutin: Melakukan olahraga teratur dan memperbanyak gerak aktif setiap hari untuk melatih fungsi jantung dan otot.\n\n3. Istirahat dan Regenerasi: Memastikan waktu tidur yang cukup dan berkualitas agar hormon tubuh tetap seimbang.\n\n4. Manajemen Stres dan Ketenangan Mental: Luangkan waktu untuk relaksasi, meditasi, menyalurkan hobi, atau berkumpul bersama keluarga untuk menurunkan kadar hormon stres (kortisol).\n\nMulailah dari satu perubahan kecil hari ini. Konsistensi kecil yang dilakukan setiap hari akan menghasilkan transformasi kesehatan yang luar biasa."
+  }
+]
