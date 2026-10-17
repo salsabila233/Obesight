@@ -14,6 +14,8 @@ import '../article/health_article_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
 import 'imt_form_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
+import '../../services/screening_history_service.dart';
+import '../../models/screening_history_model.dart';
 
 class UserHomeScreen extends StatefulWidget {
   final UserModel user;
@@ -36,6 +38,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   late String _currentBmiCategory;
   late String _currentObesityRisk;
 
+  // State Riwayat Skrining Terakhir Pengguna (Sumber data Status Kesehatan)
+  ScreeningHistoryItem? _latestScreening;
+  bool _isLoadingScreening = true;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +55,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     _currentBmi = (bmiInfo['bmi'] as num?)?.toDouble() ?? widget.user.bmiScore;
     _currentBmiCategory = (bmiInfo['category'] as String?) ?? widget.user.bmiCategory;
     _currentObesityRisk = (bmiInfo['risk'] as String?) ?? widget.user.obesityRisk;
+
+    // Inisialisasi dan sinkronisasi riwayat skrining terakhir pengguna
+    final userKey = ScreeningHistoryService.instance.resolveUserKey(widget.user.id, widget.user.email);
+    _latestScreening = ScreeningHistoryService.instance.getLatestScreening(userKey);
+    _isLoadingScreening = !ScreeningHistoryService.instance.hasLoaded(userKey) && _latestScreening == null;
+
+    ScreeningHistoryService.instance.addListener(_syncScreeningData);
+    ScreeningHistoryService.instance.loadHistory(userKey).then((_) {
+      if (mounted) {
+        _syncScreeningData();
+      }
+    });
 
     // Listen to real-time profile updates across screens
     AuthService().profileUpdateNotifier.addListener(_syncUserData);
@@ -80,8 +98,21 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   @override
   void dispose() {
+    ScreeningHistoryService.instance.removeListener(_syncScreeningData);
     AuthService().profileUpdateNotifier.removeListener(_syncUserData);
     super.dispose();
+  }
+
+  void _syncScreeningData() {
+    final userKey = ScreeningHistoryService.instance.resolveUserKey(widget.user.id, widget.user.email);
+    final latest = ScreeningHistoryService.instance.getLatestScreening(userKey);
+    final loading = ScreeningHistoryService.instance.isLoading(userKey);
+    if (mounted) {
+      setState(() {
+        _latestScreening = latest;
+        _isLoadingScreening = loading && latest == null;
+      });
+    }
   }
 
   void _syncUserData() {
@@ -95,6 +126,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         _currentObesityRisk = (bmiInfo['risk'] as String?) ?? _currentObesityRisk;
         _isBiodataComplete = AuthService().isBiodataCompleted(widget.user.id);
       });
+      _syncScreeningData();
     }
   }
 
@@ -732,8 +764,39 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  // 5. Section Status Kesehatan (Tampilan Informasi)
+  // 5. Section Status Kesehatan (Tampilan Informasi Berdasarkan Riwayat Skrining Terakhir)
   Widget _buildHealthStatusCard(bool isDark) {
+    final bool hasScreening = _latestScreening != null;
+    final bool isLoading = _isLoadingScreening && !hasScreening;
+
+    // Nilai IMT
+    final String bmiText = isLoading
+        ? '...'
+        : (hasScreening ? _latestScreening!.bmi.toStringAsFixed(1) : '-');
+
+    // Kategori IMT
+    final String bmiCategoryText = isLoading
+        ? 'Memuat...'
+        : (hasScreening
+            ? (_latestScreening!.skriningData.categoryTitle.trim().isNotEmpty
+                ? _latestScreening!.skriningData.categoryTitle.replaceAll('\n', ' ')
+                : _latestScreening!.category)
+            : 'Belum ada data');
+
+    // Status Risiko Obesitas
+    final String riskText = isLoading
+        ? 'Memuat...'
+        : (hasScreening
+            ? (_latestScreening!.skriningData.riskTitle.trim().isNotEmpty
+                ? _latestScreening!.skriningData.riskTitle
+                : _latestScreening!.risk)
+            : 'Belum ada data');
+
+    // Warna status (Gunakan warna status klinis bila ada skrining, atau abu-abu netral bila kosong)
+    final Color statusColor = hasScreening
+        ? _getBmiStatusColor(_latestScreening!.bmi)
+        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -802,7 +865,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 ),
                               ),
                               Text(
-                                _currentBmi.toStringAsFixed(1),
+                                bmiText,
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -811,13 +874,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 ),
                               ),
                               Text(
-                                _currentBmiCategory,
+                                bmiCategoryText,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getBmiStatusColor(_currentBmi),
+                                  fontWeight: hasScreening ? FontWeight.w600 : FontWeight.w500,
+                                  color: statusColor,
                                 ),
                               ),
                             ],
@@ -864,13 +927,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                _currentObesityRisk,
+                                riskText,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: _getBmiStatusColor(_currentBmi),
+                                  fontWeight: hasScreening ? FontWeight.w700 : FontWeight.w500,
+                                  color: statusColor,
                                 ),
                               ),
                             ],
@@ -1195,20 +1258,28 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_currentBmi.toStringAsFixed(1)} kg/m²',
+                  _latestScreening != null
+                      ? '${_latestScreening!.bmi.toStringAsFixed(1)} kg/m²'
+                      : (_isLoadingScreening ? '... kg/m²' : '- kg/m²'),
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                    color: _latestScreening != null
+                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Status: $_currentBmiCategory',
+                  _latestScreening != null
+                      ? 'Status: ${_latestScreening!.skriningData.categoryTitle.trim().isNotEmpty ? _latestScreening!.skriningData.categoryTitle.replaceAll('\n', ' ') : _latestScreening!.category}'
+                      : (_isLoadingScreening ? 'Status: Memuat...' : 'Status: Belum ada data'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _getBmiStatusColor(_currentBmi),
+                    fontWeight: _latestScreening != null ? FontWeight.w600 : FontWeight.w500,
+                    color: _latestScreening != null
+                        ? _getBmiStatusColor(_latestScreening!.bmi)
+                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   ),
                 ),
               ],

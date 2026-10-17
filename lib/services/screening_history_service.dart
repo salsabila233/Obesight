@@ -62,6 +62,18 @@ class ScreeningHistoryService extends ChangeNotifier {
     return List.unmodifiable(list);
   }
 
+  /// Memeriksa apakah riwayat untuk akun pengguna telah selesai dimuat
+  bool hasLoaded(String? userId, [String? email]) {
+    final cleanId = resolveUserKey(userId, email);
+    return _loadedUsers.contains(cleanId);
+  }
+
+  /// Mengambil data hasil skrining terakhir yang valid (null jika belum pernah skrining)
+  ScreeningHistoryItem? getLatestScreening(String? userId, [String? email]) {
+    final history = getHistory(userId, email);
+    return history.isNotEmpty ? history.first : null;
+  }
+
   /// Memuat riwayat dari Cloud Firestore (`users/{uid}/screenings`) dengan cache offline SharedPreferences
   Future<List<ScreeningHistoryItem>> loadHistory(String? userId, [String? email]) async {
     final cleanId = resolveUserKey(userId, email);

@@ -503,40 +503,6 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
             ],
           ),
         ),
-
-        // Petunjuk Validasi Pengisian Wajib
-        if (!_isCurrentStepValid)
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: _isDark ? const Color(0xFFD97706).withValues(alpha: 0.3) : const Color(0xFFFDE68A),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 16,
-                  color: _isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Pilih jenis kelamin dan isi usia (10-120 thn), TB (50-250 cm), serta BB (20-350 kg) untuk melanjutkan.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: _isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }
