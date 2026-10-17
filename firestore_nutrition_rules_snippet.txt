@@ -1,31 +1,47 @@
 // ============================================================================
-// POTONGAN SECURITY RULES: NUTRITION PROGRESS & MASTER MEALS
-// Salin blok berikut ke dalam aturan Firebase Console Anda (di dalam blok
-// match /users/{userId} {...} atau match /databases/{database}/documents {...})
+// SECURITY RULES LENGKAP CLOUD FIRESTORE OBESIGHT
+// Salin seluruh isi file ini dan tempelkan (Paste) ke tab Rules di Firebase Console
 // ============================================================================
 
-// 1. Letakkan blok ini DI DALAM blok `match /users/{userId} { ... }`:
-      // Sub-koleksi Catatan Progress Nutrisi Makanan & Minuman Harian
-      match /nutrition_progress/{dateKey} {
-        // Hanya pemilik akun yang dapat membaca dokumen progress-nya
-        allow read: if request.auth != null && request.auth.uid == userId;
+rules_version = '2';
 
-        // Pembuatan dokumen baru: wajib pemilik akun dan tanggal cocok dengan dateKey
-        allow create: if request.auth != null 
-          && request.auth.uid == userId 
-          && request.resource.data.date == dateKey;
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-        // Pembaruan dokumen: hanya pemilik akun, dan item yang sudah diceklis tidak boleh berkurang
-        allow update: if request.auth != null 
-          && request.auth.uid == userId 
-          && request.resource.data.items.size() >= resource.data.items.size();
+    // 1. Profil Pengguna & Data Pribadi
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
 
-        // Ceklis bersifat permanen: DOKUMEN TIDAK BOLEH DIHAPUS
-        allow delete: false;
+      // Catatan Tidur
+      match /sleep_records/{recordId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-// 2. (Opsional jika memakai katalog Firestore) Letakkan ini DI DALAM `match /databases/{database}/documents { ... }`:
+      // Progress Makanan & Minuman (Sub-koleksi per Pengguna)
+      match /nutrition_progress/{dateKey} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // 2. Koleksi Utama: Progress Makanan & Minuman (Muncul di Panel Kiri Console)
+    match /nutrition_progress/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 3. Katalog Menu Master (Hanya Baca)
     match /nutrition_meals/{mealId} {
       allow read: if request.auth != null;
-      allow write: false; // Hanya dapat ditulis lewat Firebase Admin / Console
+      allow write: if false;
     }
+
+    // 4. Layanan OTP & Email
+    match /otp_verifications/{email} {
+      allow read, write: if true;
+    }
+
+    match /mail/{mailId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+  }
+}

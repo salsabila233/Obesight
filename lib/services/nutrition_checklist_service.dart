@@ -224,13 +224,8 @@ class NutritionChecklistService extends ChangeNotifier {
           });
         }
 
-        final docRef = FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .collection('nutrition_progress')
-            .doc(dateKey);
-
-        await docRef.set({
+        final docPayload = <String, dynamic>{
+          'userId': uid,
           'date': dateKey,
           'categoryAtThatTime': rawCategory,
           'targetCalories': targetCalories,
@@ -241,9 +236,23 @@ class NutritionChecklistService extends ChangeNotifier {
           'items': items,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        };
 
-        debugPrint('[NutritionChecklistService] Berhasil migrasi tanggal $dateKey ke Firestore!');
+        // 1. Simpan di sub-koleksi users/{uid}/nutrition_progress/{dateKey}
+        final docRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('nutrition_progress')
+            .doc(dateKey);
+        await docRef.set(docPayload, SetOptions(merge: true));
+
+        // 2. Simpan di koleksi utama nutrition_progress/{uid_dateKey} (muncul langsung di panel kiri console)
+        final rootRef = FirebaseFirestore.instance
+            .collection('nutrition_progress')
+            .doc('${uid}_$dateKey');
+        await rootRef.set(docPayload, SetOptions(merge: true));
+
+        debugPrint('[NutritionChecklistService] Berhasil migrasi tanggal $dateKey ke Firestore (Root & Sub-koleksi)!');
       }
 
       await prefs.setBool(migrationKey, true);
@@ -253,10 +262,86 @@ class NutritionChecklistService extends ChangeNotifier {
     }
   }
 
+  /// Inisialisasi dokumen progress hari ini secara otomatis saat halaman dibuka
+  /// agar koleksi 'nutrition_progress' langsung muncul di panel kiri Firebase Console
+  Future<void> initDailyProgressIfNeeded({String? dateKey}) async {
+    final uid = _currentFirebaseUid;
+    if (uid == null || uid.isEmpty) return;
+
+    final targetDateKey = dateKey ?? todayKey;
+    final parsedDate = DateTime.tryParse(targetDateKey) ?? DateTime.now();
+    final rawCategory = CalorieTargetService.getLatestScreeningCategoryRaw(userId: uid);
+    final group = CalorieTargetService.resolveGroup(rawCategory);
+    final targetCalories = CalorieTargetService.getDailyCalorieTarget(group);
+    final dailyMeals = MealPlanService.getDailyPlanForDate(date: parsedDate, group: group);
+
+    final completedIds = getCompletedForDate(targetDateKey);
+    final items = <Map<String, dynamic>>[];
+    int consumed = 0;
+
+    for (final id in completedIds) {
+      final meal = dailyMeals.firstWhere(
+        (m) => m.id == id,
+        orElse: () => MealPlanService.getMealById(id) ?? _createFallbackMeal(id),
+      );
+      consumed += meal.calories;
+      items.add({
+        'mealId': meal.id,
+        'name': meal.name,
+        'type': meal.type,
+        'mealTime': meal.mealTime,
+        'calories': meal.calories,
+        'protein': meal.protein,
+        'carbs': meal.carbs,
+        'fat': meal.fat,
+        'portionGram': meal.portionGram,
+        'checkedAt': Timestamp.now(),
+      });
+    }
+
+    final payload = <String, dynamic>{
+      'userId': uid,
+      'date': targetDateKey,
+      'categoryAtThatTime': rawCategory,
+      'targetCalories': targetCalories,
+      'consumedCalories': consumed,
+      'completedCount': items.length,
+      'totalCount': dailyMeals.length,
+      'plannedMealIds': dailyMeals.map((m) => m.id).toList(),
+      'items': items,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    try {
+      // Simpan di Koleksi Utama 'nutrition_progress'
+      final rootRef = FirebaseFirestore.instance
+          .collection('nutrition_progress')
+          .doc('${uid}_$targetDateKey');
+      final rootSnap = await rootRef.get();
+      if (!rootSnap.exists) {
+        payload['createdAt'] = FieldValue.serverTimestamp();
+      }
+      await rootRef.set(payload, SetOptions(merge: true));
+
+      // Simpan juga di sub-koleksi users/{uid}/nutrition_progress
+      final subRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('nutrition_progress')
+          .doc(targetDateKey);
+      await subRef.set(payload, SetOptions(merge: true));
+
+      debugPrint('[NutritionChecklistService] Inisialisasi progress $targetDateKey berhasil disimpan ke Firestore!');
+    } catch (e) {
+      debugPrint('[NutritionChecklistService] Notice inisialisasi progress ke Firestore: $e');
+    }
+  }
+
   /// Sinkronisasi paksa seluruh data lokal ke Firestore untuk pengguna aktif
   Future<void> syncAllToFirestore() async {
     final uid = _currentFirebaseUid;
     if (uid == null || uid.isEmpty) return;
+    await initDailyProgressIfNeeded();
     await _migrateLegacyDataToFirestore(uid, force: true);
   }
 
@@ -380,6 +465,7 @@ class NutritionChecklistService extends ChangeNotifier {
       }
 
       final payload = <String, dynamic>{
+        'userId': uid,
         'date': dateKey,
         'categoryAtThatTime': rawCategory,
         'targetCalories': targetCalories,
@@ -395,8 +481,16 @@ class NutritionChecklistService extends ChangeNotifier {
         payload['createdAt'] = FieldValue.serverTimestamp();
       }
 
+      // 1. Simpan di sub-koleksi users/{uid}/nutrition_progress
       await docRef.set(payload, SetOptions(merge: true));
-      debugPrint('[NutritionChecklistService] BERHASIL tersimpan di Firestore: users/$uid/nutrition_progress/$dateKey');
+
+      // 2. Simpan di koleksi utama 'nutrition_progress' (muncul di panel kiri Firebase Console!)
+      final rootRef = FirebaseFirestore.instance
+          .collection('nutrition_progress')
+          .doc('${uid}_$dateKey');
+      await rootRef.set(payload, SetOptions(merge: true));
+
+      debugPrint('[NutritionChecklistService] BERHASIL tersimpan di Firestore (Root & Sub-koleksi): nutrition_progress/${uid}_$dateKey');
     } catch (e) {
       debugPrint('[NutritionChecklistService] GAGAL menyimpan ke Firestore: $e');
     }
