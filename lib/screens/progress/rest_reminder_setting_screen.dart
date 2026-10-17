@@ -137,6 +137,10 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
         endDt = endDt.add(const Duration(days: 1));
       }
 
+      SleepTrackingService.instance.bedtimeTarget = _startTime;
+      SleepTrackingService.instance.reminderEnabled = true;
+      SleepTrackingService.instance.scheduleBedtimeNotification();
+
       SleepTrackingService.instance.addRecord(
         SleepRecord(
           id: DateTime.now().millisecondsSinceEpoch.toString(),

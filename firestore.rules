@@ -14,12 +14,29 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
       // Catatan Tidur
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Aturan Dokumen Profil Pengguna & Sub-Koleksinya
+    match /users/{userId} {
+      // Pemilik akun dapat membaca dan memperbarui profilnya sendiri
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Sub-koleksi Catatan Progress Nutrisi (Makanan & Minuman Harian)
+      match /nutrition_progress/{dateKey} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Sub-koleksi Catatan Pelacakan Tidur (Sleep Records)
       match /sleep_records/{recordId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
       // Progress Makanan & Minuman (Sub-koleksi per Pengguna)
       match /nutrition_progress/{dateKey} {
+      // Sub-koleksi Hasil & Riwayat Skrining Obesitas (Screening Sessions)
+      match /screenings/{screeningId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
@@ -51,6 +68,16 @@ service cloud.firestore {
       allow read: if resource.data.isPublished == true;
       // Penulisan/pengeditan/penghapusan dari client ditolak (hanya diizinkan via Firebase Console oleh admin)
       allow write: if false;
+    }
+    // Antrean Kirim Email Otomatis (Firebase Trigger Email)
+    match /mail/{mailId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: false;
+    }
+
+    // Verifikasi OTP Pendaftaran & Lupa Sandi
+    match /otp_verifications/{email} {
+      allow read, write: if true;
     }
   }
 }

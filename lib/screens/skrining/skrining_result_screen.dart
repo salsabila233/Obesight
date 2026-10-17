@@ -394,7 +394,7 @@ class SkriningResultScreen extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        '${data.height?.toInt() ?? 165} cm',
+                                        data.height != null ? '${data.height!.toInt()} cm' : '-',
                                         style: GoogleFonts.poppins(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700,
@@ -444,7 +444,7 @@ class SkriningResultScreen extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        '${data.weight?.toInt() ?? 72} Kg',
+                                        data.weight != null ? '${data.weight!.toInt()} Kg' : '-',
                                         style: GoogleFonts.poppins(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700,

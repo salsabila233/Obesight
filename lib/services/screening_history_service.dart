@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/screening_history_model.dart';
 import '../screens/skrining/skrining_models.dart';
 import 'auth_service.dart';
@@ -11,9 +14,17 @@ class ScreeningHistoryService extends ChangeNotifier {
 
   final Map<String, List<ScreeningHistoryItem>> _historyCache = {};
   final Set<String> _loadedUsers = {};
+  final Map<String, bool> _loadingStates = {};
 
-  // Prefix penyimpanan persisten per akun
+  // Prefix penyimpanan persisten per akun di SharedPreferences
   static const String _prefPrefix = 'screening_records_per_account_v3_';
+
+  bool get _isFirebaseAvailable => Firebase.apps.isNotEmpty;
+
+  bool isLoading(String? userId, [String? email]) {
+    final cleanId = resolveUserKey(userId, email);
+    return _loadingStates[cleanId] ?? false;
+  }
 
   /// Menyelesaikan ID akun unik pengguna secara aman
   String resolveUserKey(String? userId, [String? email]) {
@@ -24,6 +35,14 @@ class ScreeningHistoryService extends ChangeNotifier {
     if (authUser != null && authUser.id.isNotEmpty && authUser.id != 'usr_guest') {
       return authUser.id.trim();
     }
+    try {
+      if (_isFirebaseAvailable) {
+        final fbUser = FirebaseAuth.instance.currentUser;
+        if (fbUser != null && fbUser.uid.isNotEmpty) {
+          return fbUser.uid;
+        }
+      }
+    } catch (_) {}
     if (email != null && email.trim().isNotEmpty) {
       return 'user_${email.trim().toLowerCase().replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}';
     }
@@ -43,10 +62,24 @@ class ScreeningHistoryService extends ChangeNotifier {
     return List.unmodifiable(list);
   }
 
-  /// Memuat riwayat dari SharedPreferences untuk akun tertentu
+  /// Memeriksa apakah riwayat untuk akun pengguna telah selesai dimuat
+  bool hasLoaded(String? userId, [String? email]) {
+    final cleanId = resolveUserKey(userId, email);
+    return _loadedUsers.contains(cleanId);
+  }
+
+  /// Mengambil data hasil skrining terakhir yang valid (null jika belum pernah skrining)
+  ScreeningHistoryItem? getLatestScreening(String? userId, [String? email]) {
+    final history = getHistory(userId, email);
+    return history.isNotEmpty ? history.first : null;
+  }
+
+  /// Memuat riwayat dari Cloud Firestore (`users/{uid}/screenings`) dengan cache offline SharedPreferences
   Future<List<ScreeningHistoryItem>> loadHistory(String? userId, [String? email]) async {
     final cleanId = resolveUserKey(userId, email);
+    _loadingStates[cleanId] = true;
 
+    // 1. Muat dari SharedPreferences terlebih dahulu agar tampilan instan (Zero Lag / Offline First)
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = '$_prefPrefix$cleanId';
@@ -56,31 +89,81 @@ class ScreeningHistoryService extends ChangeNotifier {
         final decoded = jsonDecode(jsonString) as List<dynamic>;
         final items = decoded
             .map((item) => ScreeningHistoryItem.fromMap(Map<String, dynamic>.from(item as Map)))
-            // Pastikan tidak ada data dummy/seed lama
             .where((item) => !item.id.startsWith('seed_'))
             .toList();
         _historyCache[cleanId] = items;
-      } else {
-        // Akun belum pernah melakukan skrining: kosong [] (0 semua)
+      } else if (!_historyCache.containsKey(cleanId)) {
         _historyCache[cleanId] = [];
       }
     } catch (e) {
-      debugPrint('[ScreeningHistoryService] Error loading history for $cleanId: $e');
-      _historyCache[cleanId] = [];
+      debugPrint('[ScreeningHistoryService] Cache load notice for $cleanId: $e');
+      if (!_historyCache.containsKey(cleanId)) {
+        _historyCache[cleanId] = [];
+      }
     }
 
     _loadedUsers.add(cleanId);
+    notifyListeners();
+
+    // 2. Jika Firebase tersedia dan bukan akun tamu, sinkronkan dengan Cloud Firestore
+    if (_isFirebaseAvailable && cleanId != 'usr_guest') {
+      try {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(cleanId)
+            .collection('screenings')
+            .orderBy('date', descending: true)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          final firestoreItems = querySnapshot.docs.map((doc) {
+            final data = doc.data();
+            return ScreeningHistoryItem.fromMap(data);
+          }).toList();
+
+          _historyCache[cleanId] = firestoreItems;
+          await _saveToStorage(cleanId, firestoreItems);
+        } else {
+          // Jika di Firestore masih kosong namun ada riwayat lokal dari sesi sebelumnya, migrasi ke Firestore
+          final localItems = _historyCache[cleanId] ?? [];
+          if (localItems.isNotEmpty) {
+            debugPrint('[ScreeningHistoryService] Memulai migrasi ${localItems.length} sesi skrining lokal ke Firestore users/$cleanId/screenings...');
+            for (final item in localItems) {
+              try {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(cleanId)
+                    .collection('screenings')
+                    .doc(item.id)
+                    .set(item.toFirestoreMap());
+              } catch (migrateErr) {
+                debugPrint('[ScreeningHistoryService] Error migrating item ${item.id}: $migrateErr');
+              }
+            }
+          }
+        }
+      } catch (firestoreErr) {
+        debugPrint('[ScreeningHistoryService] Notice fetching Firestore screenings for $cleanId: $firestoreErr');
+      }
+    }
+
+    _loadingStates[cleanId] = false;
     notifyListeners();
     return getHistory(cleanId);
   }
 
   /// Menambahkan riwayat skrining baru untuk akun tertentu
-  Future<ScreeningHistoryItem> addHistory(String? userId, SkriningData data, {DateTime? customDate, String? email}) async {
+  Future<ScreeningHistoryItem> addHistory(
+    String? userId,
+    SkriningData data, {
+    DateTime? customDate,
+    String? email,
+  }) async {
     final cleanId = resolveUserKey(userId, email);
     final date = customDate ?? data.date ?? DateTime.now();
     data.date = date;
 
-    // Tentukan Risk
+    // Tentukan Tingkat Risiko Berdasarkan Standar Klinis Obesight
     final catLower = data.classificationCategory.toLowerCase();
     final riskLower = data.riskTitle.toLowerCase();
     String risk;
@@ -118,25 +201,57 @@ class ScreeningHistoryService extends ChangeNotifier {
       skriningData: data,
     );
 
-    // Ambil list riwayat akun saat ini
+    // 1. Simpan seketika di memori lokal & disk SharedPreferences (Offline-First)
     final currentList = List<ScreeningHistoryItem>.from(_historyCache[cleanId] ?? []);
-    // Sisipkan hasil skrining terbaru di posisi teratas
     currentList.insert(0, newItem);
     _historyCache[cleanId] = currentList;
-
     await _saveToStorage(cleanId, currentList);
     notifyListeners();
+
+    // 2. Simpan secara permanen ke Cloud Firestore (users/{uid}/screenings/{screeningId})
+    if (_isFirebaseAvailable && cleanId != 'usr_guest') {
+      try {
+        final docRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(cleanId)
+            .collection('screenings')
+            .doc(newItem.id);
+
+        await docRef.set(newItem.toFirestoreMap());
+        debugPrint('[ScreeningHistoryService] Sukses menyimpan skrining baru ke Firestore: users/$cleanId/screenings/${newItem.id}');
+      } catch (firestoreErr) {
+        debugPrint('[ScreeningHistoryService] Notice saving screening session to Firestore: $firestoreErr');
+      }
+    }
+
     return newItem;
   }
 
-  /// Menghapus seluruh riwayat untuk akun tertentu
+  /// Menghapus seluruh riwayat untuk akun tertentu (Lokal & Firestore)
   Future<void> clearHistory(String? userId, [String? email]) async {
     final cleanId = resolveUserKey(userId, email);
     _historyCache[cleanId] = [];
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('$_prefPrefix$cleanId');
     } catch (_) {}
+
+    if (_isFirebaseAvailable && cleanId != 'usr_guest') {
+      try {
+        final collectionRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(cleanId)
+            .collection('screenings');
+        final snapshots = await collectionRef.get();
+        for (final doc in snapshots.docs) {
+          await doc.reference.delete();
+        }
+      } catch (e) {
+        debugPrint('[ScreeningHistoryService] Notice clearing Firestore history: $e');
+      }
+    }
+
     notifyListeners();
   }
 
@@ -147,21 +262,28 @@ class ScreeningHistoryService extends ChangeNotifier {
 
   /// Statistik Jumlah Risiko Tinggi per Akun
   int getHighRiskCount(String? userId, [String? email]) {
-    return getHistory(userId, email).where((item) => item.risk.toLowerCase().contains('tinggi')).length;
+    return getHistory(userId, email)
+        .where((item) => item.risk.toLowerCase().contains('tinggi'))
+        .length;
   }
 
   /// Statistik Jumlah Risiko Sedang per Akun
   int getMediumRiskCount(String? userId, [String? email]) {
-    return getHistory(userId, email).where((item) =>
-        item.risk.toLowerCase().contains('sedang') || item.risk.toLowerCase().contains('meningkat')).length;
+    return getHistory(userId, email)
+        .where((item) =>
+            item.risk.toLowerCase().contains('sedang') ||
+            item.risk.toLowerCase().contains('meningkat'))
+        .length;
   }
 
   /// Statistik Jumlah Risiko Rendah per Akun
   int getLowRiskCount(String? userId, [String? email]) {
-    return getHistory(userId, email).where((item) =>
-        item.risk.toLowerCase().contains('rendah') ||
-        item.risk.toLowerCase().contains('terkendali') ||
-        item.risk.toLowerCase().contains('normal')).length;
+    return getHistory(userId, email)
+        .where((item) =>
+            item.risk.toLowerCase().contains('rendah') ||
+            item.risk.toLowerCase().contains('terkendali') ||
+            item.risk.toLowerCase().contains('normal'))
+        .length;
   }
 
   Future<void> _saveToStorage(String userId, List<ScreeningHistoryItem> items) async {

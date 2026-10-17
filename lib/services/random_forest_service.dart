@@ -159,17 +159,27 @@ class RandomForestService {
 
   /// Mengonversi jawaban formulir SkriningData menjadi vektor 31 fitur numerik & One-Hot Encoded
   List<double> preprocess(SkriningData data) {
+    if (data.age == null ||
+        data.height == null ||
+        data.weight == null ||
+        data.height! <= 0 ||
+        data.weight! <= 0 ||
+        data.gender == null) {
+      throw ArgumentError(
+        'Data usia, tinggi badan, berat badan, dan jenis kelamin wajib diisi secara valid sebelum inferensi model.',
+      );
+    }
+
     final x = List<double>.filled(31, 0.0);
 
     // 0: Age (tahun)
-    x[0] = (data.age ?? 23).toDouble();
+    x[0] = data.age!.toDouble();
 
     // 1: Height (dalam meter, dataset dilatih dalam meter)
-    final hCm = (data.height != null && data.height! > 0) ? data.height! : 165.0;
-    x[1] = hCm / 100.0;
+    x[1] = data.height! / 100.0;
 
     // 2: Weight (kg)
-    x[2] = (data.weight != null && data.weight! > 0) ? data.weight! : 72.0;
+    x[2] = data.weight!;
 
     // 3: FCVC - Frekuensi konsumsi sayuran (1 = Jarang, 2 = Kadang-kadang, 3 = Sering)
     switch (data.vegetableIntake) {

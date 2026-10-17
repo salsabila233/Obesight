@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/progress_tracking_service.dart';
-import '../progress/physical_activity_screen.dart';
 import '../progress/progress_screen.dart';
 import 'skrining_models.dart';
 import 'skrining_recommendation_rules.dart';

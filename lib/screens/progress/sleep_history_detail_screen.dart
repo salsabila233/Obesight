@@ -1304,15 +1304,46 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF36785A)),
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () async {
+                await service.requestNotificationPermission();
+                await service.showInstantTestNotification();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Notifikasi pengingat tidur telah dikirim ke status bar!'),
+                      backgroundColor: Color(0xFF265C45),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.notifications_active_outlined, size: 18, color: Color(0xFF36785A)),
+              label: Text(
+                'Uji Notifikasi Sekarang',
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF36785A),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildRecordListSection(SleepTrackingService service) {
-    final summaries = service.getPast7DaysSummaries(_currentWeekEnd);
-    final allRecords = summaries.expand((s) => s.records).toList()
-      ..sort((a, b) => b.startTime.compareTo(a.startTime));
+    final allRecords = service.allRecords;
 
     return Container(
       width: double.infinity,
@@ -1334,14 +1365,17 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Riwayat Catatan Tidur',
-                style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E293B),
+              Expanded(
+                child: Text(
+                  'Riwayat Catatan Tidur',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1E293B),
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${allRecords.length} catatan',
                 style: GoogleFonts.poppins(
@@ -1392,7 +1426,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 6,
+                            runSpacing: 2,
                             children: [
                               Text(
                                 record.timeRangeFormatted,
@@ -1402,7 +1439,6 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                   color: const Color(0xFF1E293B),
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(

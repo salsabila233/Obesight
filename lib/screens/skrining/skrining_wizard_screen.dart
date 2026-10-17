@@ -44,28 +44,13 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   @override
   void initState() {
     super.initState();
-    final userId = widget.user?.id ?? AuthService().currentUser?.id ?? 'usr_001';
-    final userBmi = AuthService().getUserBmi(userId);
 
-    final initialAge = (userBmi['age'] as num?)?.toInt() ?? 23;
-    final initialHeight = (userBmi['height'] as num?)?.toDouble() ?? 165.0;
-    final initialWeight = (userBmi['weight'] as num?)?.toDouble() ?? 72.0;
-    final initialGender = (userBmi['gender'] as String?) ?? 'Perempuan';
+    // Form langkah pertama dimulai dalam keadaan KOSONG tanpa nilai bawaan/default
+    _data = SkriningData();
 
-    _data = SkriningData(
-      gender: initialGender,
-      age: initialAge,
-      height: initialHeight,
-      weight: initialWeight,
-    );
-
-    _ageController = TextEditingController(text: initialAge.toString());
-    _heightController = TextEditingController(
-      text: initialHeight % 1 == 0 ? initialHeight.toInt().toString() : initialHeight.toString(),
-    );
-    _weightController = TextEditingController(
-      text: initialWeight % 1 == 0 ? initialWeight.toInt().toString() : initialWeight.toString(),
-    );
+    _ageController = TextEditingController();
+    _heightController = TextEditingController();
+    _weightController = TextEditingController();
 
     // Listen to changes for reactive validation
     _ageController.addListener(_onFieldChanged);
@@ -79,10 +64,14 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   }
 
   void _onFieldChanged() {
+    final ageText = _ageController.text.trim();
+    final heightText = _heightController.text.trim().replaceAll(',', '.');
+    final weightText = _weightController.text.trim().replaceAll(',', '.');
+
     setState(() {
-      _data.age = int.tryParse(_ageController.text);
-      _data.height = double.tryParse(_heightController.text.replaceAll(',', '.'));
-      _data.weight = double.tryParse(_weightController.text.replaceAll(',', '.'));
+      _data.age = ageText.isNotEmpty ? int.tryParse(ageText) : null;
+      _data.height = heightText.isNotEmpty ? double.tryParse(heightText) : null;
+      _data.weight = weightText.isNotEmpty ? double.tryParse(weightText) : null;
     });
   }
 
@@ -100,14 +89,17 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   bool get _isCurrentStepValid {
     switch (_currentStep) {
       case 0: // Step 1: Data Diri
-        return _data.gender != null &&
-            _data.gender!.isNotEmpty &&
-            _data.age != null &&
-            _data.age! > 0 &&
-            _data.height != null &&
-            _data.height! > 0 &&
-            _data.weight != null &&
-            _data.weight! > 0;
+        final gender = _data.gender;
+        final age = _data.age;
+        final height = _data.height;
+        final weight = _data.weight;
+
+        final isGenderValid = gender != null && (gender == 'Laki-laki' || gender == 'Perempuan');
+        final isAgeValid = age != null && age >= 10 && age <= 120;
+        final isHeightValid = height != null && height >= 50 && height <= 250;
+        final isWeightValid = weight != null && weight >= 20 && weight <= 350;
+
+        return isGenderValid && isAgeValid && isHeightValid && isWeightValid;
       case 1: // Step 2: Riwayat Keluarga & Pola Makan
         return _data.familyHistory != null &&
             _data.highCalorieFood != null &&
@@ -450,7 +442,7 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
             children: [
               _buildNumberInputField(
                 controller: _ageController,
-                hintText: '23',
+                hintText: '0',
                 maxWidth: 90,
               ),
               const SizedBox(width: 12),
@@ -473,7 +465,7 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
             children: [
               _buildNumberInputField(
                 controller: _heightController,
-                hintText: '165',
+                hintText: '0',
                 maxWidth: 90,
               ),
               const SizedBox(width: 12),
@@ -496,7 +488,7 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
             children: [
               _buildNumberInputField(
                 controller: _weightController,
-                hintText: '72',
+                hintText: '0',
                 maxWidth: 90,
               ),
               const SizedBox(width: 12),
