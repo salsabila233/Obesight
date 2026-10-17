@@ -28,19 +28,23 @@ class NutritionRecommendationScreen extends StatefulWidget {
 }
 
 class _NutritionRecommendationScreenState
-    extends State<NutritionRecommendationScreen> {
+    extends State<NutritionRecommendationScreen> with WidgetsBindingObserver {
   late NutritionFilter _currentFilter;
 
   // Date Scroller state (21 days: -7 to +13)
   late final ScrollController _dateScrollController;
   final int _todayOffset = 7;
-  late int _selectedDayIndex;
+  late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _currentFilter = widget.initialFilter;
-    _selectedDayIndex = _todayOffset;
+
+    // Inisialisasi tanggal terpilih ke Hari Ini (dinormalisasi tahun-bulan-hari)
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
     _dateScrollController = ScrollController();
 
     // Auto-scroll date scroller agar hari ini di tengah
@@ -61,9 +65,19 @@ class _NutritionRecommendationScreenState
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     AuthService().profileUpdateNotifier.removeListener(_onProfileUpdated);
     _dateScrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   void _onProfileUpdated() {
@@ -93,7 +107,9 @@ class _NutritionRecommendationScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Ambil tanggal hari ini secara real-time dari DateTime.now() saat render
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
@@ -107,13 +123,14 @@ class _NutritionRecommendationScreenState
     return ListenableBuilder(
       listenable: NutritionChecklistService.instance,
       builder: (context, _) {
-        final offset = _selectedDayIndex - _todayOffset;
-        final selectedDate = now.add(Duration(days: offset));
-        final selectedDateKey = NutritionChecklistService.instance.formatDateKey(selectedDate);
+        final selectedDateKey = NutritionChecklistService.instance.formatDateKey(_selectedDate);
+        final bool isSelectedDateToday = (_selectedDate.year == today.year &&
+            _selectedDate.month == today.month &&
+            _selectedDate.day == today.day);
 
         // Menu deterministik 1 hari (5 item: Sarapan, Siang, Malam, Cemilan, Minuman)
         final dailyMeals = MealPlanService.getDailyPlanForDate(
-          date: selectedDate,
+          date: _selectedDate,
           group: calorieGroup,
         );
 
@@ -162,12 +179,16 @@ class _NutritionRecommendationScreenState
                     itemCount: 21,
                     itemBuilder: (context, index) {
                       final itemOffset = index - _todayOffset;
-                      final date = now.add(Duration(days: itemOffset));
-                      final isSelected = _selectedDayIndex == index;
-                      final isPast = itemOffset < 0;
-                      final isToday = itemOffset == 0;
+                      final date = today.add(Duration(days: itemOffset));
+                      final isSelected = (_selectedDate.year == date.year &&
+                          _selectedDate.month == date.month &&
+                          _selectedDate.day == date.day);
+                      final isPast = date.isBefore(today);
+                      final isCurrentDay = (date.year == today.year &&
+                          date.month == today.month &&
+                          date.day == today.day);
 
-                      final dayName = isToday ? 'Hari ini' : dayNames[date.weekday % 7];
+                      final dayName = isCurrentDay ? 'Hari ini' : dayNames[date.weekday % 7];
                       final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
 
                       Color bgColor;
@@ -185,7 +206,7 @@ class _NutritionRecommendationScreenState
                         textColor = Colors.white;
                         subTextColor = Colors.white.withValues(alpha: 0.85);
                         border = Border.all(color: const Color(0xFFDC2626));
-                      } else if (isToday) {
+                      } else if (isCurrentDay) {
                         bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
                         textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
                         subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
@@ -200,7 +221,7 @@ class _NutritionRecommendationScreenState
                       return GestureDetector(
                         onTap: () {
                           setState(() {
-                            _selectedDayIndex = index;
+                            _selectedDate = date;
                           });
                         },
                         child: AnimatedContainer(
@@ -233,8 +254,8 @@ class _NutritionRecommendationScreenState
                               Text(
                                 dayName,
                                 style: GoogleFonts.poppins(
-                                  fontSize: isToday ? 9.5 : 11,
-                                  fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w500,
+                                  fontSize: isCurrentDay ? 9.5 : 11,
+                                  fontWeight: isCurrentDay || isSelected ? FontWeight.w700 : FontWeight.w500,
                                   color: subTextColor,
                                 ),
                               ),
@@ -311,7 +332,7 @@ class _NutritionRecommendationScreenState
                 const SizedBox(height: 12),
 
                 // 5. Daftar Card Menu Makanan & Minuman dengan Ceklis Manual
-                ...filteredMeals.map((meal) => _buildMealCard(meal, isDark, selectedDateKey)),
+                ...filteredMeals.map((meal) => _buildMealCard(meal, isDark, selectedDateKey, isSelectedDateToday)),
 
                 const SizedBox(height: 20),
               ],
@@ -572,14 +593,118 @@ class _NutritionRecommendationScreenState
   }
 
   // ==========================================
+  // DIALOG KONFIRMASI CEKLIS MAKANAN/MINUMAN
+  // ==========================================
+  Future<void> _confirmAndCompleteMeal({
+    required BuildContext context,
+    required String dateKey,
+    required NutritionMealModel meal,
+    required bool isDark,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF36785A).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_outline_rounded,
+                color: Color(0xFF36785A),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Konfirmasi Konsumsi',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Tandai sudah dikonsumsi? Ceklis tidak bisa dibatalkan.',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+            height: 1.45,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF36785A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(
+              'Ya',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await NutritionChecklistService.instance.completeItem(dateKey, meal.id);
+    }
+  }
+
+  // ==========================================
   // CARD REKOMENDASI DENGAN CEKLIS MANUAL
   // ==========================================
-  Widget _buildMealCard(NutritionMealModel meal, bool isDark, String dateKey) {
+  Widget _buildMealCard(
+    NutritionMealModel meal,
+    bool isDark,
+    String dateKey,
+    bool isToday,
+  ) {
     final isCompleted = NutritionChecklistService.instance.isCompleted(dateKey, meal.id);
 
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isCompleted
-        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+        ? (isToday
+            ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+            : (isDark
+                ? const Color(0xFF58AF86).withValues(alpha: 0.45)
+                : const Color(0xFF36785A).withValues(alpha: 0.45)))
         : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
     final textTitle = isDark ? Colors.white : const Color(0xFF0F172A);
     final textDesc = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
@@ -633,15 +758,17 @@ class _NutritionRecommendationScreenState
                             : _buildPlaceholderThumb(meal, isDark),
                       ),
                     ),
-                    // Checkmark badge di thumbnail saat selesai (identik dengan PhysicalActivityScreen)
+                    // Checkmark badge di thumbnail saat selesai
                     if (isCompleted)
                       Positioned(
                         top: 4,
                         left: 4,
                         child: Container(
                           padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF16A34A),
+                          decoration: BoxDecoration(
+                            color: isToday
+                                ? const Color(0xFF16A34A)
+                                : const Color(0xFF16A34A).withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -757,11 +884,44 @@ class _NutritionRecommendationScreenState
 
                 const SizedBox(width: 6),
 
-                // 3. Lingkaran Ceklis Manual (Bisa Di-tap oleh Pengguna)
+                // 3. Lingkaran Ceklis Manual
+                // Hanya bisa diketuk pada hari ini & belum tercentang
+                // Tanggal selain hari ini: tampil nonaktif (faded) & muncul snackbar jika diketuk
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    NutritionChecklistService.instance.toggleItem(dateKey, meal.id);
+                    if (!isToday) {
+                      // Tanggal kemarin / besok: tampilkan pesan singkat
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Ceklis hanya bisa diisi pada hari ini',
+                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.white),
+                          ),
+                          backgroundColor: const Color(0xFF36785A),
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Jika hari ini dan sudah tercentang: permanen, tidak ada aksi (tidak bisa uncheck)
+                    if (isCompleted) {
+                      return;
+                    }
+
+                    // Jika hari ini dan belum centang: tampilkan konfirmasi
+                    _confirmAndCompleteMeal(
+                      context: context,
+                      dateKey: dateKey,
+                      meal: meal,
+                      isDark: isDark,
+                    );
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
@@ -769,9 +929,17 @@ class _NutritionRecommendationScreenState
                       isCompleted
                           ? Icons.check_circle_rounded
                           : Icons.radio_button_unchecked_rounded,
-                      color: isCompleted
-                          ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
-                          : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
+                      color: isToday
+                          ? (isCompleted
+                              ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                              : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)))
+                          : (isCompleted
+                              ? (isDark
+                                  ? const Color(0xFF58AF86).withValues(alpha: 0.4)
+                                  : const Color(0xFF36785A).withValues(alpha: 0.4))
+                              : (isDark
+                                  ? const Color(0xFF64748B).withValues(alpha: 0.35)
+                                  : const Color(0xFFCBD5E1).withValues(alpha: 0.45))),
                       size: 26,
                     ),
                   ),
