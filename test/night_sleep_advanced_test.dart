@@ -66,14 +66,14 @@ void main() {
     final mingguFinder = find.text('Minggu');
     await tester.tap(mingguFinder);
     await tester.pumpAndSettle();
-    expect(find.text('Waktu tidur selama 4 minggu terakhir'), findsOneWidget);
+    expect(find.text('Waktu tidur selama 1 minggu (7 hari)'), findsOneWidget);
     expect(find.byKey(const ValueKey('weekly_chart')), findsOneWidget);
 
     // Test Tab Bulan
     final bulanFinder = find.text('Bulan');
     await tester.tap(bulanFinder);
     await tester.pumpAndSettle();
-    expect(find.text('Waktu tidur selama 6 bulan terakhir'), findsOneWidget);
+    expect(find.text('Waktu tidur selama 1 bulan kalender'), findsOneWidget);
     expect(find.byKey(const ValueKey('monthly_chart')), findsOneWidget);
 
     // Kembalikan ke Tab Hari

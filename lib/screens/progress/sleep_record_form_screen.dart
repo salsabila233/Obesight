@@ -267,7 +267,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Periode tidur yang Anda masukkan bertabrakan dengan data yang sudah ada:\n\n'
+              'Waktu tidur yang Anda masukkan bertabrakan dengan data yang sudah ada:\n\n'
               '• Data tersimpan: ${existing.timeRangeFormatted} (${existing.durationFormatted})\n'
               '• Data baru: ${_formatTimeOfDay(_startTime)} – ${_formatTimeOfDay(_endTime)} ($_durationFormatted)\n\n'
               'Silakan pilih tindakan yang Anda inginkan:',
@@ -297,11 +297,12 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.recordToEdit != null;
     final screenTitle = isEditing ? 'Edit Data Tidur' : 'Masukkan Data Istirahat';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F8),
+      backgroundColor: const Color(0xFF489874),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36785A),
+        backgroundColor: const Color(0xFF489874),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -311,143 +312,163 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
           screenTitle,
           style: GoogleFonts.poppins(
             color: Colors.white,
-            fontSize: 17,
+            fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // Date Selector Pill (< Min, 4 Okt >)
-            RestDateSelectorPill(
-              selectedDate: _selectedDate,
-              onDateChanged: (newDate) {
-                setState(() {
-                  _selectedDate = newDate;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Main Sleep Input Card (Matching Gambar 3)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF1E293B).withValues(alpha: 0.05),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              // Date Selector Pill (< Min, 4 Okt >)
+              RestDateSelectorPill(
+                selectedDate: _selectedDate,
+                onDateChanged: (newDate) {
+                  setState(() {
+                    _selectedDate = newDate;
+                  });
+                },
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header inside Card
-                  Row(
-                    children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2F1E8),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.bed_rounded, size: 20, color: Color(0xFF36785A)),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Waktu Istirahat',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF265C45),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-                  // Circular 24-Hour Dial
-                  CircularSleepDial(
-                    type: RestType.night,
-                    startTime: _startTime,
-                    endTime: _endTime,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Tile 1: Jam tidur
-                  _buildSettingTile(
-                    icon: Icons.bed_rounded,
-                    iconBg: const Color(0xFFE2F1E8),
-                    iconColor: const Color(0xFF36785A),
-                    title: 'Jam istirahat',
-                    value: _formatTimeOfDay(_startTime),
-                    showChevron: true,
-                    onTap: () => _pickTime(isStart: true),
-                  ),
-                  const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
-
-                  // Tile 2: Jam bangun
-                  _buildSettingTile(
-                    icon: Icons.alarm_on_rounded,
-                    iconBg: const Color(0xFFFFFBEB),
-                    iconColor: const Color(0xFFF59E0B),
-                    title: 'Jam selesai',
-                    value: _formatTimeOfDay(_endTime),
-                    showChevron: true,
-                    onTap: () => _pickTime(isStart: false),
-                  ),
-                  const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
-
-                  // Tile 3: Durasi tidur (Auto-calculated!)
-                  _buildSettingTile(
-                    icon: Icons.access_time_rounded,
-                    iconBg: const Color(0xFFEDF7F2),
-                    iconColor: const Color(0xFF36785A),
-                    title: 'Durasi istirahat',
-                    value: _durationFormatted,
-                    showChevron: false,
-                    onTap: null,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Bottom Buttons: Batal & Simpan
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF475569),
-                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              // Main Sleep Input Card (Matching Gambar 3)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Batal',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF475569),
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 14),
-                Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header inside Card
+                    Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2F1E8),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.bed_rounded, size: 20, color: Color(0xFF36785A)),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Waktu Istirahat',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF265C45),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Interactive Circular 24-Hour Dial (Samsung Health Style)
+                    CircularSleepDial(
+                      type: RestType.night,
+                      startTime: _startTime,
+                      endTime: _endTime,
+                      isInteractive: true,
+                      onStartTimeChanged: (newStart) {
+                        setState(() => _startTime = newStart);
+                      },
+                      onEndTimeChanged: (newEnd) {
+                        setState(() => _endTime = newEnd);
+                      },
+                      onRangeChanged: (newStart, newEnd) {
+                        setState(() {
+                          _startTime = newStart;
+                          _endTime = newEnd;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Tile 1: Jam tidur
+                    _buildSettingTile(
+                      icon: Icons.bed_rounded,
+                      iconBg: const Color(0xFFE2F1E8),
+                      iconColor: const Color(0xFF36785A),
+                      title: 'Jam istirahat',
+                      value: _formatTimeOfDay(_startTime),
+                      showChevron: true,
+                      onTap: () => _pickTime(isStart: true),
+                    ),
+                    const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+
+                    // Tile 2: Jam bangun
+                    _buildSettingTile(
+                      icon: Icons.alarm_on_rounded,
+                      iconBg: const Color(0xFFFFFBEB),
+                      iconColor: const Color(0xFFF59E0B),
+                      title: 'Jam selesai',
+                      value: _formatTimeOfDay(_endTime),
+                      showChevron: true,
+                      onTap: () => _pickTime(isStart: false),
+                    ),
+                    const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+
+                    // Tile 3: Durasi tidur (Auto-calculated!)
+                    _buildSettingTile(
+                      icon: Icons.access_time_rounded,
+                      iconBg: const Color(0xFFEDF7F2),
+                      iconColor: const Color(0xFF36785A),
+                      title: 'Durasi istirahat',
+                      value: _durationFormatted,
+                      showChevron: false,
+                      onTap: null,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Bottom Buttons: Batal & Simpan
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF475569),
+                        side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'Batal',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3E8D6B),
@@ -472,8 +493,9 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSettingTile({
     required IconData icon,

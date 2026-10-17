@@ -1,9 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import '../models/sleep_record_model.dart';
 import 'auth_service.dart';
 import 'rest_reminder_service.dart';
@@ -102,6 +107,82 @@ class MonthlySleepSummary {
   }
 }
 
+class CalendarMonthSummary {
+  final int month;
+  final int year;
+  final String monthLabel;
+  final int totalMinutes;
+  final int daysWithData;
+  final int totalDaysInMonth;
+  final double averageMinutesPerDay;
+  final List<DailySleepSummary> dailySummaries;
+  final List<WeeklySleepSummary> weeklyChunks;
+
+  const CalendarMonthSummary({
+    required this.month,
+    required this.year,
+    required this.monthLabel,
+    required this.totalMinutes,
+    required this.daysWithData,
+    required this.totalDaysInMonth,
+    required this.averageMinutesPerDay,
+    required this.dailySummaries,
+    required this.weeklyChunks,
+  });
+
+  bool get hasData => totalMinutes > 0;
+  int get averageHours => averageMinutesPerDay ~/ 60;
+  int get averageRemainingMinutes => (averageMinutesPerDay % 60).round();
+  int get totalHours => totalMinutes ~/ 60;
+  int get totalRemainingMinutes => totalMinutes % 60;
+  String get formattedAverage {
+    if (averageMinutesPerDay <= 0) return '-';
+    if (averageHours > 0 && averageRemainingMinutes > 0) {
+      return '${averageHours}j ${averageRemainingMinutes}m';
+    }
+    if (averageHours > 0) return '${averageHours}j';
+    return '${averageRemainingMinutes}m';
+  }
+}
+
+class SingleWeekSummary {
+  final DateTime startDate;
+  final DateTime endDate;
+  final String weekLabel;
+  final int totalMinutes;
+  final int daysWithData;
+  final double averageMinutesPerDay;
+  final List<DailySleepSummary> days;
+  final String averageBedtime;
+  final String averageWakeTime;
+
+  const SingleWeekSummary({
+    required this.startDate,
+    required this.endDate,
+    required this.weekLabel,
+    required this.totalMinutes,
+    required this.daysWithData,
+    required this.averageMinutesPerDay,
+    required this.days,
+    required this.averageBedtime,
+    required this.averageWakeTime,
+  });
+
+  bool get hasData => totalMinutes > 0;
+  int get totalHours => totalMinutes ~/ 60;
+  int get totalRemainingMinutes => totalMinutes % 60;
+  int get averageHours => averageMinutesPerDay ~/ 60;
+  int get averageRemainingMinutes => (averageMinutesPerDay % 60).round();
+  String get formattedAverage {
+    if (averageMinutesPerDay <= 0) return '-';
+    if (averageHours > 0 && averageRemainingMinutes > 0) {
+      return '${averageHours}j ${averageRemainingMinutes}m';
+    }
+    if (averageHours > 0) return '${averageHours}j';
+    return '${averageRemainingMinutes}m';
+  }
+}
+
 class HourlySleepData {
   final int hour;
   final String label;
@@ -126,6 +207,11 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   static const String _keyRecords = 'obesight_sleep_records_v1';
   static const String _keyPendingAuto = 'obesight_pending_auto_v1';
   static const String _keyLastInactive = 'obesight_last_inactive_time_v1';
+  static const String _keyLastNightInactive = 'obesight_last_night_inactive_time_v1';
+  static const String _keyReminderEnabled = 'obesight_sleep_reminder_enabled_v1';
+  static const String _keyBedtimeTargetH = 'obesight_sleep_bedtime_target_h_v1';
+  static const String _keyBedtimeTargetM = 'obesight_sleep_bedtime_target_m_v1';
+  static const String _keyReminderMinutesBefore = 'obesight_sleep_reminder_mins_v1';
   static const MethodChannel _platformChannel = MethodChannel('com.obesight.obesight/device_activity');
 
   SleepTrackingService._internal();
@@ -134,7 +220,9 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   // Inactivity tracking parameters
   int _minimumInactivityMinutes = 15; // Batas minimum tidak aktif HP (default: 15 menit)
+  static const int _minimumNightSleepMinutes = 180; // Minimal 3 jam (180 menit) untuk sesi tidur malam
   DateTime? _lastInactiveTime;
+  DateTime? _lastNightInactiveTime;
   SleepRecord? _pendingAutoDetectedRecord;
 
   // User target & reminder settings
@@ -145,6 +233,14 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   // In-memory list of sleep records
   final List<SleepRecord> _records = [];
+
+  // Local notifications plugin
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  bool _notificationsInitialized = false;
+  static const int _sleepReminderNotificationId = 88101;
+  static const int _testNotificationId = 88102;
+  static const String _sleepChannelId = 'sleep_reminder_channel';
+  static const String _sleepChannelName = 'Pengingat Waktu Tidur';
 
   // Getters
   int get minimumInactivityMinutes => _minimumInactivityMinutes;
@@ -165,18 +261,32 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   bool get reminderEnabled => _reminderEnabled;
   set reminderEnabled(bool val) {
     _reminderEnabled = val;
+    _saveToLocal();
+    if (val) {
+      scheduleBedtimeNotification();
+    } else {
+      cancelBedtimeNotification();
+    }
     notifyListeners();
   }
 
   TimeOfDay get bedtimeTarget => _bedtimeTarget;
   set bedtimeTarget(TimeOfDay val) {
     _bedtimeTarget = val;
+    _saveToLocal();
+    if (_reminderEnabled) {
+      scheduleBedtimeNotification();
+    }
     notifyListeners();
   }
 
   int get reminderMinutesBefore => _reminderMinutesBefore;
   set reminderMinutesBefore(int val) {
     _reminderMinutesBefore = val;
+    _saveToLocal();
+    if (_reminderEnabled) {
+      scheduleBedtimeNotification();
+    }
     notifyListeners();
   }
 
@@ -188,7 +298,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   String get reminderMessage =>
-      'Waktu tidurmu semakin dekat 🌙\nYuk mulai bersiap untuk beristirahat.';
+      'Waktu tidurmu semakin dekat 🌙\nYuk mulai bersiap untuk beristirahat agar metabolisme tetap optimal.';
 
   String get currentUserId => AuthService().currentUser?.id ?? 'guest_user';
 
@@ -213,13 +323,182 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       WidgetsBinding.instance.addObserver(this);
     }
     await _loadFromLocal();
+    await initNotifications();
     await checkDeviceInactivityCandidate();
     _loadFromFirestore();
+    startFirestoreRealtimeListener();
   }
 
   void disposeObserver() {
     WidgetsBinding.instance.removeObserver(this);
+    _firestoreSubscription?.cancel();
     _isInitialized = false;
+  }
+
+  // ==========================================
+  // NOTIFICATION SYSTEM (Local Push Notifications)
+  // ==========================================
+
+  Future<void> initNotifications() async {
+    if (kIsWeb) return;
+    try {
+      tz.initializeTimeZones();
+
+      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
+
+      const initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
+
+      await _notificationsPlugin.initialize(
+        settings: initSettings,
+      );
+      _notificationsInitialized = true;
+
+      if (_reminderEnabled) {
+        await scheduleBedtimeNotification();
+      }
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Notifications init error: $e');
+    }
+  }
+
+  Future<bool> requestNotificationPermission() async {
+    if (kIsWeb) return false;
+    try {
+      final androidPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      if (androidPlugin != null) {
+        final granted = await androidPlugin.requestNotificationsPermission();
+        return granted ?? false;
+      }
+      final iosPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      if (iosPlugin != null) {
+        final granted = await iosPlugin.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        return granted ?? false;
+      }
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Error requesting notification permission: $e');
+    }
+    return false;
+  }
+
+  Future<void> scheduleBedtimeNotification() async {
+    if (kIsWeb || !_notificationsInitialized || !_reminderEnabled) return;
+    try {
+      await cancelBedtimeNotification();
+
+      final now = DateTime.now();
+      final rTime = reminderTime;
+      var scheduledDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        rTime.hour,
+        rTime.minute,
+      );
+
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+
+      final tzScheduled = tz.TZDateTime.from(scheduledDate, tz.local);
+
+      const androidDetails = AndroidNotificationDetails(
+        _sleepChannelId,
+        _sleepChannelName,
+        channelDescription: 'Pengingat harian jadwal waktu istirahat tidur malam',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      const notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notificationsPlugin.zonedSchedule(
+        id: _sleepReminderNotificationId,
+        title: 'Pengingat Waktu Tidur 🌙',
+        body: 'Waktu tidurmu semakin dekat (Target: ${_bedtimeTarget.hour.toString().padLeft(2, '0')}.${_bedtimeTarget.minute.toString().padLeft(2, '0')}). Yuk mulai bersiap tidur.',
+        scheduledDate: tzScheduled,
+        notificationDetails: notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+      debugPrint('[SleepTrackingService] Scheduled daily bedtime notification at $tzScheduled');
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Error scheduling notification: $e');
+    }
+  }
+
+  Future<void> cancelBedtimeNotification() async {
+    if (kIsWeb || !_notificationsInitialized) return;
+    try {
+      await _notificationsPlugin.cancel(id: _sleepReminderNotificationId);
+      debugPrint('[SleepTrackingService] Bedtime notification cancelled');
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Error cancelling notification: $e');
+    }
+  }
+
+  Future<void> showInstantTestNotification() async {
+    if (kIsWeb) return;
+    if (!_notificationsInitialized) {
+      await initNotifications();
+    }
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        _sleepChannelId,
+        _sleepChannelName,
+        channelDescription: 'Pengingat harian jadwal waktu istirahat tidur malam',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      const notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      final hStr = _bedtimeTarget.hour.toString().padLeft(2, '0');
+      final mStr = _bedtimeTarget.minute.toString().padLeft(2, '0');
+
+      await _notificationsPlugin.show(
+        id: _testNotificationId,
+        title: 'Pengingat Waktu Tidur 🌙',
+        body: 'Waktu tidurmu semakin dekat (Target: $hStr.$mStr). Yuk mulai bersiap untuk beristirahat!',
+        notificationDetails: notificationDetails,
+      );
+      debugPrint('[SleepTrackingService] Test notification shown successfully');
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Error showing test notification: $e');
+    }
   }
 
   // ==========================================
@@ -251,6 +530,20 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       if (lastInactiveStr != null && lastInactiveStr.isNotEmpty) {
         _lastInactiveTime = DateTime.tryParse(lastInactiveStr);
       }
+
+      final lastNightStr = prefs.getString(_keyLastNightInactive);
+      if (lastNightStr != null && lastNightStr.isNotEmpty) {
+        _lastNightInactiveTime = DateTime.tryParse(lastNightStr);
+      }
+
+      _reminderEnabled = prefs.getBool(_keyReminderEnabled) ?? true;
+      final savedH = prefs.getInt(_keyBedtimeTargetH);
+      final savedM = prefs.getInt(_keyBedtimeTargetM);
+      if (savedH != null && savedM != null) {
+        _bedtimeTarget = TimeOfDay(hour: savedH, minute: savedM);
+      }
+      _reminderMinutesBefore = prefs.getInt(_keyReminderMinutesBefore) ?? 60;
+
       notifyListeners();
     } catch (e) {
       debugPrint('[SleepTrackingService] Load local error: $e');
@@ -274,6 +567,17 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       } else {
         await prefs.remove(_keyLastInactive);
       }
+
+      if (_lastNightInactiveTime != null) {
+        await prefs.setString(_keyLastNightInactive, _lastNightInactiveTime!.toIso8601String());
+      } else {
+        await prefs.remove(_keyLastNightInactive);
+      }
+
+      await prefs.setBool(_keyReminderEnabled, _reminderEnabled);
+      await prefs.setInt(_keyBedtimeTargetH, _bedtimeTarget.hour);
+      await prefs.setInt(_keyBedtimeTargetM, _bedtimeTarget.minute);
+      await prefs.setInt(_keyReminderMinutesBefore, _reminderMinutesBefore);
     } catch (e) {
       debugPrint('[SleepTrackingService] Save local error: $e');
     }
@@ -284,11 +588,13 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     _records.clear();
     _pendingAutoDetectedRecord = null;
     _lastInactiveTime = null;
+    _lastNightInactiveTime = null;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_keyRecords);
       await prefs.remove(_keyPendingAuto);
       await prefs.remove(_keyLastInactive);
+      await prefs.remove(_keyLastNightInactive);
     } catch (_) {}
     notifyListeners();
   }
@@ -301,18 +607,37 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      // Pengguna meletakkan HP / layar dimatikan
-      _lastInactiveTime = DateTime.now();
+      final now = DateTime.now();
+      _lastInactiveTime = now;
+      // Deteksi titik terakhir layar HP dimatikan di malam hari (pukul 20.00 s.d. 04.30)
+      // Setiap kali HP dimatikan di malam hari, perbarui ke titik paling terakhir
+      if (now.hour >= 20 || now.hour < 5) {
+        _lastNightInactiveTime = now;
+      }
       _saveToLocal();
-      debugPrint('[SleepTracker] Inactive at $_lastInactiveTime');
+      debugPrint('[SleepTracker] Inactive at $now (lastNightOff: $_lastNightInactiveTime)');
     } else if (state == AppLifecycleState.resumed) {
-      // HP kembali aktif / dibuka kembali
+      // HP kembali aktif / dibuka di pagi hari
       checkDeviceInactivityCandidate();
     }
   }
 
-  /// Memeriksa aktivitas layar mati dan nyala dari native Android atau lifecycle
+  /// Memeriksa aktivitas layar mati semalam dan nyala pagi hari (Samsung Health model)
   Future<void> checkDeviceInactivityCandidate() async {
+    final now = DateTime.now();
+    final todayKey = formatDateKey(now);
+    final todayRecs = getRecordsForDate(now);
+
+    // Jika hari ini sudah ada catatan tidur resmi tersimpan, jangan tampilkan pending auto lagi
+    if (todayRecs.isNotEmpty) {
+      if (_pendingAutoDetectedRecord != null && _pendingAutoDetectedRecord!.date == todayKey) {
+        _pendingAutoDetectedRecord = null;
+        _saveToLocal();
+        notifyListeners();
+      }
+      return;
+    }
+
     try {
       // 1. Coba periksa native Android BroadcastReceiver timestamp via Platform Channel
       final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
@@ -323,7 +648,11 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         final onDt = DateTime.fromMillisecondsSinceEpoch(lastOnMillis);
         final diffMinutes = onDt.difference(offDt).inMinutes;
 
-        if (diffMinutes >= _minimumInactivityMinutes) {
+        // Syarat sesi tidur malam Samsung Health:
+        // Titik terakhir layar mati di rentang malam (>= 20.00 atau < 05.00),
+        // layar nyala di pagi hari, dan durasi istirahat substansial minimal 3 jam (180 menit) s.d. 14 jam (840 menit)
+        final isNightStart = offDt.hour >= 20 || offDt.hour < 5;
+        if (isNightStart && diffMinutes >= _minimumNightSleepMinutes && diffMinutes <= 840) {
           _recordAutomaticSleepCandidate(offDt, onDt);
           await _platformChannel.invokeMethod('clearScreenTimes');
           return;
@@ -333,17 +662,19 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       // Platform channel tidak tersedia di environment test / non-Android
     }
 
-    // 2. Fallback: Gunakan lifecycle waktu tidak aktif Flutter yang tersimpan
-    if (_lastInactiveTime != null) {
-      final resumeTime = DateTime.now();
-      final diff = resumeTime.difference(_lastInactiveTime!);
-      debugPrint('[SleepTracker] Resumed after ${diff.inMinutes} minutes');
+    // 2. Fallback: Gunakan titik terakhir layar HP dimatikan semalam dari Flutter lifecycle
+    if (_lastNightInactiveTime != null) {
+      final diff = now.difference(_lastNightInactiveTime!);
+      final isMorningOrDay = now.hour >= 5 && now.hour <= 14;
 
-      if (diff.inMinutes >= _minimumInactivityMinutes) {
-        _recordAutomaticSleepCandidate(_lastInactiveTime!, resumeTime);
+      // Sesi tidur malam yang valid:
+      // Mulai semalam, dibuka di pagi/siang hari, dengan durasi minimal 3 jam
+      if (diff.inMinutes >= _minimumNightSleepMinutes && diff.inMinutes <= 840 && isMorningOrDay) {
+        _recordAutomaticSleepCandidate(_lastNightInactiveTime!, now);
+        _lastNightInactiveTime = null;
+        _saveToLocal();
+        return;
       }
-      _lastInactiveTime = null;
-      _saveToLocal();
     }
   }
 
@@ -594,19 +925,34 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
     final List<HourlySleepData> hourly = [];
     for (int h = 0; h < 24; h++) {
-      final hourStart = DateTime(date.year, date.month, date.day, h, 0);
-      final hourEnd = hourStart.add(const Duration(hours: 1));
-
       int minutesInThisHour = 0;
+
+      // 1. Cek jam di hari aktif
+      final hourStartSameDay = DateTime(date.year, date.month, date.day, h, 0);
+      final hourEndSameDay = hourStartSameDay.add(const Duration(hours: 1));
+
+      // 2. Cek kemungkinan jam malam berasal dari hari sebelumnya (sesi tidur malam lintas tengah malam)
+      final hourStartPrevDay = DateTime(date.year, date.month, date.day - 1, h, 0);
+      final hourEndPrevDay = hourStartPrevDay.add(const Duration(hours: 1));
+
       for (final r in effectiveRecs) {
         final rStart = r.startTime;
         final rEnd = r.endTime;
 
-        final overlapStart = rStart.isAfter(hourStart) ? rStart : hourStart;
-        final overlapEnd = rEnd.isBefore(hourEnd) ? rEnd : hourEnd;
+        // Overlap di hari yang sama
+        final oStart1 = rStart.isAfter(hourStartSameDay) ? rStart : hourStartSameDay;
+        final oEnd1 = rEnd.isBefore(hourEndSameDay) ? rEnd : hourEndSameDay;
+        if (oEnd1.isAfter(oStart1)) {
+          minutesInThisHour += oEnd1.difference(oStart1).inMinutes;
+        }
 
-        if (overlapEnd.isAfter(overlapStart)) {
-          minutesInThisHour += overlapEnd.difference(overlapStart).inMinutes;
+        // Overlap di hari sebelumnya (khusus jam malam h >= 18)
+        if (h >= 18) {
+          final oStart2 = rStart.isAfter(hourStartPrevDay) ? rStart : hourStartPrevDay;
+          final oEnd2 = rEnd.isBefore(hourEndPrevDay) ? rEnd : hourEndPrevDay;
+          if (oEnd2.isAfter(oStart2)) {
+            minutesInThisHour += oEnd2.difference(oStart2).inMinutes;
+          }
         }
       }
 
@@ -619,6 +965,13 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       ));
     }
     return hourly;
+  }
+
+  /// Urutan jam kronologis untuk sesi tidur malam (20.00 – 08.00)
+  List<HourlySleepData> getChronologicalHourlySleep(DateTime date) {
+    final hourly = getHourlySleepForDate(date);
+    const relevantHours = [20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8];
+    return relevantHours.map((h) => hourly[h]).toList();
   }
 
   /// Ringkasan tidur per minggu (4 minggu terakhir) dari database asli
@@ -674,7 +1027,11 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       final monthRecs = _records.where((r) {
-        final d = r.startTime;
+        final parsedDate = DateTime.tryParse(r.date);
+        if (parsedDate != null) {
+          return parsedDate.year == targetYear && parsedDate.month == targetMonth;
+        }
+        final d = r.endTime;
         return d.year == targetYear && d.month == targetMonth;
       }).toList();
 
@@ -693,6 +1050,157 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       ));
     }
     return summaries;
+  }
+
+  /// Data ringkasan tidur HANYA untuk satu minggu kalender tertentu (7 hari: Senin - Minggu)
+  SingleWeekSummary getSingleWeekSummary(DateTime referenceDate) {
+    final ref = DateTime(referenceDate.year, referenceDate.month, referenceDate.day);
+    // Senin sebagai awal minggu (ISO 8601: weekday 1 = Senin, 7 = Minggu)
+    final startOfWeek = ref.subtract(Duration(days: ref.weekday - 1));
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+    final days = <DailySleepSummary>[];
+    int totalMinutes = 0;
+    int daysWithData = 0;
+
+    for (int i = 0; i < 7; i++) {
+      final d = startOfWeek.add(Duration(days: i));
+      final recs = getRecordsForDate(d);
+      final dayM = recs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
+      if (dayM > 0) {
+        totalMinutes += dayM;
+        daysWithData++;
+      }
+      days.add(DailySleepSummary(
+        date: d,
+        dateKey: formatDateKey(d),
+        dayName: dayNames[d.weekday % 7],
+        dayNumber: d.day.toString(),
+        totalMinutes: dayM,
+        records: recs,
+        isToday: formatDateKey(d) == formatDateKey(DateTime.now()),
+      ));
+    }
+
+    final avgM = daysWithData > 0 ? (totalMinutes / daysWithData) : 0.0;
+    const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    final weekLabel = startOfWeek.month == endOfWeek.month
+        ? '${startOfWeek.day} - ${endOfWeek.day} ${monthNames[startOfWeek.month]} ${startOfWeek.year}'
+        : '${startOfWeek.day} ${monthNames[startOfWeek.month]} - ${endOfWeek.day} ${monthNames[endOfWeek.month]} ${endOfWeek.year}';
+
+    // Rata-rata jam tidur dan bangun untuk 1 minggu ini
+    final allRecs = days.expand((s) => s.records).toList();
+    String avgBed = '11:00 PM';
+    String avgWake = '06:00 AM';
+    if (allRecs.isNotEmpty) {
+      int totalBed = 0;
+      int totalWake = 0;
+      for (final r in allRecs) {
+        int bm = r.startTime.hour * 60 + r.startTime.minute;
+        if (bm > 12 * 60) bm -= 24 * 60;
+        totalBed += bm;
+        totalWake += (r.endTime.hour * 60 + r.endTime.minute);
+      }
+      int avgBedM = totalBed ~/ allRecs.length;
+      if (avgBedM < 0) avgBedM += 24 * 60;
+      avgBed = _format12Hour(avgBedM ~/ 60, avgBedM % 60);
+
+      int avgWakeM = totalWake ~/ allRecs.length;
+      avgWake = _format12Hour(avgWakeM ~/ 60, avgWakeM % 60);
+    }
+
+    return SingleWeekSummary(
+      startDate: startOfWeek,
+      endDate: endOfWeek,
+      weekLabel: weekLabel,
+      totalMinutes: totalMinutes,
+      daysWithData: daysWithData,
+      averageMinutesPerDay: avgM,
+      days: days,
+      averageBedtime: avgBed,
+      averageWakeTime: avgWake,
+    );
+  }
+
+  /// Data ringkasan tidur HANYA untuk satu bulan kalender tertentu (misal: Oktober 2026)
+  CalendarMonthSummary getCalendarMonthSummary(DateTime referenceDate) {
+    final year = referenceDate.year;
+    final month = referenceDate.month;
+    const monthFullNames = [
+      '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+    final dailySummaries = <DailySleepSummary>[];
+    int totalMinutes = 0;
+    int daysWithData = 0;
+
+    for (int day = 1; day <= daysInMonth; day++) {
+      final d = DateTime(year, month, day);
+      final recs = getRecordsForDate(d);
+      final dayM = recs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
+      if (dayM > 0) {
+        totalMinutes += dayM;
+        daysWithData++;
+      }
+      dailySummaries.add(DailySleepSummary(
+        date: d,
+        dateKey: formatDateKey(d),
+        dayName: dayNames[d.weekday % 7],
+        dayNumber: day.toString(),
+        totalMinutes: dayM,
+        records: recs,
+        isToday: formatDateKey(d) == formatDateKey(DateTime.now()),
+      ));
+    }
+
+    // Kelompokkan menjadi minggu-minggu di bulan kalender ini (M1: 1-7, M2: 8-14, M3: 15-21, M4: 22-28, M5: 29-N)
+    final weeklyChunks = <WeeklySleepSummary>[];
+    int chunkStart = 1;
+    int weekIndex = 1;
+    while (chunkStart <= daysInMonth) {
+      final chunkEnd = (chunkStart + 6 <= daysInMonth) ? chunkStart + 6 : daysInMonth;
+      final startDate = DateTime(year, month, chunkStart);
+      final endDate = DateTime(year, month, chunkEnd);
+
+      final chunkDays = dailySummaries.sublist(chunkStart - 1, chunkEnd);
+      final chunkTotalM = chunkDays.fold<int>(0, (acc, s) => acc + s.totalMinutes);
+      final chunkDaysWithData = chunkDays.where((s) => s.hasData).length;
+      final chunkAvg = chunkDaysWithData > 0 ? (chunkTotalM / chunkDaysWithData) : 0.0;
+
+      final now = DateTime.now();
+      final isCurrent = now.year == year && now.month == month && now.day >= chunkStart && now.day <= chunkEnd;
+
+      weeklyChunks.add(WeeklySleepSummary(
+        weekLabel: 'Mgg $weekIndex',
+        startDate: startDate,
+        endDate: endDate,
+        averageMinutesPerDay: chunkAvg,
+        totalMinutes: chunkTotalM,
+        daysWithData: chunkDaysWithData,
+        isCurrentWeek: isCurrent,
+      ));
+
+      chunkStart = chunkEnd + 1;
+      weekIndex++;
+    }
+
+    final avgM = daysWithData > 0 ? (totalMinutes / daysWithData) : 0.0;
+
+    return CalendarMonthSummary(
+      month: month,
+      year: year,
+      monthLabel: '${monthFullNames[month]} $year',
+      totalMinutes: totalMinutes,
+      daysWithData: daysWithData,
+      totalDaysInMonth: daysInMonth,
+      averageMinutesPerDay: avgM,
+      dailySummaries: dailySummaries,
+      weeklyChunks: weeklyChunks,
+    );
   }
 
   // ==========================================
@@ -829,6 +1337,51 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (e) {
       debugPrint('[SleepTrackingService] Load Firestore error: $e');
+    }
+  }
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _firestoreSubscription;
+
+  /// Memulai sinkronisasi real-time Cloud Firestore untuk catatan tidur
+  void startFirestoreRealtimeListener() {
+    try {
+      if (Firebase.apps.isEmpty) return;
+      final uid = currentUserId;
+      if (uid == 'guest_user') return;
+
+      _firestoreSubscription?.cancel();
+      _firestoreSubscription = FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('sleep_records')
+          .orderBy('waktu_mulai', descending: true)
+          .limit(100)
+          .snapshots()
+          .listen((snapshot) {
+        bool hasChanges = false;
+        for (final doc in snapshot.docs) {
+          final rec = SleepRecord.fromMap(doc.data(), doc.id);
+          final idx = _records.indexWhere((r) => r.id == rec.id);
+          if (idx == -1) {
+            _records.add(rec);
+            hasChanges = true;
+          } else {
+            if (_records[idx].updatedAt != rec.updatedAt ||
+                _records[idx].durationMinutes != rec.durationMinutes) {
+              _records[idx] = rec;
+              hasChanges = true;
+            }
+          }
+        }
+        if (hasChanges) {
+          _saveToLocal();
+          notifyListeners();
+        }
+      }, onError: (e) {
+        debugPrint('[SleepTrackingService] Firestore realtime error: $e');
+      });
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Realtime listener error: $e');
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/rest_reminder_service.dart';
 
@@ -507,131 +508,300 @@ class Rest7DayBarChartWidget extends StatelessWidget {
   }
 }
 
-/// Circular 24-Hour Dial Widget (GAMBAR 2)
-class CircularSleepDial extends StatelessWidget {
+/// Circular 24-Hour Dial Widget (Interactive Samsung Health Style Curved Slider)
+class CircularSleepDial extends StatefulWidget {
   final RestType type;
   final TimeOfDay startTime;
   final TimeOfDay endTime;
+  final ValueChanged<TimeOfDay>? onStartTimeChanged;
+  final ValueChanged<TimeOfDay>? onEndTimeChanged;
+  final void Function(TimeOfDay start, TimeOfDay end)? onRangeChanged;
+  final bool isInteractive;
 
   const CircularSleepDial({
     super.key,
     required this.type,
     required this.startTime,
     required this.endTime,
+    this.onStartTimeChanged,
+    this.onEndTimeChanged,
+    this.onRangeChanged,
+    this.isInteractive = false,
   });
 
   @override
+  State<CircularSleepDial> createState() => _CircularSleepDialState();
+}
+
+enum _ActiveDragHandle { none, start, end }
+
+class _CircularSleepDialState extends State<CircularSleepDial> {
+  _ActiveDragHandle _activeHandle = _ActiveDragHandle.none;
+  late TimeOfDay _currentStart;
+  late TimeOfDay _currentEnd;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStart = widget.startTime;
+    _currentEnd = widget.endTime;
+  }
+
+  @override
+  void didUpdateWidget(covariant CircularSleepDial oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_activeHandle == _ActiveDragHandle.none) {
+      _currentStart = widget.startTime;
+      _currentEnd = widget.endTime;
+    }
+  }
+
+  void _handlePanStart(Offset localPos, Size size) {
+    if (!widget.isInteractive) return;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - 48) / 2;
+
+    final startMinutes = _currentStart.hour * 60 + _currentStart.minute;
+    final endMinutes = _currentEnd.hour * 60 + _currentEnd.minute;
+
+    final startAngle = -pi / 2 + (startMinutes / (24.0 * 60.0)) * 2 * pi;
+    final endAngle = -pi / 2 + (endMinutes / (24.0 * 60.0)) * 2 * pi;
+
+    final startPoint = Offset(
+      center.dx + radius * cos(startAngle),
+      center.dy + radius * sin(startAngle),
+    );
+    final endPoint = Offset(
+      center.dx + radius * cos(endAngle),
+      center.dy + radius * sin(endAngle),
+    );
+
+    final distToStart = (localPos - startPoint).distance;
+    final distToEnd = (localPos - endPoint).distance;
+
+    // Deteksi handle mana yang disentuh pengguna (touch threshold 40px)
+    if (distToStart < 40 && distToStart <= distToEnd) {
+      setState(() => _activeHandle = _ActiveDragHandle.start);
+      HapticFeedback.selectionClick();
+    } else if (distToEnd < 40) {
+      setState(() => _activeHandle = _ActiveDragHandle.end);
+      HapticFeedback.selectionClick();
+    } else {
+      // Jika sentuhan dekat jalur lingkar, pilih handle terdekat
+      final distToCenter = (localPos - center).distance;
+      if ((distToCenter - radius).abs() < 30) {
+        if (distToStart <= distToEnd) {
+          setState(() => _activeHandle = _ActiveDragHandle.start);
+        } else {
+          setState(() => _activeHandle = _ActiveDragHandle.end);
+        }
+        _updateFromPosition(localPos, size);
+      }
+    }
+  }
+
+  void _handlePanUpdate(Offset localPos, Size size) {
+    if (!widget.isInteractive || _activeHandle == _ActiveDragHandle.none) return;
+    _updateFromPosition(localPos, size);
+  }
+
+  void _handlePanEnd() {
+    setState(() => _activeHandle = _ActiveDragHandle.none);
+  }
+
+  void _updateFromPosition(Offset localPos, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final dx = localPos.dx - center.dx;
+    final dy = localPos.dy - center.dy;
+
+    var theta = atan2(dy, dx);
+    // Sudut dari posisi atas (00:00) searah jarum jam
+    var alpha = theta + pi / 2;
+    while (alpha < 0) {
+      alpha += 2 * pi;
+    }
+    while (alpha >= 2 * pi) {
+      alpha -= 2 * pi;
+    }
+
+    // Konversi ke menit dalam sehari (0 .. 1439), snap ke kelipatan 5 menit
+    final rawMinutes = (alpha / (2 * pi) * 24 * 60).round();
+    final snappedMinutes = ((rawMinutes / 5).round() * 5) % 1440;
+
+    final hour = snappedMinutes ~/ 60;
+    final minute = snappedMinutes % 60;
+    final newTime = TimeOfDay(hour: hour, minute: minute);
+
+    if (_activeHandle == _ActiveDragHandle.start) {
+      if (newTime.hour != _currentStart.hour || newTime.minute != _currentStart.minute) {
+        setState(() => _currentStart = newTime);
+        HapticFeedback.selectionClick();
+        widget.onStartTimeChanged?.call(newTime);
+        widget.onRangeChanged?.call(newTime, _currentEnd);
+      }
+    } else if (_activeHandle == _ActiveDragHandle.end) {
+      if (newTime.hour != _currentEnd.hour || newTime.minute != _currentEnd.minute) {
+        setState(() => _currentEnd = newTime);
+        HapticFeedback.selectionClick();
+        widget.onEndTimeChanged?.call(newTime);
+        widget.onRangeChanged?.call(_currentStart, newTime);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final startMinutes = startTime.hour * 60 + startTime.minute;
-    final endMinutes = endTime.hour * 60 + endTime.minute;
+    final startMinutes = _currentStart.hour * 60 + _currentStart.minute;
+    final endMinutes = _currentEnd.hour * 60 + _currentEnd.minute;
 
     final startFormatted =
-        '${startTime.hour.toString().padLeft(2, '0')}.${startTime.minute.toString().padLeft(2, '0')}';
+        '${_currentStart.hour.toString().padLeft(2, '0')}.${_currentStart.minute.toString().padLeft(2, '0')}';
     final endFormatted =
-        '${endTime.hour.toString().padLeft(2, '0')}.${endTime.minute.toString().padLeft(2, '0')}';
+        '${_currentEnd.hour.toString().padLeft(2, '0')}.${_currentEnd.minute.toString().padLeft(2, '0')}';
 
-    final isNight = type == RestType.night;
+    final isNight = widget.type == RestType.night;
+    const dialSize = 240.0;
 
     return Center(
-      child: SizedBox(
-        width: 220,
-        height: 220,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Custom Painter for 24h dial
-            CustomPaint(
-              size: const Size(220, 220),
-              painter: _DialPainter(
-                startMinutes: startMinutes,
-                endMinutes: endMinutes,
-                isNight: isNight,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onPanStart: (details) => _handlePanStart(details.localPosition, const Size(dialSize, dialSize)),
+            onPanUpdate: (details) => _handlePanUpdate(details.localPosition, const Size(dialSize, dialSize)),
+            onPanEnd: (_) => _handlePanEnd(),
+            onPanCancel: () => _handlePanEnd(),
+            child: SizedBox(
+              width: dialSize,
+              height: dialSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Custom Painter untuk busur dan handle melengkung
+                  CustomPaint(
+                    size: const Size(dialSize, dialSize),
+                    painter: _InteractiveDialPainter(
+                      startMinutes: startMinutes,
+                      endMinutes: endMinutes,
+                      isNight: isNight,
+                      activeHandle: _activeHandle,
+                    ),
+                  ),
+
+                  // Tampilan Tengah: Waktu Mulai & Waktu Selesai
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isNight ? Icons.bed_rounded : Icons.wb_sunny_rounded,
+                            size: 20,
+                            color: isNight ? const Color(0xFF36785A) : const Color(0xFFEAB308),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            startFormatted,
+                            style: GoogleFonts.poppins(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1E293B),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isNight ? Icons.nightlight_round : Icons.alarm_on_rounded,
+                            size: 19,
+                            color: const Color(0xFF36785A),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            endFormatted,
+                            style: GoogleFonts.poppins(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1E293B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-
-            // Center Content: Start & End Time
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isNight ? Icons.bed_rounded : Icons.wb_sunny_rounded,
-                      size: 20,
-                      color: isNight ? const Color(0xFF36785A) : const Color(0xFFEAB308),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      startFormatted,
+          ),
+          if (widget.isInteractive) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.touch_app_rounded, size: 14, color: Color(0xFF489874)),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      'Geser tombol melengkung untuk mengatur jam',
                       style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E293B),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF489874),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isNight ? Icons.nightlight_round : Icons.alarm_on_rounded,
-                      size: 19,
-                      color: const Color(0xFF36785A),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      endFormatted,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E293B),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _DialPainter extends CustomPainter {
+class _InteractiveDialPainter extends CustomPainter {
   final int startMinutes;
   final int endMinutes;
   final bool isNight;
+  final _ActiveDragHandle activeHandle;
 
-  _DialPainter({
+  _InteractiveDialPainter({
     required this.startMinutes,
     required this.endMinutes,
     required this.isNight,
+    required this.activeHandle,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - 44) / 2;
+    final radius = (size.width - 48) / 2;
 
-    // 1. Background Circle Track
+    // 1. Jalur Lingkar Belakang
     final trackPaint = Paint()
-      ..color = const Color(0xFFE2F1E8)
+      ..color = const Color(0xFFE6EFEA)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 14;
     canvas.drawCircle(center, radius, trackPaint);
 
-    // 2. Cardinal Numbers: 0 at top, 6 at right, 12 at bottom, 18 at left
+    // 2. Angka Penanda Jam: 0 (atas), 6 (kanan), 12 (bawah), 18 (kiri)
     _drawLabel(canvas, '0', center + Offset(0, -radius - 12));
     _drawLabel(canvas, '6', center + Offset(radius + 12, 0));
     _drawLabel(canvas, '12', center + Offset(0, radius + 12));
     _drawLabel(canvas, '18', center + Offset(-radius - 12, 0));
 
-    // 3. Active Arc (Start to End in 24h = 2*pi)
-    // 0 minutes = top (-pi/2)
+    // 3. Busur Tidur Aktif (24 jam = 2*pi)
     final startAngle = -pi / 2 + (startMinutes / (24.0 * 60.0)) * 2 * pi;
     var sweepAngle = ((endMinutes - startMinutes) / (24.0 * 60.0)) * 2 * pi;
     if (sweepAngle <= 0) {
@@ -652,7 +822,7 @@ class _DialPainter extends CustomPainter {
       arcPaint,
     );
 
-    // 4. Endpoint handle badges
+    // 4. Titik Handle Melengkung
     final startPoint = Offset(
       center.dx + radius * cos(startAngle),
       center.dy + radius * sin(startAngle),
@@ -662,22 +832,49 @@ class _DialPainter extends CustomPainter {
       center.dy + radius * sin(startAngle + sweepAngle),
     );
 
+    // Start Handle (Bedtime)
+    _drawHandle(
+      canvas,
+      startPoint,
+      isActive: activeHandle == _ActiveDragHandle.start,
+      color: const Color(0xFF235B42),
+    );
+
+    // End Handle (Wake-up)
+    _drawHandle(
+      canvas,
+      endPoint,
+      isActive: activeHandle == _ActiveDragHandle.end,
+      color: const Color(0xFF235B42),
+    );
+  }
+
+  void _drawHandle(Canvas canvas, Offset point, {required bool isActive, required Color color}) {
+    // Shadow jika aktif
+    if (isActive) {
+      final shadowPaint = Paint()
+        ..color = const Color(0x33000000)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+      canvas.drawCircle(point + const Offset(0, 2), 14, shadowPaint);
+    }
+
     final handleBgPaint = Paint()
-      ..color = const Color(0xFF235B42)
+      ..color = color
       ..style = PaintingStyle.fill;
 
     final handleBorderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
+      ..strokeWidth = isActive ? 3.0 : 2.5;
 
-    // Start Handle Circle
-    canvas.drawCircle(startPoint, 10, handleBgPaint);
-    canvas.drawCircle(startPoint, 10, handleBorderPaint);
+    final innerCirclePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
 
-    // End Handle Circle
-    canvas.drawCircle(endPoint, 10, handleBgPaint);
-    canvas.drawCircle(endPoint, 10, handleBorderPaint);
+    final r = isActive ? 13.0 : 11.5;
+    canvas.drawCircle(point, r, handleBgPaint);
+    canvas.drawCircle(point, r, handleBorderPaint);
+    canvas.drawCircle(point, 3.5, innerCirclePaint);
   }
 
   void _drawLabel(Canvas canvas, String text, Offset offset) {
@@ -702,9 +899,10 @@ class _DialPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DialPainter oldDelegate) {
+  bool shouldRepaint(covariant _InteractiveDialPainter oldDelegate) {
     return oldDelegate.startMinutes != startMinutes ||
         oldDelegate.endMinutes != endMinutes ||
-        oldDelegate.isNight != isNight;
+        oldDelegate.isNight != isNight ||
+        oldDelegate.activeHandle != activeHandle;
   }
 }

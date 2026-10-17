@@ -341,7 +341,7 @@ void main() {
     // Skenario 10: Banner HD tidur berkualitas tinggi
     // -------------------------------------------------------------------------
     test('10. File aset banner HD hero_malam_hd.jpg tersedia dan beresolusi tinggi', () {
-      final file = File('d:\\Obesight\\assets\\progress\\rest\\hero_malam_hd.jpg');
+      final file = File('assets/progress/rest/hero_malam_hd.jpg');
       expect(file.existsSync(), isTrue);
       // Ukuran file lebih dari 200KB (menandakan gambar HD tajam, bukan kompresi pecah)
       expect(file.lengthSync(), greaterThan(200000));

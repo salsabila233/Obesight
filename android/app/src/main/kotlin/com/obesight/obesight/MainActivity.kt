@@ -49,12 +49,22 @@ class MainActivity : FlutterActivity() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val prefs = getSharedPreferences("obesight_device_activity", Context.MODE_PRIVATE)
                 val now = System.currentTimeMillis()
+                val cal = java.util.Calendar.getInstance()
+                val hour = cal.get(java.util.Calendar.HOUR_OF_DAY)
+
                 when (intent?.action) {
                     Intent.ACTION_SCREEN_OFF -> {
-                        prefs.edit().putLong("last_screen_off_millis", now).apply()
+                        // Catat titik terakhir layar mati pada rentang malam (>= 20.00 atau < 05.00)
+                        if (hour >= 20 || hour < 5) {
+                            prefs.edit().putLong("last_screen_off_millis", now).apply()
+                        }
                     }
                     Intent.ACTION_USER_PRESENT, Intent.ACTION_SCREEN_ON -> {
-                        prefs.edit().putLong("last_screen_on_millis", now).apply()
+                        // Catat layar aktif pertama di pagi hari (>= 05.00 dan <= 14.00)
+                        val lastOff = prefs.getLong("last_screen_off_millis", 0L)
+                        if (lastOff > 0L && (hour in 5..14)) {
+                            prefs.edit().putLong("last_screen_on_millis", now).apply()
+                        }
                     }
                 }
             }
