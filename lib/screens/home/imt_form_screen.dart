@@ -226,8 +226,8 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                           ),
                           const SizedBox(width: 12),
                           Image.asset(
-                            'assets/bmi_hero_hands.png',
-                            width: 100,
+                            'assets/images/bmi_illustration.png',
+                            width: 110,
                             height: 100,
                             fit: BoxFit.contain,
                             errorBuilder: (_, _, _) => Icon(
