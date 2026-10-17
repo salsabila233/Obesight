@@ -39,7 +39,13 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   bool _notificationsInitialized = false;
   static const int _timerNotificationId = 99101;
 
+  // Firestore Workout Session Tracker
+  String? _activeSessionId;
+  Future<String?>? _startSessionFuture;
+  DateTime? _sessionLocalStartTime;
+
   // Getters
+  String? get activeSessionId => _activeSessionId;
   Map<String, dynamic>? get activeActivity => _activeActivity;
   String? get dateKey => _dateKey;
   int get targetDuration => _targetDuration;
@@ -222,6 +228,9 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   }) {
     ActivityAlarmService.instance.stopAlarm();
     _alarmTriggeredForSession = false;
+    _activeSessionId = null;
+    _startSessionFuture = null;
+    _sessionLocalStartTime = null;
     _activeActivity = activity;
     _dateKey = dateKey ?? PhysicalActivityService.instance.todayKey;
     _selectedPreset = presetSeconds;
@@ -261,6 +270,23 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
     _segmentStartTime = DateTime.now();
     _status = ActivityTimerStatus.running;
+
+    // Catat permulaan sesi ke Cloud Firestore (riwayat_sesi)
+    if (_activeSessionId == null && _activeActivity != null && _activeActivity?['isRest'] != true) {
+      _sessionLocalStartTime ??= DateTime.now();
+      _startSessionFuture = PhysicalActivityService.instance.startSession(
+        activity: _activeActivity!,
+        dateKey: _dateKey,
+      );
+      _startSessionFuture!.then((sid) {
+        if (sid != null) {
+          _activeSessionId = sid;
+          debugPrint('[ActivityTimerService] Active sessionId terdaftar: $sid');
+        }
+      }).catchError((e) {
+        debugPrint('[ActivityTimerService] Error startSession Firestore: $e');
+      });
+    }
 
     _startTicker();
     _scheduleFinishNotification();
@@ -330,23 +356,60 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Auto-save checklist jika memenuhi syarat (>= 50% target atau selesai)
-  void _autoSaveChecklistIfEligible() {
+  Future<bool> _autoSaveChecklistIfEligible() async {
     final act = _activeActivity;
-    if (act == null) return;
+    if (act == null) return false;
     final isRest = act['isRest'] == true;
-    if (isRest) return; // Istirahat tidak memiliki checklist aktivitas fisik
+    if (isRest) return true; // Istirahat tidak memiliki checklist aktivitas fisik
 
     final actId = act['id'] as String? ?? '';
     final dKey = _dateKey ?? PhysicalActivityService.instance.todayKey;
 
     if (actId.isNotEmpty && meetsMinimum50Percent) {
-      PhysicalActivityService.instance.completeActivity(dKey, actId);
+      // Tunggu future startSession jika masih dalam proses
+      if (_activeSessionId == null && _startSessionFuture != null) {
+        try {
+          final sid = await _startSessionFuture;
+          if (sid != null) {
+            _activeSessionId = sid;
+          }
+        } catch (_) {}
+      }
+
+      final sessionId = _activeSessionId;
+      final startTime = _sessionLocalStartTime;
+
+      bool success = false;
+      if (sessionId != null) {
+        success = await PhysicalActivityService.instance.finishSession(
+          sessionId: sessionId,
+          activity: act,
+          elapsedSeconds: elapsedSeconds,
+          dateKey: dKey,
+          localStartTime: startTime,
+        );
+      } else {
+        success = await PhysicalActivityService.instance.completeActivity(
+          dKey,
+          actId,
+          activity: act,
+          elapsedSeconds: elapsedSeconds,
+        );
+      }
+
+      // Bersihkan sesi aktif setelah selesai
+      _activeSessionId = null;
+      _startSessionFuture = null;
+      _sessionLocalStartTime = null;
+
+      return success;
     }
+    return false;
   }
 
   /// Menyelesaikan sesi secara manual (tombol Selesaikan Aktivitas)
-  /// Mengembalikan true jika valid (>= 50%), false jika tidak valid (< 50%)
-  bool finishManually() {
+  /// Mengembalikan true jika valid (>= 50%) dan berhasil simpan, false jika tidak valid (< 50%) atau gagal simpan
+  Future<bool> finishManually() async {
     // Kumpulkan durasi terkini
     if (_status == ActivityTimerStatus.running && _segmentStartTime != null) {
       final diff = DateTime.now().difference(_segmentStartTime!).inSeconds;
@@ -360,9 +423,9 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     final isEligible = meetsMinimum50Percent;
     if (isEligible) {
       _status = ActivityTimerStatus.completed;
-      _autoSaveChecklistIfEligible();
+      final saved = await _autoSaveChecklistIfEligible();
       notifyListeners();
-      return true;
+      return saved;
     } else {
       _status = ActivityTimerStatus.paused;
       notifyListeners();
@@ -372,6 +435,13 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Membatalkan dan mereset timer
   void cancelSession() {
+    final sid = _activeSessionId;
+    if (sid != null) {
+      PhysicalActivityService.instance.cancelSession(sessionId: sid);
+    }
+    _activeSessionId = null;
+    _startSessionFuture = null;
+    _sessionLocalStartTime = null;
     _stopTicker();
     _cancelNotification();
     ActivityAlarmService.instance.stopAlarm();

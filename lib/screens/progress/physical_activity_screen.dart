@@ -45,6 +45,12 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     // Muat riwayat tersimpan spesifik untuk akun pengguna saat ini
     ScreeningHistoryService.instance.loadHistory(_userKey);
 
+    // Pastikan dokumen utama pengguna tersedia di Cloud Firestore
+    PhysicalActivityService.instance.ensureUserMainDoc(candidateName: user.name);
+
+    // Muat data dan dengarkan pembaruan real-time dari Cloud Firestore (Requirement 9)
+    PhysicalActivityService.instance.listenToFirestoreSessions(PhysicalActivityService.instance.todayKey);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_dateScrollController.hasClients) {
         // Scroll so today's pill is centered
@@ -60,6 +66,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
 
   @override
   void dispose() {
+    PhysicalActivityService.instance.stopListeningToSessions();
     _dateScrollController.dispose();
     super.dispose();
   }
@@ -215,6 +222,9 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                           setState(() {
                             _selectedDayIndex = index;
                           });
+                          final selectedDate = now.add(Duration(days: itemOffset));
+                          final dKey = PhysicalActivityService.instance.formatDateKey(selectedDate);
+                          PhysicalActivityService.instance.listenToFirestoreSessions(dKey);
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -286,25 +296,65 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
 
                   const SizedBox(height: 18),
 
-                  // Section Header: Pilihan Aktivitas Olahraga
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // Section Header: Pilihan Aktivitas Olahraga & Progres Harian
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        'Pilihan Aktivitas Olahraga',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: textPrimary,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Pilihan Aktivitas Olahraga',
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              _getCategoryActivityFocusSubtitle(categoryKey),
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        _getCategoryActivityFocusSubtitle(categoryKey),
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.task_alt_rounded,
+                              size: 13,
+                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${PhysicalActivityService.instance.getProgressFractionForDate(selectedDateKey, activities)} Selesai',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -745,15 +795,25 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 ),
                 const SizedBox(width: 6),
 
-                // Read-Only Status Indicator (Automatically checked via completed timer)
-                Padding(
-                  padding: const EdgeInsets.only(right: 6, left: 2),
-                  child: Icon(
-                    isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                    color: isCompleted
-                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
-                        : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
-                    size: 26,
+                // Status Indicator (Dapat ditekan untuk toggle selesai/belum atau otomatis via timer)
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    PhysicalActivityService.instance.toggleActivity(
+                      dateKey: dateKey,
+                      activity: act,
+                      context: context,
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 6, left: 2),
+                    child: Icon(
+                      isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                      color: isCompleted
+                          ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                          : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
+                      size: 26,
+                    ),
                   ),
                 ),
               ],

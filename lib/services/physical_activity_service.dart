@@ -1,5 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/skrining/skrining_models.dart';
+import 'auth_service.dart';
 
 /// Service to track completed physical activities tied to specific dates
 /// and provide clinical physical activity recommendations tailored to
@@ -9,10 +18,54 @@ class PhysicalActivityService extends ChangeNotifier {
   factory PhysicalActivityService() => _instance;
   static PhysicalActivityService get instance => _instance;
 
-  PhysicalActivityService._internal();
+  // Dependency injection untuk pengujian unit & widget
+  FirebaseAuth? customAuth;
+  FirebaseFirestore? customFirestore;
+
+  FirebaseAuth get _auth => customAuth ?? FirebaseAuth.instance;
+  FirebaseFirestore get _firestore => customFirestore ?? FirebaseFirestore.instance;
+
+  static const String _storageKey = 'obesight_completed_activities_v1';
 
   // Map of dateKey ('yyyy-MM-dd') -> Set of completed activity IDs
   final Map<String, Set<String>> _completedActivitiesByDate = {};
+
+  bool _isSyncing = false;
+  bool get isSyncing => _isSyncing;
+
+  PhysicalActivityService._internal() {
+    _loadFromStorage();
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_storageKey);
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        for (final entry in decoded.entries) {
+          final list = (entry.value as List<dynamic>).cast<String>();
+          _completedActivitiesByDate[entry.key] = list.toSet();
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Error loading from storage: $e');
+    }
+  }
+
+  Future<void> _saveToStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final mapToSave = <String, List<String>>{};
+      for (final entry in _completedActivitiesByDate.entries) {
+        mapToSave[entry.key] = entry.value.toList();
+      }
+      await prefs.setString(_storageKey, jsonEncode(mapToSave));
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Error saving to storage: $e');
+    }
+  }
 
   String formatDateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -28,22 +81,917 @@ class PhysicalActivityService extends ChangeNotifier {
     return _completedActivitiesByDate[dateKey] ?? const <String>{};
   }
 
-  int getCompletedCountForDate(String dateKey) {
-    return _completedActivitiesByDate[dateKey]?.length ?? 0;
+  int getCompletedCountForDate(String dateKey, [List<Map<String, dynamic>>? availableActivities]) {
+    final completedSet = _completedActivitiesByDate[dateKey];
+    if (completedSet == null || completedSet.isEmpty) return 0;
+    if (availableActivities != null && availableActivities.isNotEmpty) {
+      final availableIds = availableActivities.map((a) => a['id'] as String).toSet();
+      return completedSet.intersection(availableIds).length;
+    }
+    return completedSet.length;
   }
 
-  void completeActivity(String dateKey, String activityId) {
+  /// Menghitung fraksi progres harian berdasarkan aktivitas yang benar-benar selesai
+  /// sesuai daftar target aktivitas pengguna (misalnya: 0/4, 1/4, ..., 4/4)
+  String getProgressFractionForDate(String dateKey, List<Map<String, dynamic>> availableActivities) {
+    final total = availableActivities.length;
+    final count = getCompletedCountForDate(dateKey, availableActivities);
+    return '$count/$total';
+  }
+
+  /// Helper untuk mengekstrak angka menit dari teks durasi
+  int? _parseDurationMinutes(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is num) return raw.toInt();
+    if (raw is String) {
+      final match = RegExp(r'\d+').firstMatch(raw);
+      if (match != null) {
+        return int.tryParse(match.group(0)!);
+      }
+    }
+    return null;
+  }
+
+  /// Mencari data aktivitas berdasarkan ID
+  Map<String, dynamic>? getActivityById(String id) {
+    for (final cat in ['Normal', 'Overweight', 'Obesitas I', 'Obesitas II', 'Obesitas III', 'Underweight']) {
+      final acts = getActivitiesForCategory(cat);
+      for (final act in acts) {
+        if (act['id'] == id) {
+          return act;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Mencari ID aktivitas berdasarkan nama/judul aktivitas
+  String? _findActivityIdByName(String name) {
+    final cleanName = name.trim().toLowerCase();
+    // 1. Prioritas: Cocok persis
+    for (final cat in ['Normal', 'Overweight', 'Obesitas I', 'Obesitas II', 'Obesitas III', 'Underweight']) {
+      final acts = getActivitiesForCategory(cat);
+      for (final act in acts) {
+        final actName = (act['name'] as String? ?? '').trim().toLowerCase();
+        final actTitle = (act['title'] as String? ?? '').trim().toLowerCase();
+        if (cleanName == actName || cleanName == actTitle) {
+          return act['id'] as String;
+        }
+      }
+    }
+    // 2. Fallback: Cocok sebagian
+    for (final cat in ['Normal', 'Overweight', 'Obesitas I', 'Obesitas II', 'Obesitas III', 'Underweight']) {
+      final acts = getActivitiesForCategory(cat);
+      for (final act in acts) {
+        final actName = (act['name'] as String? ?? '').trim().toLowerCase();
+        final actTitle = (act['title'] as String? ?? '').trim().toLowerCase();
+        if (cleanName.contains(actName) ||
+            actName.contains(cleanName) ||
+            cleanName.contains(actTitle) ||
+            actTitle.contains(cleanName)) {
+          return act['id'] as String;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Sanitasi nama pengguna agar aman digunakan sebagai ID dokumen Firestore
+  String sanitizeDocId(String rawName) {
+    var cleaned = rawName.trim().replaceAll('/', '_').replaceAll(RegExp(r'\s+'), '_');
+    if (cleaned.isEmpty) {
+      cleaned = 'Pengguna';
+    }
+    return cleaned;
+  }
+
+  /// Mendapatkan referensi dokumen utama progress_aktivitas_fisik/{namaPengguna}
+  /// dengan verifikasi kepemilikan UID dan pencegahan tabrakan nama pengguna.
+  Future<DocumentReference<Map<String, dynamic>>?> getUserMainDocRef({
+    String? candidateName,
+  }) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return null;
+    final uid = currentUser.uid;
+
+    String rawName = (candidateName ?? currentUser.displayName ?? AuthService().currentUser?.name ?? AuthService().currentUser?.username ?? '').trim();
+    if (rawName.isEmpty) {
+      rawName = 'Pengguna';
+    }
+
+    final sanitizedDocId = sanitizeDocId(rawName);
+
+    // 1. Cek apakah dokumen dengan ID namaPengguna sudah ada
+    final candidateRef = _firestore.collection('progress_aktivitas_fisik').doc(sanitizedDocId);
+    try {
+      final snap = await candidateRef.get();
+      if (snap.exists) {
+        final existingUid = snap.data()?['idPengguna'] as String?;
+        if (existingUid == uid) {
+          return candidateRef;
+        } else {
+          // Ada tabrakan nama dengan akun lain: disambiguasi dengan akhiran UID agar tidak tercampur
+          final disambiguatedId = '${sanitizedDocId}_${uid.substring(0, min(6, uid.length))}';
+          return _firestore.collection('progress_aktivitas_fisik').doc(disambiguatedId);
+        }
+      } else {
+        // Dokumen belum ada. Cek apakah akun ini sebelumnya sudah punya dokumen utama (misal nama profil diubah)
+        try {
+          final queryByUid = await _firestore
+              .collection('progress_aktivitas_fisik')
+              .where('idPengguna', isEqualTo: uid)
+              .limit(1)
+              .get();
+
+          if (queryByUid.docs.isNotEmpty) {
+            final existingDoc = queryByUid.docs.first.reference;
+            unawaited(existingDoc.set({
+              'idPengguna': uid,
+              'namaPengguna': rawName,
+              'waktuDiperbarui': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true)));
+            return existingDoc;
+          }
+        } catch (queryErr) {
+          debugPrint('[PhysicalActivityService] Query by UID notice: $queryErr');
+        }
+
+        return candidateRef;
+      }
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Error getUserMainDocRef: $e');
+      return candidateRef;
+    }
+  }
+
+  /// Memastikan dokumen utama pengguna di progress_aktivitas_fisik/{namaPengguna} telah tersedia
+  Future<DocumentReference<Map<String, dynamic>>?> ensureUserMainDoc({
+    String? candidateName,
+  }) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return null;
+
+    final docRef = await getUserMainDocRef(candidateName: candidateName);
+    if (docRef == null) return null;
+
+    String rawName = (candidateName ?? currentUser.displayName ?? AuthService().currentUser?.name ?? AuthService().currentUser?.username ?? 'Pengguna').trim();
+    if (rawName.isEmpty) rawName = 'Pengguna';
+
+    bool exists = false;
+    try {
+      final snap = await docRef.get();
+      exists = snap.exists;
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Notice ensureUserMainDoc check: $e');
+      exists = false;
+    }
+
+    if (!exists) {
+      try {
+        await docRef.set({
+          'idPengguna': currentUser.uid,
+          'namaPengguna': rawName,
+          'totalSesi': 0,
+          'totalDurasiMenit': 0,
+          'waktuDibuat': FieldValue.serverTimestamp(),
+          'waktuDiperbarui': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        debugPrint('[PhysicalActivityService] Dokumen utama dipulihkan/dibuat: ${docRef.id}');
+      } catch (e) {
+        if (e is FirebaseException) {
+          debugPrint('[PhysicalActivityService] ensureUserMainDoc Firestore error [${e.code}]: ${e.message}');
+        } else {
+          debugPrint('[PhysicalActivityService] Error ensureUserMainDoc set: $e');
+        }
+      }
+    }
+    return docRef;
+  }
+
+  /// Memulai sesi olahraga baru dan membuat dokumen di subkoleksi riwayat_sesi
+  Future<String?> startSession({
+    required Map<String, dynamic> activity,
+    String? dateKey,
+    String? candidateName,
+  }) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      debugPrint('[PhysicalActivityService] startSession: Pengguna belum login.');
+      return null;
+    }
+
+    final mainDocRef = await ensureUserMainDoc(candidateName: candidateName);
+    if (mainDocRef == null) return null;
+
+    final sessionCol = mainDocRef.collection('riwayat_sesi');
+    final newSessionDoc = sessionCol.doc(); // Auto-ID
+
+    DateTime parsedDate;
+    try {
+      parsedDate = DateTime.parse(dateKey ?? todayKey);
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+    final tanggalTimestamp = Timestamp.fromDate(DateTime(parsedDate.year, parsedDate.month, parsedDate.day));
+
+    final actName = (activity['name'] as String?) ?? (activity['title'] as String?) ?? 'Aktivitas Olahraga';
+
+    final sessionData = <String, dynamic>{
+      'idPengguna': currentUser.uid,
+      'jenisAktivitas': actName,
+      'statusSelesai': false,
+      'status': 'berlangsung',
+      'tanggalAktivitas': tanggalTimestamp,
+      'waktuMulai': FieldValue.serverTimestamp(),
+      'waktuSelesai': null,
+      'durasiMenit': 0,
+      'waktuDibuat': FieldValue.serverTimestamp(),
+      'waktuDiperbarui': FieldValue.serverTimestamp(),
+    };
+
+    try {
+      await newSessionDoc.set(sessionData);
+      debugPrint('[PhysicalActivityService] Sesi olahraga dimulai: ${newSessionDoc.id} ($actName)');
+      return newSessionDoc.id;
+    } catch (e) {
+      if (e is FirebaseException) {
+        debugPrint('[PhysicalActivityService] startSession Firestore error [${e.code}]: ${e.message}');
+      } else {
+        debugPrint('[PhysicalActivityService] Error startSession: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Menyelesaikan sesi olahraga yang sedang berlangsung dan memperbarui ringkasan dokumen utama
+  Future<bool> finishSession({
+    required String sessionId,
+    required Map<String, dynamic> activity,
+    required int elapsedSeconds,
+    String? dateKey,
+    DateTime? localStartTime,
+  }) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return false;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      debugPrint('[PhysicalActivityService] finishSession: Pengguna belum login.');
+      return false;
+    }
+
+    final mainDocRef = await getUserMainDocRef();
+    if (mainDocRef == null) {
+      debugPrint('[PhysicalActivityService] finishSession: Gagal mendapatkan referensi dokumen utama.');
+      return false;
+    }
+
+    final sessionRef = mainDocRef.collection('riwayat_sesi').doc(sessionId);
+
+    // Hitung durasiMenit nyata dari selisih waktu atau elapsedSeconds
+    int durasiMenit = (elapsedSeconds / 60).round();
+    if (durasiMenit <= 0) {
+      if (localStartTime != null) {
+        durasiMenit = DateTime.now().difference(localStartTime).inMinutes;
+      }
+      if (durasiMenit <= 0) durasiMenit = 1;
+    }
+
+    final actName = (activity['name'] as String?) ?? (activity['title'] as String?) ?? 'Aktivitas Olahraga';
+    DateTime parsedDate;
+    try {
+      parsedDate = DateTime.parse(dateKey ?? todayKey);
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+    final tanggalTimestamp = Timestamp.fromDate(DateTime(parsedDate.year, parsedDate.month, parsedDate.day));
+
+    String rawName = (currentUser.displayName ?? AuthService().currentUser?.name ?? AuthService().currentUser?.username ?? 'Pengguna').trim();
+    if (rawName.isEmpty) rawName = 'Pengguna';
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final sessionSnap = await transaction.get(sessionRef);
+        final mainSnap = await transaction.get(mainDocRef);
+
+        // 1. Dokumen sesi
+        if (sessionSnap.exists) {
+          final data = sessionSnap.data()!;
+          if (data['statusSelesai'] == true) {
+            debugPrint('[PhysicalActivityService] Sesi $sessionId telah selesai sebelumnya. Mencegah duplikasi.');
+            return;
+          }
+
+          // Hitung durasi aktual dari waktuMulai hingga waktu sekarang
+          final waktuMulaiTimestamp = data['waktuMulai'] as Timestamp?;
+          if (waktuMulaiTimestamp != null) {
+            final diffMinutes = DateTime.now().difference(waktuMulaiTimestamp.toDate()).inMinutes;
+            if (diffMinutes > durasiMenit) {
+              durasiMenit = diffMinutes;
+            }
+          }
+          if (durasiMenit <= 0) durasiMenit = 1;
+
+          transaction.set(sessionRef, {
+            'statusSelesai': true,
+            'status': 'selesai',
+            'waktuSelesai': FieldValue.serverTimestamp(),
+            'durasiMenit': durasiMenit,
+            'waktuDiperbarui': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } else {
+          // Self-healing: jika dokumen sesi terhapus atau belum dibuat, buat dokumen sesi baru
+          debugPrint('[PhysicalActivityService] Dokumen sesi $sessionId tidak ditemukan. Membuat dokumen sesi baru dalam transaksi.');
+          transaction.set(sessionRef, {
+            'idPengguna': currentUser.uid,
+            'jenisAktivitas': actName,
+            'statusSelesai': true,
+            'status': 'selesai',
+            'tanggalAktivitas': tanggalTimestamp,
+            'waktuMulai': localStartTime != null ? Timestamp.fromDate(localStartTime) : FieldValue.serverTimestamp(),
+            'waktuSelesai': FieldValue.serverTimestamp(),
+            'durasiMenit': durasiMenit,
+            'waktuDibuat': FieldValue.serverTimestamp(),
+            'waktuDiperbarui': FieldValue.serverTimestamp(),
+          });
+        }
+
+        // 2. Dokumen utama (progress_aktivitas_fisik/{namaPengguna})
+        if (!mainSnap.exists) {
+          // Self-healing: jika dokumen utama terhapus dari Firebase Console, buat ulang secara otomatis
+          debugPrint('[PhysicalActivityService] Dokumen utama ${mainDocRef.id} belum ada. Membuat dokumen utama baru dalam transaksi.');
+          transaction.set(mainDocRef, {
+            'idPengguna': currentUser.uid,
+            'namaPengguna': rawName,
+            'totalSesi': 1,
+            'totalDurasiMenit': durasiMenit,
+            'waktuDibuat': FieldValue.serverTimestamp(),
+            'waktuDiperbarui': FieldValue.serverTimestamp(),
+          });
+        } else {
+          transaction.set(mainDocRef, {
+            'idPengguna': currentUser.uid,
+            'totalSesi': FieldValue.increment(1),
+            'totalDurasiMenit': FieldValue.increment(durasiMenit),
+            'waktuDiperbarui': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+      });
+
+      // Update checklist lokal
+      final dKey = dateKey ?? todayKey;
+      final actId = activity['id'] as String? ?? _findActivityIdByName(activity['title'] ?? activity['name']) ?? sessionId;
+      if (!_completedActivitiesByDate.containsKey(dKey)) {
+        _completedActivitiesByDate[dKey] = <String>{};
+      }
+      _completedActivitiesByDate[dKey]!.add(actId);
+      notifyListeners();
+      unawaited(_saveToStorage());
+
+      debugPrint('[PhysicalActivityService] BERHASIL menyelesaikan sesi $sessionId ($durasiMenit menit)');
+      return true;
+    } catch (e) {
+      if (e is FirebaseException) {
+        debugPrint('[PhysicalActivityService] finishSession Firestore error [${e.code}]: ${e.message}');
+      } else {
+        debugPrint('[PhysicalActivityService] Error finishSession: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Membatalkan sesi olahraga yang belum selesai
+  Future<void> cancelSession({required String sessionId}) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return;
+      } catch (_) {
+        return;
+      }
+    }
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    final mainDocRef = await getUserMainDocRef();
+    if (mainDocRef == null) return;
+    try {
+      await mainDocRef.collection('riwayat_sesi').doc(sessionId).set({
+        'status': 'dibatalkan',
+        'waktuDiperbarui': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      if (e is FirebaseException) {
+        debugPrint('[PhysicalActivityService] cancelSession Firestore error [${e.code}]: ${e.message}');
+      } else {
+        debugPrint('[PhysicalActivityService] Error cancelSession: $e');
+      }
+    }
+  }
+
+  /// Sinkronisasi data aktivitas dari Firestore subkoleksi 'riwayat_sesi'
+  Future<void> syncFromFirestore(String dateKey) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return;
+      } catch (_) {
+        return;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    DateTime parsedDate;
+    try {
+      parsedDate = DateTime.parse(dateKey);
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+    final targetTimestamp = Timestamp.fromDate(DateTime(parsedDate.year, parsedDate.month, parsedDate.day));
+
+    _isSyncing = true;
+    notifyListeners();
+
+    try {
+      if (!_completedActivitiesByDate.containsKey(dateKey)) {
+        _completedActivitiesByDate[dateKey] = <String>{};
+      }
+
+      final mainDocRef = await getUserMainDocRef();
+      if (mainDocRef != null) {
+        final sessionSnap = await mainDocRef
+            .collection('riwayat_sesi')
+            .where('tanggalAktivitas', isEqualTo: targetTimestamp)
+            .get();
+
+        if (sessionSnap.docs.isNotEmpty) {
+          for (final doc in sessionSnap.docs) {
+            final data = doc.data();
+            final jenis = data['jenisAktivitas'] as String? ?? '';
+            final isDone = data['statusSelesai'] == true;
+            final matchedId = _findActivityIdByName(jenis) ?? doc.id;
+            if (isDone) {
+              _completedActivitiesByDate[dateKey]!.add(matchedId);
+            } else {
+              _completedActivitiesByDate[dateKey]!.remove(matchedId);
+            }
+          }
+        } else {
+          // Fallback membaca dokumen legacy di root koleksi
+          final legacySnap = await _firestore
+              .collection('progress_aktivitas_fisik')
+              .where('idPengguna', isEqualTo: currentUser.uid)
+              .where('tanggalAktivitas', isEqualTo: targetTimestamp)
+              .get();
+
+          for (final doc in legacySnap.docs) {
+            final data = doc.data();
+            // Abaikan dokumen utama
+            if (data.containsKey('totalSesi')) continue;
+            final jenis = data['jenisAktivitas'] as String? ?? '';
+            final isDone = data['statusSelesai'] == true;
+            final matchedId = _findActivityIdByName(jenis) ?? doc.id;
+            if (isDone) {
+              _completedActivitiesByDate[dateKey]!.add(matchedId);
+            }
+          }
+        }
+      }
+      await _saveToStorage();
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Notice syncFromFirestore: $e');
+    } finally {
+      _isSyncing = false;
+      notifyListeners();
+    }
+  }
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _riwayatSesiSubscription;
+  String? _subscribedDateKey;
+
+  /// Mulai mendengarkan pembaruan real-time dari Firestore subkoleksi 'riwayat_sesi' (Requirement 9)
+  Future<void> listenToFirestoreSessions(String dateKey) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return;
+      } catch (_) {
+        return;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    if (_subscribedDateKey == dateKey && _riwayatSesiSubscription != null) {
+      return;
+    }
+
+    await _riwayatSesiSubscription?.cancel();
+    _subscribedDateKey = dateKey;
+
+    DateTime parsedDate;
+    try {
+      parsedDate = DateTime.parse(dateKey);
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+    final targetTimestamp = Timestamp.fromDate(DateTime(parsedDate.year, parsedDate.month, parsedDate.day));
+
+    try {
+      final mainDocRef = await getUserMainDocRef();
+      if (mainDocRef == null) return;
+
+      _riwayatSesiSubscription = mainDocRef
+          .collection('riwayat_sesi')
+          .where('tanggalAktivitas', isEqualTo: targetTimestamp)
+          .snapshots()
+          .listen((snapshot) {
+        if (!_completedActivitiesByDate.containsKey(dateKey)) {
+          _completedActivitiesByDate[dateKey] = <String>{};
+        }
+
+        final currentCompletedSet = <String>{};
+        for (final doc in snapshot.docs) {
+          final data = doc.data();
+          final jenis = (data['jenisAktivitas'] as String?) ?? '';
+          final isDone = data['statusSelesai'] == true;
+          final matchedId = _findActivityIdByName(jenis) ?? doc.id;
+          if (isDone) {
+            currentCompletedSet.add(matchedId);
+          }
+        }
+
+        _completedActivitiesByDate[dateKey] = currentCompletedSet;
+        notifyListeners();
+        unawaited(_saveToStorage());
+      }, onError: (e) {
+        debugPrint('[PhysicalActivityService] Error in riwayat_sesi snapshots: $e');
+      });
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Error listenToFirestoreSessions: $e');
+    }
+  }
+
+  /// Menghentikan langganan listener real-time
+  void stopListeningToSessions() {
+    _riwayatSesiSubscription?.cancel();
+    _riwayatSesiSubscription = null;
+    _subscribedDateKey = null;
+  }
+
+  /// Merekam atau membatalkan sesi langsung dari checklist UI
+  Future<bool> _recordDirectSession({
+    required String dateKey,
+    required String activityId,
+    Map<String, dynamic>? activity,
+    required bool isCompleted,
+    int? elapsedSeconds,
+    BuildContext? context,
+  }) async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return true;
+      } catch (_) {
+        return true;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      debugPrint('[PhysicalActivityService] Pengguna belum login. Progres disimpan secara lokal.');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Pengguna belum login dengan Firebase Authentication. Progres disimpan secara lokal.',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+      return true;
+    }
+
+    final mainDocRef = await ensureUserMainDoc();
+    if (mainDocRef == null) return false;
+
+    final act = activity ?? getActivityById(activityId);
+    final jenisAktivitas = (act?['name'] as String?) ?? (act?['title'] as String?) ?? activityId;
+
+    int durasiMenit = 0;
+    if (elapsedSeconds != null && elapsedSeconds > 0) {
+      durasiMenit = (elapsedSeconds / 60).round();
+      if (durasiMenit <= 0) durasiMenit = 1;
+    } else if (act != null) {
+      durasiMenit = _parseDurationMinutes(act['duration'] ?? act['targetText']) ?? 30;
+    }
+
+    DateTime parsedDate;
+    try {
+      parsedDate = DateTime.parse(dateKey);
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+    final targetTimestamp = Timestamp.fromDate(DateTime(parsedDate.year, parsedDate.month, parsedDate.day));
+
+    try {
+      final riwayatCol = mainDocRef.collection('riwayat_sesi');
+
+      final existingSessions = await riwayatCol
+          .where('idPengguna', isEqualTo: currentUser.uid)
+          .where('jenisAktivitas', isEqualTo: jenisAktivitas)
+          .where('tanggalAktivitas', isEqualTo: targetTimestamp)
+          .limit(1)
+          .get();
+
+      String rawName = (currentUser.displayName ?? AuthService().currentUser?.name ?? AuthService().currentUser?.username ?? 'Pengguna').trim();
+      if (rawName.isEmpty) rawName = 'Pengguna';
+
+      if (isCompleted) {
+        if (existingSessions.docs.isNotEmpty) {
+          final doc = existingSessions.docs.first;
+          final wasCompleted = doc.data()['statusSelesai'] == true;
+          if (!wasCompleted) {
+            await doc.reference.set({
+              'statusSelesai': true,
+              'status': 'selesai',
+              'durasiMenit': durasiMenit,
+              'waktuSelesai': FieldValue.serverTimestamp(),
+              'waktuDiperbarui': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+
+            await mainDocRef.set({
+              'idPengguna': currentUser.uid,
+              'namaPengguna': rawName,
+              'totalSesi': FieldValue.increment(1),
+              'totalDurasiMenit': FieldValue.increment(durasiMenit),
+              'waktuDiperbarui': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          }
+        } else {
+          final newDoc = riwayatCol.doc();
+          await newDoc.set({
+            'idPengguna': currentUser.uid,
+            'jenisAktivitas': jenisAktivitas,
+            'statusSelesai': true,
+            'status': 'selesai',
+            'tanggalAktivitas': targetTimestamp,
+            'waktuMulai': targetTimestamp,
+            'waktuSelesai': FieldValue.serverTimestamp(),
+            'durasiMenit': durasiMenit,
+            'waktuDibuat': FieldValue.serverTimestamp(),
+            'waktuDiperbarui': FieldValue.serverTimestamp(),
+          });
+
+          await mainDocRef.set({
+            'idPengguna': currentUser.uid,
+            'namaPengguna': rawName,
+            'totalSesi': FieldValue.increment(1),
+            'totalDurasiMenit': FieldValue.increment(durasiMenit),
+            'waktuDiperbarui': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+      } else {
+        if (existingSessions.docs.isNotEmpty) {
+          final doc = existingSessions.docs.first;
+          final wasCompleted = doc.data()['statusSelesai'] == true;
+          final prevDurasi = (doc.data()['durasiMenit'] as num?)?.toInt() ?? durasiMenit;
+          if (wasCompleted) {
+            await doc.reference.set({
+              'statusSelesai': false,
+              'status': 'dibatalkan',
+              'waktuDiperbarui': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+
+            await mainDocRef.set({
+              'idPengguna': currentUser.uid,
+              'namaPengguna': rawName,
+              'totalSesi': FieldValue.increment(-1),
+              'totalDurasiMenit': FieldValue.increment(-prevDurasi),
+              'waktuDiperbarui': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      if (e is FirebaseException) {
+        debugPrint('[PhysicalActivityService] Direct session Firestore error [${e.code}]: ${e.message}');
+      } else {
+        debugPrint('[PhysicalActivityService] Gagal merekam direct session: $e');
+      }
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal menyimpan progres aktivitas ke Firestore.',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return false;
+    }
+  }
+
+  /// Menandai aktivitas telah selesai
+  Future<bool> completeActivity(
+    String dateKey,
+    String activityId, {
+    Map<String, dynamic>? activity,
+    int? elapsedSeconds,
+    BuildContext? context,
+  }) async {
     if (!_completedActivitiesByDate.containsKey(dateKey)) {
       _completedActivitiesByDate[dateKey] = <String>{};
     }
     _completedActivitiesByDate[dateKey]!.add(activityId);
     notifyListeners();
+    unawaited(_saveToStorage());
+
+    final success = await _recordDirectSession(
+      dateKey: dateKey,
+      activityId: activityId,
+      activity: activity,
+      isCompleted: true,
+      elapsedSeconds: elapsedSeconds,
+      context: (context != null && context.mounted) ? context : null,
+    );
+
+    if (!success) {
+      if (_completedActivitiesByDate.containsKey(dateKey)) {
+        _completedActivitiesByDate[dateKey]!.remove(activityId);
+        notifyListeners();
+        unawaited(_saveToStorage());
+      }
+    }
+    return success;
   }
 
-  void uncompleteActivity(String dateKey, String activityId) {
+  /// Menandai aktivitas belum selesai (uncomplete)
+  Future<bool> uncompleteActivity(
+    String dateKey,
+    String activityId, {
+    Map<String, dynamic>? activity,
+    BuildContext? context,
+  }) async {
     if (_completedActivitiesByDate.containsKey(dateKey)) {
       _completedActivitiesByDate[dateKey]!.remove(activityId);
       notifyListeners();
+      unawaited(_saveToStorage());
+    }
+
+    final success = await _recordDirectSession(
+      dateKey: dateKey,
+      activityId: activityId,
+      activity: activity,
+      isCompleted: false,
+      context: (context != null && context.mounted) ? context : null,
+    );
+
+    if (!success) {
+      if (!_completedActivitiesByDate.containsKey(dateKey)) {
+        _completedActivitiesByDate[dateKey] = <String>{};
+      }
+      _completedActivitiesByDate[dateKey]!.add(activityId);
+      notifyListeners();
+      unawaited(_saveToStorage());
+    }
+    return success;
+  }
+
+  /// Toggle status aktivitas (selesai <-> belum selesai)
+  Future<void> toggleActivity({
+    required String dateKey,
+    required Map<String, dynamic> activity,
+    BuildContext? context,
+  }) async {
+    final actId = activity['id'] as String;
+    final currentlyCompleted = isCompleted(dateKey, actId);
+
+    if (currentlyCompleted) {
+      await uncompleteActivity(
+        dateKey,
+        actId,
+        activity: activity,
+        context: context,
+      );
+    } else {
+      await completeActivity(
+        dateKey,
+        actId,
+        activity: activity,
+        context: context,
+      );
+    }
+  }
+
+  /// Migrasi aman data lama dari root progress_aktivitas_fisik ke subkoleksi riwayat_sesi
+  /// Data lama TIDAK dihapus untuk menjaga keamanan data histori pengguna.
+  Future<int> migrateLegacyActivities() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return 0;
+
+    final mainDocRef = await ensureUserMainDoc();
+    if (mainDocRef == null) return 0;
+
+    final riwayatCol = mainDocRef.collection('riwayat_sesi');
+
+    try {
+      final legacySnap = await _firestore
+          .collection('progress_aktivitas_fisik')
+          .where('idPengguna', isEqualTo: currentUser.uid)
+          .get();
+
+      int migratedCount = 0;
+      int addedDurasi = 0;
+
+      for (final doc in legacySnap.docs) {
+        final data = doc.data();
+        if (data.containsKey('totalSesi') || doc.id == mainDocRef.id) {
+          continue;
+        }
+
+        final jenisAktivitas = data['jenisAktivitas'] as String? ?? '';
+        final tanggalAktivitas = data['tanggalAktivitas'] as Timestamp?;
+        final isSelesai = data['statusSelesai'] == true;
+        final durasiMenit = (data['durasiMenit'] as num?)?.toInt() ?? 30;
+
+        final existing = await riwayatCol
+            .where('jenisAktivitas', isEqualTo: jenisAktivitas)
+            .where('tanggalAktivitas', isEqualTo: tanggalAktivitas)
+            .limit(1)
+            .get();
+
+        if (existing.docs.isEmpty) {
+          await riwayatCol.add({
+            'idPengguna': currentUser.uid,
+            'jenisAktivitas': jenisAktivitas,
+            'statusSelesai': isSelesai,
+            'status': isSelesai ? 'selesai' : 'berlangsung',
+            'tanggalAktivitas': tanggalAktivitas ?? Timestamp.now(),
+            'waktuMulai': data['waktuDibuat'] ?? tanggalAktivitas ?? Timestamp.now(),
+            'waktuSelesai': isSelesai ? (data['waktuDiperbarui'] ?? Timestamp.now()) : null,
+            'durasiMenit': durasiMenit,
+            'waktuDibuat': data['waktuDibuat'] ?? FieldValue.serverTimestamp(),
+            'waktuDiperbarui': FieldValue.serverTimestamp(),
+            'migratedFromLegacy': true,
+          });
+          migratedCount++;
+          if (isSelesai) {
+            addedDurasi += durasiMenit;
+          }
+        }
+      }
+
+      if (migratedCount > 0) {
+        await mainDocRef.set({
+          'idPengguna': currentUser.uid,
+          'totalSesi': FieldValue.increment(migratedCount),
+          'totalDurasiMenit': FieldValue.increment(addedDurasi),
+          'waktuDiperbarui': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+      debugPrint('[PhysicalActivityService] Migrasi selesai: $migratedCount dokumen termigrasi.');
+      return migratedCount;
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Error migrasi data lama: $e');
+      return 0;
     }
   }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
 import '../../services/activity_alarm_service.dart';
-import '../../services/physical_activity_service.dart';
 import 'activity_rest_detail_screen.dart';
 
 class ActivityTimerScreen extends StatefulWidget {
@@ -205,7 +204,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     }
   }
 
-  void _onFinishButtonPressed() {
+  Future<void> _onFinishButtonPressed() async {
     final service = ActivityTimerService.instance;
     final isRest = widget.activity['isRest'] == true;
 
@@ -216,13 +215,28 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     }
 
     // Evaluasi aturan minimal 50% durasi aktual
-    final isEligible = service.finishManually();
-    if (isEligible) {
-      // Skenario A: Durasi berjalan >= 50% target -> Popup Sukses
+    if (!service.meetsMinimum50Percent) {
+      _showInsufficientDurationDialog();
+      return;
+    }
+
+    final success = await service.finishManually();
+    if (!mounted) return;
+    if (success) {
+      // Skenario A: Durasi berjalan >= 50% target & Berhasil simpan -> Popup Sukses
       _showCompletionDialog();
     } else {
-      // Skenario B: Durasi berjalan < 50% target -> Dialog Peringatan
-      _showInsufficientDurationDialog();
+      // Skenario Gagal Simpan: Beritahu pengguna dengan pesan jelas (Requirement 11)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Gagal menyimpan progres aktivitas ke Firestore. Silakan periksa koneksi Anda.',
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -347,15 +361,8 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     _hasShownDialog = true;
 
     final service = ActivityTimerService.instance;
-    final title = widget.activity['title'] as String? ?? 'Aktivitas';
-    final actId = widget.activity['id'] as String? ?? '';
-    final dateKey = widget.dateKey ?? PhysicalActivityService.instance.todayKey;
+    final title = (widget.activity['name'] as String?) ?? (widget.activity['title'] as String?) ?? 'Aktivitas';
     final burnedCalories = _calculateBurnedCalories(service.elapsedSeconds);
-
-    // Auto-save: Otomatis tercatat ke PhysicalActivityService begitu popup muncul
-    if (actId.isNotEmpty && service.meetsMinimum50Percent) {
-      PhysicalActivityService.instance.completeActivity(dateKey, actId);
-    }
 
     showDialog(
       context: context,
