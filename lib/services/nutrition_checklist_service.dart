@@ -31,11 +31,14 @@ class NutritionChecklistService extends ChangeNotifier {
 
   bool get _isFirebaseAvailable => Firebase.apps.isNotEmpty;
 
+  String? _cachedActiveUid;
+
   String? get _currentFirebaseUid {
     try {
       if (_isFirebaseAvailable) {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null && user.uid.isNotEmpty) {
+          _cachedActiveUid = user.uid;
           return user.uid;
         }
       }
@@ -48,12 +51,13 @@ class NutritionChecklistService extends ChangeNotifier {
           authUser.id.isNotEmpty &&
           !authUser.id.startsWith('usr_') &&
           !authUser.id.startsWith('adm_')) {
+        _cachedActiveUid = authUser.id;
         return authUser.id;
       }
     } catch (e) {
       debugPrint('[NutritionChecklistService] Notice checking AuthService user: $e');
     }
-    return null;
+    return _cachedActiveUid;
   }
 
   NutritionChecklistService._internal() {
@@ -94,6 +98,11 @@ class NutritionChecklistService extends ChangeNotifier {
   Future<void> _loadFromStorage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final savedUid = prefs.getString('obesight_active_user_id');
+      if (savedUid != null && savedUid.isNotEmpty && !savedUid.startsWith('usr_') && !savedUid.startsWith('adm_')) {
+        _cachedActiveUid = savedUid;
+      }
+
       final jsonString = prefs.getString(_prefKey);
       if (jsonString != null && jsonString.isNotEmpty) {
         final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
@@ -292,8 +301,9 @@ class NutritionChecklistService extends ChangeNotifier {
 
     // 2. Sinkronkan ke Firebase Cloud Firestore
     final uid = _currentFirebaseUid;
+    debugPrint('[NutritionChecklistService] completeItem: dateKey=$dateKey, itemId=$itemId, UID=$uid');
     if (uid == null || uid.isEmpty) {
-      // Pengguna belum login via Firebase Auth / akun tamu lokal -> tetap aman di lokal
+      debugPrint('[NutritionChecklistService] Peringatan: Akun Firebase Auth belum aktif, data hanya tersimpan di memori/storage lokal.');
       return;
     }
 
