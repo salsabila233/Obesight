@@ -18,7 +18,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Aturan Dokumen Profil Pengguna & Sub-Koleksinya
+    // 1. Profil Pengguna & Sub-Koleksinya
     match /users/{userId} {
       // Pemilik akun dapat membaca dan memperbarui profilnya sendiri
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -41,17 +41,25 @@ service cloud.firestore {
       }
     }
 
+<<<<<<< Updated upstream
     // 2. Koleksi Utama: Progress Makanan & Minuman (Muncul di Panel Kiri Console)
+=======
+    // 2. Koleksi Utama: Progress Nutrisi & Katalog Makanan
+>>>>>>> Stashed changes
     match /nutrition_progress/{docId} {
       allow read, write: if request.auth != null;
     }
 
+<<<<<<< Updated upstream
     // 3. Katalog Menu Master (Hanya Baca)
+=======
+>>>>>>> Stashed changes
     match /nutrition_meals/{mealId} {
       allow read: if request.auth != null;
       allow write: if false;
     }
 
+<<<<<<< Updated upstream
     // 4. Layanan OTP & Email
     match /otp_verifications/{email} {
       allow read, write: if true;
@@ -70,12 +78,49 @@ service cloud.firestore {
       allow write: if false;
     }
     // Antrean Kirim Email Otomatis (Firebase Trigger Email)
+=======
+    // 3. Koleksi Utama: Progress Aktivitas Fisik & Riwayat Sesi
+    // Dokumen utama per pengguna diidentifikasi menggunakan namaPengguna (dengan validasi idPengguna)
+    match /progress_aktivitas_fisik/{namaPengguna} {
+      // Pengguna hanya dapat membaca dan memodifikasi dokumen miliknya sendiri
+      allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.idPengguna == request.auth.uid;
+      allow update: if request.auth != null 
+                    && (resource == null || resource.data.idPengguna == request.auth.uid) 
+                    && request.resource.data.idPengguna == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.idPengguna == request.auth.uid;
+
+      // Sub-koleksi: Riwayat Sesi Olahraga
+      // Sub-koleksi memerlukan aturan tersendiri karena tidak otomatis mewarisi aturan dokumen induk
+      match /riwayat_sesi/{sessionId} {
+        allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
+        allow create: if request.auth != null && request.resource.data.idPengguna == request.auth.uid;
+        allow update: if request.auth != null 
+                      && (resource == null || resource.data.idPengguna == request.auth.uid) 
+                      && request.resource.data.idPengguna == request.auth.uid;
+        allow delete: if request.auth != null && resource.data.idPengguna == request.auth.uid;
+      }
+    }
+
+    // 4. Kalkulator IMT
+    match /kalkulator_imt/{calcId} {
+      allow read, write: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
+    }
+
+    // 5. Artikel Edukasi Kesehatan
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 6. Antrean Kirim Email Otomatis (Firebase Trigger Email)
+>>>>>>> Stashed changes
     match /mail/{mailId} {
       allow create: if request.auth != null;
       allow read, update, delete: false;
     }
 
-    // Verifikasi OTP Pendaftaran & Lupa Sandi
+    // 7. Verifikasi OTP Pendaftaran & Lupa Sandi
     match /otp_verifications/{email} {
       allow read, write: if true;
     }
