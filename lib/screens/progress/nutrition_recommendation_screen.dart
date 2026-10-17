@@ -61,6 +61,9 @@ class _NutritionRecommendationScreenState
 
     // Sinkronisasi bila ada pembaruan profil / hasil skrining baru
     AuthService().profileUpdateNotifier.addListener(_onProfileUpdated);
+
+    // Sinkronkan catatan yang ada ke Cloud Firestore di latar belakang
+    NutritionChecklistService.instance.syncAllToFirestore();
   }
 
   @override
