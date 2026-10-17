@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
+import '../../models/article_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/article_service.dart';
 import '../auth/login_screen.dart';
@@ -890,8 +891,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // 6. Section Artikel Kesehatan (Horizontal Scroll Bar)
   Widget _buildArticlesSection(bool isDark) {
-    final articles = ArticleService().getArticles();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -942,102 +941,203 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         ),
         const SizedBox(height: 12),
 
-        // Horizontal ListView / SingleChildScrollView
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: articles.map((art) {
-              return GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => HealthArticleDetailScreen(article: art),
+        StreamBuilder<List<ArticleModel>>(
+          stream: ArticleService().getArticlesStream(),
+          builder: (context, snapshot) {
+            // Loading State (saat stream menunggu respons awal)
+            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+              return SizedBox(
+                height: 182,
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                      ),
                     ),
-                  );
-                },
-                child: Container(
-                  width: 156,
-                  height: 182,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        child: SizedBox(
-                          height: 95,
-                          width: double.infinity,
-                          child: Image.asset(
-                            art.imageAsset,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              color: art.headerColor.withValues(alpha: 0.15),
-                              child: Center(
-                                child: Icon(art.icon, size: 36, color: art.headerColor),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                art.title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                  height: 1.3,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF94A3B8)),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    art.readTime,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 9.5,
-                                      color: const Color(0xFF94A3B8),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               );
-            }).toList(),
-          ),
+            }
+
+            // Error State (ketika Cloud Firestore gagal diakses: fallback ke data lokal)
+            if (snapshot.hasError) {
+              final fallbackArticles = ArticleService().initialArticles;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFFEF4444).withValues(alpha: 0.3) : const Color(0xFFFCA5A5),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.cloud_off_rounded, color: Color(0xFFEF4444), size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Koneksi Cloud Firestore bermasalah (${snapshot.error}). Menampilkan artikel lokal.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10.5,
+                              color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildArticlesHorizontalList(fallbackArticles, isDark),
+                ],
+              );
+            }
+
+            final articles = snapshot.data ?? const <ArticleModel>[];
+
+            // Empty State (Koleksi di Firestore kosong)
+            if (articles.isEmpty) {
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    'Belum ada artikel kesehatan yang diterbitkan di Cloud Firestore.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return _buildArticlesHorizontalList(articles, isDark);
+          },
         ),
       ],
+    );
+  }
+
+  Widget _buildArticlesHorizontalList(List<ArticleModel> articles, bool isDark) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: articles.map((art) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => HealthArticleDetailScreen(article: art),
+                ),
+              );
+            },
+            child: Container(
+              width: 156,
+              height: 182,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: SizedBox(
+                      height: 95,
+                      width: double.infinity,
+                      child: (art.imageUrl != null && art.imageUrl!.trim().startsWith('http'))
+                          ? Image.network(
+                              art.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: art.headerColor.withValues(alpha: 0.15),
+                                child: Center(
+                                  child: Icon(art.icon, size: 36, color: art.headerColor),
+                                ),
+                              ),
+                            )
+                          : Image.asset(
+                              art.imageAsset,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: art.headerColor.withValues(alpha: 0.15),
+                                child: Center(
+                                  child: Icon(art.icon, size: 36, color: art.headerColor),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            art.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              height: 1.3,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF94A3B8)),
+                              const SizedBox(width: 4),
+                              Text(
+                                art.readTime,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9.5,
+                                  color: const Color(0xFF94A3B8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 

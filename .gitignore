@@ -18,3 +18,10 @@ build/
 
 # Miscellaneous
 .DS_Store
+
+# Security & Credentials (Do NOT commit to git)
+.env
+*serviceAccountKey*.json
+*credentials*.json
+firebase-admin-key.json
+node_modules/
