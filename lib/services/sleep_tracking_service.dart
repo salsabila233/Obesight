@@ -324,6 +324,15 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   String get currentUserId => AuthService().currentUser?.id ?? 'guest_user';
 
+  static bool isMatchingUser(String recordUserId, String currentUid) {
+    if (recordUserId == currentUid) return true;
+    final isCurrentGuest = currentUid == 'guest_user' || currentUid == 'guest' || currentUid.isEmpty;
+    final isRecordGuest = recordUserId == 'guest_user' || recordUserId == 'guest' || recordUserId.isEmpty;
+    if (isCurrentGuest && isRecordGuest) return true;
+    if (!isCurrentGuest && isRecordGuest) return true;
+    return false;
+  }
+
   static String formatDateKey(DateTime d) {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
@@ -568,7 +577,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         for (final item in decoded) {
           if (item is Map) {
             final rec = SleepRecord.fromMap(Map<String, dynamic>.from(item));
-            final existingIdx = _records.indexWhere((r) => r.userId == rec.userId && r.date == rec.date);
+            final existingIdx = _records.indexWhere((r) => isMatchingUser(r.userId, rec.userId) && r.date == rec.date);
             if (existingIdx != -1) {
               if (rec.updatedAt.isAfter(_records[existingIdx].updatedAt)) {
                 _records[existingIdx] = rec;
@@ -686,12 +695,11 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   /// Memeriksa aktivitas layar mati semalam dan nyala pagi hari (Samsung Health model)
   Future<void> checkDeviceInactivityCandidate() async {
     final now = DateTime.now();
-    final todayKey = formatDateKey(now);
-    final todayRecs = getRecordsForDate(now);
+    final savedToday = getSavedRecordForDate(now);
 
     // Jika hari ini sudah ada catatan tidur resmi tersimpan, jangan tampilkan pending auto lagi
-    if (todayRecs.isNotEmpty) {
-      if (_pendingAutoDetectedRecord != null && _pendingAutoDetectedRecord!.date == todayKey) {
+    if (savedToday != null) {
+      if (_pendingAutoDetectedRecord != null) {
         _pendingAutoDetectedRecord = null;
         _saveToLocal();
         notifyListeners();
@@ -774,6 +782,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       startTime: start,
       endTime: end,
       source: 'automatic',
+      isConfirmed: false,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -803,26 +812,29 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Menerima / mengonfirmasi rekaman perkiraan waktu tidur otomatis (Tombol "Catat waktu ini")
-  Future<bool> acceptPendingAutoRecord() async {
+  /// Struktur data & field disamakan persis dengan input manual ("Masukkan data"):
+  /// userId, date, startTime, endTime, durationMinutes, source, isConfirmed = true
+  Future<bool> acceptPendingAutoRecord({DateTime? targetDate}) async {
     if (_pendingAutoDetectedRecord != null) {
       final candidate = _pendingAutoDetectedRecord!;
-      // 1 Tanggal = Maksimal 1 Data Unik:
-      // Jika sudah ada catatan pada tanggal yang sama, ganti (timpa) catatan tersebut
-      final existingIndex = _records.indexWhere((r) => r.userId == candidate.userId && r.date == candidate.date);
-      if (existingIndex != -1) {
-        final oldRecord = _records[existingIndex];
-        if (oldRecord.id != candidate.id) {
-          await _deleteFromFirestore(oldRecord.id);
-        }
-        _records[existingIndex] = candidate;
-      } else {
-        _records.add(candidate);
-      }
+      final now = targetDate ?? DateTime.now();
+      final targetDateKey = formatDateKey(now);
 
+      // Bentuk SleepRecord terkonfirmasi dengan field dan struktur yang persis sama
+      final confirmedRecord = candidate.copyWith(
+        id: candidate.id.isNotEmpty ? candidate.id : 'auto_${DateTime.now().millisecondsSinceEpoch}',
+        userId: currentUserId,
+        date: targetDateKey,
+        durationMinutes: candidate.durationMinutes,
+        source: 'automatic',
+        isConfirmed: true,
+        updatedAt: DateTime.now(),
+      );
+
+      // Simpan menggunakan fungsi addRecord yang sama persis dengan fungsi simpan dari input manual
+      await addRecord(confirmedRecord);
       _pendingAutoDetectedRecord = null;
       await _saveToLocal();
-      _syncToRestReminder(candidate);
-      await _syncToFirestore(candidate);
       notifyListeners();
       return true;
     }
@@ -846,14 +858,32 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     final uid = userId ?? currentUserId;
     final key = formatDateKey(date);
     return _records
-        .where((r) => r.userId == uid && r.date == key)
+        .where((r) =>
+            isMatchingUser(r.userId, uid) &&
+            (r.date == key || (r.date.isEmpty && formatDateKey(r.endTime) == key)))
         .toList()
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 
+  /// Priority Check: Mengambil data tidur tersimpan untuk tanggal tertentu
+  SleepRecord? getSavedRecordForDate(DateTime date, {String? userId}) {
+    final recs = getRecordsForDate(date, userId: userId);
+    if (recs.isEmpty) return null;
+    final confirmed = recs.where((r) => r.isConfirmed).toList();
+    if (confirmed.isNotEmpty) {
+      return confirmed.last;
+    }
+    return recs.last;
+  }
+
+  /// Mengecek apakah sudah ada data tidur yang tersimpan untuk tanggal tertentu
+  bool hasSavedRecordForDate(DateTime date, {String? userId}) {
+    return getSavedRecordForDate(date, userId: userId) != null;
+  }
+
   List<SleepRecord> get todayRecords => getRecordsForDate(DateTime.now());
 
-  bool get hasTodayData => todayRecords.isNotEmpty;
+  bool get hasTodayData => hasSavedRecordForDate(DateTime.now());
 
   int getTotalSleepMinutesForDate(DateTime date, {String? userId}) {
     final list = getRecordsForDate(date, userId: userId);
@@ -1312,7 +1342,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   /// Mendeteksi apakah waktu baru tumpang tindih dengan data tidur yang sudah ada
   SleepRecord? findOverlappingRecord(DateTime start, DateTime end, String dateKey, {String? excludeId}) {
     final effectiveEnd = end.isBefore(start) ? end.add(const Duration(days: 1)) : end;
-    final list = _records.where((r) => r.userId == currentUserId && r.date == dateKey && r.id != excludeId);
+    final list = _records.where((r) => isMatchingUser(r.userId, currentUserId) && r.date == dateKey && r.id != excludeId);
     for (final existing in list) {
       final existingEnd = existing.endTime.isBefore(existing.startTime)
           ? existing.endTime.add(const Duration(days: 1))
@@ -1329,7 +1359,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> addRecord(SleepRecord record) async {
     // 1 Tanggal = Maksimal 1 Data Unik:
     // Jika sudah ada catatan pada tanggal yang sama, ganti (timpa) catatan tersebut
-    final existingIndex = _records.indexWhere((r) => r.userId == record.userId && r.date == record.date);
+    final existingIndex = _records.indexWhere((r) => isMatchingUser(r.userId, record.userId) && r.date == record.date);
     if (existingIndex != -1) {
       final oldRecord = _records[existingIndex];
       if (oldRecord.id != record.id) {
@@ -1353,11 +1383,11 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   /// Perbarui periode tidur yang sudah ada (1 Tanggal = Maksimal 1 Data Unik)
   Future<void> updateRecord(SleepRecord updated) async {
     // 1 Tanggal = 1 Data Unik: Hapus catatan lain pada tanggal yang sama jika id berbeda
-    final sameDateOther = _records.where((r) => r.userId == updated.userId && r.date == updated.date && r.id != updated.id).toList();
+    final sameDateOther = _records.where((r) => isMatchingUser(r.userId, updated.userId) && r.date == updated.date && r.id != updated.id).toList();
     for (final other in sameDateOther) {
       await _deleteFromFirestore(other.id);
     }
-    _records.removeWhere((r) => r.userId == updated.userId && r.date == updated.date && r.id != updated.id);
+    _records.removeWhere((r) => isMatchingUser(r.userId, updated.userId) && r.date == updated.date && r.id != updated.id);
 
     final index = _records.indexWhere((r) => r.id == updated.id);
     if (index != -1) {
@@ -1439,21 +1469,22 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     try {
       if (Firebase.apps.isEmpty) return;
       final uid = currentUserId;
-      if (uid == 'guest_user') return;
+      if (uid == 'guest_user' || uid == 'guest') return;
 
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .collection('sleep_records')
-          .orderBy('waktu_mulai', descending: true)
-          .limit(50)
+          .limit(100)
           .get();
 
       if (snapshot.docs.isNotEmpty) {
         bool hasChanges = false;
         for (final doc in snapshot.docs) {
-          final rec = SleepRecord.fromMap(doc.data(), doc.id);
-          final existingIdx = _records.indexWhere((r) => r.userId == rec.userId && r.date == rec.date);
+          final rec = SleepRecord.fromMap(doc.data(), doc.id, uid);
+          final existingIdx = _records.indexWhere((r) =>
+              isMatchingUser(r.userId, rec.userId) &&
+              (r.id == rec.id || r.date == rec.date));
           if (existingIdx == -1) {
             _records.add(rec);
             hasChanges = true;
@@ -1469,8 +1500,16 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
               _deleteFromFirestore(doc.id);
             }
           }
+
+          if (rec.isConfirmed && _pendingAutoDetectedRecord != null &&
+              (_pendingAutoDetectedRecord!.date == rec.date ||
+               formatDateKey(_pendingAutoDetectedRecord!.endTime) == rec.date)) {
+            _pendingAutoDetectedRecord = null;
+            hasChanges = true;
+          }
         }
         if (hasChanges) {
+          _records.sort((a, b) => a.startTime.compareTo(b.startTime));
           await _saveToLocal();
           notifyListeners();
         }
@@ -1487,28 +1526,30 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     try {
       if (Firebase.apps.isEmpty) return;
       final uid = currentUserId;
-      if (uid == 'guest_user') return;
+      if (uid == 'guest_user' || uid == 'guest') return;
 
       _firestoreSubscription?.cancel();
       _firestoreSubscription = FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .collection('sleep_records')
-          .orderBy('waktu_mulai', descending: true)
           .limit(100)
           .snapshots()
           .listen((snapshot) {
         bool hasChanges = false;
         for (final doc in snapshot.docs) {
-          final rec = SleepRecord.fromMap(doc.data(), doc.id);
-          final existingIdx = _records.indexWhere((r) => r.userId == rec.userId && r.date == rec.date);
+          final rec = SleepRecord.fromMap(doc.data(), doc.id, uid);
+          final existingIdx = _records.indexWhere((r) =>
+              isMatchingUser(r.userId, rec.userId) &&
+              (r.id == rec.id || r.date == rec.date));
           if (existingIdx == -1) {
             _records.add(rec);
             hasChanges = true;
           } else {
             if (_records[existingIdx].id == rec.id) {
               if (_records[existingIdx].updatedAt != rec.updatedAt ||
-                  _records[existingIdx].durationMinutes != rec.durationMinutes) {
+                  _records[existingIdx].durationMinutes != rec.durationMinutes ||
+                  _records[existingIdx].isConfirmed != rec.isConfirmed) {
                 _records[existingIdx] = rec;
                 hasChanges = true;
               }
@@ -1517,8 +1558,16 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
               hasChanges = true;
             }
           }
+
+          if (rec.isConfirmed && _pendingAutoDetectedRecord != null &&
+              (_pendingAutoDetectedRecord!.date == rec.date ||
+               formatDateKey(_pendingAutoDetectedRecord!.endTime) == rec.date)) {
+            _pendingAutoDetectedRecord = null;
+            hasChanges = true;
+          }
         }
         if (hasChanges) {
+          _records.sort((a, b) => a.startTime.compareTo(b.startTime));
           _saveToLocal();
           notifyListeners();
         }

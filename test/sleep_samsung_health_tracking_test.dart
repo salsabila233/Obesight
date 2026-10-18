@@ -164,7 +164,7 @@ void main() {
       // Verifikasi status awal: durasi estimasi terlihat dan tombol "Catat waktu ini" aktif
       expect(find.text('7 j 30 m'), findsOneWidget);
       expect(find.text('Catat waktu ini'), findsOneWidget);
-      expect(find.text('Tersimpan'), findsNothing);
+      expect(find.text('Sudah Dicatat'), findsNothing);
 
       // Tekan tombol "Catat waktu ini"
       await tester.tap(find.text('Catat waktu ini'));
@@ -173,21 +173,21 @@ void main() {
       // Card estimasi waktu tidur TETAP TERLIHAT (durasi & jam tetap eksis)
       expect(find.text('7 j 30 m'), findsOneWidget);
 
-      // Tombol berubah menjadi status "Tersimpan" dengan ikon ceklis
-      expect(find.text('Tersimpan'), findsOneWidget);
+      // Tombol berubah menjadi status "Sudah Dicatat" dengan ikon ceklis
+      expect(find.text('Sudah Dicatat'), findsOneWidget);
       expect(find.byIcon(Icons.check_circle_rounded), findsWidgets);
       expect(find.text('Catat waktu ini'), findsNothing);
 
-      // Mengetuk status "Tersimpan" tidak menduplikasi data
-      await tester.tap(find.text('Tersimpan'));
+      // Mengetuk status "Sudah Dicatat" tidak menduplikasi data
+      await tester.tap(find.text('Sudah Dicatat'));
       await tester.pumpAndSettle();
       expect(service.allRecords.length, 1);
     });
 
     // =========================================================================
-    // 5. STATUS KONSISTEN "Tersimpan" SAAT HALAMAN DIBUKA ULANG
+    // 5. STATUS KONSISTEN "Sudah Dicatat" SAAT HALAMAN DIBUKA ULANG
     // =========================================================================
-    testWidgets('2.1 Status tombol tetap konsisten "Tersimpan" saat halaman dibuka kembali', (tester) async {
+    testWidgets('2.1 Status tombol tetap konsisten "Sudah Dicatat" saat halaman dibuka kembali', (tester) async {
       setPhoneViewport(tester);
 
       final service = SleepTrackingService.instance;
@@ -216,8 +216,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Status langsung terdeteksi sebagai "Tersimpan" berdasarkan data di DB
-      expect(find.text('Tersimpan'), findsOneWidget);
+      // Status langsung terdeteksi sebagai "Sudah Dicatat" berdasarkan data di DB
+      expect(find.text('Sudah Dicatat'), findsOneWidget);
       expect(find.text('Catat waktu ini'), findsNothing);
       expect(find.text('8 j 0 m'), findsOneWidget);
     });
