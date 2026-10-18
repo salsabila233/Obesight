@@ -4,6 +4,7 @@ import '../../models/user_model.dart';
 import '../../services/nutrition_checklist_service.dart';
 import '../../services/physical_activity_service.dart';
 import '../../services/progress_tracking_service.dart';
+import '../../widgets/progress_page_scaffold.dart';
 import 'nutrition_recommendation_screen.dart';
 import 'physical_activity_screen.dart';
 
@@ -29,38 +30,9 @@ class _ProgressCompletedDetailScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
     final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final bgScreen = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
 
-    return Scaffold(
-      backgroundColor: bgScreen,
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: textPrimary,
-            size: 20,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Progres yang sudah dilakukan',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: textPrimary,
-          ),
-        ),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-            height: 1,
-          ),
-        ),
-      ),
+    return ProgressPageScaffold(
+      title: 'Progres yang sudah dilakukan',
       body: ListenableBuilder(
         listenable: Listenable.merge([
           ProgressTrackingService.instance,
@@ -293,28 +265,38 @@ class _ProgressCompletedDetailScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Ringkasan Capaian Selesai',
-                style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: textPrimary,
+              Expanded(
+                child: Text(
+                  'Ringkasan Capaian Selesai',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF36785A), Color(0xFF489874)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$overallPct% Capaian 1 Bulan',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+              const SizedBox(width: 8),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF36785A), Color(0xFF489874)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$overallPct% Capaian 1 Bulan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ),

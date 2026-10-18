@@ -259,42 +259,47 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                decoration: BoxDecoration(
-                  color: service.daysUntilNextScreening <= 3
-                      ? const Color(0xFFEF4444).withValues(alpha: 0.12)
-                      : const Color(0xFF36785A).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
                     color: service.daysUntilNextScreening <= 3
-                        ? const Color(0xFFEF4444).withValues(alpha: 0.4)
-                        : const Color(0xFF36785A).withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.timer_outlined,
-                      size: 13,
+                        ? const Color(0xFFEF4444).withValues(alpha: 0.12)
+                        : const Color(0xFF36785A).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
                       color: service.daysUntilNextScreening <= 3
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFF36785A),
+                          ? const Color(0xFFEF4444).withValues(alpha: 0.4)
+                          : const Color(0xFF36785A).withValues(alpha: 0.3),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${service.daysUntilNextScreening} Hari Lagi',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: service.daysUntilNextScreening <= 3
-                            ? const Color(0xFFEF4444)
-                            : const Color(0xFF36785A),
-                      ),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.timer_outlined,
+                          size: 13,
+                          color: service.daysUntilNextScreening <= 3
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFF36785A),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${service.daysUntilNextScreening} Hari Lagi',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: service.daysUntilNextScreening <= 3
+                                ? const Color(0xFFEF4444)
+                                : const Color(0xFF36785A),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -559,27 +564,33 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         ),
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF36785A),
-                            shape: BoxShape.circle,
-                          ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF36785A),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Target 4 Minggu',
+                              style: GoogleFonts.poppins(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: textMuted,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Target 4 Minggu',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: textMuted,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -716,25 +727,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
                 const SizedBox(height: 14),
 
-                // Link / Hint Riwayat Progres Lengkap
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Ketuk grafik untuk rincian progres yang sudah dilakukan',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF36785A),
-                      ),
+                // Link / Hint Riwayat Progres Lengkap (Anti-Overflow)
+                Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Ketuk grafik untuk rincian progres yang sudah dilakukan',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF36785A),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 13,
+                          color: Color(0xFF36785A),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 13,
-                      color: Color(0xFF36785A),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -766,15 +783,16 @@ class _ProgressScreenState extends State<ProgressScreen> {
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    height: 16,
-                    child: Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 16,
+                      child: Center(
                         child: Text(
                           '$pctInt%',
                           style: GoogleFonts.poppins(
@@ -787,64 +805,61 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Track + Batang Vertikal Kapsul Rounded
-                  Container(
-                    width: 26,
-                    height: 64,
-                    alignment: Alignment.bottomCenter,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF0F172A)
-                          : const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
+                    const SizedBox(height: 4),
+                    // Track + Batang Vertikal Kapsul Rounded
+                    Container(
                       width: 26,
-                      height: barH,
+                      height: 64,
+                      alignment: Alignment.bottomCenter,
                       decoration: BoxDecoration(
-                        gradient: hasData
-                            ? const LinearGradient(
-                                colors: [
-                                  Color(0xFF36785A),
-                                  Color(0xFF265C45)
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              )
-                            : null,
-                        color: hasData ? null : Colors.transparent,
+                        color: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(6),
-                        boxShadow: hasData
-                            ? [
-                                BoxShadow(
-                                  color: const Color(0xFF36785A)
-                                      .withValues(alpha: 0.25),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ]
-                            : null,
+                      ),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 26,
+                        height: barH,
+                        decoration: BoxDecoration(
+                          gradient: hasData
+                              ? const LinearGradient(
+                                  colors: [
+                                    Color(0xFF36785A),
+                                    Color(0xFF265C45)
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                )
+                              : null,
+                          color: hasData ? null : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: hasData
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFF36785A)
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ]
+                              : null,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'M${w.weekNumber}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: hasData
-                          ? const Color(0xFF36785A)
-                          : textPrimary,
+                    const SizedBox(height: 6),
+                    Text(
+                      'M${w.weekNumber}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: hasData
+                            ? const Color(0xFF36785A)
+                            : textPrimary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
+                    const SizedBox(height: 2),
+                    Text(
                       w.dateRangeText,
                       maxLines: 1,
                       style: GoogleFonts.poppins(
@@ -852,8 +867,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         color: textMuted,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -938,6 +953,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     children: [
                       Text(
                         title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -947,6 +964,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       const SizedBox(height: 2),
                       Text(
                         desc,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
                           color: descColor,
@@ -956,6 +975,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
