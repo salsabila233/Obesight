@@ -1924,3 +1924,225 @@ class DualCircularProgressPainter extends CustomPainter {
   }
 }
 
+/// CustomPainter untuk menggambar grafik kurva tren halus (Smooth Spline Wave Chart)
+/// Membandingkan kurva capaian Makanan & Minuman vs Aktivitas Fisik sepanjang 4 minggu
+class CurvedWaveChartPainter extends CustomPainter {
+  final List<WeeklyProgressSummary> weeklySummaries;
+  final Color nutritionColor;
+  final Color activityColor;
+  final bool isDark;
+
+  CurvedWaveChartPainter({
+    required this.weeklySummaries,
+    required this.nutritionColor,
+    required this.activityColor,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const double leftPadding = 28.0;
+    const double rightPadding = 14.0;
+    const double topY = 16.0;
+    final double bottomY = size.height - 18.0;
+    final double plotHeight = bottomY - topY;
+    final double availableWidth = size.width - leftPadding - rightPadding;
+
+    final gridLineColor = isDark
+        ? const Color(0xFF334155).withValues(alpha: 0.5)
+        : const Color(0xFFE2E8F0);
+    final labelColor =
+        isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+
+    // 1. Gambar Garis Panduan Horizontal & Label Persentase Y-Axis (100%, 50%, 0%)
+    final gridPaint = Paint()
+      ..color = gridLineColor
+      ..strokeWidth = 1.0;
+
+    final guideLevels = [
+      {'val': 1.0, 'label': '100%', 'dashed': true},
+      {'val': 0.5, 'label': '50%', 'dashed': true},
+      {'val': 0.0, 'label': '0%', 'dashed': false},
+    ];
+
+    for (final level in guideLevels) {
+      final val = level['val'] as double;
+      final label = level['label'] as String;
+      final isDashed = level['dashed'] as bool;
+      final y = bottomY - (val * plotHeight);
+
+      // Label teks di sebelah kiri
+      final tp = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: GoogleFonts.poppins(
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: labelColor,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(leftPadding - 6 - tp.width, y - tp.height / 2));
+
+      // Garis horizontal
+      final p1 = Offset(leftPadding, y);
+      final p2 = Offset(size.width - rightPadding, y);
+      if (isDashed) {
+        _drawDashedLine(canvas, p1, p2, gridPaint);
+      } else {
+        canvas.drawLine(p1, p2, gridPaint);
+      }
+    }
+
+    if (weeklySummaries.isEmpty || availableWidth <= 0) return;
+
+    // 2. Hitung Titik Koordinat tiap Minggu
+    final int count = weeklySummaries.length;
+    final double colWidth = availableWidth / count;
+
+    final List<Offset> nutritionPoints = [];
+    final List<Offset> activityPoints = [];
+
+    for (int i = 0; i < count; i++) {
+      final summary = weeklySummaries[i];
+      final x = leftPadding + (i + 0.5) * colWidth;
+
+      final nY = bottomY -
+          (summary.nutritionPercentage.clamp(0.0, 1.0) * plotHeight);
+      nutritionPoints.add(Offset(x, nY));
+
+      final aY = bottomY -
+          (summary.activityPercentage.clamp(0.0, 1.0) * plotHeight);
+      activityPoints.add(Offset(x, aY));
+    }
+
+    // 3. Gambar Kurva Spline untuk Nutrisi (Makanan & Minuman)
+    _drawSplineCurve(
+      canvas: canvas,
+      points: nutritionPoints,
+      color: nutritionColor,
+      bottomY: bottomY,
+      isDark: isDark,
+    );
+
+    // 4. Gambar Kurva Spline untuk Aktivitas Fisik
+    _drawSplineCurve(
+      canvas: canvas,
+      points: activityPoints,
+      color: activityColor,
+      bottomY: bottomY,
+      isDark: isDark,
+    );
+  }
+
+  void _drawDashedLine(Canvas canvas, Offset p1, Offset p2, Paint paint) {
+    const dashWidth = 4.0;
+    const dashSpace = 4.0;
+    double startX = p1.dx;
+    while (startX < p2.dx) {
+      canvas.drawLine(
+        Offset(startX, p1.dy),
+        Offset(math.min(startX + dashWidth, p2.dx), p1.dy),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  void _drawSplineCurve({
+    required Canvas canvas,
+    required List<Offset> points,
+    required Color color,
+    required double bottomY,
+    required bool isDark,
+  }) {
+    if (points.isEmpty) return;
+
+    if (points.length == 1) {
+      _drawDataPoint(canvas, points.first, color, isDark);
+      return;
+    }
+
+    final path = Path();
+    path.moveTo(points.first.dx, points.first.dy);
+
+    for (int i = 0; i < points.length - 1; i++) {
+      final p0 = points[i];
+      final p1 = points[i + 1];
+      final cx = (p0.dx + p1.dx) / 2;
+      path.cubicTo(cx, p0.dy, cx, p1.dy, p1.dx, p1.dy);
+    }
+
+    // Gambar Gradien Bayangan/Wave di Bawah Kurva
+    final fillPath = Path.from(path)
+      ..lineTo(points.last.dx, bottomY)
+      ..lineTo(points.first.dx, bottomY)
+      ..close();
+
+    final fillPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          color.withValues(alpha: isDark ? 0.30 : 0.18),
+          color.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromLTRB(
+        points.first.dx,
+        0,
+        points.last.dx,
+        bottomY,
+      ));
+
+    canvas.drawPath(fillPath, fillPaint);
+
+    // Gambar Garis Kurva Halus
+    final strokePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(path, strokePaint);
+
+    // Gambar Titik Indikator Lingkaran (Dots)
+    for (final pt in points) {
+      _drawDataPoint(canvas, pt, color, isDark);
+    }
+  }
+
+  void _drawDataPoint(Canvas canvas, Offset pt, Color color, bool isDark) {
+    // Halo lembut di luar titik
+    canvas.drawCircle(
+      pt,
+      5.5,
+      Paint()..color = color.withValues(alpha: 0.28),
+    );
+    // Titik utama
+    canvas.drawCircle(
+      pt,
+      3.8,
+      Paint()..color = color,
+    );
+    // Titik pusat kontras
+    canvas.drawCircle(
+      pt,
+      1.8,
+      Paint()
+        ..color = isDark ? const Color(0xFF0F172A) : Colors.white,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CurvedWaveChartPainter oldDelegate) {
+    return oldDelegate.weeklySummaries != weeklySummaries ||
+        oldDelegate.nutritionColor != nutritionColor ||
+        oldDelegate.activityColor != activityColor ||
+        oldDelegate.isDark != isDark;
+  }
+}
+
+
