@@ -355,6 +355,8 @@ class NutritionChecklistService extends ChangeNotifier {
     return _completedItemsByDate[dateKey]?.contains(itemId) ?? false;
   }
 
+  Map<String, Set<String>> get completedItemsByDate => _completedItemsByDate;
+
   Set<String> getCompletedForDate(String dateKey) {
     return _completedItemsByDate[dateKey] ?? const <String>{};
   }

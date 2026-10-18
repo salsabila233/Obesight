@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import '../screens/skrining/skrining_models.dart';
+import 'meal_plan_service.dart';
+import 'nutrition_checklist_service.dart';
+import 'physical_activity_service.dart';
+import 'screening_history_service.dart';
 
 class RecommendationProgressGoal {
   final String id;
   final String title;
-  final String category; // 'Latihan', 'Pola Makan', 'Waktu Tidur'
+  final String category; // 'Latihan', 'Pola Makan'
   final String targetDesc;
   final int completedCount;
   final int totalTargetCount;
@@ -20,94 +24,82 @@ class RecommendationProgressGoal {
     required this.unit,
   });
 
-  double get percentage => (completedCount / totalTargetCount).clamp(0.0, 1.0);
+  double get percentage => totalTargetCount > 0 ? (completedCount / totalTargetCount).clamp(0.0, 1.0) : 0.0;
   bool get isFullyCompleted => completedCount >= totalTargetCount;
   int get remainingCount => (totalTargetCount - completedCount) > 0 ? (totalTargetCount - completedCount) : 0;
+}
+
+/// Item rincian progres yang telah dicentang oleh pengguna
+class CompletedChecklistItem {
+  final String id;
+  final String title;
+  final String type; // 'nutrition' or 'activity'
+  final String categoryName; // 'Makanan & Minuman' atau 'Aktivitas Fisik'
+  final String subCategory; // 'Sarapan', 'Makan Siang', 'Kardio Ringan', dll.
+  final DateTime date;
+  final String dateKey;
+  final int weekNumber; // 1, 2, 3, or 4
+  final String detailDesc;
+  final String caloriesText;
+  final String portionOrDuration;
+  final String? thumb;
+  final IconData icon;
+
+  const CompletedChecklistItem({
+    required this.id,
+    required this.title,
+    required this.type,
+    required this.categoryName,
+    required this.subCategory,
+    required this.date,
+    required this.dateKey,
+    required this.weekNumber,
+    required this.detailDesc,
+    required this.caloriesText,
+    required this.portionOrDuration,
+    this.thumb,
+    required this.icon,
+  });
+}
+
+/// Ringkasan evaluasi mingguan dalam periode 1 bulan (4 minggu)
+class WeeklyProgressSummary {
+  final int weekNumber; // 1, 2, 3, 4
+  final String label; // 'Minggu 1', 'Minggu 2', ...
+  final String dateRangeText;
+  final int nutritionCompleted;
+  final int nutritionTarget;
+  final int activityCompleted;
+  final int activityTarget;
+
+  const WeeklyProgressSummary({
+    required this.weekNumber,
+    required this.label,
+    required this.dateRangeText,
+    required this.nutritionCompleted,
+    required this.nutritionTarget,
+    required this.activityCompleted,
+    required this.activityTarget,
+  });
+
+  int get totalCompleted => nutritionCompleted + activityCompleted;
+  int get totalTarget => nutritionTarget + activityTarget;
+  double get percentage => totalTarget > 0 ? (totalCompleted / totalTarget).clamp(0.0, 1.0) : 0.0;
+  double get nutritionPercentage => nutritionTarget > 0 ? (nutritionCompleted / nutritionTarget).clamp(0.0, 1.0) : 0.0;
+  double get activityPercentage => activityTarget > 0 ? (activityCompleted / activityTarget).clamp(0.0, 1.0) : 0.0;
 }
 
 class ProgressTrackingService extends ChangeNotifier {
   static final ProgressTrackingService instance = ProgressTrackingService._internal();
   ProgressTrackingService._internal();
 
-  // State Skrining & Periode Progres
+  // State Skrining & Periode Progres 1 Bulan (4 Minggu / 30 Hari)
   String _category = 'Overweight';
   String _riskLevel = 'Sedang';
   double _bmi = 26.8;
-  int _cycleDays = 14; // Rentang waktu evaluasi siklus rekomendasi (14 hari)
+  int _cycleDays = 30; // Rentang evaluasi 1 bulan penuh (30 hari / 4 minggu)
   DateTime _startDate = DateTime.now().subtract(const Duration(days: 0));
-  DateTime _nextScreeningDate = DateTime.now().add(const Duration(days: 14));
-
-  // Daftar Target Rekomendasi yang Dipantau dalam Rentang Waktu Ini
-  final List<RecommendationProgressGoal> _goals = const [
-    // 1. Latihan Fisik
-    RecommendationProgressGoal(
-      id: 'ex_1',
-      title: 'Latihan Aerobik (Jalan Cepat / Sepeda)',
-      category: 'Latihan',
-      targetDesc: 'Minimal 30 menit per sesi (target 5 sesi/minggu)',
-      completedCount: 4,
-      totalTargetCount: 5,
-      unit: 'sesi',
-    ),
-    RecommendationProgressGoal(
-      id: 'ex_2',
-      title: 'Latihan Kekuatan Otot & Peregangan',
-      category: 'Latihan',
-      targetDesc: 'Gerakan beban tubuh ringan (target 2 sesi/minggu)',
-      completedCount: 1,
-      totalTargetCount: 2,
-      unit: 'sesi',
-    ),
-
-    // 2. Pola Makan & Nutrisi
-    RecommendationProgressGoal(
-      id: 'nut_1',
-      title: 'Konsumsi Porsi Sayur & Serat Seimbang',
-      category: 'Pola Makan',
-      targetDesc: 'Isi piring dengan 50% sayur dan buah setiap makan',
-      completedCount: 11,
-      totalTargetCount: 14,
-      unit: 'hari',
-    ),
-    RecommendationProgressGoal(
-      id: 'nut_2',
-      title: 'Minum Air Putih Minimal 2 Liter / Hari',
-      category: 'Pola Makan',
-      targetDesc: 'Cukupi hidrasi harian untuk metabolisme optimal',
-      completedCount: 13,
-      totalTargetCount: 14,
-      unit: 'hari',
-    ),
-    RecommendationProgressGoal(
-      id: 'nut_3',
-      title: 'Batasi Makanan Manis & Gorengan',
-      category: 'Pola Makan',
-      targetDesc: 'Kurangi konsumsi gula berlebih dan lemak jenuh',
-      completedCount: 10,
-      totalTargetCount: 14,
-      unit: 'hari',
-    ),
-
-    // 3. Waktu Tidur & Istirahat
-    RecommendationProgressGoal(
-      id: 'slp_1',
-      title: 'Tidur Berkualitas 7–8 Jam per Malam',
-      category: 'Waktu Tidur',
-      targetDesc: 'Istirahat cukup untuk regulasi hormon nafsu makan',
-      completedCount: 12,
-      totalTargetCount: 14,
-      unit: 'hari',
-    ),
-    RecommendationProgressGoal(
-      id: 'slp_2',
-      title: 'Jadwal Tidur Teratur & Bebas Gadget',
-      category: 'Waktu Tidur',
-      targetDesc: 'Tidur sebelum jam 23.00 dan matikan layar 30 mnt sebelum tidur',
-      completedCount: 9,
-      totalTargetCount: 14,
-      unit: 'hari',
-    ),
-  ];
+  DateTime _nextScreeningDate = DateTime.now().add(const Duration(days: 30));
 
   // Getters
   String get category => _category;
@@ -116,20 +108,21 @@ class ProgressTrackingService extends ChangeNotifier {
   int get cycleDays => _cycleDays;
   DateTime get startDate => _startDate;
   DateTime get nextScreeningDate => _nextScreeningDate;
-  List<RecommendationProgressGoal> get goals => _goals;
 
   int get daysUntilNextScreening {
     final now = DateTime.now();
-    final diff = _nextScreeningDate.difference(DateTime(now.year, now.month, now.day)).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(_nextScreeningDate.year, _nextScreeningDate.month, _nextScreeningDate.day);
+    final diff = target.difference(today).inDays;
     return diff > 0 ? diff : 0;
   }
 
-  String get formattedDateRange {
+  String get formattedStartDate {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
-    return '${_startDate.day} ${months[_startDate.month - 1]} – ${_nextScreeningDate.day} ${months[_nextScreeningDate.month - 1]} ${_nextScreeningDate.year}';
+    return '${_startDate.day} ${months[_startDate.month - 1]} ${_startDate.year}';
   }
 
   String get formattedNextScreeningDate {
@@ -140,61 +133,290 @@ class ProgressTrackingService extends ChangeNotifier {
     return '${_nextScreeningDate.day} ${months[_nextScreeningDate.month - 1]} ${_nextScreeningDate.year}';
   }
 
-  // Rekap Capaian Berdasarkan Kategori
-  List<RecommendationProgressGoal> getGoalsByCategory(String category) {
-    return _goals.where((g) => g.category == category).toList();
+  String get formattedDateRange {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return '${_startDate.day} ${months[_startDate.month - 1]} – ${_nextScreeningDate.day} ${months[_nextScreeningDate.month - 1]} ${_nextScreeningDate.year}';
   }
 
-  double getCategoryPercentage(String category) {
-    final list = getGoalsByCategory(category);
-    if (list.isEmpty) return 0.0;
-    int totalDone = 0;
-    int totalTarget = 0;
-    for (var g in list) {
-      totalDone += g.completedCount;
-      totalTarget += g.totalTargetCount;
+  /// Sinkronisasi dengan riwayat skrining pengguna untuk mendapatkan tanggal skrining pertama
+  void syncWithUserScreening(String? userId, [String? email]) {
+    final history = ScreeningHistoryService.instance.getHistory(userId, email);
+    if (history.isNotEmpty) {
+      // Skrining pertama pengguna sebagai titik awal siklus 1 bulan
+      final firstScreening = history.last;
+      _startDate = DateTime(firstScreening.date.year, firstScreening.date.month, firstScreening.date.day);
+      _bmi = firstScreening.bmi;
+      _category = firstScreening.category;
+      _cycleDays = 30;
+      _nextScreeningDate = _startDate.add(const Duration(days: 30));
+      notifyListeners();
     }
-    return totalTarget == 0 ? 0.0 : (totalDone / totalTarget).clamp(0.0, 1.0);
   }
-
-  // Total Keseluruhan
-  int get totalCompletedActions => _goals.fold(0, (sum, g) => sum + g.completedCount);
-  int get totalTargetActions => _goals.fold(0, (sum, g) => sum + g.totalTargetCount);
-  int get totalRemainingActions => (totalTargetActions - totalCompletedActions) > 0 ? (totalTargetActions - totalCompletedActions) : 0;
-
-  double get overallPercentage {
-    if (totalTargetActions == 0) return 0.0;
-    return (totalCompletedActions / totalTargetActions).clamp(0.0, 1.0);
-  }
-
-  int get fullyCompletedGoalsCount => _goals.where((g) => g.isFullyCompleted).length;
-  int get inProgressGoalsCount => _goals.where((g) => !g.isFullyCompleted).length;
 
   // Update State Saat Skrining Baru Dilakukan
   void updateFromScreening(SkriningData data) {
     _bmi = data.bmi;
     _category = data.classificationCategory;
-    _startDate = DateTime.now();
+    final d = data.date ?? DateTime.now();
+    _startDate = DateTime(d.year, d.month, d.day);
+    _cycleDays = 30; // 1 bulan / 4 minggu
+    _nextScreeningDate = _startDate.add(const Duration(days: 30));
 
     final cat = _category.toLowerCase();
     if (cat.contains('obesitas') || cat.contains('obesity')) {
       _riskLevel = 'Tinggi';
-      _cycleDays = 14;
-      _nextScreeningDate = DateTime.now().add(const Duration(days: 14));
     } else if (cat.contains('overweight')) {
       _riskLevel = 'Sedang';
-      _cycleDays = 14;
-      _nextScreeningDate = DateTime.now().add(const Duration(days: 14));
     } else if (cat.contains('underweight') || cat.contains('insufficient')) {
       _riskLevel = 'Perhatian';
-      _cycleDays = 21;
-      _nextScreeningDate = DateTime.now().add(const Duration(days: 21));
     } else {
       _riskLevel = 'Normal / Terkendali';
-      _cycleDays = 30;
-      _nextScreeningDate = DateTime.now().add(const Duration(days: 30));
     }
 
     notifyListeners();
+  }
+
+  // =======================================================================
+  // DATA PROGRES DINAMIS DARI CENTANGAN MAKANAN & MINUMAN SERTA AKTIVITAS FISIK
+  // =======================================================================
+
+  static const int dailyMealTarget = 5; // Sarapan, Makan Siang, Makan Malam, Cemilan, Minuman
+  static const int dailyActivityTarget = 4; // 4 rekomendasi aktivitas per hari
+
+  /// Target 1 bulan (30 hari)
+  int get nutritionTargetCount => _cycleDays * dailyMealTarget; // 150 item
+  int get activityTargetCount => _cycleDays * dailyActivityTarget; // 120 item
+
+  /// Total Makanan & Minuman yang telah dicentang dalam rentang 30 hari
+  int get nutritionCompletedCount {
+    final nutritionService = NutritionChecklistService.instance;
+    int count = 0;
+    for (int i = 0; i < _cycleDays; i++) {
+      final date = _startDate.add(Duration(days: i));
+      final dateKey = nutritionService.formatDateKey(date);
+      count += nutritionService.getCompletedCountForDate(dateKey);
+    }
+    return count;
+  }
+
+  /// Total Aktivitas Fisik yang telah diselesaikan dalam rentang 30 hari
+  int get activityCompletedCount {
+    final activityService = PhysicalActivityService.instance;
+    int count = 0;
+    for (int i = 0; i < _cycleDays; i++) {
+      final date = _startDate.add(Duration(days: i));
+      final dateKey = activityService.formatDateKey(date);
+      count += activityService.getCompletedCountForDate(dateKey);
+    }
+    return count;
+  }
+
+  double get nutritionPercentage {
+    if (nutritionTargetCount == 0) return 0.0;
+    return (nutritionCompletedCount / nutritionTargetCount).clamp(0.0, 1.0);
+  }
+
+  double get activityPercentage {
+    if (activityTargetCount == 0) return 0.0;
+    return (activityCompletedCount / activityTargetCount).clamp(0.0, 1.0);
+  }
+
+  /// Total gabungan 2 pilar (Makanan & Minuman + Aktivitas Fisik)
+  int get totalCompletedActions => nutritionCompletedCount + activityCompletedCount;
+  int get totalTargetActions => nutritionTargetCount + activityTargetCount;
+  int get totalRemainingActions => (totalTargetActions - totalCompletedActions) > 0
+      ? (totalTargetActions - totalCompletedActions)
+      : 0;
+
+  /// Persentase capaian keseluruhan 1 bulan (hanya Makanan & Minuman + Aktivitas Fisik)
+  double get overallPercentage {
+    if (totalTargetActions == 0) return 0.0;
+    return (totalCompletedActions / totalTargetActions).clamp(0.0, 1.0);
+  }
+
+  /// Menghitung ringkasan per minggu (Minggu 1, Minggu 2, Minggu 3, Minggu 4)
+  List<WeeklyProgressSummary> getWeeklySummaries() {
+    final nutritionService = NutritionChecklistService.instance;
+    final activityService = PhysicalActivityService.instance;
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+
+    final List<WeeklyProgressSummary> summaries = [];
+    final weekDayRanges = [
+      {'start': 0, 'days': 7},   // Minggu 1: Hari 1–7
+      {'start': 7, 'days': 7},   // Minggu 2: Hari 8–14
+      {'start': 14, 'days': 7},  // Minggu 3: Hari 15–21
+      {'start': 21, 'days': 9},  // Minggu 4: Hari 22–30 (9 hari sisa)
+    ];
+
+    for (int w = 0; w < weekDayRanges.length; w++) {
+      final startOffset = weekDayRanges[w]['start']!;
+      final daySpan = weekDayRanges[w]['days']!;
+      final wStartDate = _startDate.add(Duration(days: startOffset));
+      final wEndDate = _startDate.add(Duration(days: startOffset + daySpan - 1));
+
+      final dateRangeText = '${wStartDate.day} ${months[wStartDate.month - 1]} – ${wEndDate.day} ${months[wEndDate.month - 1]}';
+
+      int wNutritionDone = 0;
+      int wActivityDone = 0;
+
+      for (int d = 0; d < daySpan; d++) {
+        final curDate = _startDate.add(Duration(days: startOffset + d));
+        final dKey = nutritionService.formatDateKey(curDate);
+        wNutritionDone += nutritionService.getCompletedCountForDate(dKey);
+        wActivityDone += activityService.getCompletedCountForDate(dKey);
+      }
+
+      final wNutritionTarget = daySpan * dailyMealTarget;
+      final wActivityTarget = daySpan * dailyActivityTarget;
+
+      summaries.add(WeeklyProgressSummary(
+        weekNumber: w + 1,
+        label: 'Minggu ${w + 1}',
+        dateRangeText: dateRangeText,
+        nutritionCompleted: wNutritionDone,
+        nutritionTarget: wNutritionTarget,
+        activityCompleted: wActivityDone,
+        activityTarget: wActivityTarget,
+      ));
+    }
+
+    return summaries;
+  }
+
+  /// Menghasilkan seluruh daftar item progres yang telah dicentang dalam rentang 1 bulan
+  List<CompletedChecklistItem> getAllCompletedItems() {
+    final List<CompletedChecklistItem> items = [];
+    final nutritionService = NutritionChecklistService.instance;
+    final activityService = PhysicalActivityService.instance;
+
+    for (int i = 0; i < _cycleDays; i++) {
+      final date = _startDate.add(Duration(days: i));
+      final dateKey = nutritionService.formatDateKey(date);
+      final weekNum = (i ~/ 7) + 1 > 4 ? 4 : (i ~/ 7) + 1;
+
+      // 1. Makanan & Minuman yang dicentang pada tanggal ini
+      final completedMealIds = nutritionService.getCompletedForDate(dateKey);
+      for (final mealId in completedMealIds) {
+        final meal = MealPlanService.getMealById(mealId);
+        if (meal != null) {
+          items.add(CompletedChecklistItem(
+            id: 'nut_${meal.id}_$dateKey',
+            title: meal.name,
+            type: 'nutrition',
+            categoryName: 'Makanan & Minuman',
+            subCategory: meal.mealTime,
+            date: date,
+            dateKey: dateKey,
+            weekNumber: weekNum,
+            detailDesc: meal.desc,
+            caloriesText: '${meal.calories} kkal',
+            portionOrDuration: '${meal.portionGram}g',
+            thumb: meal.thumbImg,
+            icon: meal.categoryIcon,
+          ));
+        } else {
+          items.add(CompletedChecklistItem(
+            id: 'nut_${mealId}_$dateKey',
+            title: 'Menu Nutrisi Seimbang',
+            type: 'nutrition',
+            categoryName: 'Makanan & Minuman',
+            subCategory: 'Konsumsi Harian',
+            date: date,
+            dateKey: dateKey,
+            weekNumber: weekNum,
+            detailDesc: 'Telah dikonsumsi sesuai anjuran porsi seimbang.',
+            caloriesText: 'Tercatat',
+            portionOrDuration: '1 Porsi',
+            thumb: null,
+            icon: Icons.restaurant_rounded,
+          ));
+        }
+      }
+
+      // 2. Aktivitas Fisik yang dicentang pada tanggal ini
+      final completedActIds = activityService.getCompletedForDate(dateKey);
+      for (final actId in completedActIds) {
+        final act = activityService.getActivityById(actId);
+        if (act != null) {
+          items.add(CompletedChecklistItem(
+            id: 'act_${act['id']}_$dateKey',
+            title: act['name'] as String? ?? act['title'] as String? ?? 'Aktivitas Fisik',
+            type: 'activity',
+            categoryName: 'Aktivitas Fisik',
+            subCategory: act['category'] as String? ?? 'Latihan Fisik',
+            date: date,
+            dateKey: dateKey,
+            weekNumber: weekNum,
+            detailDesc: act['desc'] as String? ?? 'Aktivitas fisik selesai dilakukan.',
+            caloriesText: act['calories'] as String? ?? 'Kalori terbakar',
+            portionOrDuration: act['duration'] as String? ?? '30 Menit',
+            thumb: act['thumb'] as String?,
+            icon: Icons.directions_run_rounded,
+          ));
+        } else {
+          items.add(CompletedChecklistItem(
+            id: 'act_${actId}_$dateKey',
+            title: 'Sesi Latihan Fisik',
+            type: 'activity',
+            categoryName: 'Aktivitas Fisik',
+            subCategory: 'Latihan Harian',
+            date: date,
+            dateKey: dateKey,
+            weekNumber: weekNum,
+            detailDesc: 'Sesi aktivitas fisik harian telah selesai dikerjakan.',
+            caloriesText: 'Terbakar',
+            portionOrDuration: '30 Menit',
+            thumb: null,
+            icon: Icons.directions_run_rounded,
+          ));
+        }
+      }
+    }
+
+    // Urutkan dari tanggal terbaru ke terlama
+    items.sort((a, b) => b.date.compareTo(a.date));
+    return items;
+  }
+
+  // Kompatibilitas dengan kode lama
+  List<RecommendationProgressGoal> get goals => [
+    RecommendationProgressGoal(
+      id: 'nut_summary',
+      title: 'Pola Makan & Nutrisi Seimbang',
+      category: 'Pola Makan',
+      targetDesc: 'Target 5 menu seimbang per hari selama 1 bulan ($nutritionTargetCount menu)',
+      completedCount: nutritionCompletedCount,
+      totalTargetCount: nutritionTargetCount,
+      unit: 'menu',
+    ),
+    RecommendationProgressGoal(
+      id: 'act_summary',
+      title: 'Aktivitas Fisik & Latihan Teratur',
+      category: 'Latihan',
+      targetDesc: 'Target 4 rekomendasi latihan per hari selama 1 bulan ($activityTargetCount sesi)',
+      completedCount: activityCompletedCount,
+      totalTargetCount: activityTargetCount,
+      unit: 'sesi',
+    ),
+  ];
+
+  List<RecommendationProgressGoal> getGoalsByCategory(String category) {
+    return goals.where((g) => g.category == category).toList();
+  }
+
+  double getCategoryPercentage(String category) {
+    if (category == 'Latihan' || category == 'Aktivitas Fisik') {
+      return activityPercentage;
+    }
+    if (category == 'Pola Makan' || category == 'Makanan & Minuman') {
+      return nutritionPercentage;
+    }
+    return 0.0;
   }
 }

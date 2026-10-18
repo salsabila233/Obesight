@@ -77,6 +77,8 @@ class PhysicalActivityService extends ChangeNotifier {
     return _completedActivitiesByDate[dateKey]?.contains(activityId) ?? false;
   }
 
+  Map<String, Set<String>> get completedActivitiesByDate => _completedActivitiesByDate;
+
   Set<String> getCompletedForDate(String dateKey) {
     return _completedActivitiesByDate[dateKey] ?? const <String>{};
   }
