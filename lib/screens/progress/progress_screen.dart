@@ -1683,7 +1683,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Ketuk grafik untuk rincian yang sudah dicentang',
+                  'Ketuk grafik untuk rincian progres yang sudah dilakukan',
                   style: GoogleFonts.poppins(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,

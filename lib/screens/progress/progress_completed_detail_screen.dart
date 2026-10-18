@@ -45,7 +45,7 @@ class _ProgressCompletedDetailScreenState
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Progres yang Dicentang',
+          'Progres yang sudah dilakukan',
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w700,
