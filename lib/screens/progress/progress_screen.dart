@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
@@ -26,8 +25,6 @@ class ProgressScreen extends StatefulWidget {
 }
 
 class _ProgressScreenState extends State<ProgressScreen> {
-  int _selectedChartType = 0; // 0: Kurva Tren Dinamis, 1: Batang Kapsul Modern
-
   @override
   void initState() {
     super.initState();
@@ -40,6 +37,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
             .syncWithUserScreening(widget.user.id, widget.user.email);
       }
     });
+  }
+
+  void _openCompletedDetail() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProgressCompletedDetailScreen(user: widget.user),
+      ),
+    );
   }
 
   @override
@@ -70,12 +75,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
                 const SizedBox(height: 20),
 
-                // 2. GRAFIK EVALUASI CAPAIAN PROGRES 1 BULAN (4 MINGGU)
-                // Hanya berisi Makanan & Minuman dan Aktivitas Fisik (Waktu tidur tidak masuk grafik)
+                // 2. GRAFIK & EVALUASI CAPAIAN PROGRES 1 BULAN (4 MINGGU)
+                // Sederhana, grafik batang bersih seperti waktu tidur, klik membuka riwayat progres
                 _buildEvaluationProgressChartCard(
                     progressService, isDark, textPrimary),
 
-                const SizedBox(height: 26),
+                const SizedBox(height: 24),
 
                 // 3. CARD-CARD PANTAU KESEHATANMU (Makanan & Minuman, Aktivitas Fisik, Waktu Tidur)
                 Text(
@@ -209,7 +214,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row: Icon + Judul + Countdown Badge
+          // Header Row: Icon + Judul + Countdown Badge (Anti-overflow)
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -232,6 +237,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   children: [
                     Text(
                       'Jadwal Skrining Ulang',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -240,8 +247,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                     Text(
                       service.formattedNextScreeningDate,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 12.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF36785A),
                       ),
@@ -249,9 +258,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
                   color: service.daysUntilNextScreening <= 3
                       ? const Color(0xFFEF4444).withValues(alpha: 0.12)
@@ -268,7 +278,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   children: [
                     Icon(
                       Icons.timer_outlined,
-                      size: 14,
+                      size: 13,
                       color: service.daysUntilNextScreening <= 3
                           ? const Color(0xFFEF4444)
                           : const Color(0xFF36785A),
@@ -277,7 +287,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     Text(
                       '${service.daysUntilNextScreening} Hari Lagi',
                       style: GoogleFonts.poppins(
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                         color: service.daysUntilNextScreening <= 3
                             ? const Color(0xFFEF4444)
@@ -324,7 +334,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
           const SizedBox(height: 14),
 
-          // Action Buttons
+          // Action Buttons (Anti-overflow menggunakan FittedBox)
           Row(
             children: [
               Expanded(
@@ -338,7 +348,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     );
                   },
                   icon: const Icon(Icons.history_rounded, size: 16),
-                  label: const Text('Riwayat Skrining'),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Riwayat Skrining'),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: textDark,
                     side: BorderSide(
@@ -346,7 +359,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           ? const Color(0xFF475569)
                           : const Color(0xFFCBD5E1),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -388,17 +402,22 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => SkriningLandingScreen(user: widget.user),
+                        builder: (_) =>
+                            SkriningLandingScreen(user: widget.user),
                       ),
                     );
                   },
                   icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: const Text('Skrining Ulang'),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Skrining Ulang'),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF36785A),
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -417,10 +436,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   // ==========================================
-  // 2. GRAFIK EVALUASI CAPAIAN PROGRES 1 BULAN
-  // Menggambarkan progres yang sudah dicentang (Makanan & Minuman + Aktivitas Fisik)
-  // Durasi 1 bulan / 4 minggu
-  // Desain visual yang sangat menarik, estetik, dan interaktif
+  // 2. GRAFIK & EVALUASI CAPAIAN PROGRES 1 BULAN (1 CARD TUNGGAL)
+  // Menyatukan grafik batang dan evaluasi capaian ke dalam 1 card bersih tanpa box bertumpuk
+  // Bebas overflow: headroom luas dan tata letak responsif
+  // Klik card/grafik membuka ProgressCompletedDetailScreen (riwayat progres)
   // ==========================================
   Widget _buildEvaluationProgressChartCard(
     ProgressTrackingService service,
@@ -429,1301 +448,422 @@ class _ProgressScreenState extends State<ProgressScreen> {
   ) {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder =
-        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+        isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED);
     final textMuted =
         isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     final overallPct = service.overallPercentage;
-    final nutritionPct = service.nutritionPercentage;
-    final activityPct = service.activityPercentage;
+    final overallInt = (overallPct * 100).toInt();
     final weeklySummaries = service.getWeeklySummaries();
 
-    const nutritionColor = Color(0xFF10B981); // Emerald
-    const activityColor = Color(0xFF0284C7); // Sky Blue
-
-    // Status motivasi dinamis berdasarkan persentase
-    String milestoneTitle;
-    String milestoneDesc;
-    IconData milestoneIcon;
-    Color milestoneColor;
-
+    // Status evaluasi sederhana
+    String statusText;
     if (overallPct >= 0.8) {
-      milestoneTitle = 'Performa Sangat Luar Biasa!';
-      milestoneDesc =
-          'Target 1 bulan hampir tercapai dengan konsistensi prima.';
-      milestoneIcon = Icons.emoji_events_rounded;
-      milestoneColor = const Color(0xFFF59E0B);
+      statusText = 'Sangat Baik';
     } else if (overallPct >= 0.5) {
-      milestoneTitle = 'Konsistensi Sangat Baik!';
-      milestoneDesc =
-          'Lebih dari separuh target 1 bulan telah berhasil Anda tuntaskan.';
-      milestoneIcon = Icons.local_fire_department_rounded;
-      milestoneColor = const Color(0xFFEA580C);
+      statusText = 'Baik';
     } else if (overallPct >= 0.2) {
-      milestoneTitle = 'Terus Bergerak Maju!';
-      milestoneDesc =
-          'Langkah awal yang hebat, teruskan ceklis menu & olahraga harianmu.';
-      milestoneIcon = Icons.trending_up_rounded;
-      milestoneColor = const Color(0xFF10B981);
+      statusText = 'Cukup';
     } else {
-      milestoneTitle = 'Mulai Capai Target 1 Bulan!';
-      milestoneDesc =
-          'Ceklis menu sehat & latihan fisik hari ini untuk mulai mengisi progres.';
-      milestoneIcon = Icons.eco_rounded;
-      milestoneColor = const Color(0xFF36785A);
+      statusText = 'Perlu Ditingkatkan';
     }
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: cardBorder, width: 1.4),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF36785A)
-                .withValues(alpha: isDark ? 0.25 : 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
+            color:
+                const Color(0xFF1E293B).withValues(alpha: isDark ? 0.25 : 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(26),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    ProgressCompletedDetailScreen(user: widget.user),
-              ),
-            );
-          },
+          borderRadius: BorderRadius.circular(20),
+          onTap: _openCompletedDetail,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ----------------------------------------------------
-                // Header: Judul, Periode 1 Bulan (4 Minggu), dan Tag Action
-                // ----------------------------------------------------
+                // 1. Header Card: Judul Evaluasi & Navigasi Panah
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Evaluasi Capaian 1 Bulan',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  color: textPrimary,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: isDark
-                                        ? [
-                                            const Color(0xFF163326),
-                                            const Color(0xFF0F241A)
-                                          ]
-                                        : [
-                                            const Color(0xFFE2F6ED),
-                                            const Color(0xFFD3EFE1)
-                                          ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: const Color(0xFF36785A)
-                                        .withValues(alpha: 0.35),
-                                  ),
-                                ),
-                                child: Text(
-                                  '4 Minggu',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF36785A),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.date_range_rounded,
-                                size: 14,
-                                color: Color(0xFF36785A),
-                              ),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text(
-                                  'Periode: ${service.formattedDateRange}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF36785A),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Action Pill: Lihat Detail
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isDark
-                              ? const Color(0xFF334155)
-                              : const Color(0xFFCBD5E1),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.touch_app_rounded,
-                            size: 14,
-                            color: isDark
-                                ? const Color(0xFF6EE7B7)
-                                : const Color(0xFF36785A),
-                          ),
-                          const SizedBox(width: 5),
                           Text(
-                            'Lihat Detail',
+                            'Evaluasi Capaian 1 Bulan',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Periode: ${service.formattedDateRange}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isDark
-                                  ? const Color(0xFF6EE7B7)
-                                  : const Color(0xFF36785A),
+                              fontWeight: FontWeight.w500,
+                              color: textMuted,
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 13,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ],
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
+                Divider(
+                    height: 1,
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFF1F5F9)),
+                const SizedBox(height: 14),
 
-                // ----------------------------------------------------
-                // HERO SECTION: DUAL ACTIVITY RING + ILUSTRASI BERKILAU
-                // ----------------------------------------------------
-                _buildHeroVisualSection(
-                  service: service,
-                  overallPct: overallPct,
-                  nutritionPct: nutritionPct,
-                  activityPct: activityPct,
-                  milestoneTitle: milestoneTitle,
-                  milestoneDesc: milestoneDesc,
-                  milestoneIcon: milestoneIcon,
-                  milestoneColor: milestoneColor,
-                  isDark: isDark,
-                  textPrimary: textPrimary,
-                  textMuted: textMuted,
-                ),
-
-                const SizedBox(height: 20),
-
-                // ----------------------------------------------------
-                // GRAFIK FREKUENSI 4 MINGGU (DENGAN TABS KURVA / KAPSUL)
-                // ----------------------------------------------------
-                _buildInteractiveChartContainer(
-                  weeklySummaries: weeklySummaries,
-                  isDark: isDark,
-                  textPrimary: textPrimary,
-                  textMuted: textMuted,
-                  nutritionColor: nutritionColor,
-                  activityColor: activityColor,
-                ),
-
-                const SizedBox(height: 18),
-
-                // ----------------------------------------------------
-                // 2 PILAR METRIC CARDS (Makanan & Minuman vs Aktivitas Fisik)
-                // ----------------------------------------------------
-                _buildPillarCard(
-                  iconImg: 'assets/progress/clean/icon_salad.png',
-                  iconFallback: Icons.eco_rounded,
-                  title: 'Makanan & Minuman',
-                  subtitle:
-                      '${service.nutritionCompletedCount} dari ${service.nutritionTargetCount} menu dikonsumsi',
-                  percentage: nutritionPct,
-                  percentageColor: nutritionColor,
-                  isDark: isDark,
-                  textPrimary: textPrimary,
-                  textMuted: textMuted,
-                ),
-                const SizedBox(height: 10),
-
-                _buildPillarCard(
-                  iconImg: 'assets/progress/clean/icon_shoe.png',
-                  iconFallback: Icons.directions_run_rounded,
-                  title: 'Aktivitas Fisik',
-                  subtitle:
-                      '${service.activityCompletedCount} dari ${service.activityTargetCount} sesi selesai',
-                  percentage: activityPct,
-                  percentageColor: activityColor,
-                  isDark: isDark,
-                  textPrimary: textPrimary,
-                  textMuted: textMuted,
-                ),
-
-                const SizedBox(height: 16),
-
-                // ----------------------------------------------------
-                // INTERACTIVE BANNER: KETUK UNTUK LIHAT RINCIAN CENTANG
-                // ----------------------------------------------------
-                _buildInteractiveHintBanner(service, isDark),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ==========================================
-  // HERO VISUAL: DUAL ACTIVITY RING + MASCOT ART
-  // ==========================================
-  Widget _buildHeroVisualSection({
-    required ProgressTrackingService service,
-    required double overallPct,
-    required double nutritionPct,
-    required double activityPct,
-    required String milestoneTitle,
-    required String milestoneDesc,
-    required IconData milestoneIcon,
-    required Color milestoneColor,
-    required bool isDark,
-    required Color textPrimary,
-    required Color textMuted,
-  }) {
-    final overallInt = (overallPct * 100).toInt();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [
-                  const Color(0xFF0F172A),
-                  const Color(0xFF132A1F),
-                  const Color(0xFF0F202B),
-                ]
-              : [
-                  const Color(0xFFF0FDF4),
-                  const Color(0xFFE6F7EF),
-                  const Color(0xFFF0F9FF),
-                ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFC7EEDB),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF10B981)
-                .withValues(alpha: isDark ? 0.15 : 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // 1. Dual Concentric Activity Rings
-          SizedBox(
-            width: 110,
-            height: 110,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CustomPaint(
-                  size: const Size(110, 110),
-                  painter: DualCircularProgressPainter(
-                    nutritionProgress: nutritionPct,
-                    activityProgress: activityPct,
-                    isDark: isDark,
-                  ),
-                ),
-                // Center Badge Disk
-                Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '$overallInt%',
-                        style: GoogleFonts.poppins(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          height: 1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Selesai',
-                        style: GoogleFonts.poppins(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF36785A),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          // 2. Motivational Text & Target Chip
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                // 2. Subheader Bagian Grafik: Judul & Indikator Target
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(milestoneIcon, size: 16, color: milestoneColor),
-                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        milestoneTitle,
+                        'Grafik Capaian Mingguan',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                          fontSize: 12.5,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: textPrimary,
                         ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF36785A),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Target 4 Minggu',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // 3. Batang-batang Grafik Mingguan (M1, M2, M3, M4) - Bebas Overflow
+                _buildWeeklyBarsRow(
+                    weeklySummaries, isDark, textPrimary, textMuted),
+
+                const SizedBox(height: 18),
+                Divider(
+                    height: 1,
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFF1F5F9)),
+                const SizedBox(height: 14),
+
+                // 4. Evaluasi Capaian Target Ideal (Menyatu dalam 1 card)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Capaian Target Ideal',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  milestoneDesc,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: textMuted,
-                    height: 1.35,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFD1EAE0),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: isDark ? 0.2 : 0.03),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.check_circle_rounded,
-                        size: 13,
-                        color: Color(0xFF10B981),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${service.totalCompletedActions} dari ${service.totalTargetActions} Target Tercapai',
                         style: GoogleFonts.poppins(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF36785A),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: textMuted,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 6),
-
-          // 3. Mascot Illustration with Aura Halo & Badge
-          _buildMascotIllustration(isDark),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
-  // MASCOT ILLUSTRATION FRAME DENGAN HALO AURA
-  // ==========================================
-  Widget _buildMascotIllustration(bool isDark) {
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.center,
-      children: [
-        // Background Glow Halo Orb
-        Container(
-          width: 76,
-          height: 76,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: isDark
-                  ? [
-                      const Color(0xFF235B42).withValues(alpha: 0.5),
-                      const Color(0xFF0F172A).withValues(alpha: 0.05),
-                    ]
-                  : [
-                      const Color(0xFFD1FAE5),
-                      const Color(0xFFE6F7EF).withValues(alpha: 0.1),
-                    ],
-            ),
-          ),
-        ),
-
-        // Mascot Character Image
-        Image.asset(
-          'assets/progress/clean/character_woman.png',
-          height: 82,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) =>
-              const SizedBox.shrink(),
-        ),
-
-        // Floating Achievement Pill Tag
-        Positioned(
-          top: -2,
-          right: -4,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-              ),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.star_rounded, size: 10, color: Colors.white),
-                const SizedBox(width: 2),
-                Text(
-                  '30 Hari',
-                  style: GoogleFonts.poppins(
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================
-  // INTERACTIVE CHART CONTAINER DENGAN SWITCHER TABS
-  // ==========================================
-  Widget _buildInteractiveChartContainer({
-    required List<WeeklyProgressSummary> weeklySummaries,
-    required bool isDark,
-    required Color textPrimary,
-    required Color textMuted,
-    required Color nutritionColor,
-    required Color activityColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          width: 1.2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Bar: Title + Segmented Switcher Tabs (Kurva Tren vs Batang Kapsul)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Grafik Frekuensi 4 Minggu',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: textPrimary,
-                ),
-              ),
-              // Segmented Toggle
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF1E293B)
-                      : const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildSegmentTab(
-                      index: 0,
-                      label: 'Kurva Tren',
-                      icon: Icons.show_chart_rounded,
-                      isSelected: _selectedChartType == 0,
-                      isDark: isDark,
                     ),
-                    const SizedBox(width: 3),
-                    _buildSegmentTab(
-                      index: 1,
-                      label: 'Batang Kapsul',
-                      icon: Icons.bar_chart_rounded,
-                      isSelected: _selectedChartType == 1,
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // Legend Bar: Makanan & Minuman vs Aktivitas Fisik
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _buildLegendDot(nutritionColor, '🥗 Makanan & Minuman', isDark),
-              const SizedBox(width: 12),
-              _buildLegendDot(activityColor, '🏃 Aktivitas Fisik', isDark),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // Render Chosen Chart View
-          AnimatedCrossFade(
-            duration: const Duration(milliseconds: 300),
-            crossFadeState: _selectedChartType == 0
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
-            firstChild: _buildCurvedWaveChartView(
-              weeklySummaries: weeklySummaries,
-              isDark: isDark,
-              textPrimary: textPrimary,
-              textMuted: textMuted,
-              nutritionColor: nutritionColor,
-              activityColor: activityColor,
-            ),
-            secondChild: _buildCapsuleBarChartView(
-              weeklySummaries: weeklySummaries,
-              isDark: isDark,
-              textPrimary: textPrimary,
-              textMuted: textMuted,
-              nutritionColor: nutritionColor,
-              activityColor: activityColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Segment Tab Helper
-  Widget _buildSegmentTab({
-    required int index,
-    required String label,
-    required IconData icon,
-    required bool isSelected,
-    required bool isDark,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedChartType = index;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? const Color(0xFF36785A) : Colors.white)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(9),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black
-                        .withValues(alpha: isDark ? 0.3 : 0.08),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 13,
-              color: isSelected
-                  ? (isDark ? Colors.white : const Color(0xFF36785A))
-                  : (isDark
-                      ? const Color(0xFF94A3B8)
-                      : const Color(0xFF64748B)),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? (isDark ? Colors.white : const Color(0xFF36785A))
-                    : (isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ==========================================
-  // VIEW 1: GRAFIK KURVA TREN HALUS (SMOOTH SPLINE WAVE)
-  // ==========================================
-  Widget _buildCurvedWaveChartView({
-    required List<WeeklyProgressSummary> weeklySummaries,
-    required bool isDark,
-    required Color textPrimary,
-    required Color textMuted,
-    required Color nutritionColor,
-    required Color activityColor,
-  }) {
-    return Column(
-      children: [
-        // Custom Wave Spline Canvas
-        SizedBox(
-          width: double.infinity,
-          height: 140,
-          child: CustomPaint(
-            size: const Size(double.infinity, 140),
-            painter: CurvedWaveChartPainter(
-              weeklySummaries: weeklySummaries,
-              nutritionColor: nutritionColor,
-              activityColor: activityColor,
-              isDark: isDark,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // 4 Columns for Week Badges (M1, M2, M3, M4) & Date Range
-        Padding(
-          padding: const EdgeInsets.only(left: 28, right: 14),
-          child: Row(
-            children: weeklySummaries.map((w) {
-              final pctInt = (w.percentage * 100).toInt();
-
-              return Expanded(
-                child: Column(
-                  children: [
+                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: pctInt > 0
-                            ? const Color(0xFF36785A)
-                                .withValues(alpha: isDark ? 0.25 : 0.12)
-                            : (isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFF1F5F9)),
-                        borderRadius: BorderRadius.circular(6),
+                        color: isDark
+                            ? const Color(0xFF1E3A2F)
+                            : const Color(0xFFEDF7F2),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '$pctInt%',
+                        '$overallInt%',
                         style: GoogleFonts.poppins(
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: pctInt > 0
-                              ? const Color(0xFF36785A)
-                              : (isDark
-                                  ? const Color(0xFF64748B)
-                                  : const Color(0xFF94A3B8)),
+                          color: isDark
+                              ? const Color(0xFF6EE7B7)
+                              : const Color(0xFF265C45),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      w.label,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
-                      ),
-                    ),
-                    Text(
-                      w.dateRangeText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 9,
-                        color: textMuted,
                       ),
                     ),
                   ],
                 ),
-              );
-            }).toList(),
+
+                const SizedBox(height: 8),
+
+                // Progress Bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: overallPct,
+                    minHeight: 8,
+                    backgroundColor: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Pill Rincian Nutrisi & Aktivitas
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 6,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.restaurant_menu_rounded,
+                            size: 14, color: Color(0xFF10B981)),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Nutrisi: ${service.nutritionCompletedCount}/${service.nutritionTargetCount}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: isDark
+                                ? const Color(0xFFCBD5E1)
+                                : const Color(0xFF334155),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.directions_run_rounded,
+                            size: 14, color: Color(0xFF0284C7)),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Aktivitas: ${service.activityCompletedCount}/${service.activityTargetCount}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: isDark
+                                ? const Color(0xFFCBD5E1)
+                                : const Color(0xFF334155),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                // Status Deskripsi Ringkas
+                Text(
+                  'Status: $statusText • ${service.totalCompletedActions} dari ${service.totalTargetActions} target',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? const Color(0xFF6EE7B7)
+                        : const Color(0xFF265C45),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                // Link / Hint Riwayat Progres Lengkap
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Ketuk grafik untuk rincian progres yang sudah dilakukan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF36785A),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 13,
+                      color: Color(0xFF36785A),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
   // ==========================================
-  // VIEW 2: GRAFIK BATANG KAPSUL MODERN
+  // GRAFIK BATANG MINGGUAN (BEBAS OVERFLOW & MENYATU)
   // ==========================================
-  Widget _buildCapsuleBarChartView({
-    required List<WeeklyProgressSummary> weeklySummaries,
-    required bool isDark,
-    required Color textPrimary,
-    required Color textMuted,
-    required Color nutritionColor,
-    required Color activityColor,
-  }) {
-    return Column(
-      children: [
-        Stack(
-          children: [
-            // Background Guide Lines (100%, 50%, 0%)
-            Positioned.fill(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                      height: 1,
-                      color: isDark
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFFE2E8F0)),
-                  Container(
-                      height: 1,
-                      color: isDark
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFFE2E8F0)),
-                  Container(
-                      height: 1,
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFCBD5E1)),
-                ],
-              ),
-            ),
-
-            // 4 Columns for Week 1 to Week 4
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: weeklySummaries.map((w) {
-                return Expanded(
-                  child: _buildSculptedWeekBarColumn(
-                    w,
-                    isDark,
-                    textPrimary,
-                    textMuted,
-                    nutritionColor,
-                    activityColor,
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSculptedWeekBarColumn(
-    WeeklyProgressSummary w,
+  Widget _buildWeeklyBarsRow(
+    List<WeeklyProgressSummary> summaries,
     bool isDark,
     Color textPrimary,
     Color textMuted,
-    Color nutritionColor,
-    Color activityColor,
   ) {
-    final pct = w.percentage;
-    final pctInt = (pct * 100).toInt();
+    return SizedBox(
+      height: 140, // Ruang leluasa (140px) mencegah bottom overflow
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: summaries.map((w) {
+          final pct = w.percentage;
+          final pctInt = (pct * 100).toInt();
+          final hasData = w.totalCompleted > 0;
+          final barH = (pct * 60.0).clamp(hasData ? 10.0 : 4.0, 60.0);
 
-    // Tinggi batang kapsul side-by-side (max 78px)
-    const double maxH = 78.0;
-    final double nH = math.max(6.0, (w.nutritionPercentage * maxH));
-    final double aH = math.max(6.0, (w.activityPercentage * maxH));
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        // Floating Pill persentase di atas batang
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: pctInt > 0
-                ? const Color(0xFF36785A)
-                    .withValues(alpha: isDark ? 0.25 : 0.12)
-                : (isDark
-                    ? const Color(0xFF1E293B)
-                    : const Color(0xFFF1F5F9)),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: pctInt > 0
-                  ? const Color(0xFF36785A)
-                      .withValues(alpha: isDark ? 0.4 : 0.2)
-                  : Colors.transparent,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (pctInt == 100) ...[
-                const Icon(Icons.star_rounded,
-                    size: 10, color: Color(0xFFF59E0B)),
-                const SizedBox(width: 2),
-              ],
-              Text(
-                '$pctInt%',
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: pctInt > 0
-                      ? const Color(0xFF36785A)
-                      : (isDark
-                          ? const Color(0xFF64748B)
-                          : const Color(0xFF94A3B8)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-
-        // Track container dengan 2 batang kapsul paralel berkilau
-        Container(
-          height: 86,
-          width: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          alignment: Alignment.bottomCenter,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEBF1ED),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDark
-                  ? const Color(0xFF334155)
-                  : const Color(0xFFDCE8E0),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Batang 1: Makanan & Minuman (Emerald Mint Capsule)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: nH,
-                width: 11,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      nutritionColor.withValues(alpha: 0.85),
-                      const Color(0xFF34D399),
-                    ],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: nutritionColor.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-              // Batang 2: Aktivitas Fisik (Ocean Sky Capsule)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: aH,
-                width: 11,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      activityColor.withValues(alpha: 0.85),
-                      const Color(0xFF38BDF8),
-                    ],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: activityColor.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Label Minggu & Rentang Tanggal
-        Text(
-          w.label,
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: textPrimary,
-          ),
-        ),
-        Text(
-          w.dateRangeText,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9,
-            color: textMuted,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLegendDot(Color color, String text, bool isDark) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.4),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          text,
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================
-  // METRIC PILLAR CARDS DENGAN GLOWING PROGRESS
-  // ==========================================
-  Widget _buildPillarCard({
-    required String iconImg,
-    required IconData iconFallback,
-    required String title,
-    required String subtitle,
-    required double percentage,
-    required Color percentageColor,
-    required bool isDark,
-    required Color textPrimary,
-    required Color textMuted,
-  }) {
-    final pctInt = (percentage * 100).toInt();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          width: 1.2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: percentageColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Image.asset(
-                  iconImg,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Icon(iconFallback, size: 20, color: percentageColor),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 16,
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '$pctInt%',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: hasData
+                                ? const Color(0xFF36785A)
+                                : textMuted,
+                          ),
+                        ),
                       ),
                     ),
-                    Text(
-                      subtitle,
+                  ),
+                  const SizedBox(height: 4),
+                  // Track + Batang Vertikal Kapsul Rounded
+                  Container(
+                    width: 26,
+                    height: 64,
+                    alignment: Alignment.bottomCenter,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: 26,
+                      height: barH,
+                      decoration: BoxDecoration(
+                        gradient: hasData
+                            ? const LinearGradient(
+                                colors: [
+                                  Color(0xFF36785A),
+                                  Color(0xFF265C45)
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              )
+                            : null,
+                        color: hasData ? null : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: hasData
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF36785A)
+                                      .withValues(alpha: 0.25),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'M${w.weekNumber}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: hasData
+                          ? const Color(0xFF36785A)
+                          : textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      w.dateRangeText,
+                      maxLines: 1,
                       style: GoogleFonts.poppins(
-                        fontSize: 10.5,
+                        fontSize: 8.5,
                         color: textMuted,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: percentageColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: percentageColor.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: Text(
-                  '$pctInt% Selesai',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: percentageColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Glowing Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              height: 8,
-              width: double.infinity,
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-              child: Row(
-                children: [
-                  Flexible(
-                    flex: pctInt.clamp(1, 100),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            percentageColor.withValues(alpha: 0.8),
-                            percentageColor,
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: percentageColor.withValues(alpha: 0.4),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Flexible(
-                    flex: (100 - pctInt).clamp(0, 100),
-                    child: Container(color: Colors.transparent),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }
 
   // ==========================================
-  // INTERACTIVE HINT BANNER
-  // ==========================================
-  Widget _buildInteractiveHintBanner(
-      ProgressTrackingService service, bool isDark) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF1B2A22), const Color(0xFF15222E)]
-              : [const Color(0xFFE8F5EF), const Color(0xFFE3F2FD)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFB8E2CE),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF36785A)
-                .withValues(alpha: isDark ? 0.15 : 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF36785A).withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.checklist_rounded,
-              size: 18,
-              color: Color(0xFF36785A),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ketuk grafik untuk rincian progres yang sudah dilakukan',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? const Color(0xFF6EE7B7)
-                        : const Color(0xFF1E4A37),
-                  ),
-                ),
-                Text(
-                  '${service.totalCompletedActions} item terselesaikan selama 30 hari ini',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF475569),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: const BoxDecoration(
-              color: Color(0xFF36785A),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.arrow_forward_rounded,
-              size: 13,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
-  // 3. FEATURE TILE BUILDER (Card-card yang sudah ada)
+  // 3. FEATURE TILE BUILDER (Card-card modul)
   // ==========================================
   Widget _buildFeatureTile({
     required String iconImg,
@@ -1747,7 +887,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ? const Color(0xFF36785A).withValues(alpha: 0.4)
                 : const Color(0xFFE2E8F0)));
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final descColor =
+        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Container(
       decoration: BoxDecoration(
@@ -1832,317 +973,3 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 }
-
-/// CustomPainter untuk menggambar Dual Activity Rings (Lingkaran Cincin Progres Ganda)
-/// Outer Ring: 🥗 Makanan & Minuman (Emerald Gradient)
-/// Inner Ring: 🏃 Aktivitas Fisik (Sky Blue Gradient)
-class DualCircularProgressPainter extends CustomPainter {
-  final double nutritionProgress; // 0.0 .. 1.0
-  final double activityProgress; // 0.0 .. 1.0
-  final bool isDark;
-
-  DualCircularProgressPainter({
-    required this.nutritionProgress,
-    required this.activityProgress,
-    required this.isDark,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final outerRadius = size.width / 2 - 8;
-    final innerRadius = outerRadius - 13;
-
-    final trackPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    // 1. Outer Track (Nutrition)
-    trackPaint.strokeWidth = 8.5;
-    trackPaint.color =
-        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    canvas.drawCircle(center, outerRadius, trackPaint);
-
-    // 2. Inner Track (Activity)
-    trackPaint.strokeWidth = 8.5;
-    trackPaint.color =
-        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    canvas.drawCircle(center, innerRadius, trackPaint);
-
-    // 3. Outer Arc (Nutrition - Emerald Green Gradient)
-    if (nutritionProgress > 0) {
-      final nutritionPaint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = 8.5
-        ..shader = const SweepGradient(
-          colors: [Color(0xFF34D399), Color(0xFF059669)],
-          startAngle: -math.pi / 2,
-          endAngle: 3 * math.pi / 2,
-        ).createShader(Rect.fromCircle(center: center, radius: outerRadius));
-
-      final sweepAngle =
-          (2 * math.pi * nutritionProgress).clamp(0.02, 2 * math.pi);
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: outerRadius),
-        -math.pi / 2,
-        sweepAngle,
-        false,
-        nutritionPaint,
-      );
-    }
-
-    // 4. Inner Arc (Activity - Sky Blue Gradient)
-    if (activityProgress > 0) {
-      final activityPaint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = 8.5
-        ..shader = const SweepGradient(
-          colors: [Color(0xFF38BDF8), Color(0xFF0284C7)],
-          startAngle: -math.pi / 2,
-          endAngle: 3 * math.pi / 2,
-        ).createShader(Rect.fromCircle(center: center, radius: innerRadius));
-
-      final sweepAngle =
-          (2 * math.pi * activityProgress).clamp(0.02, 2 * math.pi);
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: innerRadius),
-        -math.pi / 2,
-        sweepAngle,
-        false,
-        activityPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant DualCircularProgressPainter oldDelegate) {
-    return oldDelegate.nutritionProgress != nutritionProgress ||
-        oldDelegate.activityProgress != activityProgress ||
-        oldDelegate.isDark != isDark;
-  }
-}
-
-/// CustomPainter untuk menggambar grafik kurva tren halus (Smooth Spline Wave Chart)
-/// Membandingkan kurva capaian Makanan & Minuman vs Aktivitas Fisik sepanjang 4 minggu
-class CurvedWaveChartPainter extends CustomPainter {
-  final List<WeeklyProgressSummary> weeklySummaries;
-  final Color nutritionColor;
-  final Color activityColor;
-  final bool isDark;
-
-  CurvedWaveChartPainter({
-    required this.weeklySummaries,
-    required this.nutritionColor,
-    required this.activityColor,
-    required this.isDark,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const double leftPadding = 28.0;
-    const double rightPadding = 14.0;
-    const double topY = 16.0;
-    final double bottomY = size.height - 18.0;
-    final double plotHeight = bottomY - topY;
-    final double availableWidth = size.width - leftPadding - rightPadding;
-
-    final gridLineColor = isDark
-        ? const Color(0xFF334155).withValues(alpha: 0.5)
-        : const Color(0xFFE2E8F0);
-    final labelColor =
-        isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
-
-    // 1. Gambar Garis Panduan Horizontal & Label Persentase Y-Axis (100%, 50%, 0%)
-    final gridPaint = Paint()
-      ..color = gridLineColor
-      ..strokeWidth = 1.0;
-
-    final guideLevels = [
-      {'val': 1.0, 'label': '100%', 'dashed': true},
-      {'val': 0.5, 'label': '50%', 'dashed': true},
-      {'val': 0.0, 'label': '0%', 'dashed': false},
-    ];
-
-    for (final level in guideLevels) {
-      final val = level['val'] as double;
-      final label = level['label'] as String;
-      final isDashed = level['dashed'] as bool;
-      final y = bottomY - (val * plotHeight);
-
-      // Label teks di sebelah kiri
-      final tp = TextPainter(
-        text: TextSpan(
-          text: label,
-          style: GoogleFonts.poppins(
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-            color: labelColor,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(leftPadding - 6 - tp.width, y - tp.height / 2));
-
-      // Garis horizontal
-      final p1 = Offset(leftPadding, y);
-      final p2 = Offset(size.width - rightPadding, y);
-      if (isDashed) {
-        _drawDashedLine(canvas, p1, p2, gridPaint);
-      } else {
-        canvas.drawLine(p1, p2, gridPaint);
-      }
-    }
-
-    if (weeklySummaries.isEmpty || availableWidth <= 0) return;
-
-    // 2. Hitung Titik Koordinat tiap Minggu
-    final int count = weeklySummaries.length;
-    final double colWidth = availableWidth / count;
-
-    final List<Offset> nutritionPoints = [];
-    final List<Offset> activityPoints = [];
-
-    for (int i = 0; i < count; i++) {
-      final summary = weeklySummaries[i];
-      final x = leftPadding + (i + 0.5) * colWidth;
-
-      final nY = bottomY -
-          (summary.nutritionPercentage.clamp(0.0, 1.0) * plotHeight);
-      nutritionPoints.add(Offset(x, nY));
-
-      final aY = bottomY -
-          (summary.activityPercentage.clamp(0.0, 1.0) * plotHeight);
-      activityPoints.add(Offset(x, aY));
-    }
-
-    // 3. Gambar Kurva Spline untuk Nutrisi (Makanan & Minuman)
-    _drawSplineCurve(
-      canvas: canvas,
-      points: nutritionPoints,
-      color: nutritionColor,
-      bottomY: bottomY,
-      isDark: isDark,
-    );
-
-    // 4. Gambar Kurva Spline untuk Aktivitas Fisik
-    _drawSplineCurve(
-      canvas: canvas,
-      points: activityPoints,
-      color: activityColor,
-      bottomY: bottomY,
-      isDark: isDark,
-    );
-  }
-
-  void _drawDashedLine(Canvas canvas, Offset p1, Offset p2, Paint paint) {
-    const dashWidth = 4.0;
-    const dashSpace = 4.0;
-    double startX = p1.dx;
-    while (startX < p2.dx) {
-      canvas.drawLine(
-        Offset(startX, p1.dy),
-        Offset(math.min(startX + dashWidth, p2.dx), p1.dy),
-        paint,
-      );
-      startX += dashWidth + dashSpace;
-    }
-  }
-
-  void _drawSplineCurve({
-    required Canvas canvas,
-    required List<Offset> points,
-    required Color color,
-    required double bottomY,
-    required bool isDark,
-  }) {
-    if (points.isEmpty) return;
-
-    if (points.length == 1) {
-      _drawDataPoint(canvas, points.first, color, isDark);
-      return;
-    }
-
-    final path = Path();
-    path.moveTo(points.first.dx, points.first.dy);
-
-    for (int i = 0; i < points.length - 1; i++) {
-      final p0 = points[i];
-      final p1 = points[i + 1];
-      final cx = (p0.dx + p1.dx) / 2;
-      path.cubicTo(cx, p0.dy, cx, p1.dy, p1.dx, p1.dy);
-    }
-
-    // Gambar Gradien Bayangan/Wave di Bawah Kurva
-    final fillPath = Path.from(path)
-      ..lineTo(points.last.dx, bottomY)
-      ..lineTo(points.first.dx, bottomY)
-      ..close();
-
-    final fillPaint = Paint()
-      ..style = PaintingStyle.fill
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          color.withValues(alpha: isDark ? 0.30 : 0.18),
-          color.withValues(alpha: 0.0),
-        ],
-      ).createShader(Rect.fromLTRB(
-        points.first.dx,
-        0,
-        points.last.dx,
-        bottomY,
-      ));
-
-    canvas.drawPath(fillPath, fillPaint);
-
-    // Gambar Garis Kurva Halus
-    final strokePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.8
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    canvas.drawPath(path, strokePaint);
-
-    // Gambar Titik Indikator Lingkaran (Dots)
-    for (final pt in points) {
-      _drawDataPoint(canvas, pt, color, isDark);
-    }
-  }
-
-  void _drawDataPoint(Canvas canvas, Offset pt, Color color, bool isDark) {
-    // Halo lembut di luar titik
-    canvas.drawCircle(
-      pt,
-      5.5,
-      Paint()..color = color.withValues(alpha: 0.28),
-    );
-    // Titik utama
-    canvas.drawCircle(
-      pt,
-      3.8,
-      Paint()..color = color,
-    );
-    // Titik pusat kontras
-    canvas.drawCircle(
-      pt,
-      1.8,
-      Paint()
-        ..color = isDark ? const Color(0xFF0F172A) : Colors.white,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CurvedWaveChartPainter oldDelegate) {
-    return oldDelegate.weeklySummaries != weeklySummaries ||
-        oldDelegate.nutritionColor != nutritionColor ||
-        oldDelegate.activityColor != activityColor ||
-        oldDelegate.isDark != isDark;
-  }
-}
-
-
