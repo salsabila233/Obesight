@@ -181,19 +181,18 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
           startDate = today;
         }
 
-        final int pastDays = today.difference(startDate).inDays;
+        const int totalDays = 30; // Tepat 1 siklus skrining (30 hari / 4 minggu)
+        final int pastDays = today.difference(startDate).inDays.clamp(0, totalDays - 1);
         final int todayIndex = pastDays;
-        const int futureDays = 13;
-        final int totalDays = pastDays + 1 + futureDays;
         final DateTime endDate = DateTime(startDate.year, startDate.month, startDate.day + totalDays - 1);
 
-        // Pastikan tanggal terpilih otomatis berada di dalam rentang [startDate, endDate]
+        // Pastikan tanggal terpilih otomatis berada di dalam rentang siklus skrining [startDate, endDate]
         if (_selectedDate.isBefore(startDate) || _selectedDate.isAfter(endDate)) {
-          _selectedDate = today;
+          _selectedDate = today.isBefore(startDate) ? startDate : (today.isAfter(endDate) ? endDate : today);
         }
 
         // Auto-scroll agar "Hari ini" terlihat jelas saat awal render
-        if (!_hasInitialScrolled) {
+        if (!_hasInitialScrolled && hasScreening) {
           _hasInitialScrolled = true;
           _scrollToToday(todayIndex);
         }
@@ -210,123 +209,122 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Horizontal Real-Time Date Scroller (Mulai dari Skrining Terbaru)
-                SizedBox(
-                  height: 74,
-                  child: ListView.builder(
-                    controller: _dateScrollController,
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: totalDays,
-                    itemBuilder: (context, index) {
-                      final date = DateTime(startDate.year, startDate.month, startDate.day + index);
-                      final isSelected = (_selectedDate.year == date.year &&
-                          _selectedDate.month == date.month &&
-                          _selectedDate.day == date.day);
-                      final isPast = date.isBefore(today);
-                      final isToday = (date.year == today.year &&
-                          date.month == today.month &&
-                          date.day == today.day);
-
-                      final dayName = isToday ? 'Hari ini' : dayNames[date.weekday % 7];
-                      final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
-
-                      Color bgColor;
-                      Color textColor;
-                      Color subTextColor;
-                      Border border;
-
-                      if (isSelected) {
-                        bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
-                        textColor = Colors.white;
-                        subTextColor = Colors.white.withValues(alpha: 0.9);
-                        border = Border.all(color: bgColor, width: 1.5);
-                      } else if (isPast) {
-                        // Past Days -> Merah, Teks Putih
-                        bgColor = const Color(0xFFEF4444);
-                        textColor = Colors.white;
-                        subTextColor = Colors.white.withValues(alpha: 0.85);
-                        border = Border.all(color: const Color(0xFFDC2626));
-                      } else if (isToday) {
-                        // Today -> Hijau Pastel
-                        bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
-                        textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
-                        subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
-                        border = Border.all(color: const Color(0xFF10B981), width: 1.5);
-                      } else {
-                        // Future Days
-                        bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-                        textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-                        subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-                        border = Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
-                      }
-
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedDate = date;
-                          });
-                          final dKey = PhysicalActivityService.instance.formatDateKey(date);
-                          PhysicalActivityService.instance.listenToFirestoreSessions(dKey);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 58,
-                          margin: const EdgeInsets.only(right: 10),
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: border,
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF489874).withValues(alpha: 0.25),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    )
-                                  ]
-                                : [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 1),
-                                    )
-                                  ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                dayName,
-                                style: GoogleFonts.poppins(
-                                  fontSize: isToday ? 9.5 : 11,
-                                  fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w500,
-                                  color: subTextColor,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                dateStr,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: textColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // 2. KONDISI BELUM ADA SKRINING
+                // 1. KONDISI BELUM ADA SKRINING
                 if (!hasScreening) ...[
                   _buildNoScreeningState(context, isDark, textPrimary, textSecondary),
                 ] else ...[
+                  // Horizontal Real-Time Date Scroller (1 Siklus Skrining: 30 Hari Penuh)
+                  SizedBox(
+                    height: 74,
+                    child: ListView.builder(
+                      controller: _dateScrollController,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: totalDays,
+                      itemBuilder: (context, index) {
+                        final date = DateTime(startDate.year, startDate.month, startDate.day + index);
+                        final isSelected = (_selectedDate.year == date.year &&
+                            _selectedDate.month == date.month &&
+                            _selectedDate.day == date.day);
+                        final isPast = date.isBefore(today);
+                        final isToday = (date.year == today.year &&
+                            date.month == today.month &&
+                            date.day == today.day);
+
+                        final dayName = isToday ? 'Hari ini' : dayNames[date.weekday % 7];
+                        final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
+
+                        Color bgColor;
+                        Color textColor;
+                        Color subTextColor;
+                        Border border;
+
+                        if (isSelected) {
+                          bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+                          textColor = Colors.white;
+                          subTextColor = Colors.white.withValues(alpha: 0.9);
+                          border = Border.all(color: bgColor, width: 1.5);
+                        } else if (isPast) {
+                          // Past Days -> Merah, Teks Putih
+                          bgColor = const Color(0xFFEF4444);
+                          textColor = Colors.white;
+                          subTextColor = Colors.white.withValues(alpha: 0.85);
+                          border = Border.all(color: const Color(0xFFDC2626));
+                        } else if (isToday) {
+                          // Today -> Hijau Pastel
+                          bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
+                          textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
+                          subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
+                          border = Border.all(color: const Color(0xFF10B981), width: 1.5);
+                        } else {
+                          // Future Days
+                          bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+                          textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+                          subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+                          border = Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
+                        }
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedDate = date;
+                            });
+                            final dKey = PhysicalActivityService.instance.formatDateKey(date);
+                            PhysicalActivityService.instance.listenToFirestoreSessions(dKey);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 58,
+                            margin: const EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(16),
+                              border: border,
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFF489874).withValues(alpha: 0.25),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      )
+                                    ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  dayName,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isToday ? 9.5 : 11,
+                                    fontWeight: isToday || isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    color: subTextColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  dateStr,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
                   // 3. KARTU HASIL SKRINING & TARGET KLINIS PENGGUNA
                   _buildScreeningSummaryCard(
                     activeSkrining,

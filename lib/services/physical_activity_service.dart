@@ -67,6 +67,57 @@ class PhysicalActivityService extends ChangeNotifier {
     }
   }
 
+  /// Reset checklist untuk siklus skrining baru (agar grafik dan progres mulai dari nol/kosong)
+  Future<void> resetForNewScreeningCycle() async {
+    _completedActivitiesByDate.clear();
+    await _saveToStorage();
+
+    // Hentikan pendengar sesi Firestore sementara saat reset
+    stopListeningToSessions();
+
+    try {
+      final mainDocRef = await getUserMainDocRef();
+      if (mainDocRef != null) {
+        final snap = await mainDocRef.collection('riwayat_sesi').get();
+        for (final doc in snap.docs) {
+          await doc.reference.delete();
+        }
+        await mainDocRef.set({
+          'totalSesi': 0,
+          'totalDurasiMenit': 0,
+          'waktuDiperbarui': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        final allDocsSnap = await _firestore
+            .collection('progress_aktivitas_fisik')
+            .where('idPengguna', isEqualTo: currentUser.uid)
+            .get();
+        for (final doc in allDocsSnap.docs) {
+          final subSnap = await doc.reference.collection('riwayat_sesi').get();
+          for (final subDoc in subSnap.docs) {
+            await subDoc.reference.delete();
+          }
+          if (doc.data().containsKey('totalSesi')) {
+            await doc.reference.set({
+              'totalSesi': 0,
+              'totalDurasiMenit': 0,
+              'waktuDiperbarui': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          } else {
+            await doc.reference.delete();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Reset Firestore sessions error: $e');
+    }
+
+    notifyListeners();
+  }
+
   String formatDateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
@@ -594,6 +645,54 @@ class PhysicalActivityService extends ChangeNotifier {
     } finally {
       _isSyncing = false;
       notifyListeners();
+    }
+  }
+
+  /// Sinkronisasi menyeluruh seluruh sesi aktivitas fisik dari Cloud Firestore untuk pengguna aktif
+  Future<void> syncAllSessionsFromFirestore() async {
+    if (customAuth == null && customFirestore == null) {
+      try {
+        if (Firebase.apps.isEmpty) return;
+      } catch (_) {
+        return;
+      }
+    }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    try {
+      final mainDocRef = await getUserMainDocRef();
+      if (mainDocRef != null) {
+        final sessionSnap = await mainDocRef.collection('riwayat_sesi').get();
+        if (sessionSnap.docs.isNotEmpty) {
+          final newMap = <String, Set<String>>{};
+          for (final doc in sessionSnap.docs) {
+            final data = doc.data();
+            final isDone = data['statusSelesai'] == true;
+            if (!isDone) continue;
+
+            final ts = data['tanggalAktivitas'] as Timestamp?;
+            if (ts == null) continue;
+            final d = ts.toDate();
+            final dKey = formatDateKey(d);
+
+            final jenis = data['jenisAktivitas'] as String? ?? '';
+            final matchedId = _findActivityIdByName(jenis) ?? doc.id;
+
+            if (!newMap.containsKey(dKey)) {
+              newMap[dKey] = <String>{};
+            }
+            newMap[dKey]!.add(matchedId);
+          }
+          _completedActivitiesByDate.clear();
+          _completedActivitiesByDate.addAll(newMap);
+          await _saveToStorage();
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('[PhysicalActivityService] Notice syncAllSessionsFromFirestore: $e');
     }
   }
 

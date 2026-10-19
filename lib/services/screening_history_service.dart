@@ -7,6 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/screening_history_model.dart';
 import '../screens/skrining/skrining_models.dart';
 import 'auth_service.dart';
+import 'nutrition_checklist_service.dart';
+import 'physical_activity_service.dart';
 
 class ScreeningHistoryService extends ChangeNotifier {
   static final ScreeningHistoryService instance = ScreeningHistoryService._internal();
@@ -206,6 +208,11 @@ class ScreeningHistoryService extends ChangeNotifier {
     currentList.insert(0, newItem);
     _historyCache[cleanId] = currentList;
     await _saveToStorage(cleanId, currentList);
+
+    // Reset checklist nutrisi & aktivitas untuk siklus skrining baru agar grafik dan progres mulai dari nol/kosong
+    await NutritionChecklistService.instance.resetForNewScreeningCycle();
+    await PhysicalActivityService.instance.resetForNewScreeningCycle();
+
     notifyListeners();
 
     // 2. Simpan secara permanen ke Cloud Firestore (users/{uid}/screenings/{screeningId})

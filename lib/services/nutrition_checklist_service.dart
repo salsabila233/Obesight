@@ -132,6 +132,38 @@ class NutritionChecklistService extends ChangeNotifier {
     }
   }
 
+  /// Reset checklist untuk siklus skrining baru (agar grafik dan progres mulai dari nol/kosong)
+  Future<void> resetForNewScreeningCycle() async {
+    _completedItemsByDate.clear();
+    await _saveToStorage();
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && user.uid.isNotEmpty) {
+        final snap = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('nutrition_progress')
+            .get();
+        for (final doc in snap.docs) {
+          await doc.reference.delete();
+        }
+
+        final rootSnap = await FirebaseFirestore.instance
+            .collection('nutrition_progress')
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        for (final doc in rootSnap.docs) {
+          await doc.reference.delete();
+        }
+      }
+    } catch (e) {
+      debugPrint('[NutritionChecklistService] Reset Firestore error: $e');
+    }
+
+    notifyListeners();
+  }
+
   /// Memulai pendengar dokumen Firestore secara real-time untuk pengguna aktif
   void _startFirestoreListener(String uid) {
     try {
@@ -142,7 +174,7 @@ class NutritionChecklistService extends ChangeNotifier {
           .collection('nutrition_progress')
           .snapshots()
           .listen((snapshot) {
-        bool hasChanges = false;
+        final syncedMap = <String, Set<String>>{};
         for (final doc in snapshot.docs) {
           final dateKey = doc.id;
           final data = doc.data();
@@ -152,19 +184,14 @@ class NutritionChecklistService extends ChangeNotifier {
               .whereType<String>()
               .toSet();
 
-          if (!_completedItemsByDate.containsKey(dateKey)) {
-            _completedItemsByDate[dateKey] = <String>{};
-          }
-          final beforeSize = _completedItemsByDate[dateKey]!.length;
-          _completedItemsByDate[dateKey]!.addAll(itemIds);
-          if (_completedItemsByDate[dateKey]!.length > beforeSize) {
-            hasChanges = true;
+          if (itemIds.isNotEmpty) {
+            syncedMap[dateKey] = itemIds;
           }
         }
-        if (hasChanges) {
-          _saveToStorage();
-          notifyListeners();
-        }
+        _completedItemsByDate.clear();
+        _completedItemsByDate.addAll(syncedMap);
+        _saveToStorage();
+        notifyListeners();
       }, onError: (err) {
         debugPrint('[NutritionChecklistService] Firestore realtime listener notice: $err');
       });

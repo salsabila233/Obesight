@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../models/screening_history_model.dart';
 import '../screens/skrining/skrining_models.dart';
+import 'auth_service.dart';
 import 'meal_plan_service.dart';
 import 'nutrition_checklist_service.dart';
 import 'physical_activity_service.dart';
@@ -91,17 +93,37 @@ class WeeklyProgressSummary {
 
 class ProgressTrackingService extends ChangeNotifier {
   static final ProgressTrackingService instance = ProgressTrackingService._internal();
-  ProgressTrackingService._internal();
+
+  ProgressTrackingService._internal() {
+    // Sinkronisasi otomatis setiap ada pembaruan pada riwayat skrining & checklist
+    ScreeningHistoryService.instance.addListener(_onScreeningHistoryUpdated);
+    NutritionChecklistService.instance.addListener(notifyListeners);
+    PhysicalActivityService.instance.addListener(notifyListeners);
+  }
+
+  void _onScreeningHistoryUpdated() {
+    final authUser = AuthService().currentUser;
+    final history = ScreeningHistoryService.instance.getHistory(authUser?.id, authUser?.email);
+    if (history.isNotEmpty) {
+      _applyScreeningItem(history.first);
+    } else {
+      _hasActiveScreening = false;
+      notifyListeners();
+    }
+  }
 
   // State Skrining & Periode Progres 1 Bulan (4 Minggu / 30 Hari)
-  String _category = 'Overweight';
-  String _riskLevel = 'Sedang';
-  double _bmi = 26.8;
+  // 1 kali skrining = 1 siklus progres
+  bool _hasActiveScreening = false;
+  String _category = 'Normal';
+  String _riskLevel = 'Normal / Terkendali';
+  double _bmi = 22.0;
   int _cycleDays = 30; // Rentang evaluasi 1 bulan penuh (30 hari / 4 minggu)
-  DateTime _startDate = DateTime.now().subtract(const Duration(days: 0));
+  DateTime _startDate = DateTime.now();
   DateTime _nextScreeningDate = DateTime.now().add(const Duration(days: 30));
 
   // Getters
+  bool get hasActiveScreening => _hasActiveScreening;
   String get category => _category;
   String get riskLevel => _riskLevel;
   double get bmi => _bmi;
@@ -141,6 +163,42 @@ class ProgressTrackingService extends ChangeNotifier {
     return '${_startDate.day} ${months[_startDate.month - 1]} – ${_nextScreeningDate.day} ${months[_nextScreeningDate.month - 1]} ${_nextScreeningDate.year}';
   }
 
+  void _applyScreeningItem(ScreeningHistoryItem screening) {
+    _hasActiveScreening = true;
+    _bmi = screening.bmi;
+    _category = screening.category;
+    final d = screening.date;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    DateTime cycleStart = DateTime(d.year, d.month, d.day);
+
+    // Jika 30 hari telah lewat dari skrining awal dan belum melakukan skrining ulang,
+    // majukan siklus kelipatan 30 hari agar hari ini selalu masuk dalam rentang pemantauan aktif
+    if (today.difference(cycleStart).inDays >= 30) {
+      final cyclesPassed = today.difference(cycleStart).inDays ~/ 30;
+      cycleStart = cycleStart.add(Duration(days: cyclesPassed * 30));
+    }
+
+    // 1 kali skrining = 1 progres siklus baru (mulai dari tanggal skrining tersebut)
+    _startDate = cycleStart;
+    _cycleDays = 30; // 30 hari / 4 minggu
+    _nextScreeningDate = _startDate.add(const Duration(days: 30));
+
+    final cat = _category.toLowerCase();
+    final r = screening.risk.toLowerCase();
+    if (cat.contains('obesitas') || cat.contains('obesity') || r.contains('tinggi')) {
+      _riskLevel = 'Tinggi';
+    } else if (cat.contains('overweight') || r.contains('sedang') || r.contains('meningkat')) {
+      _riskLevel = 'Sedang';
+    } else if (cat.contains('underweight') || cat.contains('insufficient') || r.contains('perhatian')) {
+      _riskLevel = 'Perhatian';
+    } else {
+      _riskLevel = 'Normal / Terkendali';
+    }
+
+    notifyListeners();
+  }
+
   /// Sinkronisasi dengan riwayat skrining pengguna untuk menentukan siklus 1 bulan aktif
   void syncWithUserScreening(String? userId, [String? email]) {
     final history = ScreeningHistoryService.instance.getHistory(userId, email);
@@ -148,65 +206,33 @@ class ProgressTrackingService extends ChangeNotifier {
     final today = DateTime(now.year, now.month, now.day);
 
     if (history.isNotEmpty) {
-      // Ambil hasil skrining terbaru pengguna sebagai acuan kategori klinis & siklus evaluasi
-      final latestScreening = history.first;
-      _bmi = latestScreening.bmi;
-      _category = latestScreening.category;
-
-      DateTime cycleStart = DateTime(
-        latestScreening.date.year,
-        latestScreening.date.month,
-        latestScreening.date.day,
-      );
-
-      // Jika rentang 30 hari dari skrining awal telah berlalu, sesuaikan siklus evaluasi 30 hari
-      // agar selalu memuat hari ini secara dinamis (tidak kedaluwarsa di masa lampau)
-      if (today.difference(cycleStart).inDays >= 30) {
-        final cyclesPassed = today.difference(cycleStart).inDays ~/ 30;
-        cycleStart = cycleStart.add(Duration(days: cyclesPassed * 30));
-      }
-
-      _startDate = cycleStart;
-      _cycleDays = 30;
-      _nextScreeningDate = _startDate.add(const Duration(days: 30));
+      // Ambil skrining terbaru sebagai acuan siklus progres aktif
+      _hasActiveScreening = true;
+      _applyScreeningItem(history.first);
     } else {
-      // Pengguna belum skrining: siklus 30 hari berjalan mulai hari ini
+      // Pengguna belum pernah skrining: progres dan grafik kosong
+      _hasActiveScreening = false;
       _startDate = today;
       _cycleDays = 30;
       _nextScreeningDate = _startDate.add(const Duration(days: 30));
+      notifyListeners();
     }
-
-    // Pastikan _startDate juga mencakup tanggal centang aktif pengguna jika ada
-    final nutritionService = NutritionChecklistService.instance;
-    final activityService = PhysicalActivityService.instance;
-    final allKeys = [
-      ...nutritionService.completedItemsByDate.keys,
-      ...activityService.completedActivitiesByDate.keys,
-    ];
-    for (final k in allKeys) {
-      try {
-        final p = k.split('-');
-        if (p.length == 3) {
-          final d = DateTime(int.parse(p[0]), int.parse(p[1]), int.parse(p[2]));
-          if (d.isBefore(_startDate) && today.difference(d).inDays < 30) {
-            _startDate = d;
-            _nextScreeningDate = _startDate.add(const Duration(days: 30));
-          }
-        }
-      } catch (_) {}
-    }
-
-    notifyListeners();
   }
 
   // Update State Saat Skrining Baru Dilakukan
+  // 1 kali skrining = 1 progres baru, mereset acuan grafik ke siklus baru ini (grafik mulai kosong)
   void updateFromScreening(SkriningData data) {
+    _hasActiveScreening = true;
     _bmi = data.bmi;
     _category = data.classificationCategory;
     final d = data.date ?? DateTime.now();
     _startDate = DateTime(d.year, d.month, d.day);
     _cycleDays = 30; // 1 bulan / 4 minggu
     _nextScreeningDate = _startDate.add(const Duration(days: 30));
+
+    // Reset checklist nutrisi & aktivitas untuk siklus skrining baru agar grafik mulai kosong (0)
+    NutritionChecklistService.instance.resetForNewScreeningCycle();
+    PhysicalActivityService.instance.resetForNewScreeningCycle();
 
     final cat = _category.toLowerCase();
     if (cat.contains('obesitas') || cat.contains('obesity')) {
@@ -224,17 +250,20 @@ class ProgressTrackingService extends ChangeNotifier {
 
   // =======================================================================
   // DATA PROGRES DINAMIS DARI CENTANGAN MAKANAN & MINUMAN SERTA AKTIVITAS FISIK
+  // Khusus dalam 1 siklus skrining aktif (_startDate s/d _nextScreeningDate)
+  // Progres periode sebelum skrining aktif TIDAK TERCATAT di grafik ini
   // =======================================================================
 
   static const int dailyMealTarget = 5; // Sarapan, Makan Siang, Makan Malam, Cemilan, Minuman
   static const int dailyActivityTarget = 4; // 4 rekomendasi aktivitas per hari
 
   /// Target 1 bulan (30 hari)
-  int get nutritionTargetCount => _cycleDays * dailyMealTarget; // 150 item
-  int get activityTargetCount => _cycleDays * dailyActivityTarget; // 120 item
+  int get nutritionTargetCount => _hasActiveScreening ? (_cycleDays * dailyMealTarget) : 0;
+  int get activityTargetCount => _hasActiveScreening ? (_cycleDays * dailyActivityTarget) : 0;
 
-  /// Total Makanan & Minuman yang telah dicentang dalam rentang 30 hari
+  /// Total Makanan & Minuman yang telah dicentang dalam rentang 1 siklus skrining (30 hari)
   int get nutritionCompletedCount {
+    if (!_hasActiveScreening) return 0;
     final nutritionService = NutritionChecklistService.instance;
     int count = 0;
     for (int i = 0; i < _cycleDays; i++) {
@@ -242,28 +271,18 @@ class ProgressTrackingService extends ChangeNotifier {
       final dateKey = nutritionService.formatDateKey(date);
       count += nutritionService.getCompletedCountForDate(dateKey);
     }
-    // Jika centang ada di memori/storage tetapi berada di luar rentang pas, tetap hitung
-    if (count == 0 && nutritionService.completedItemsByDate.isNotEmpty) {
-      for (final set in nutritionService.completedItemsByDate.values) {
-        count += set.length;
-      }
-    }
     return count;
   }
 
-  /// Total Aktivitas Fisik yang telah diselesaikan dalam rentang 30 hari
+  /// Total Aktivitas Fisik yang telah diselesaikan dalam rentang 1 siklus skrining (30 hari)
   int get activityCompletedCount {
+    if (!_hasActiveScreening) return 0;
     final activityService = PhysicalActivityService.instance;
     int count = 0;
     for (int i = 0; i < _cycleDays; i++) {
       final date = _startDate.add(Duration(days: i));
       final dateKey = activityService.formatDateKey(date);
       count += activityService.getCompletedCountForDate(dateKey);
-    }
-    if (count == 0 && activityService.completedActivitiesByDate.isNotEmpty) {
-      for (final set in activityService.completedActivitiesByDate.values) {
-        count += set.length;
-      }
     }
     return count;
   }
@@ -293,8 +312,6 @@ class ProgressTrackingService extends ChangeNotifier {
 
   /// Menghitung ringkasan per minggu (Minggu 1, Minggu 2, Minggu 3, Minggu 4)
   List<WeeklyProgressSummary> getWeeklySummaries() {
-    final nutritionService = NutritionChecklistService.instance;
-    final activityService = PhysicalActivityService.instance;
     final months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
       'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
@@ -307,6 +324,30 @@ class ProgressTrackingService extends ChangeNotifier {
       {'start': 14, 'days': 7},  // Minggu 3: Hari 15–21
       {'start': 21, 'days': 9},  // Minggu 4: Hari 22–30 (9 hari sisa)
     ];
+
+    // Jika belum ada skrining aktif, kembalikan data grafik kosong dengan target 0
+    if (!_hasActiveScreening) {
+      for (int w = 0; w < weekDayRanges.length; w++) {
+        final startOffset = weekDayRanges[w]['start']!;
+        final daySpan = weekDayRanges[w]['days']!;
+        final wStartDate = _startDate.add(Duration(days: startOffset));
+        final wEndDate = _startDate.add(Duration(days: startOffset + daySpan - 1));
+        final dateRangeText = '${wStartDate.day} ${months[wStartDate.month - 1]} – ${wEndDate.day} ${months[wEndDate.month - 1]}';
+        summaries.add(WeeklyProgressSummary(
+          weekNumber: w + 1,
+          label: 'Minggu ${w + 1}',
+          dateRangeText: dateRangeText,
+          nutritionCompleted: 0,
+          nutritionTarget: 0,
+          activityCompleted: 0,
+          activityTarget: 0,
+        ));
+      }
+      return summaries;
+    }
+
+    final nutritionService = NutritionChecklistService.instance;
+    final activityService = PhysicalActivityService.instance;
 
     for (int w = 0; w < weekDayRanges.length; w++) {
       final startOffset = weekDayRanges[w]['start']!;
@@ -343,20 +384,23 @@ class ProgressTrackingService extends ChangeNotifier {
     return summaries;
   }
 
-  /// Menghasilkan seluruh daftar item progres yang telah dicentang dalam rentang 1 bulan
+  /// Menghasilkan seluruh daftar item progres yang telah dicentang dalam 1 siklus skrining aktif
   List<CompletedChecklistItem> getAllCompletedItems() {
+    if (!_hasActiveScreening) return const [];
     final List<CompletedChecklistItem> items = [];
     final nutritionService = NutritionChecklistService.instance;
     final activityService = PhysicalActivityService.instance;
 
-    // Kumpulkan seluruh dateKey unik yang relevan (siklus 30 hari + semua yang memiliki checklist selesai)
+    // Kumpulkan seluruh dateKey hanya yang berada DALAM 1 siklus skrining aktif
     final Set<String> relevantDateKeys = {};
     for (int i = 0; i < _cycleDays; i++) {
       final date = _startDate.add(Duration(days: i));
-      relevantDateKeys.add(nutritionService.formatDateKey(date));
+      final dKey = nutritionService.formatDateKey(date);
+      if (nutritionService.getCompletedCountForDate(dKey) > 0 ||
+          activityService.getCompletedCountForDate(dKey) > 0) {
+        relevantDateKeys.add(dKey);
+      }
     }
-    relevantDateKeys.addAll(nutritionService.completedItemsByDate.keys);
-    relevantDateKeys.addAll(activityService.completedActivitiesByDate.keys);
 
     for (final dateKey in relevantDateKeys) {
       DateTime itemDate;
@@ -370,13 +414,11 @@ class ProgressTrackingService extends ChangeNotifier {
 
       // Tentukan nomor minggu relatif terhadap _startDate
       final dayDiff = itemDate.difference(_startDate).inDays;
-      int weekNum;
-      if (dayDiff < 0) {
-        weekNum = 1;
-      } else {
-        weekNum = (dayDiff ~/ 7) + 1;
-        if (weekNum > 4) weekNum = 4;
+      if (dayDiff < 0 || dayDiff >= _cycleDays) {
+        continue; // Lewatkan jika di luar rentang siklus skrining aktif
       }
+      int weekNum = (dayDiff ~/ 7) + 1;
+      if (weekNum > 4) weekNum = 4;
 
       // 1. Makanan & Minuman yang dicentang pada tanggal ini
       final completedMealIds = nutritionService.getCompletedForDate(dateKey);
