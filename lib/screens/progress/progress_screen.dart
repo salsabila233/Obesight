@@ -457,11 +457,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final textMuted =
         isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
+    final hasProgress = service.totalCompletedActions > 0;
     final overallPct = service.overallPercentage;
     final overallInt = (overallPct * 100).toInt();
     final weeklySummaries = service.getWeeklySummaries();
 
-    // Status evaluasi sederhana
+    // Status evaluasi dinamis sesuai progres nyata
     String statusText;
     if (overallPct >= 0.8) {
       statusText = 'Sangat Baik';
@@ -469,8 +470,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
       statusText = 'Baik';
     } else if (overallPct >= 0.2) {
       statusText = 'Cukup';
+    } else if (hasProgress) {
+      statusText = 'Sedang Berjalan';
     } else {
-      statusText = 'Perlu Ditingkatkan';
+      statusText = 'Belum Ada Progres';
     }
 
     return Container(
@@ -548,182 +551,282 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         : const Color(0xFFF1F5F9)),
                 const SizedBox(height: 14),
 
-                // 2. Subheader Bagian Grafik: Judul & Indikator Target
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Grafik Capaian Mingguan',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: textPrimary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF36785A),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Target 4 Minggu',
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // 3. Batang-batang Grafik Mingguan (M1, M2, M3, M4) - Bebas Overflow
-                _buildWeeklyBarsRow(
-                    weeklySummaries, isDark, textPrimary, textMuted),
-
-                const SizedBox(height: 18),
-                Divider(
-                    height: 1,
-                    color: isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFF1F5F9)),
-                const SizedBox(height: 14),
-
-                // 4. Evaluasi Capaian Target Ideal (Menyatu dalam 1 card)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Capaian Target Ideal',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: textMuted,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
+                if (!hasProgress) ...[
+                  // TAMPILAN SAAT BELUM ADA PROGRES (Jujur, informatif, dan memandu pengguna)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
                         color: isDark
-                            ? const Color(0xFF1E3A2F)
-                            : const Color(0xFFEDF7F2),
-                        borderRadius: BorderRadius.circular(8),
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0),
                       ),
-                      child: Text(
-                        '$overallInt%',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF36785A)
+                                .withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.auto_graph_rounded,
+                            color: Color(0xFF36785A),
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Belum Ada Progres Tercatat',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Grafik capaian mingguan akan otomatis aktif dan terisi begitu Anda mencentang menu Makanan & Minuman atau menyelesaikan Aktivitas Fisik hari ini.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: textMuted,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.radio_button_checked_rounded,
+                                size: 12,
+                                color: Color(0xFF36785A),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '0 dari ${service.totalTargetActions} target • Mulai checklist di bawah',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF36785A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  // 2. Subheader Bagian Grafik: Judul & Indikator Capaian Nyata
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Grafik Capaian Mingguan',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF36785A)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF36785A),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '${service.totalCompletedActions} Selesai',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF36785A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 3. Batang-batang Grafik Mingguan (M1, M2, M3, M4) - Terhubung Nyata
+                  _buildWeeklyBarsRow(
+                      weeklySummaries, isDark, textPrimary, textMuted),
+
+                  const SizedBox(height: 18),
+                  Divider(
+                      height: 1,
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFF1F5F9)),
+                  const SizedBox(height: 14),
+
+                  // 4. Evaluasi Capaian Target Ideal (Menyatu dalam 1 card)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Capaian Target Ideal',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: textMuted,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? const Color(0xFF6EE7B7)
-                              : const Color(0xFF265C45),
+                              ? const Color(0xFF1E3A2F)
+                              : const Color(0xFFEDF7F2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '$overallInt%',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? const Color(0xFF6EE7B7)
+                                : const Color(0xFF265C45),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 8),
-
-                // Progress Bar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: overallPct,
-                    minHeight: 8,
-                    backgroundColor: isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFE2E8F0),
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                    ],
                   ),
-                ),
 
-                const SizedBox(height: 12),
+                  const SizedBox(height: 8),
 
-                // Pill Rincian Nutrisi & Aktivitas
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 6,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.restaurant_menu_rounded,
-                            size: 14, color: Color(0xFF10B981)),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Nutrisi: ${service.nutritionCompletedCount}/${service.nutritionTargetCount}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: isDark
-                                ? const Color(0xFFCBD5E1)
-                                : const Color(0xFF334155),
-                          ),
-                        ),
-                      ],
+                  // Progress Bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: overallPct,
+                      minHeight: 8,
+                      backgroundColor: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF36785A)),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.directions_run_rounded,
-                            size: 14, color: Color(0xFF0284C7)),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Aktivitas: ${service.activityCompletedCount}/${service.activityTargetCount}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: isDark
-                                ? const Color(0xFFCBD5E1)
-                                : const Color(0xFF334155),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 8),
-
-                // Status Deskripsi Ringkas
-                Text(
-                  'Status: $statusText • ${service.totalCompletedActions} dari ${service.totalTargetActions} target',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? const Color(0xFF6EE7B7)
-                        : const Color(0xFF265C45),
                   ),
-                ),
+
+                  const SizedBox(height: 12),
+
+                  // Pill Rincian Nutrisi & Aktivitas
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 6,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.restaurant_menu_rounded,
+                              size: 14, color: Color(0xFF10B981)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Nutrisi: ${service.nutritionCompletedCount}/${service.nutritionTargetCount}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.directions_run_rounded,
+                              size: 14, color: Color(0xFF0284C7)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Aktivitas: ${service.activityCompletedCount}/${service.activityTargetCount}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Status Deskripsi Ringkas
+                  Text(
+                    'Status: $statusText • ${service.totalCompletedActions} dari ${service.totalTargetActions} target',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? const Color(0xFF6EE7B7)
+                          : const Color(0xFF265C45),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -747,9 +850,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: summaries.map((w) {
           final pct = w.percentage;
-          final pctInt = (pct * 100).toInt();
           final hasData = w.totalCompleted > 0;
-          final barH = (pct * 60.0).clamp(hasData ? 10.0 : 4.0, 60.0);
+          final barH = hasData ? (16.0 + (pct * 44.0).clamp(0.0, 44.0)) : 0.0;
 
           return Expanded(
             child: Padding(
@@ -765,7 +867,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       height: 16,
                       child: Center(
                         child: Text(
-                          '$pctInt%',
+                          hasData ? '${w.totalCompleted}' : '-',
                           style: GoogleFonts.poppins(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
@@ -785,8 +887,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       decoration: BoxDecoration(
                         color: isDark
                             ? const Color(0xFF0F172A)
-                            : const Color(0xFFE2E8F0),
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(6),
+                        border: hasData
+                            ? null
+                            : Border.all(
+                                color: isDark
+                                    ? const Color(0xFF334155).withValues(alpha: 0.5)
+                                    : const Color(0xFFE2E8F0),
+                              ),
                       ),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),

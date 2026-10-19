@@ -141,19 +141,62 @@ class ProgressTrackingService extends ChangeNotifier {
     return '${_startDate.day} ${months[_startDate.month - 1]} – ${_nextScreeningDate.day} ${months[_nextScreeningDate.month - 1]} ${_nextScreeningDate.year}';
   }
 
-  /// Sinkronisasi dengan riwayat skrining pengguna untuk mendapatkan tanggal skrining pertama
+  /// Sinkronisasi dengan riwayat skrining pengguna untuk menentukan siklus 1 bulan aktif
   void syncWithUserScreening(String? userId, [String? email]) {
     final history = ScreeningHistoryService.instance.getHistory(userId, email);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     if (history.isNotEmpty) {
-      // Skrining pertama pengguna sebagai titik awal siklus 1 bulan
-      final firstScreening = history.last;
-      _startDate = DateTime(firstScreening.date.year, firstScreening.date.month, firstScreening.date.day);
-      _bmi = firstScreening.bmi;
-      _category = firstScreening.category;
+      // Ambil hasil skrining terbaru pengguna sebagai acuan kategori klinis & siklus evaluasi
+      final latestScreening = history.first;
+      _bmi = latestScreening.bmi;
+      _category = latestScreening.category;
+
+      DateTime cycleStart = DateTime(
+        latestScreening.date.year,
+        latestScreening.date.month,
+        latestScreening.date.day,
+      );
+
+      // Jika rentang 30 hari dari skrining awal telah berlalu, sesuaikan siklus evaluasi 30 hari
+      // agar selalu memuat hari ini secara dinamis (tidak kedaluwarsa di masa lampau)
+      if (today.difference(cycleStart).inDays >= 30) {
+        final cyclesPassed = today.difference(cycleStart).inDays ~/ 30;
+        cycleStart = cycleStart.add(Duration(days: cyclesPassed * 30));
+      }
+
+      _startDate = cycleStart;
       _cycleDays = 30;
       _nextScreeningDate = _startDate.add(const Duration(days: 30));
-      notifyListeners();
+    } else {
+      // Pengguna belum skrining: siklus 30 hari berjalan mulai hari ini
+      _startDate = today;
+      _cycleDays = 30;
+      _nextScreeningDate = _startDate.add(const Duration(days: 30));
     }
+
+    // Pastikan _startDate juga mencakup tanggal centang aktif pengguna jika ada
+    final nutritionService = NutritionChecklistService.instance;
+    final activityService = PhysicalActivityService.instance;
+    final allKeys = [
+      ...nutritionService.completedItemsByDate.keys,
+      ...activityService.completedActivitiesByDate.keys,
+    ];
+    for (final k in allKeys) {
+      try {
+        final p = k.split('-');
+        if (p.length == 3) {
+          final d = DateTime(int.parse(p[0]), int.parse(p[1]), int.parse(p[2]));
+          if (d.isBefore(_startDate) && today.difference(d).inDays < 30) {
+            _startDate = d;
+            _nextScreeningDate = _startDate.add(const Duration(days: 30));
+          }
+        }
+      } catch (_) {}
+    }
+
+    notifyListeners();
   }
 
   // Update State Saat Skrining Baru Dilakukan
@@ -199,6 +242,12 @@ class ProgressTrackingService extends ChangeNotifier {
       final dateKey = nutritionService.formatDateKey(date);
       count += nutritionService.getCompletedCountForDate(dateKey);
     }
+    // Jika centang ada di memori/storage tetapi berada di luar rentang pas, tetap hitung
+    if (count == 0 && nutritionService.completedItemsByDate.isNotEmpty) {
+      for (final set in nutritionService.completedItemsByDate.values) {
+        count += set.length;
+      }
+    }
     return count;
   }
 
@@ -210,6 +259,11 @@ class ProgressTrackingService extends ChangeNotifier {
       final date = _startDate.add(Duration(days: i));
       final dateKey = activityService.formatDateKey(date);
       count += activityService.getCompletedCountForDate(dateKey);
+    }
+    if (count == 0 && activityService.completedActivitiesByDate.isNotEmpty) {
+      for (final set in activityService.completedActivitiesByDate.values) {
+        count += set.length;
+      }
     }
     return count;
   }
@@ -295,10 +349,34 @@ class ProgressTrackingService extends ChangeNotifier {
     final nutritionService = NutritionChecklistService.instance;
     final activityService = PhysicalActivityService.instance;
 
+    // Kumpulkan seluruh dateKey unik yang relevan (siklus 30 hari + semua yang memiliki checklist selesai)
+    final Set<String> relevantDateKeys = {};
     for (int i = 0; i < _cycleDays; i++) {
       final date = _startDate.add(Duration(days: i));
-      final dateKey = nutritionService.formatDateKey(date);
-      final weekNum = (i ~/ 7) + 1 > 4 ? 4 : (i ~/ 7) + 1;
+      relevantDateKeys.add(nutritionService.formatDateKey(date));
+    }
+    relevantDateKeys.addAll(nutritionService.completedItemsByDate.keys);
+    relevantDateKeys.addAll(activityService.completedActivitiesByDate.keys);
+
+    for (final dateKey in relevantDateKeys) {
+      DateTime itemDate;
+      try {
+        final parts = dateKey.split('-');
+        itemDate = DateTime(
+            int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+      } catch (_) {
+        itemDate = DateTime.now();
+      }
+
+      // Tentukan nomor minggu relatif terhadap _startDate
+      final dayDiff = itemDate.difference(_startDate).inDays;
+      int weekNum;
+      if (dayDiff < 0) {
+        weekNum = 1;
+      } else {
+        weekNum = (dayDiff ~/ 7) + 1;
+        if (weekNum > 4) weekNum = 4;
+      }
 
       // 1. Makanan & Minuman yang dicentang pada tanggal ini
       final completedMealIds = nutritionService.getCompletedForDate(dateKey);
@@ -311,7 +389,7 @@ class ProgressTrackingService extends ChangeNotifier {
             type: 'nutrition',
             categoryName: 'Makanan & Minuman',
             subCategory: meal.mealTime,
-            date: date,
+            date: itemDate,
             dateKey: dateKey,
             weekNumber: weekNum,
             detailDesc: meal.desc,
@@ -327,7 +405,7 @@ class ProgressTrackingService extends ChangeNotifier {
             type: 'nutrition',
             categoryName: 'Makanan & Minuman',
             subCategory: 'Konsumsi Harian',
-            date: date,
+            date: itemDate,
             dateKey: dateKey,
             weekNumber: weekNum,
             detailDesc: 'Telah dikonsumsi sesuai anjuran porsi seimbang.',
@@ -346,14 +424,17 @@ class ProgressTrackingService extends ChangeNotifier {
         if (act != null) {
           items.add(CompletedChecklistItem(
             id: 'act_${act['id']}_$dateKey',
-            title: act['name'] as String? ?? act['title'] as String? ?? 'Aktivitas Fisik',
+            title: act['name'] as String? ??
+                act['title'] as String? ??
+                'Aktivitas Fisik',
             type: 'activity',
             categoryName: 'Aktivitas Fisik',
             subCategory: act['category'] as String? ?? 'Latihan Fisik',
-            date: date,
+            date: itemDate,
             dateKey: dateKey,
             weekNumber: weekNum,
-            detailDesc: act['desc'] as String? ?? 'Aktivitas fisik selesai dilakukan.',
+            detailDesc: act['desc'] as String? ??
+                'Aktivitas fisik selesai dilakukan.',
             caloriesText: act['calories'] as String? ?? 'Kalori terbakar',
             portionOrDuration: act['duration'] as String? ?? '30 Menit',
             thumb: act['thumb'] as String?,
@@ -366,7 +447,7 @@ class ProgressTrackingService extends ChangeNotifier {
             type: 'activity',
             categoryName: 'Aktivitas Fisik',
             subCategory: 'Latihan Harian',
-            date: date,
+            date: itemDate,
             dateKey: dateKey,
             weekNumber: weekNum,
             detailDesc: 'Sesi aktivitas fisik harian telah selesai dikerjakan.',
