@@ -5,6 +5,8 @@ import '../../services/sleep_tracking_service.dart';
 import '../../services/rest_reminder_service.dart';
 import '../../widgets/rest_tracking_widgets.dart';
 
+import '../../widgets/curved_header_scaffold.dart';
+
 class RestReminderSettingScreen extends StatefulWidget {
   final RestType type;
 
@@ -237,25 +239,12 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
     final tile3Title = isNight ? 'Durasi tidur' : 'Durasi istirahat';
     final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8),
-      appBar: AppBar(
-        backgroundColor: headerColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: _onCancel,
-        ),
-        title: Text(
-          screenTitle,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
+    return CurvedHeaderScaffold(
+      title: screenTitle,
+      headerColor: headerColor,
+      sheetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8),
+      centerTitle: true,
+      onBack: _onCancel,
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         physics: const BouncingScrollPhysics(),

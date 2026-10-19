@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/article_model.dart';
 import '../../services/article_service.dart';
 
-class HealthArticleDetailScreen extends StatefulWidget {
+import '../../widgets/curved_header_scaffold.dart';
+
+class HealthArticleDetailScreen extends StatelessWidget {
   final ArticleModel article;
 
   HealthArticleDetailScreen({
@@ -19,155 +21,38 @@ class HealthArticleDetailScreen extends StatefulWidget {
                     : ArticleService().getArticles().first));
 
   @override
-  State<HealthArticleDetailScreen> createState() => _HealthArticleDetailScreenState();
-}
-
-class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
-  final ScrollController _scrollController = ScrollController();
-  bool _showStickyTitle = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(() {
-      if (_scrollController.hasClients) {
-        if (_scrollController.offset > 140 && !_showStickyTitle) {
-          setState(() => _showStickyTitle = true);
-        } else if (_scrollController.offset <= 140 && _showStickyTitle) {
-          setState(() => _showStickyTitle = false);
-        }
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final article = widget.article;
     final otherArticles = ArticleService()
         .getArticles()
         .where((art) => art.id != article.id)
         .take(3)
         .toList();
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
-      body: CustomScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Sliver App Bar with full article image
-          SliverAppBar(
-            expandedHeight: 250,
-            pinned: true,
-            elevation: _showStickyTitle ? 2 : 0,
-            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: _showStickyTitle ? Colors.transparent : Colors.black.withValues(alpha: 0.4),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 17),
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: AnimatedOpacity(
-              opacity: _showStickyTitle ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 200),
-              child: Text(
-                article.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            centerTitle: false,
-            actions: const [], // Tidak ada bookmark atau tombol samping
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  (article.imageUrl != null && article.imageUrl!.trim().startsWith('http'))
-                      ? Image.network(
-                          article.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: article.headerColor,
-                            child: Center(
-                              child: Icon(article.icon, size: 80, color: Colors.white.withValues(alpha: 0.5)),
-                            ),
-                          ),
-                        )
-                      : Image.asset(
-                          article.imageAsset,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: article.headerColor,
-                            child: Center(
-                              child: Icon(article.icon, size: 80, color: Colors.white.withValues(alpha: 0.5)),
-                            ),
-                          ),
-                        ),
-                  // Gradient overlay to ensure back button and text readability
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.black.withValues(alpha: 0.45),
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.6),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+    return CurvedHeaderScaffold(
+      title: article.title,
+      headerColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
+      sheetColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      imageUrl: article.imageUrl,
+      imageAsset: article.imageAsset,
+      expandedHeight: 250,
+      imagePlaceholderIcon: article.icon,
+      imagePlaceholderColor: article.headerColor,
+      overlap: 24,
+      contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Text(
+            article.title,
+            style: GoogleFonts.poppins(
+              fontSize: 21,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              height: 1.35,
             ),
           ),
-
-          // Main Article Content
-          SliverToBoxAdapter(
-            child: Container(
-              transform: Matrix4.translationValues(0, -18, 0),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A000000),
-                    blurRadius: 16,
-                    offset: Offset(0, -4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    article.title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      height: 1.35,
-                    ),
-                  ),
                   const SizedBox(height: 10),
 
                   // Reading Time & Date Info Bar (Clean, no doctor / author info)
@@ -411,10 +296,6 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
                   }),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+            );
+          }
+        }

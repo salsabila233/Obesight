@@ -4,6 +4,8 @@ import '../../models/article_model.dart';
 import '../../services/article_service.dart';
 import 'health_article_detail_screen.dart';
 
+import '../../widgets/curved_header_scaffold.dart';
+
 class HealthArticleListScreen extends StatefulWidget {
   const HealthArticleListScreen({super.key});
 
@@ -53,28 +55,14 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                     art.category.toLowerCase().contains(q);
               }).toList();
 
-        return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 19),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Daftar Artikel Kesehatan',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: false,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 40),
-        physics: const BouncingScrollPhysics(),
+        return CurvedHeaderScaffold(
+          title: 'Daftar Artikel Kesehatan',
+          headerColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
+          sheetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
+          centerTitle: false,
+          body: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+            physics: const BouncingScrollPhysics(),
         children: [
           // Banner Status Error jika Firestore belum mengizinkan akses / offline
           if (hasError)
