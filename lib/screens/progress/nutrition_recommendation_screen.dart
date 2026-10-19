@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/nutrition_meal_model.dart';
+import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/calorie_target_service.dart';
 import '../../services/meal_plan_service.dart';
 import '../../services/nutrition_checklist_service.dart';
+import '../../services/screening_history_service.dart';
 import '../../widgets/progress_page_scaffold.dart';
+import '../../widgets/screening_empty_state_widget.dart';
+import '../skrining/skrining_models.dart';
 import 'nutrition_detail_screen.dart';
 
 enum NutritionFilter {
@@ -16,10 +20,14 @@ enum NutritionFilter {
 
 class NutritionRecommendationScreen extends StatefulWidget {
   final NutritionFilter initialFilter;
+  final UserModel? user;
+  final SkriningData? skriningData;
 
   const NutritionRecommendationScreen({
     super.key,
     this.initialFilter = NutritionFilter.all,
+    this.user,
+    this.skriningData,
   });
 
   @override
@@ -35,12 +43,22 @@ class _NutritionRecommendationScreenState
   late final ScrollController _dateScrollController;
   final int _todayOffset = 7;
   late DateTime _selectedDate;
+  late String _userKey;
+
+  UserModel get _effectiveUser =>
+      widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _currentFilter = widget.initialFilter;
+
+    final user = _effectiveUser;
+    _userKey = ScreeningHistoryService.instance.resolveUserKey(user.id, user.email);
+
+    // Muat riwayat tersimpan spesifik untuk akun pengguna saat ini
+    ScreeningHistoryService.instance.loadHistory(_userKey);
 
     // Inisialisasi tanggal terpilih ke Hari Ini (dinormalisasi tahun-bulan-hari)
     final now = DateTime.now();
@@ -117,25 +135,39 @@ class _NutritionRecommendationScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
 
-    // Kategori IMT pengguna yang sama dengan tampilan di Beranda "Status Kesehatan"
-    final rawCategory = CalorieTargetService.getLatestScreeningCategoryRaw();
-    final calorieGroup = CalorieTargetService.resolveGroup(rawCategory);
-    final groupDisplayName = CalorieTargetService.getGroupDisplayName(calorieGroup);
-    final targetCalories = CalorieTargetService.getDailyCalorieTarget(calorieGroup);
-
-    return ListenableBuilder(
-      listenable: NutritionChecklistService.instance,
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        NutritionChecklistService.instance,
+        ScreeningHistoryService.instance,
+      ]),
       builder: (context, _) {
+        // 1. Dapatkan hasil skrining pengguna yang sedang login
+        SkriningData? activeSkrining = widget.skriningData;
+        if (activeSkrining == null) {
+          final history = ScreeningHistoryService.instance.getHistory(_userKey);
+          if (history.isNotEmpty) {
+            activeSkrining = history.first.skriningData;
+          }
+        }
+
+        final bool hasScreening = activeSkrining != null;
+        final String? categoryKey = hasScreening ? activeSkrining.classificationCategory : null;
+        final calorieGroup = CalorieTargetService.resolveGroup(categoryKey);
+        final groupDisplayName = CalorieTargetService.getGroupDisplayName(calorieGroup);
+        final targetCalories = CalorieTargetService.getDailyCalorieTarget(calorieGroup);
+
         final selectedDateKey = NutritionChecklistService.instance.formatDateKey(_selectedDate);
         final bool isSelectedDateToday = (_selectedDate.year == today.year &&
             _selectedDate.month == today.month &&
             _selectedDate.day == today.day);
 
-        // Menu deterministik 1 hari (5 item: Sarapan, Siang, Malam, Cemilan, Minuman)
-        final dailyMeals = MealPlanService.getDailyPlanForDate(
-          date: _selectedDate,
-          group: calorieGroup,
-        );
+        // Menu deterministik 1 hari (hanya dimuat jika pengguna sudah memiliki hasil skrining)
+        final dailyMeals = hasScreening
+            ? MealPlanService.getDailyPlanForDate(
+                date: _selectedDate,
+                group: calorieGroup,
+              )
+            : const <NutritionMealModel>[];
 
         // Filter tampilan (Semua, Makanan, Minuman)
         final filteredMeals = dailyMeals.where((m) {
@@ -150,17 +182,21 @@ class _NutritionRecommendationScreenState
         }).toList();
 
         // Hitung selesai pada filter aktif
-        final completedIds = NutritionChecklistService.instance.getCompletedForDate(selectedDateKey);
+        final completedIds = hasScreening
+            ? NutritionChecklistService.instance.getCompletedForDate(selectedDateKey)
+            : const <String>{};
         final completedInFilter = filteredMeals.where((m) => completedIds.contains(m.id)).length;
         final totalInFilter = filteredMeals.length;
 
         // Hitung kalori terkonsumsi seluruh menu hari itu
-        final consumedCalories = NutritionChecklistService.instance.getConsumedCaloriesForDate(
-          selectedDateKey,
-          dailyMeals,
-        );
+        final consumedCalories = hasScreening
+            ? NutritionChecklistService.instance.getConsumedCaloriesForDate(
+                selectedDateKey,
+                dailyMeals,
+              )
+            : 0;
 
-        final calorieProgress = (targetCalories > 0)
+        final calorieProgress = (targetCalories > 0 && hasScreening)
             ? (consumedCalories / targetCalories).clamp(0.0, 1.0)
             : 0.0;
 
@@ -281,67 +317,84 @@ class _NutritionRecommendationScreenState
 
                 const SizedBox(height: 18),
 
-                // 2. Ringkasan Kalori Harian & Kategori Skrining
-                _buildCalorieSummaryBanner(
-                  isDark: isDark,
-                  groupDisplayName: groupDisplayName,
-                  targetCalories: targetCalories,
-                  consumedCalories: consumedCalories,
-                  progress: calorieProgress,
-                ),
+                // 2. KONDISI BELUM ADA SKRINING
+                if (!hasScreening) ...[
+                  ScreeningEmptyStateWidget(
+                    icon: Icons.restaurant_menu_rounded,
+                    title: 'Belum Ada Hasil Skrining',
+                    description:
+                        'Rekomendasi makanan dan minuman dipersonalisasi berdasarkan hasil skrining kesehatan dan kategori IMT Anda.\nSilakan lakukan skrining terlebih dahulu.',
+                    buttonText: 'Mulai Skrining Sekarang',
+                    user: _effectiveUser,
+                    onScreeningReturned: () {
+                      if (mounted) {
+                        ScreeningHistoryService.instance.loadHistory(_userKey);
+                      }
+                    },
+                  ),
+                ] else ...[
+                  // 3. Ringkasan Kalori Harian & Kategori Skrining
+                  _buildCalorieSummaryBanner(
+                    isDark: isDark,
+                    groupDisplayName: groupDisplayName,
+                    targetCalories: targetCalories,
+                    consumedCalories: consumedCalories,
+                    progress: calorieProgress,
+                  ),
 
-                const SizedBox(height: 18),
+                  const SizedBox(height: 18),
 
-                // 3. Filter Tabs (Semua, Makanan, Minuman)
-                _buildFilterTabs(isDark),
+                  // 4. Filter Tabs (Semua, Makanan, Minuman)
+                  _buildFilterTabs(isDark),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // 4. Section Header dengan Counter "X/Y Selesai"
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _currentFilter == NutritionFilter.all
-                          ? 'Daftar Menu Hari Ini'
-                          : (_currentFilter == NutritionFilter.food
-                              ? 'Pilihan Makanan Hari Ini'
-                              : 'Pilihan Minuman Hari Ini'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
-                        borderRadius: BorderRadius.circular(8),
-                        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-                      ),
-                      child: Text(
-                        '$completedInFilter/$totalInFilter Selesai',
+                  // 5. Section Header dengan Counter "X/Y Selesai"
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _currentFilter == NutritionFilter.all
+                            ? 'Daftar Menu Hari Ini'
+                            : (_currentFilter == NutritionFilter.food
+                                ? 'Pilihan Makanan Hari Ini'
+                                : 'Pilihan Minuman Hari Ini'),
                         style: GoogleFonts.poppins(
-                          fontSize: 11,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+                          color: textPrimary,
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
+                          borderRadius: BorderRadius.circular(8),
+                          border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+                        ),
+                        child: Text(
+                          '$completedInFilter/$totalInFilter Selesai',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
 
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
-                // 5. Daftar Card Menu Makanan & Minuman dengan Ceklis Manual
-                ...filteredMeals.map((meal) => _buildMealCard(
-                      meal,
-                      isDark,
-                      selectedDateKey,
-                      isSelectedDateToday,
-                      dailyMeals: dailyMeals,
-                    )),
+                  // 6. Daftar Card Menu Makanan & Minuman dengan Ceklis Manual
+                  ...filteredMeals.map((meal) => _buildMealCard(
+                        meal,
+                        isDark,
+                        selectedDateKey,
+                        isSelectedDateToday,
+                        dailyMeals: dailyMeals,
+                      )),
+                ],
 
                 const SizedBox(height: 20),
               ],

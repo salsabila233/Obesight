@@ -1,4 +1,4 @@
-import 'auth_service.dart';
+import 'screening_history_service.dart';
 
 /// Enum kelompok kalori hasil skrining IMT
 enum ScreeningCalorieGroup {
@@ -44,18 +44,23 @@ class CalorieTargetService {
   /// Toleransi kalori harian (±5%)
   static const double toleranceRatio = 0.05;
 
-  /// Mengambil kategori hasil skrining terbaru pengguna dari profil / AuthService
-  /// yang selaras dengan tampilan "Status Kesehatan" di Beranda.
-  static String getLatestScreeningCategoryRaw({String? userId}) {
-    final uid = userId ?? AuthService().currentUser?.id;
-    if (uid != null && uid.isNotEmpty) {
-      final bmiInfo = AuthService().getUserBmi(uid);
-      final cat = (bmiInfo['category'] as String?)?.trim();
-      if (cat != null && cat.isNotEmpty) {
+  /// Mengambil kategori hasil skrining terbaru pengguna dari riwayat skrining
+  /// (mengembalikan null jika pengguna belum pernah melakukan skrining).
+  static String? getLatestScreeningCategoryRaw({String? userId, String? email}) {
+    final userKey = ScreeningHistoryService.instance.resolveUserKey(userId, email);
+    final history = ScreeningHistoryService.instance.getHistory(userKey);
+    if (history.isNotEmpty) {
+      final cat = history.first.skriningData.classificationCategory.trim();
+      if (cat.isNotEmpty) {
         return cat;
       }
     }
-    return AuthService().currentUser?.bmiCategory ?? 'Normal';
+    return null;
+  }
+
+  /// Memeriksa apakah pengguna memiliki riwayat skrining yang valid
+  static bool hasScreening({String? userId, String? email}) {
+    return getLatestScreeningCategoryRaw(userId: userId, email: email) != null;
   }
 
   /// Mengelompokkan raw category string ke dalam 3 kelompok target kalori

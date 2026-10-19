@@ -191,6 +191,10 @@ class NutritionChecklistService extends ChangeNotifier {
       debugPrint('[NutritionChecklistService] Memulai migrasi ${_completedItemsByDate.length} tanggal ke Firestore untuk $uid...');
 
       final rawCategory = CalorieTargetService.getLatestScreeningCategoryRaw(userId: uid);
+      if (rawCategory == null) {
+        debugPrint('[NutritionChecklistService] Skip migrasi: pengguna $uid belum memiliki hasil skrining.');
+        return;
+      }
       final group = CalorieTargetService.resolveGroup(rawCategory);
       final targetCalories = CalorieTargetService.getDailyCalorieTarget(group);
 
@@ -271,6 +275,10 @@ class NutritionChecklistService extends ChangeNotifier {
     final targetDateKey = dateKey ?? todayKey;
     final parsedDate = DateTime.tryParse(targetDateKey) ?? DateTime.now();
     final rawCategory = CalorieTargetService.getLatestScreeningCategoryRaw(userId: uid);
+    if (rawCategory == null) {
+      debugPrint('[NutritionChecklistService] Skip inisialisasi progress harian: pengguna $uid belum memiliki hasil skrining.');
+      return;
+    }
     final group = CalorieTargetService.resolveGroup(rawCategory);
     final targetCalories = CalorieTargetService.getDailyCalorieTarget(group);
     final dailyMeals = MealPlanService.getDailyPlanForDate(date: parsedDate, group: group);
@@ -341,6 +349,11 @@ class NutritionChecklistService extends ChangeNotifier {
   Future<void> syncAllToFirestore() async {
     final uid = _currentFirebaseUid;
     if (uid == null || uid.isEmpty) return;
+    final rawCategory = CalorieTargetService.getLatestScreeningCategoryRaw(userId: uid);
+    if (rawCategory == null) {
+      debugPrint('[NutritionChecklistService] Skip syncAllToFirestore: pengguna $uid belum memiliki hasil skrining.');
+      return;
+    }
     await initDailyProgressIfNeeded();
     await _migrateLegacyDataToFirestore(uid, force: true);
   }
@@ -374,6 +387,13 @@ class NutritionChecklistService extends ChangeNotifier {
     NutritionMealModel? meal,
     List<NutritionMealModel>? dailyMeals,
   }) async {
+    // Tidak dapat menandai ceklis jika belum ada hasil skrining
+    final rawCategory = CalorieTargetService.getLatestScreeningCategoryRaw(userId: _currentFirebaseUid);
+    if (rawCategory == null) {
+      debugPrint('[NutritionChecklistService] Ceklis diabaikan: pengguna belum memiliki hasil skrining.');
+      return;
+    }
+
     if (!_completedItemsByDate.containsKey(dateKey)) {
       _completedItemsByDate[dateKey] = <String>{};
     }
@@ -416,6 +436,10 @@ class NutritionChecklistService extends ChangeNotifier {
     List<NutritionMealModel>? dailyMeals,
   }) async {
     final rawCategory = CalorieTargetService.getLatestScreeningCategoryRaw(userId: uid);
+    if (rawCategory == null) {
+      debugPrint('[NutritionChecklistService] Skip sync item ke Firestore: pengguna belum memiliki hasil skrining.');
+      return;
+    }
     final group = CalorieTargetService.resolveGroup(rawCategory);
     final targetCalories = CalorieTargetService.getDailyCalorieTarget(group);
 
