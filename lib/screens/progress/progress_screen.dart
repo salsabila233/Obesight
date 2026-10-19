@@ -724,35 +724,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         : const Color(0xFF265C45),
                   ),
                 ),
-
-                const SizedBox(height: 14),
-
-                // Link / Hint Riwayat Progres Lengkap (Anti-Overflow)
-                Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Ketuk grafik untuk rincian progres yang sudah dilakukan',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF36785A),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 13,
-                          color: Color(0xFF36785A),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
