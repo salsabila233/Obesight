@@ -35,10 +35,10 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF36785A),
+      backgroundColor: headerColor,
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -91,7 +91,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                       'assets/progress/clean/hero_aktivitas.png',
                       fit: BoxFit.cover,
                       errorBuilder: (c, e, s) => Container(
-                        color: const Color(0xFF36785A),
+                        color: headerColor,
                       ),
                     ),
                   ),
@@ -140,10 +140,10 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                       Container(
                         width: 64,
                         height: 64,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFFE8F4EE),
-                          boxShadow: [
+                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F4EE),
+                          boxShadow: const [
                             BoxShadow(
                               color: Color(0x14000000),
                               blurRadius: 10,
@@ -159,8 +159,8 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                               'assets/progress/clean/circle_aktivitas.png',
                               fit: BoxFit.cover,
                               errorBuilder: (ctx, err, st) => Container(
-                                color: const Color(0xFFE2F1E8),
-                                child: const Icon(Icons.directions_run_rounded, color: Color(0xFF36785A), size: 32),
+                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2F1E8),
+                                child: Icon(Icons.directions_run_rounded, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874), size: 32),
                               ),
                             ),
                           ),
@@ -173,7 +173,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF235B42),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                             height: 1.25,
                           ),
                         ),
@@ -187,7 +187,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                     'Setelah beraktivitas fisik, tubuh membutuhkan waktu untuk memulihkan energi dan menurunkan detak jantung. Berikut rekomendasi waktu istirahat yang sesuai untuk Anda.',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4A705E),
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       height: 1.45,
                     ),
                   ),
@@ -203,13 +203,14 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                           decoration: BoxDecoration(
                             color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEDF7F2),
                             borderRadius: BorderRadius.circular(14),
+                            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.history_rounded, size: 16, color: Color(0xFF36785A)),
+                                  Icon(Icons.history_rounded, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
                                   const SizedBox(width: 5),
                                   Expanded(
                                     child: Text(
@@ -217,7 +218,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w500,
-                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5A7E6C),
+                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                       ),
                                     ),
                                   ),
@@ -229,7 +230,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : const Color(0xFF235B42),
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                                 ),
                               ),
                             ],
@@ -245,13 +246,14 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                           decoration: BoxDecoration(
                             color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEDF7F2),
                             borderRadius: BorderRadius.circular(14),
+                            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.favorite_rounded, size: 16, color: Color(0xFF36785A)),
+                                  Icon(Icons.favorite_rounded, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
                                   const SizedBox(width: 5),
                                   Expanded(
                                     child: Text(
@@ -259,7 +261,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w500,
-                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5A7E6C),
+                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                       ),
                                     ),
                                   ),
@@ -271,7 +273,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : const Color(0xFF235B42),
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                                 ),
                               ),
                             ],
@@ -298,14 +300,14 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.lightbulb_outline_rounded, size: 18, color: Color(0xFF36785A)),
+                            Icon(Icons.lightbulb_outline_rounded, size: 18, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
                             const SizedBox(width: 8),
                             Text(
                               'Tips Pemulihan Optimal',
                               style: GoogleFonts.poppins(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF235B42),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                             ),
                           ],
@@ -329,7 +331,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF36785A),
+                        backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
                         foregroundColor: Colors.white,
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -387,7 +389,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
           child: Icon(
             Icons.check_rounded,
             size: 15,
-            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+            color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF16A34A),
           ),
         ),
         const SizedBox(width: 8),
@@ -396,7 +398,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
             text,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF365E4C),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
               height: 1.4,
             ),
           ),

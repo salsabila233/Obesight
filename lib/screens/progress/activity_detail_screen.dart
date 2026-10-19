@@ -56,9 +56,15 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     final safetyNotes = widget.activity['safetyNotes'] as String?;
     final refLink = widget.activity['refLink'] as String? ?? '';
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final accentGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF36785A),
+      backgroundColor: headerColor,
       body: Stack(
         children: [
           // 1. Scrollable Content with Parallax Hero & Collapsing Toolbar
@@ -71,7 +77,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                 expandedHeight: 250,
                 pinned: true,
                 elevation: _isSticky ? 3 : 0,
-                backgroundColor: const Color(0xFF36785A),
+                backgroundColor: headerColor,
                 leading: IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(7),
@@ -113,7 +119,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         heroImg,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
-                          color: const Color(0xFF2D6A4F),
+                          color: headerColor,
                           child: const Icon(Icons.fitness_center_rounded, size: 72, color: Colors.white),
                         ),
                       ),
@@ -150,7 +156,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                 height: 44,
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF36785A).withValues(alpha: 0.85),
+                                  color: accentGreen.withValues(alpha: 0.85),
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
                                   boxShadow: [
@@ -184,7 +190,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF36785A),
+                                        color: accentGreen,
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
@@ -237,7 +243,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: textPrimary,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -245,7 +251,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         aboutDesc,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: const Color(0xFF475569),
+                          color: textSecondary,
                           height: 1.55,
                         ),
                       ),
@@ -256,12 +262,12 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: cardBorder),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -269,10 +275,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         ),
                         child: Row(
                           children: [
-                            _buildSpecCol(Icons.timer_outlined, 'Durasi', specs['duration'] ?? '-'),
-                            _buildSpecCol(Icons.calendar_today_outlined, 'Frekuensi', specs['frequency'] ?? '-'),
-                            _buildSpecCol(Icons.speed_rounded, 'Intensitas', specs['intensity'] ?? '-'),
-                            _buildSpecCol(Icons.local_fire_department_outlined, 'Kalori', specs['calories'] ?? '-'),
+                            _buildSpecCol(Icons.timer_outlined, 'Durasi', specs['duration'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
+                            _buildSpecCol(Icons.calendar_today_outlined, 'Frekuensi', specs['frequency'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
+                            _buildSpecCol(Icons.speed_rounded, 'Intensitas', specs['intensity'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
+                            _buildSpecCol(Icons.local_fire_department_outlined, 'Kalori', specs['calories'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
                           ],
                         ),
                       ),
@@ -338,7 +344,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: textPrimary,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -349,11 +355,15 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFDCFCE7),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.check_rounded, color: Color(0xFF16A34A), size: 14),
+                                  child: Icon(
+                                    Icons.check_rounded,
+                                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF16A34A),
+                                    size: 14,
+                                  ),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -361,7 +371,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                     b,
                                     style: GoogleFonts.poppins(
                                       fontSize: 13,
-                                      color: const Color(0xFF334155),
+                                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                                       height: 1.4,
                                     ),
                                   ),
@@ -378,16 +388,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F172A),
+                          color: textPrimary,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: cardBorder),
                         ),
                         child: Column(
                           children: tips
@@ -396,13 +406,13 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text('• ', style: TextStyle(color: Color(0xFF36785A), fontSize: 16, fontWeight: FontWeight.bold)),
+                                        Text('• ', style: TextStyle(color: accentGreen, fontSize: 16, fontWeight: FontWeight.bold)),
                                         Expanded(
                                           child: Text(
                                             t,
                                             style: GoogleFonts.poppins(
                                               fontSize: 12.5,
-                                              color: const Color(0xFF475569),
+                                              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                                               height: 1.4,
                                             ),
                                           ),
@@ -419,14 +429,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         const SizedBox(height: 22),
                         Row(
                           children: [
-                            const Icon(Icons.link_rounded, size: 18, color: Color(0xFF36785A)),
+                            Icon(Icons.link_rounded, size: 18, color: accentGreen),
                             const SizedBox(width: 6),
                             Text(
                               'Sumber Referensi',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF0F172A),
+                                color: textPrimary,
                               ),
                             ),
                           ],
@@ -439,7 +449,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Tautan referensi berhasil disalin', style: GoogleFonts.poppins()),
-                                backgroundColor: const Color(0xFF36785A),
+                                backgroundColor: accentGreen,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
@@ -449,9 +459,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0FDF4),
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0FDF4),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFBBF7D0)),
+                              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBBF7D0)),
                             ),
                             child: Row(
                               children: [
@@ -462,13 +472,13 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
-                                      color: const Color(0xFF15803D),
+                                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D),
                                       decoration: TextDecoration.underline,
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(Icons.copy_rounded, size: 16, color: Color(0xFF15803D)),
+                                Icon(Icons.copy_rounded, size: 16, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D)),
                               ],
                             ),
                           ),
@@ -489,11 +499,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                color: cardBg,
+                border: Border(top: BorderSide(color: cardBorder)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, -3),
                   ),
@@ -512,7 +522,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
                       return ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF36785A),
+                          backgroundColor: accentGreen,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -558,15 +568,23 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     );
   }
 
-  Widget _buildSpecCol(IconData icon, String label, String value) {
+  Widget _buildSpecCol(
+    IconData icon,
+    String label,
+    String value,
+    bool isDark,
+    Color accentGreen,
+    Color textPrimary,
+    Color textSecondary,
+  ) {
     return Expanded(
       child: Column(
         children: [
-          Icon(icon, size: 18, color: const Color(0xFF36785A)),
+          Icon(icon, size: 18, color: accentGreen),
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.poppins(fontSize: 10.5, color: const Color(0xFF64748B)),
+            style: GoogleFonts.poppins(fontSize: 10.5, color: textSecondary),
           ),
           const SizedBox(height: 2),
           Text(
@@ -574,7 +592,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: textPrimary),
           ),
         ],
       ),

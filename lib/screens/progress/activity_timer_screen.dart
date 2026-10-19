@@ -360,6 +360,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     if (_hasShownDialog) return;
     _hasShownDialog = true;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final service = ActivityTimerService.instance;
     final title = (widget.activity['name'] as String?) ?? (widget.activity['title'] as String?) ?? 'Aktivitas';
     final burnedCalories = _calculateBurnedCalories(service.elapsedSeconds);
@@ -368,6 +369,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
       context: context,
       barrierDismissible: true, // Pengguna bisa tap di luar popup
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
         titlePadding: EdgeInsets.zero,
@@ -395,16 +397,24 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFDCFCE7),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.emoji_events_rounded, color: Color(0xFF16A34A), size: 40),
+                      child: Icon(
+                        Icons.emoji_events_rounded,
+                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF16A34A),
+                        size: 40,
+                      ),
                     ),
                     const SizedBox(height: 14),
                     Text(
                       'Latihan Selesai! 🎉',
-                      style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700),
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
                     ),
                   ],
                 ),
@@ -418,14 +428,18 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
             Text(
               'Hebat! Kamu telah menyelesaikan sesi $title hari ini.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF475569)),
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+              ),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(10),
+                border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -434,7 +448,11 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                   const SizedBox(width: 6),
                   Text(
                     'Estimasi terbakar: $burnedCalories kkal',
-                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF0F172A)),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                   ),
                 ],
               ),
@@ -447,7 +465,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
               height: 48,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF36785A),
+                  backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 2,
@@ -491,41 +509,54 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     if (_hasShownDialog) return;
     _hasShownDialog = true;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final service = ActivityTimerService.instance;
 
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFFEDF7F2),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.spa_rounded, color: Color(0xFF36785A), size: 40),
+              child: Icon(
+                Icons.spa_rounded,
+                color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874),
+                size: 40,
+              ),
             ),
             const SizedBox(height: 14),
             Text(
               'Istirahat Selesai! 🌿',
-              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700),
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
             ),
           ],
         ),
         content: Text(
           'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar, rileks, dan siap beraktivitas kembali.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF475569)),
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+          ),
         ),
         actions: [
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF36785A),
+                backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -561,6 +592,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final accentGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
     final isRest = widget.activity['isRest'] == true;
     final heroImg = widget.activity['heroImg'] as String? ??
         (isRest ? 'assets/progress/rest/hero_aktivitas.png' : 'assets/progress/clean/hero_jogging.png');
@@ -581,7 +615,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
             ActivityAlarmService.instance.stopAlarm();
           },
           child: Scaffold(
-            backgroundColor: const Color(0xFF36785A),
+            backgroundColor: headerColor,
             body: CustomScrollView(
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
@@ -591,7 +625,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                   expandedHeight: 230,
                   pinned: true,
                   elevation: _isSticky ? 2 : 0,
-                  backgroundColor: const Color(0xFF36785A),
+                  backgroundColor: headerColor,
                   leading: IconButton(
                     icon: Container(
                       padding: const EdgeInsets.all(7),
@@ -635,7 +669,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                         heroImg,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
-                          color: const Color(0xFF36785A),
+                          color: headerColor,
                           child: Icon(
                             isRest ? Icons.spa_rounded : Icons.directions_run_rounded,
                             size: 72,
@@ -672,7 +706,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF4E8F73).withValues(alpha: 0.85),
+                                  color: accentGreen.withValues(alpha: 0.85),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Icon(_getActivityIcon(), color: Colors.white, size: 28),
@@ -702,9 +736,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
               SliverToBoxAdapter(
                 child: Container(
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   ),
                   transform: Matrix4.translationValues(0, -20, 0),
                   child: Padding(
@@ -719,7 +753,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF4E8F73),
+                              color: accentGreen,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -728,7 +762,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1A1A2E),
+                              color: isDark ? Colors.white : const Color(0xFF1A1A2E),
                             ),
                           ),
                           const SizedBox(height: 18),
@@ -742,11 +776,18 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                           height: 250,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
                             border: Border.all(
-                              color: const Color(0xFF4E8F73),
+                              color: accentGreen,
                               width: 9,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           alignment: Alignment.center,
                           child: Text(
@@ -754,7 +795,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 48,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1A1A2E),
+                              color: isDark ? Colors.white : const Color(0xFF1A1A2E),
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -776,9 +817,11 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                   height: 70,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.white,
+                                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                     border: Border.all(
-                                      color: isSelected ? const Color(0xFF4E8F73) : const Color(0xFFD1D5DB),
+                                      color: isSelected
+                                          ? accentGreen
+                                          : (isDark ? const Color(0xFF334155) : const Color(0xFFD1D5DB)),
                                       width: isSelected ? 2.5 : 2,
                                     ),
                                   ),
@@ -788,7 +831,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 14.5,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF1A1A2E),
+                                      color: isSelected
+                                          ? accentGreen
+                                          : (isDark ? Colors.white : const Color(0xFF1A1A2E)),
                                     ),
                                   ),
                                 ),
@@ -807,16 +852,23 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                             height: 66,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white,
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
                               border: Border.all(
-                                color: const Color(0xFF4E8F73),
+                                color: accentGreen,
                                 width: 3.5,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
                             ),
                             child: Icon(
                               isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
                               size: 38,
-                              color: const Color(0xFF4E8F73),
+                              color: accentGreen,
                             ),
                           ),
                         ),
@@ -829,10 +881,10 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                           height: 50,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4E8F73),
+                              backgroundColor: accentGreen,
                               foregroundColor: Colors.white,
                               elevation: 3,
-                              shadowColor: const Color(0xFF4E8F73).withValues(alpha: 0.35),
+                              shadowColor: accentGreen.withValues(alpha: 0.35),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -862,7 +914,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF4E8F73),
+                              color: accentGreen,
                             ),
                           ),
                         ),
@@ -881,3 +933,4 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
   );
   }
 }
+

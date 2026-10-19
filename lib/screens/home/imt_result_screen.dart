@@ -39,257 +39,258 @@ class ImtResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF3F8463);
-    final panelGreen = isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73);
-    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
-    final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F9F7);
-    final cardBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFEBF7F2);
-    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFD4EFE4);
-    final textHeading = isDark ? Colors.white : const Color(0xFF1A1A2E);
-    final textSub = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textHeading = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSub = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
       backgroundColor: headerColor,
       appBar: AppBar(
         backgroundColor: headerColor,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Hasil Perhitungan IMT anda',
+          'Hasil Perhitungan IMT',
           style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        centerTitle: false,
       ),
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: headerColor,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: appBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
             child: Column(
               children: [
-                // 1. PANEL HIJAU DENGAN LENGKUNGAN TEPAT DI BAWAH HEADER (ACUAN RIWAYAT SKRINING & SCREENSHOT 4)
+                // 1. KARTU HASIL SKOR IMT (Elegan & Menyatu dalam konten yang bisa di-scroll)
                 Container(
                   width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 20),
                   decoration: BoxDecoration(
-                    color: panelGreen,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: Text(
-                              'Indeks Masa Tubuh Anda',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 128,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Ilustrasi Wanita Berlari (Page 9 design asset) di sisi kiri
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Image.asset(
-                                    'assets/bmi_woman_running.png',
-                                    width: 84,
-                                    height: 114,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, _, _) => const SizedBox(
-                                      width: 72,
-                                      height: 96,
-                                      child: Icon(Icons.directions_run_rounded, size: 52, color: Colors.white70),
-                                    ),
-                                  ),
-                                ),
-
-                                // Angka Besar IMT & Pill Status Kategori persis di tengah simetris
-                                Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      // Angka Besar IMT
-                                      Text(
-                                        _formattedBmi,
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 52,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.white,
-                                          letterSpacing: -1,
-                                          height: 1.1,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-
-                                      // Pill Badge Kategori
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                                          borderRadius: BorderRadius.circular(20),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Text(
-                                          category,
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color: primaryGreen,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
+                    borderRadius: BorderRadius.circular(20),
+                    border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-
-                // 2. BAGIAN KONTEN HASIL IMT (BATAS ATAS RATA TANPA LENGKUNGAN SESUAI INSTRUKSI)
-                Container(
-                  width: double.infinity,
-                  color: appBg,
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                   child: Column(
                     children: [
-                      // CARD 1: Pesan Status & Saran Singkat
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: cardBorder),
+                      Center(
+                        child: Text(
+                          'Indeks Masa Tubuh Anda',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
-                        child: Column(
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 124,
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Text(
-                              'Berat Badan Anda Dalam Kategori $category.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w700,
-                                color: textHeading,
+                            // Ilustrasi Wanita Berlari di sisi kiri
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Image.asset(
+                                'assets/bmi_woman_running.png',
+                                width: 80,
+                                height: 110,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => const SizedBox(
+                                  width: 72,
+                                  height: 96,
+                                  child: Icon(Icons.directions_run_rounded, size: 48, color: Colors.white70),
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _recommendationMessage,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: textSub,
-                                height: 1.45,
+
+                            // Angka Besar IMT & Pill Status Kategori
+                            Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _formattedBmi,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 50,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      letterSpacing: -1,
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+
+                                  // Pill Badge Kategori
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      category,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 18),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
 
-                      // SLIDER INDIKATOR KATEGORI IMT & BADGE RISIKO
-                      _ImtCategoryBar(bmi: bmi, risk: risk, isDark: isDark),
-                      const SizedBox(height: 18),
-
-                      // CARD 2: Detail Data Anda / Ringkasan Data Fisik
-                      _DetailDataCard(
-                        age: age,
-                        gender: gender,
-                        height: height,
-                        weight: weight,
-                        isDark: isDark,
+                // CARD 1: Pesan Status & Saran Singkat (Background Putih Bersih / Slate)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: cardBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      const SizedBox(height: 18),
-
-                      // CARD 3: Tabel Kategori IMT
-                      _BmiCategoryTable(isDark: isDark),
-                      const SizedBox(height: 18),
-
-                      // SECTION: Rekomendasi Gaya Hidup & Aktivitas
-                      _LifestyleRecommendationsSection(isDark: isDark),
-                      const SizedBox(height: 24),
-
-                      // TOMBOL: Hitung Ulang ↻
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4E8F73),
-                            foregroundColor: Colors.white,
-                            elevation: 3,
-                            shadowColor: const Color(0xFF4E8F73).withValues(alpha: 0.35),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Hitung Ulang',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 15.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.refresh_rounded, size: 20),
-                            ],
-                          ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Berat Badan Anda Dalam Kategori $category.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: textHeading,
                         ),
                       ),
-                      const SizedBox(height: 10),
-
-                      // TOMBOL: Kembali ke Beranda
-                      TextButton(
-                        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                        child: Text(
-                          'Kembali ke Beranda',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w600,
-                            color: primaryGreen,
-                          ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _recommendationMessage,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: textSub,
+                          height: 1.45,
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // SLIDER INDIKATOR KATEGORI IMT & BADGE RISIKO
+                _ImtCategoryBar(bmi: bmi, risk: risk, isDark: isDark),
+                const SizedBox(height: 16),
+
+                // CARD 2: Detail Data Anda / Ringkasan Data Fisik
+                _DetailDataCard(
+                  age: age,
+                  gender: gender,
+                  height: height,
+                  weight: weight,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 16),
+
+                // CARD 3: Tabel Kategori IMT
+                _BmiCategoryTable(isDark: isDark),
+                const SizedBox(height: 16),
+
+                // SECTION: Rekomendasi Gaya Hidup & Aktivitas
+                _LifestyleRecommendationsSection(isDark: isDark),
+                const SizedBox(height: 24),
+
+                // TOMBOL: Hitung Ulang ↻
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shadowColor: const Color(0xFF489874).withValues(alpha: 0.35),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Hitung Ulang',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.refresh_rounded, size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // TOMBOL: Kembali ke Beranda
+                TextButton(
+                  onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                  child: Text(
+                    'Kembali ke Beranda',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: primaryGreen,
+                    ),
                   ),
                 ),
               ],

@@ -29,7 +29,7 @@ class ProgressPageScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
     final bodyBgColor = isDark
         ? const Color(0xFF0F172A)
         : (sheetColor ?? const Color(0xFFF3F6F8));

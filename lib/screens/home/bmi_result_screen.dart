@@ -138,6 +138,7 @@ class BmiResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -151,10 +152,11 @@ class BmiResultScreen extends StatelessWidget {
     final bmiString = bmi.toStringAsFixed(1).replaceAll('.', ',');
 
     return Scaffold(
-      backgroundColor: scaffoldBg,
+      backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
+        backgroundColor: headerColor,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
@@ -162,18 +164,25 @@ class BmiResultScreen extends StatelessWidget {
         title: Text(
           'Hasil Perhitungan IMT',
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        centerTitle: false,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: scaffoldBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                 physics: const BouncingScrollPhysics(),
                 child: Column(
@@ -515,8 +524,9 @@ class BmiResultScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildDataRow({
     required String label,

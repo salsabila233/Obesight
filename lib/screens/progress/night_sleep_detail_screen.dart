@@ -129,6 +129,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         totalDurationFormatted: totalDurationFormatted,
                         statusText: statusText,
                         pendingAuto: pendingAuto,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 16),
 
@@ -137,11 +138,12 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         service: service,
                         summaries: summaries,
                         hasDataForSelectedDate: hasDataForSelectedDate,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 16),
 
                       // --- CARD TIPS ISTIRAHAT ---
-                      _buildTipsSection(),
+                      _buildTipsSection(isDark: isDark),
                       const SizedBox(height: 24),
 
                       // --- TOMBOL UTAMA: Masukkan Data ---
@@ -200,6 +202,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     required String totalDurationFormatted,
     required String statusText,
     required SleepRecord? pendingAuto,
+    required bool isDark,
   }) {
     const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -211,12 +214,12 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE9F3ED)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -232,9 +235,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
               Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xFFFEF3C7),
+                  color: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
                 ),
                 child: const Center(
                   child: Icon(
@@ -261,7 +264,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                         ),
@@ -270,7 +273,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEDF7F2),
+                                color: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.6) : const Color(0xFFEDF7F2),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -280,7 +283,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF265C45),
+                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                                 ),
                               ),
                             ),
@@ -309,7 +312,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1E293B),
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                                   letterSpacing: -0.5,
                                 ),
                               ),
@@ -321,7 +324,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF36785A),
+                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
                                     ),
                                   ),
                                 )
@@ -333,7 +336,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF36785A),
+                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
                                     ),
                                   ),
                                 ),
@@ -345,17 +348,17 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEDF7F2),
+                              color: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.5) : const Color(0xFFEDF7F2),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFA5D6C1)),
+                              border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA5D6C1)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.check_circle_rounded,
                                   size: 14,
-                                  color: Color(0xFF265C45),
+                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
@@ -363,7 +366,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF265C45),
+                                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                                   ),
                                 ),
                               ],
@@ -449,16 +452,16 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE2E8F0),
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: _isSaving
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 14,
                                       height: 14,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                                        valueColor: AlwaysStoppedAnimation<Color>(isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
                                       ),
                                     )
                                   : Text(
@@ -466,7 +469,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF1E293B),
+                                        color: isDark ? Colors.white : const Color(0xFF1E293B),
                                       ),
                                     ),
                             ),
@@ -485,8 +488,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.transparent),
             ),
             child: Row(
               children: [
@@ -497,7 +501,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                     'Perkiraan waktu tidur berdasarkan waktu layar HP dimatikan di malam hari hingga dinyalakan kembali pada pagi hari.',
                     style: GoogleFonts.poppins(
                       fontSize: 10,
-                      color: const Color(0xFF64748B),
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       height: 1.35,
                     ),
                   ),
@@ -518,17 +522,18 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     required SleepTrackingService service,
     required List<DailySleepSummary> summaries,
     required bool hasDataForSelectedDate,
+    required bool isDark,
   }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE9F3ED)),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -552,30 +557,30 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E293B),
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 13,
-                    color: Color(0xFF94A3B8),
+                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
           const SizedBox(height: 16),
 
           // Konten Grafik: HARI INI & 7 HARI TERAKHIR
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 140),
             child: !hasDataForSelectedDate
-                ? _buildDailyEmptyState()
-                : _buildTodayOnlyChart(service, _selectedDate, summaries),
+                ? _buildDailyEmptyState(isDark: isDark)
+                : _buildTodayOnlyChart(service, _selectedDate, summaries, isDark: isDark),
           ),
         ],
       ),
@@ -585,8 +590,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   Widget _buildTodayOnlyChart(
     SleepTrackingService service,
     DateTime date,
-    List<DailySleepSummary> summaries,
-  ) {
+    List<DailySleepSummary> summaries, {
+    required bool isDark,
+  }) {
     final recs = service.getRecordsForDate(date);
     final totalMinutes = recs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
     final targetM = service.targetSleepMinutes;
@@ -602,9 +608,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -627,7 +633,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF265C45),
+                              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                             ),
                           ),
                         ),
@@ -666,7 +672,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF265C45),
+                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                       ),
                     ),
                   ],
@@ -688,7 +694,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF64748B),
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             ),
                           ),
                         ),
@@ -696,7 +702,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEDF7F2),
+                            color: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.6) : const Color(0xFFEDF7F2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -704,7 +710,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF265C45),
+                              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                             ),
                           ),
                         ),
@@ -716,7 +722,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                       child: LinearProgressIndicator(
                         value: targetM > 0 ? (totalMinutes / targetM).clamp(0.0, 1.0) : 1.0,
                         minHeight: 8,
-                        backgroundColor: const Color(0xFFE2E8F0),
+                        backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                         valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
                       ),
                     ),
@@ -728,11 +734,14 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.bedtime_outlined, size: 14, color: Color(0xFF36785A)),
+                            Icon(Icons.bedtime_outlined, size: 14, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
                             const SizedBox(width: 4),
                             Text(
                               recs.isNotEmpty ? 'Tidur: ${recs.first.startTimeFormatted}' : '-',
-                              style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF334155)),
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                              ),
                             ),
                           ],
                         ),
@@ -743,7 +752,10 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             const SizedBox(width: 4),
                             Text(
                               recs.isNotEmpty ? 'Bangun: ${recs.last.endTimeFormatted}' : '-',
-                              style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF334155)),
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                              ),
                             ),
                           ],
                         ),
@@ -757,7 +769,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF265C45),
+                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45),
                       ),
                     ),
                   ],
@@ -770,7 +782,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     );
   }
 
-  Widget _buildDailyEmptyState() {
+  Widget _buildDailyEmptyState({required bool isDark}) {
     return Container(
       key: const ValueKey('daily_empty'),
       width: double.infinity,
@@ -781,8 +793,8 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           Container(
             width: 52,
             height: 52,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFEF3C7),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
               shape: BoxShape.circle,
             ),
             child: const Center(
@@ -799,7 +811,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             style: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1E293B),
+              color: isDark ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
           const SizedBox(height: 4),
@@ -808,7 +820,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 11,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
               height: 1.4,
             ),
           ),
@@ -820,7 +832,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   // ==========================================
   // CARD TIPS ISTIRAHAT
   // ==========================================
-  Widget _buildTipsSection() {
+  Widget _buildTipsSection({required bool isDark}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -833,7 +845,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF265C45),
+                color: isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45),
               ),
             ),
           ],
@@ -843,17 +855,18 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFEDF7F2),
+            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEDF7F2),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.transparent),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildCheckItem('Hindari penggunaan gadget sebelum tidur'),
+              _buildCheckItem('Hindari penggunaan gadget sebelum tidur', isDark: isDark),
               const SizedBox(height: 8),
-              _buildCheckItem('Buat suasana kamar nyaman, tenang, dan gelap'),
+              _buildCheckItem('Buat suasana kamar nyaman, tenang, dan gelap', isDark: isDark),
               const SizedBox(height: 8),
-              _buildCheckItem('Usahakan tidur dan bangun di jam yang teratur setiap hari'),
+              _buildCheckItem('Usahakan tidur dan bangun di jam yang teratur setiap hari', isDark: isDark),
             ],
           ),
         ),
@@ -861,13 +874,13 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     );
   }
 
-  Widget _buildCheckItem(String text) {
+  Widget _buildCheckItem(String text, {required bool isDark}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
-          child: Icon(Icons.check_rounded, size: 15, color: Color(0xFF36785A)),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(Icons.check_rounded, size: 15, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -875,7 +888,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             text,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              color: const Color(0xFF365E4C),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF365E4C),
               height: 1.4,
             ),
           ),
@@ -889,7 +902,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
 // SLIVER PERSISTENT HEADER DELEGATE:
 // Menampilkan banner visual jernih tanpa background hijau kusam.
 // Saat di-scroll ke atas, bertransisi halus menjadi AppBar hijau
-// brand ObeSight (0xFF36785A) yang memuat judul dan tombol back.
+// brand ObeSight (0xFF489874) yang memuat judul dan tombol back.
 // =======================================================
 class _SleepCollapsibleHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double topPadding;
@@ -981,7 +994,7 @@ class _SleepCollapsibleHeaderDelegate extends SliverPersistentHeaderDelegate {
               child: Opacity(
                 opacity: t,
                 child: Container(
-                  color: const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
                 ),
               ),
             ),

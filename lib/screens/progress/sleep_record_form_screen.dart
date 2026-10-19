@@ -249,10 +249,12 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
   }
 
   Future<String?> _showOverlapDialog(SleepRecord existing) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return showDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
@@ -260,7 +262,11 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
             const SizedBox(width: 8),
             Text(
               'Waktu Tumpang Tindih',
-              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700),
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+              ),
             ),
           ],
         ),
@@ -273,18 +279,27 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
               '• Data tersimpan: ${existing.timeRangeFormatted} (${existing.durationFormatted})\n'
               '• Data baru: ${_formatTimeOfDay(_startTime)} – ${_formatTimeOfDay(_endTime)} ($_durationFormatted)\n\n'
               'Silakan pilih tindakan yang Anda inginkan:',
-              style: GoogleFonts.poppins(fontSize: 12.5, height: 1.45, color: const Color(0xFF334155)),
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                height: 1.45,
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop('cancel'),
-            child: Text('Edit Waktu', style: GoogleFonts.poppins(color: const Color(0xFF64748B))),
+            child: Text(
+              'Edit Waktu',
+              style: GoogleFonts.poppins(
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF36785A),
+              backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.of(ctx).pop('replace'),
@@ -478,7 +493,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                   Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3E8D6B),
+                      backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),

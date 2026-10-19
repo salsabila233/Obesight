@@ -154,13 +154,12 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73);
-    final bannerBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3);
-    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
-    final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F9F7);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final textHeading = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final textHeading = isDark ? Colors.white : const Color(0xFF0F172A);
     final textSub = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
@@ -168,103 +167,104 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
       appBar: AppBar(
         backgroundColor: headerColor,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Hitung Indeks Masa Tubuh (IMT)',
+          'Hitung IMT',
           style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        centerTitle: false,
       ),
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: headerColor,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: appBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. BANNER HIJAU MUDA DENGAN LENGKUNGAN TEPAT DI BAWAH HEADER (ACUAN RIWAYAT SKRINING)
+                // Info Card Pengantar (Bersih, elegan, tanpa latar kusam)
                 Container(
                   width: double.infinity,
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: bannerBg,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 16, 20),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Hitung Indeks Massa Tubuhmu',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: textHeading,
-                                    height: 1.3,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Ketahui status berat badan dan risiko kesehatan berdasarkan tinggi dan berat badanmu.',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Image.asset(
-                            'assets/images/bmi_illustration.png',
-                            width: 110,
-                            height: 100,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) => Icon(
-                              Icons.assessment_rounded,
-                              size: 72,
-                              color: primaryGreen,
-                            ),
-                          ),
-                        ],
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: cardBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-
-                // 2. BAGIAN DATA FISIK PENGGUNA (RATA TANPA LENGKUNGAN SESUAI INSTRUKSI)
-                Container(
-                  width: double.infinity,
-                  color: appBg,
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      // SECTION: Data Fisik Pengguna
-                      Text(
-                        'Data Fisik Pengguna',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: textHeading,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Hitung Indeks Massa Tubuhmu',
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: textHeading,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Ketahui status berat badan dan risiko kesehatan berdasarkan tinggi dan berat badanmu.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: textSub,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      Image.asset(
+                        'assets/images/bmi_illustration.png',
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => Icon(
+                          Icons.assessment_rounded,
+                          size: 64,
+                          color: primaryGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // BAGIAN DATA FISIK PENGGUNA
+                Text(
+                  'Data Fisik Pengguna',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textHeading,
+                  ),
+                ),
                           const SizedBox(height: 16),
 
                           // 1. Usia Card
@@ -432,14 +432,11 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
-        );
-      }
-}
+              );
+            }
+          }
 
 // ==========================================
 // REUSABLE SUB-WIDGET: Physical Data Card

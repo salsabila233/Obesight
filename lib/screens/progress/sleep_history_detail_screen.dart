@@ -33,10 +33,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
         final service = SleepTrackingService.instance;
         final summaries = service.getPast7DaysSummaries(_currentWeekEnd);
 
+        final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+
         return Scaffold(
-          backgroundColor: const Color(0xFF36785A),
+          backgroundColor: headerColor,
           appBar: AppBar(
-            backgroundColor: const Color(0xFF36785A),
+            backgroundColor: headerColor,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -67,19 +69,19 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 1. Segmented Filter Tabs (Jam | Hari | Minggu | Bulan)
-                    _buildSegmentedTabs(),
+                    _buildSegmentedTabs(isDark),
                     const SizedBox(height: 16),
 
                     // 2. Dynamic Chart Card (Jam / Hari / Minggu / Bulan)
-                    _buildDynamicChartCard(service, summaries),
+                    _buildDynamicChartCard(service, summaries, isDark),
                     const SizedBox(height: 20),
 
                     // 3. Section: Pengaturan Notifikasi Waktu Tidur
-                    _buildReminderSection(service),
+                    _buildReminderSection(service, isDark),
                     const SizedBox(height: 20),
 
                     // 4. Section: Riwayat Catatan Tidur (List records with edit & delete)
-                    _buildRecordListSection(service),
+                    _buildRecordListSection(service, isDark),
                   ],
                 ),
               ),
@@ -94,12 +96,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
   // WIDGET BUILDERS
   // ==========================================
 
-  Widget _buildSegmentedTabs() {
+  Widget _buildSegmentedTabs(bool isDark) {
     final tabs = ['Jam', 'Hari', 'Minggu', 'Bulan'];
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFE2EBE5),
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2EBE5),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -116,12 +118,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+                  color: isSelected ? (isDark ? const Color(0xFF334155) : Colors.white) : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -134,7 +136,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? const Color(0xFF265C45) : const Color(0xFF64748B),
+                      color: isSelected
+                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     ),
                   ),
                 ),
@@ -146,24 +150,24 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
     );
   }
 
-  Widget _buildDynamicChartCard(SleepTrackingService service, List<DailySleepSummary> summaries) {
+  Widget _buildDynamicChartCard(SleepTrackingService service, List<DailySleepSummary> summaries, bool isDark) {
     switch (_selectedTabIndex) {
       case 0:
-        return _buildHourlyCard(service);
+        return _buildHourlyCard(service, isDark);
       case 2:
-        return _buildSingleWeekSummaryCard(service);
+        return _buildSingleWeekSummaryCard(service, isDark);
       case 3:
-        return _buildCalendarMonthSummaryCard(service);
+        return _buildCalendarMonthSummaryCard(service, isDark);
       case 1:
       default:
-        return _buildDailyCard(service, summaries);
+        return _buildDailyCard(service, summaries, isDark);
     }
   }
 
   // ========================================================
   // TAB 0: JAM (Data per jam untuk satu tanggal yang dipilih)
   // ========================================================
-  Widget _buildHourlyCard(SleepTrackingService service) {
+  Widget _buildHourlyCard(SleepTrackingService service, bool isDark) {
     final hourly = service.getChronologicalHourlySleep(_selectedHistoryDate);
     final recs = service.getRecordsForDate(_selectedHistoryDate);
     final hasData = recs.isNotEmpty;
@@ -176,11 +180,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -203,9 +208,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         });
                       },
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_left_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                       ),
                     ),
                     Expanded(
@@ -215,7 +220,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E293B),
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                         ),
                       ),
                     ),
@@ -227,9 +232,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         });
                       },
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_right_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                       ),
                     ),
                   ],
@@ -240,7 +245,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDF7F2),
+                    color: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.6) : const Color(0xFFEDF7F2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -248,7 +253,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF265C45),
+                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                     ),
                   ),
                 ),
@@ -260,7 +265,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             'Visualisasi jam tidur malam (20.00 – 08.00) secara kronologis untuk tanggal terpilih',
             style: GoogleFonts.poppins(
               fontSize: 11.5,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 18),
@@ -291,7 +296,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF265C45),
+                                color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                               ),
                             ),
                           )
@@ -302,7 +307,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                           width: 20,
                           height: barH,
                           decoration: BoxDecoration(
-                            color: h.isAsleep ? const Color(0xFF36785A) : const Color(0xFFE2E8F0),
+                            color: h.isAsleep
+                                ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
@@ -314,7 +321,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 9.5,
                               fontWeight: h.isAsleep ? FontWeight.w700 : FontWeight.w500,
-                              color: h.isAsleep ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+                              color: h.isAsleep
+                                  ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                  : const Color(0xFF94A3B8),
                             ),
                           ),
                         ),
@@ -331,10 +340,14 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: hasData ? const Color(0xFFEDF7F2) : const Color(0xFFF8FAFC),
+              color: hasData
+                  ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.3) : const Color(0xFFEDF7F2))
+                  : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: hasData ? const Color(0xFFA5D6C1) : const Color(0xFFE2E8F0),
+                color: hasData
+                    ? (isDark ? const Color(0xFF059669) : const Color(0xFFA5D6C1))
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
             ),
             child: Row(
@@ -343,7 +356,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 Icon(
                   hasData ? Icons.check_circle_rounded : Icons.info_outline_rounded,
                   size: 18,
-                  color: hasData ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+                  color: hasData ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45)) : const Color(0xFF94A3B8),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -355,7 +368,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
-                          color: hasData ? const Color(0xFF265C45) : const Color(0xFF475569),
+                          color: hasData ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45)) : (isDark ? Colors.white : const Color(0xFF475569)),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -365,7 +378,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             : 'Tidak ada sesi tidur tercatat pada tanggal ${_formatDateIndo(_selectedHistoryDate)}.',
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          color: hasData ? const Color(0xFF365E4C) : const Color(0xFF64748B),
+                          color: hasData ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF365E4C)) : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         ),
                       ),
                     ],
@@ -382,7 +395,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
   // ========================================================
   // TAB 1: HARI (Statistik satu hari penuh & grafik 7 hari)
   // ========================================================
-  Widget _buildDailyCard(SleepTrackingService service, List<DailySleepSummary> summaries) {
+  Widget _buildDailyCard(SleepTrackingService service, List<DailySleepSummary> summaries, bool isDark) {
     final avgBedtime = service.getAverageBedtime7Days(_currentWeekEnd);
     final avgWakeTime = service.getAverageWakeTime7Days(_currentWeekEnd);
     final avgMinutes = service.getAverageSleepMinutes7Days(_currentWeekEnd);
@@ -412,11 +425,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -436,9 +450,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   });
                 },
                 borderRadius: BorderRadius.circular(12),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(Icons.chevron_left_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                 ),
               ),
               Text(
@@ -446,7 +460,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E293B),
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
               const SizedBox(width: 4),
@@ -458,9 +472,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   });
                 },
                 borderRadius: BorderRadius.circular(12),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(Icons.chevron_right_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                 ),
               ),
             ],
@@ -473,7 +487,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF475569),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
             ),
           ),
           const SizedBox(height: 4),
@@ -482,23 +496,27 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF475569),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
             ),
           ),
           const SizedBox(height: 18),
 
           // Bar Chart with right Y-axis
-          _buildWeeklyBarChart(summaries),
+          _buildWeeklyBarChart(summaries, isDark),
           const SizedBox(height: 14),
 
           // Card Rincian Tanggal yang Dipilih
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: selectedSummary.hasData ? const Color(0xFFEDF7F2) : const Color(0xFFF8FAFC),
+              color: selectedSummary.hasData
+                  ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.3) : const Color(0xFFEDF7F2))
+                  : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: selectedSummary.hasData ? const Color(0xFFA5D6C1) : const Color(0xFFE2E8F0),
+                color: selectedSummary.hasData
+                    ? (isDark ? const Color(0xFF059669) : const Color(0xFFA5D6C1))
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
             ),
             child: Row(
@@ -512,7 +530,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: selectedSummary.hasData ? const Color(0xFF265C45) : const Color(0xFF475569),
+                          color: selectedSummary.hasData
+                              ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                              : (isDark ? Colors.white : const Color(0xFF475569)),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -522,7 +542,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             : 'Belum ada catatan tidur pada tanggal ini.',
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          color: selectedSummary.hasData ? const Color(0xFF365E4C) : const Color(0xFF64748B),
+                          color: selectedSummary.hasData
+                              ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF365E4C))
+                              : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         ),
                       ),
                     ],
@@ -540,13 +562,13 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         _selectedTabIndex = 0; // Pindah ke tab Jam
                       });
                     },
-                    icon: const Icon(Icons.schedule_rounded, size: 14, color: Color(0xFF265C45)),
+                    icon: Icon(Icons.schedule_rounded, size: 14, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45)),
                     label: Text(
                       'Rincian Jam',
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF265C45),
+                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                       ),
                     ),
                   ),
@@ -559,12 +581,13 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
+              border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
             ),
             child: Row(
               children: [
-                const Icon(Icons.insights_rounded, size: 16, color: Color(0xFF36785A)),
+                Icon(Icons.insights_rounded, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -572,7 +595,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF334155),
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                     ),
                   ),
                 ),
@@ -587,7 +610,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
   // ========================================================
   // TAB 2: MINGGU (Data HANYA untuk 1 minggu: 7 hari Sen - Min)
   // ========================================================
-  Widget _buildSingleWeekSummaryCard(SleepTrackingService service) {
+  Widget _buildSingleWeekSummaryCard(SleepTrackingService service, bool isDark) {
     final singleWeek = service.getSingleWeekSummary(_currentWeekEnd);
     final weekTotalHours = singleWeek.totalMinutes ~/ 60;
     final weekTotalRemMins = singleWeek.totalMinutes % 60;
@@ -596,11 +619,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -622,9 +646,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         });
                       },
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_left_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                       ),
                     ),
                     Expanded(
@@ -634,7 +658,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E293B),
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                         ),
                       ),
                     ),
@@ -646,9 +670,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         });
                       },
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_right_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                       ),
                     ),
                   ],
@@ -658,7 +682,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFF36785A),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -677,7 +701,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             'Statistik tidur harian selama 1 minggu penuh (7 hari)',
             style: GoogleFonts.poppins(
               fontSize: 11.5,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 18),
@@ -714,7 +738,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 9.5,
                                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                color: isSelected ? const Color(0xFF265C45) : const Color(0xFF64748B),
+                                color: isSelected
+                                    ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                    : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
                               ),
                             ),
                           )
@@ -726,8 +752,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                           height: barH,
                           decoration: BoxDecoration(
                             color: d.hasData
-                                ? (isSelected ? const Color(0xFF265C45) : const Color(0xFF86C5A9))
-                                : const Color(0xFFE2E8F0),
+                                ? (isSelected
+                                    ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45))
+                                    : (isDark ? const Color(0xFF134E4A) : const Color(0xFF86C5A9)))
+                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
@@ -737,7 +765,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 10.5,
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+                            color: isSelected
+                                ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                : const Color(0xFF94A3B8),
                           ),
                         ),
                       ],
@@ -753,9 +783,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFEDF7F2),
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFA5D6C1)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFA5D6C1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -768,7 +798,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         children: [
                           Text(
                             'Akumulasi 1 Minggu',
-                            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF475569)),
+                            style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                           ),
                           Text(
                             singleWeek.hasData
@@ -777,7 +807,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                         ],
@@ -789,7 +819,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         children: [
                           Text(
                             'Rata-rata Per Hari',
-                            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF475569)),
+                            style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                           ),
                           Text(
                             singleWeek.hasData
@@ -798,7 +828,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                         ],
@@ -807,7 +837,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                const Divider(height: 1, color: Color(0xFFC7E5D6)),
+                Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFC7E5D6)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 12,
@@ -816,11 +846,11 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   children: [
                     Text(
                       'Rata-rata tidur: ${singleWeek.averageBedtime}',
-                      style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF334155)),
+                      style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
                     ),
                     Text(
                       'Rata-rata bangun: ${singleWeek.averageWakeTime}',
-                      style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF334155)),
+                      style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
                     ),
                   ],
                 ),
@@ -835,7 +865,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
   // ========================================================
   // TAB 3: BULAN (Data HANYA untuk satu bulan kalender)
   // ========================================================
-  Widget _buildCalendarMonthSummaryCard(SleepTrackingService service) {
+  Widget _buildCalendarMonthSummaryCard(SleepTrackingService service, bool isDark) {
     final monthSummary = service.getCalendarMonthSummary(_currentWeekEnd);
     final monthTotalHours = monthSummary.totalMinutes ~/ 60;
     final monthTotalRemMins = monthSummary.totalMinutes % 60;
@@ -844,11 +874,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -875,9 +906,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         });
                       },
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.chevron_left_rounded, size: 22, color: Color(0xFF475569)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_left_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                       ),
                     ),
                     Expanded(
@@ -887,7 +918,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E293B),
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                         ),
                       ),
                     ),
@@ -904,9 +935,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         });
                       },
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF475569)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(Icons.chevron_right_rounded, size: 22, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                       ),
                     ),
                   ],
@@ -916,7 +947,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFF36785A),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -935,7 +966,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             'Akumulasi data tidur selama 1 bulan kalender penuh',
             style: GoogleFonts.poppins(
               fontSize: 11.5,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 18),
@@ -964,7 +995,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 9.5,
                               fontWeight: w.isCurrentWeek ? FontWeight.w700 : FontWeight.w500,
-                              color: w.isCurrentWeek ? const Color(0xFF265C45) : const Color(0xFF64748B),
+                              color: w.isCurrentWeek
+                                  ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                  : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B)),
                             ),
                           ),
                         )
@@ -976,8 +1009,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         height: barH,
                         decoration: BoxDecoration(
                           color: w.hasData
-                              ? (w.isCurrentWeek ? const Color(0xFF265C45) : const Color(0xFF86C5A9))
-                              : const Color(0xFFE2E8F0),
+                              ? (w.isCurrentWeek
+                                  ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45))
+                                  : (isDark ? const Color(0xFF134E4A) : const Color(0xFF86C5A9)))
+                              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
@@ -987,7 +1022,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 10.5,
                           fontWeight: w.isCurrentWeek ? FontWeight.w700 : FontWeight.w500,
-                          color: w.isCurrentWeek ? const Color(0xFF265C45) : const Color(0xFF94A3B8),
+                          color: w.isCurrentWeek
+                              ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                              : const Color(0xFF94A3B8),
                         ),
                       ),
                     ],
@@ -1002,9 +1039,9 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFEDF7F2),
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFA5D6C1)),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFA5D6C1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1017,7 +1054,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         children: [
                           Text(
                             'Akumulasi 1 Bulan',
-                            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF475569)),
+                            style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                           ),
                           Text(
                             monthSummary.hasData
@@ -1026,7 +1063,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                         ],
@@ -1038,7 +1075,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                         children: [
                           Text(
                             'Rata-rata Harian',
-                            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF475569)),
+                            style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
                           ),
                           Text(
                             monthSummary.hasData
@@ -1047,7 +1084,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                         ],
@@ -1063,7 +1100,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
     );
   }
 
-  Widget _buildWeeklyBarChart(List<DailySleepSummary> summaries) {
+  Widget _buildWeeklyBarChart(List<DailySleepSummary> summaries, bool isDark) {
     const double chartHeight = 140;
     const double maxHours = 8.0;
 
@@ -1078,7 +1115,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               return Container(
                 height: 1,
                 width: double.infinity,
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
               );
             }),
           ),
@@ -1120,8 +1157,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                     fontSize: 9,
                                     fontWeight: (isSelected || summary.isToday) ? FontWeight.w700 : FontWeight.w500,
                                     color: isSelected
-                                        ? const Color(0xFF265C45)
-                                        : (summary.isToday ? const Color(0xFF265C45) : const Color(0xFF64748B)),
+                                        ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                        : (summary.isToday
+                                            ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                                   ),
                                 ),
                               )
@@ -1136,12 +1175,16 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                               decoration: BoxDecoration(
                                 color: summary.hasData
                                     ? (isSelected
-                                        ? const Color(0xFF265C45)
-                                        : (summary.isToday ? const Color(0xFF36785A) : const Color(0xFF6EBE9B)))
-                                    : (isSelected ? const Color(0xFFCBD5E1) : const Color(0xFFE2E8F0)),
+                                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45))
+                                        : (summary.isToday
+                                            ? const Color(0xFF36785A)
+                                            : (isDark ? const Color(0xFF134E4A) : const Color(0xFF6EBE9B))))
+                                    : (isSelected
+                                        ? (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1))
+                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                                 borderRadius: BorderRadius.circular(6),
                                 border: isSelected
-                                    ? Border.all(color: const Color(0xFF1E293B), width: 1.5)
+                                    ? Border.all(color: isDark ? Colors.white : const Color(0xFF1E293B), width: 1.5)
                                     : null,
                               ),
                             ),
@@ -1156,8 +1199,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                   fontSize: 11,
                                   fontWeight: (isSelected || summary.isToday) ? FontWeight.w700 : FontWeight.w500,
                                   color: isSelected
-                                      ? const Color(0xFF1E293B)
-                                      : (summary.isToday ? const Color(0xFF265C45) : const Color(0xFF94A3B8)),
+                                      ? (isDark ? Colors.white : const Color(0xFF1E293B))
+                                      : (summary.isToday
+                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                          : const Color(0xFF94A3B8)),
                                 ),
                               ),
                             ),
@@ -1191,16 +1236,17 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
     );
   }
 
-  Widget _buildReminderSection(SleepTrackingService service) {
+  Widget _buildReminderSection(SleepTrackingService service, bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1215,10 +1261,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2F1E8),
+                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFFE2F1E8),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.notifications_active_rounded, size: 20, color: Color(0xFF36785A)),
+                child: Icon(Icons.notifications_active_rounded, size: 20, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1227,13 +1273,14 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
               ),
               Switch(
                 value: service.reminderEnabled,
-                activeThumbColor: const Color(0xFF36785A),
+                activeThumbColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                activeTrackColor: isDark ? const Color(0xFF065F46) : null,
                 onChanged: (val) async {
                   if (val) {
                     await service.requestNotificationPermission();
@@ -1248,7 +1295,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             'Aplikasi akan mengirimkan notifikasi sistem 1 jam sebelum target waktu tidur agar Anda bersiap meletakkan gadget dan beristirahat.',
             style: GoogleFonts.poppins(
               fontSize: 12,
-              color: const Color(0xFF64748B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
               height: 1.45,
             ),
           ),
@@ -1257,14 +1304,14 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           // Target Bedtime tile
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.bedtime_rounded, color: Color(0xFF36785A)),
+            leading: Icon(Icons.bedtime_rounded, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
             title: Text(
               'Target Waktu Tidur',
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF1E293B)),
             ),
             subtitle: Text(
               'Notifikasi aktif pada ${_formatTimeOfDay(service.reminderTime)} (1 jam sebelumnya)',
-              style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF64748B)),
+              style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
             ),
             trailing: InkWell(
               onTap: service.reminderEnabled
@@ -1282,15 +1329,16 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEDF7F2),
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
                   borderRadius: BorderRadius.circular(8),
+                  border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                 ),
                 child: Text(
                   _formatTimeOfDay(service.bedtimeTarget),
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF265C45),
+                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                   ),
                 ),
               ),
@@ -1302,21 +1350,21 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFEDF7F2),
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFA5D6C1)),
+                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFA5D6C1)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF265C45), size: 18),
+                  Icon(Icons.check_circle_outline_rounded, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45), size: 18),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Sistem pengingat aktif otomatis di latar belakang. Anda akan menerima notifikasi setiap malam pukul ${_formatTimeOfDay(service.reminderTime)} (1 jam sebelum target tidur).',
                       style: GoogleFonts.poppins(
                         fontSize: 11.5,
-                        color: const Color(0xFF265C45),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF265C45),
                         height: 1.45,
                       ),
                     ),
@@ -1330,18 +1378,19 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
     );
   }
 
-  Widget _buildRecordListSection(SleepTrackingService service) {
+  Widget _buildRecordListSection(SleepTrackingService service, bool isDark) {
     final allRecords = service.allRecords;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1359,7 +1408,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E293B),
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
               ),
@@ -1368,7 +1417,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 '${allRecords.length} catatan',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -1381,7 +1430,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Text(
                   'Belum ada catatan tidur pada rentang tanggal ini.',
-                  style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF94A3B8)),
+                  style: GoogleFonts.poppins(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8)),
                 ),
               ),
             )
@@ -1390,7 +1439,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: allRecords.length,
-              separatorBuilder: (context, index) => const Divider(height: 16, color: Color(0xFFF1F5F9)),
+              separatorBuilder: (context, index) => Divider(height: 16, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
               itemBuilder: (context, index) {
                 final record = allRecords[index];
                 return Row(
@@ -1400,13 +1449,17 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: record.isAutomatic ? const Color(0xFFE2F1E8) : const Color(0xFFF1F5F9),
+                        color: record.isAutomatic
+                            ? (isDark ? const Color(0xFF134E4A) : const Color(0xFFE2F1E8))
+                            : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
                         record.isAutomatic ? Icons.phone_android_rounded : Icons.edit_note_rounded,
                         size: 19,
-                        color: record.isAutomatic ? const Color(0xFF265C45) : const Color(0xFF64748B),
+                        color: record.isAutomatic
+                            ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -1424,21 +1477,22 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1E293B),
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFEDF7F2),
+                                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
                                   borderRadius: BorderRadius.circular(6),
+                                  border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                                 ),
                                 child: Text(
                                   record.shortDurationFormatted,
                                   style: GoogleFonts.poppins(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF265C45),
+                                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                                   ),
                                 ),
                               ),
@@ -1449,14 +1503,14 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                             '${record.date} • ${record.sourceLabel}',
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
-                              color: const Color(0xFF64748B),
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF64748B)),
+                      icon: Icon(Icons.edit_outlined, size: 18, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -1467,7 +1521,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
-                      onPressed: () => _confirmDelete(record),
+                      onPressed: () => _confirmDelete(record, isDark),
                     ),
                   ],
                 );
@@ -1478,19 +1532,31 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
     );
   }
 
-  void _confirmDelete(SleepRecord record) {
+  void _confirmDelete(SleepRecord record, bool isDark) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Hapus Catatan Tidur', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(
+          'Hapus Catatan Tidur',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
+        ),
         content: Text(
           'Apakah Anda yakin ingin menghapus catatan tidur ${record.timeRangeFormatted} (${record.durationFormatted})?',
-          style: GoogleFonts.poppins(fontSize: 13),
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Batal', style: GoogleFonts.poppins(color: const Color(0xFF64748B))),
+            child: Text('Batal', style: GoogleFonts.poppins(color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B))),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),

@@ -143,6 +143,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -150,29 +151,37 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
     final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
 
     return Scaffold(
-      backgroundColor: scaffoldBg,
+      backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
+        backgroundColor: headerColor,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Perhitungan IMT',
+          'Hitung IMT',
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        centerTitle: false,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: scaffoldBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                 physics: const BouncingScrollPhysics(),
                 child: Column(
@@ -484,8 +493,9 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGenderCard({
     required String gender,
