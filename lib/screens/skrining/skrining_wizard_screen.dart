@@ -32,13 +32,15 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   late final TextEditingController _weightController;
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-  Color get primaryGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF4A8B6C);
+  Color get headerGreen => _isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+  Color get primaryGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
   Color get activeGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
   Color get textDark => _isDark ? Colors.white : const Color(0xFF1E293B);
   Color get textMuted => _isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
   Color get cardBorder => _isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
   Color get cardBg => _isDark ? const Color(0xFF1E293B) : Colors.white;
-  Color get scaffoldBg => _isDark ? const Color(0xFF0F172A) : Colors.white;
+  Color get scaffoldBg => _isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+  Color get contentBg => _isDark ? const Color(0xFF0F172A) : Colors.white;
   Color get inputBg => _isDark ? const Color(0xFF0F172A) : Colors.white;
 
   @override
@@ -263,58 +265,67 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: _isDark ? const Color(0xFF1E293B) : primaryGreen,
+        backgroundColor: headerGreen,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 30),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
           onPressed: _onBackPressed,
         ),
         title: Text(
-          'Skrining Obesitas',
+          'Skrining',
           style: GoogleFonts.poppins(
-            fontSize: 16.5,
+            fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // STEPPER INDICATOR HEADER
-            _buildStepperHeader(),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: contentBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: Column(
+            children: [
+              // STEPPER INDICATOR HEADER
+              _buildStepperHeader(),
 
-            // SCROLLABLE FORM QUESTIONS
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Step Title & Subtitle
-                    _buildStepHeaderTitle(),
-                    const SizedBox(height: 14),
+              // SCROLLABLE FORM QUESTIONS
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Step Title & Subtitle
+                      _buildStepHeaderTitle(),
+                      const SizedBox(height: 14),
 
-                    // Dynamic Step Content
-                    if (_currentStep == 0) _buildStep1DataDiri(),
-                    if (_currentStep == 1) _buildStep2RiwayatPolaMakan(),
-                    if (_currentStep == 2) _buildStep3KebiasaanGayaHidup(),
-                    if (_currentStep == 3) _buildStep4AktifitasFisik(),
-                    if (_currentStep == 4) _buildStep5AlkoholTransportasi(),
+                      // Dynamic Step Content
+                      if (_currentStep == 0) _buildStep1DataDiri(),
+                      if (_currentStep == 1) _buildStep2RiwayatPolaMakan(),
+                      if (_currentStep == 2) _buildStep3KebiasaanGayaHidup(),
+                      if (_currentStep == 3) _buildStep4AktifitasFisik(),
+                      if (_currentStep == 4) _buildStep5AlkoholTransportasi(),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // VALIDATED ACTION BUTTON ("Berikutnya ->" / "Lihat Hasil ->")
-                    _buildActionButton(),
+                      // VALIDATED ACTION BUTTON ("Berikutnya ->" / "Lihat Hasil ->")
+                      _buildActionButton(),
 
-                    const SizedBox(height: 16),
-                  ],
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -323,6 +334,7 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   // 1. STEPPER INDICATOR (Langkah X dari 5 & 1-5 Circles)
   Widget _buildStepperHeader() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: Column(
         children: [
