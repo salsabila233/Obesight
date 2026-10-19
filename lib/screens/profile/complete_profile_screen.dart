@@ -255,6 +255,7 @@ ScaffoldMessenger.of(context).showSnackBar(
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final textDark = isDark ? Colors.white : const Color(0xFF0F172A);
@@ -278,9 +279,9 @@ ScaffoldMessenger.of(context).showSnackBar(
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: headerColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),

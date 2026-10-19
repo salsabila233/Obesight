@@ -51,8 +51,10 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
       builder: (context, _) {
         final reminder = RestReminderService.instance.dayRestReminder;
 
+        final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
+
         return Scaffold(
-          backgroundColor: const Color(0xFF36785A),
+          backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF36785A),
           body: CustomScrollView(
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
@@ -62,7 +64,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
                 expandedHeight: 240,
                 pinned: true,
                 elevation: _isSticky ? 2 : 0,
-                backgroundColor: const Color(0xFF36785A),
+                backgroundColor: headerColor,
                 leading: IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(7),
@@ -349,11 +351,11 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            _buildCheckItem('Batasi tidur siang maksimal 20-30 menit agar tidak pusing saat bangun (sleep inertia).'),
+                            _buildCheckItem('Batasi tidur siang maksimal 20-30 menit agar tidak pusing saat bangun (sleep inertia).', isDark),
                             const SizedBox(height: 8),
-                            _buildCheckItem('Pilih tempat yang redup, sejuk, dan tenang untuk mempermudah relaksasi tubuh.'),
+                            _buildCheckItem('Pilih tempat yang redup, sejuk, dan tenang untuk mempermudah relaksasi tubuh.', isDark),
                             const SizedBox(height: 8),
-                            _buildCheckItem('Hindari tidur siang terlalu sore (di atas pukul 15.30) agar tidak mengganggu tidur malam.'),
+                            _buildCheckItem('Hindari tidur siang terlalu sore (di atas pukul 15.30) agar tidak mengganggu tidur malam.', isDark),
                           ],
                         ),
                       ),
@@ -369,13 +371,17 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
     );
   }
 
-  Widget _buildCheckItem(String text) {
+  Widget _buildCheckItem(String text, bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
-          child: Icon(Icons.check_rounded, size: 15, color: Color(0xFF36785A)),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.check_rounded,
+            size: 15,
+            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -383,7 +389,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
             text,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              color: const Color(0xFF365E4C),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF365E4C),
               height: 1.4,
             ),
           ),

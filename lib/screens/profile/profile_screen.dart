@@ -56,6 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (updated == true && mounted) {
       _loadProfileData();
 
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           elevation: 0,
@@ -70,11 +71,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           content: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white, // Latar belakang putih
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(12),
+              border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -82,9 +84,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.check_circle_rounded, 
-                  color: Color(0xFF2D6A4F), // Ikon warna hijau
+                  color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF2D6A4F),
                   size: 22,
                 ),
                 const SizedBox(width: 10),
@@ -93,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF2D6A4F), // Teks warna hijau
+                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF2D6A4F),
                   ),
                 ),
               ],
@@ -159,13 +161,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final joined = _profileData['joined'] ?? 'Bergabung sejak Juni 2026';
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+      backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: headerColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),

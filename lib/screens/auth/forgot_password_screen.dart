@@ -114,6 +114,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   /// Menampilkan SnackBar kustom berwarna putih di bagian atas dengan teks & ikon hijau
   void _showSuccessSnackBar(String email) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -129,11 +130,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         content: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(12),
+            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withValues(alpha: 0.15),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -141,9 +143,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.check_circle_rounded,
-                color: Color(0xFF235B42),
+                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF235B42),
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -152,7 +154,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   'Tautan pemulihan kata sandi telah dikirim ke email $email. Silakan periksa kotak masuk atau folder spam Anda.',
                   style: GoogleFonts.poppins(
                     fontSize: 13,
-                    color: const Color(0xFF235B42),
+                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF235B42),
                     fontWeight: FontWeight.w500,
                     height: 1.4,
                   ),
@@ -167,20 +169,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: _buildFormView(),
+            child: _buildFormView(isDark),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFormView() {
+  Widget _buildFormView(bool isDark) {
     return Form(
       key: _formKey,
       child: Column(
@@ -201,7 +204,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF2C6348),
+                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2C6348),
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -211,7 +214,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF234C37),
+                    color: isDark ? Colors.white : const Color(0xFF234C37),
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -221,7 +224,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
-                    color: const Color(0xFF4A5568),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4A5568),
                     height: 1.45,
                   ),
                 ),
@@ -237,7 +240,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             style: GoogleFonts.poppins(
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF4A5568),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4A5568),
             ),
           ),
           const SizedBox(height: 6),
@@ -248,29 +251,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.poppins(
               fontSize: 13.5,
-              color: const Color(0xFF1F2937),
+              color: isDark ? Colors.white : const Color(0xFF1F2937),
             ),
             decoration: InputDecoration(
               hintText: 'nama@email.com',
               hintStyle: GoogleFonts.poppins(
-                color: const Color(0xFF9CA3AF),
+                color: isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
                 fontSize: 13,
               ),
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.mail_outline_rounded,
-                color: Color(0xFF6B7280),
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
                 size: 20,
               ),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -294,20 +297,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                border: Border.all(color: Colors.red.shade200),
+                color: isDark ? Colors.red.shade900.withValues(alpha: 0.25) : Colors.red.shade50,
+                border: Border.all(color: isDark ? Colors.red.shade800 : Colors.red.shade200),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline_rounded, color: Colors.red.shade700, size: 18),
+                  Icon(Icons.error_outline_rounded, color: isDark ? Colors.red.shade300 : Colors.red.shade700, size: 18),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
-                        color: Colors.red.shade700,
+                        color: isDark ? Colors.red.shade300 : Colors.red.shade700,
                       ),
                     ),
                   ),
@@ -361,7 +364,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF4F9B77),
+                  color: isDark ? const Color(0xFF58AF86) : const Color(0xFF4F9B77),
                 ),
               ),
             ),

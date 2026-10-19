@@ -35,6 +35,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? const Color(0xFF94A3B8) : AppColors.inputLabel;
+    final textColor = isDark ? const Color(0xFFF1F5F9) : AppColors.inputText;
+    final hintColor = isDark ? const Color(0xFF64748B) : AppColors.inputPlaceholder;
+    final fillColor = isDark ? const Color(0xFF1E293B) : AppColors.inputBackground;
+    final borderColor = isDark ? const Color(0xFF334155) : AppColors.inputBorder;
+    final eyeIconColor = isDark ? const Color(0xFF94A3B8) : AppColors.eyeIcon;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -44,7 +52,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.inputLabel,
+            color: labelColor,
           ),
         ),
         const SizedBox(height: 8),
@@ -61,25 +69,25 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.inputText,
+            color: textColor,
           ),
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.normal,
-              color: AppColors.inputPlaceholder,
+              color: hintColor,
             ),
             filled: true,
-            fillColor: AppColors.inputBackground,
+            fillColor: fillColor,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: AppColors.inputBorder,
+              borderSide: BorderSide(
+                color: borderColor,
                 width: 1.0,
               ),
             ),
@@ -107,11 +115,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: _obscureText
-                        ? _buildClosedEyeIcon()
-                        : const Icon(
+                        ? _buildClosedEyeIcon(eyeIconColor)
+                        : Icon(
                             Icons.visibility_outlined,
                             size: 22,
-                            color: AppColors.eyeIcon,
+                            color: eyeIconColor,
                           ),
                     onPressed: () {
                       setState(() {
@@ -129,10 +137,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
   }
 
   /// Custom eye icon with lashes matching the closed eye design in the screenshot
-  Widget _buildClosedEyeIcon() {
+  Widget _buildClosedEyeIcon(Color iconColor) {
     return CustomPaint(
       size: const Size(24, 24),
-      painter: _ClosedEyeWithLashesPainter(color: AppColors.eyeIcon),
+      painter: _ClosedEyeWithLashesPainter(color: iconColor),
     );
   }
 }

@@ -28,12 +28,14 @@ class RestDateSelectorPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFE6EFEA),
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE6EFEA),
           borderRadius: BorderRadius.circular(24),
+          border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -41,9 +43,9 @@ class RestDateSelectorPill extends StatelessWidget {
             InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: () => onDateChanged(selectedDate.subtract(const Duration(days: 1))),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(Icons.chevron_left_rounded, size: 20, color: Color(0xFF475569)),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.chevron_left_rounded, size: 20, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
               ),
             ),
             const SizedBox(width: 14),
@@ -52,16 +54,16 @@ class RestDateSelectorPill extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E293B),
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
               ),
             ),
             const SizedBox(width: 14),
             InkWell(
               borderRadius: BorderRadius.circular(14),
               onTap: () => onDateChanged(selectedDate.add(const Duration(days: 1))),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF475569)),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.chevron_right_rounded, size: 20, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
               ),
             ),
           ],
@@ -86,6 +88,7 @@ class RestStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isNight = type == RestType.night;
     final isSaved = reminder != null && reminder!.isSet;
 
@@ -104,12 +107,12 @@ class RestStatusCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE9F3ED)),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.04),
+              color: const Color(0xFF1E293B).withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -124,17 +127,19 @@ class RestStatusCard extends StatelessWidget {
               height: 52,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isNight ? const Color(0xFFE2F1E8) : const Color(0xFFFEF3C7),
+                color: isNight
+                    ? (isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8))
+                    : (isDark ? const Color(0xFF3E2D12) : const Color(0xFFFEF3C7)),
               ),
               child: Center(
                 child: isNight
                     ? Stack(
                         alignment: Alignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.nightlight_round,
                             size: 26,
-                            color: Color(0xFF36785A),
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
                           ),
                           Positioned(
                             top: 10,
@@ -144,7 +149,7 @@ class RestStatusCard extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF36785A),
+                                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
                               ),
                             ),
                           ),
@@ -170,7 +175,7 @@ class RestStatusCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF475569),
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -179,7 +184,7 @@ class RestStatusCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -189,7 +194,9 @@ class RestStatusCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: isSaved ? 13 : 11,
                       fontWeight: isSaved ? FontWeight.w600 : FontWeight.w400,
-                      color: isSaved ? const Color(0xFF36785A) : const Color(0xFF64748B),
+                      color: isSaved
+                          ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       height: 1.35,
                     ),
                   ),
@@ -216,6 +223,7 @@ class Rest7DayEmptyChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isNight = type == RestType.night;
     final title = isNight
         ? 'Waktu tidur selama 7 hari terakhir'
@@ -229,12 +237,12 @@ class Rest7DayEmptyChartWidget extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE9F3ED)),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.04),
+              color: const Color(0xFF1E293B).withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -253,7 +261,7 @@ class Rest7DayEmptyChartWidget extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                     ),
                   ),
                 ),
@@ -270,7 +278,7 @@ class Rest7DayEmptyChartWidget extends StatelessWidget {
             Container(
               height: 1,
               width: double.infinity,
-              color: const Color(0xFFF1F5F9),
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
             ),
             const SizedBox(height: 24),
 
@@ -407,6 +415,8 @@ class Rest7DayBarChartWidget extends StatelessWidget {
       heights = [0.55, 0.85, 0.70, 0.85, 0.55, 0.85, todayFraction];
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -414,12 +424,12 @@ class Rest7DayBarChartWidget extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE9F3ED)),
+          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E293B).withValues(alpha: 0.04),
+              color: const Color(0xFF1E293B).withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -438,7 +448,7 @@ class Rest7DayBarChartWidget extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                     ),
                   ),
                 ),
@@ -652,6 +662,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final startMinutes = _currentStart.hour * 60 + _currentStart.minute;
     final endMinutes = _currentEnd.hour * 60 + _currentEnd.minute;
 
@@ -686,6 +697,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                       endMinutes: endMinutes,
                       isNight: isNight,
                       activeHandle: _activeHandle,
+                      isDark: isDark,
                     ),
                   ),
 
@@ -699,7 +711,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                           Icon(
                             isNight ? Icons.bed_rounded : Icons.wb_sunny_rounded,
                             size: 20,
-                            color: isNight ? const Color(0xFF36785A) : const Color(0xFFEAB308),
+                            color: isNight ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A)) : const Color(0xFFEAB308),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -707,7 +719,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                             style: GoogleFonts.poppins(
                               fontSize: 21,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                         ],
@@ -719,7 +731,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                           Icon(
                             isNight ? Icons.nightlight_round : Icons.alarm_on_rounded,
                             size: 19,
-                            color: const Color(0xFF36785A),
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -727,7 +739,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                             style: GoogleFonts.poppins(
                               fontSize: 21,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                         ],
@@ -746,7 +758,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.touch_app_rounded, size: 14, color: Color(0xFF489874)),
+                  Icon(Icons.touch_app_rounded, size: 14, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
                   const SizedBox(width: 5),
                   Flexible(
                     child: Text(
@@ -754,7 +766,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF489874),
+                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -775,12 +787,14 @@ class _InteractiveDialPainter extends CustomPainter {
   final int endMinutes;
   final bool isNight;
   final _ActiveDragHandle activeHandle;
+  final bool isDark;
 
   _InteractiveDialPainter({
     required this.startMinutes,
     required this.endMinutes,
     required this.isNight,
     required this.activeHandle,
+    this.isDark = false,
   });
 
   @override
@@ -790,7 +804,7 @@ class _InteractiveDialPainter extends CustomPainter {
 
     // 1. Jalur Lingkar Belakang
     final trackPaint = Paint()
-      ..color = const Color(0xFFE6EFEA)
+      ..color = isDark ? const Color(0xFF334155) : const Color(0xFFE6EFEA)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 14;
     canvas.drawCircle(center, radius, trackPaint);
@@ -883,7 +897,7 @@ class _InteractiveDialPainter extends CustomPainter {
       style: GoogleFonts.poppins(
         fontSize: 10.5,
         fontWeight: FontWeight.w600,
-        color: const Color(0xFF475569),
+        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
       ),
     );
     final textPainter = TextPainter(
@@ -903,6 +917,7 @@ class _InteractiveDialPainter extends CustomPainter {
     return oldDelegate.startMinutes != startMinutes ||
         oldDelegate.endMinutes != endMinutes ||
         oldDelegate.isNight != isNight ||
-        oldDelegate.activeHandle != activeHandle;
+        oldDelegate.activeHandle != activeHandle ||
+        oldDelegate.isDark != isDark;
   }
 }

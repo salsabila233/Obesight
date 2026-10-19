@@ -57,7 +57,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
-  Widget _buildRuleItem({required bool isValid, required String text}) {
+  Widget _buildRuleItem({required bool isValid, required String text, required bool isDark}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -69,7 +69,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               shape: BoxShape.circle,
               color: isValid ? const Color(0xFF16A34A) : Colors.transparent,
               border: Border.all(
-                color: isValid ? const Color(0xFF16A34A) : const Color(0xFF9CA3AF),
+                color: isValid ? const Color(0xFF16A34A) : (isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF)),
                 width: 1.5,
               ),
             ),
@@ -88,7 +88,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: isValid ? FontWeight.w500 : FontWeight.w400,
-                color: isValid ? const Color(0xFF166534) : const Color(0xFF6B7280),
+                color: isValid
+                    ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534))
+                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280)),
               ),
             ),
           ),
@@ -152,61 +154,71 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    elevation: 0,
-    backgroundColor: Colors.transparent,
-    behavior: SnackBarBehavior.floating,
-    // Menggeser posisi SnackBar agar muncul di bagian atas layar
-    margin: EdgeInsets.only(
-      bottom: MediaQuery.of(context).size.height - 150, 
-      left: 16,
-      right: 16,
-    ),
-    content: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white, // Background Putih
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.check_circle,
-            color: Color(0xFF235B42), // Ikon warna hijau senada tema
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.',
-              style: GoogleFonts.poppins(
-                fontSize: 13, 
-                color: const Color(0xFF235B42), // Teks warna hijau
-                fontWeight: FontWeight.w500,
+      SnackBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        behavior: SnackBarBehavior.floating,
+        // Menggeser posisi SnackBar agar muncul di bagian atas layar
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 150, 
+          left: 16,
+          right: 16,
+        ),
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
+            ],
           ),
-        ],
+          child: Row(
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF235B42),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13, 
+                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF235B42),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        duration: const Duration(seconds: 4),
       ),
-    ),
-    duration: const Duration(seconds: 4),
-  ),
-);
+    );
 
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF4A5568);
+    final fieldFill = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final fieldBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final hintColor = isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF);
+    final inputTextColor = isDark ? Colors.white : const Color(0xFF1F2937);
+    final iconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -231,7 +243,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 21,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF2C6348),
+                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2C6348),
                             letterSpacing: -0.2,
                           ),
                         ),
@@ -241,7 +253,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF234C37),
+                            color: isDark ? Colors.white : const Color(0xFF234C37),
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -251,7 +263,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontSize: 13,
-                            color: const Color(0xFF4A5568),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4A5568),
                             height: 1.45,
                           ),
                         ),
@@ -267,23 +279,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF4A5568),
+                      color: labelColor,
                     ),
                   ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _newPasswordController,
                     obscureText: _isPasswordObscured,
-                    style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1F2937)),
+                    style: GoogleFonts.poppins(fontSize: 13.5, color: inputTextColor),
                     decoration: InputDecoration(
                       hintText: 'Masukkan kata sandi baru',
                       hintStyle: GoogleFonts.poppins(
-                        color: const Color(0xFF9CA3AF),
+                        color: hintColor,
                         fontSize: 13,
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.lock_outline_rounded,
-                        color: Color(0xFF6B7280),
+                        color: iconColor,
                         size: 20,
                       ),
                       suffixIcon: IconButton(
@@ -291,7 +303,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           _isPasswordObscured
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: const Color(0xFF6B7280),
+                          color: iconColor,
                           size: 20,
                         ),
                         onPressed: () {
@@ -301,15 +313,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         },
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: fieldFill,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        borderSide: BorderSide(color: fieldBorder),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        borderSide: BorderSide(color: fieldBorder),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -326,23 +338,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF4A5568),
+                      color: labelColor,
                     ),
                   ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: _isConfirmObscured,
-                    style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1F2937)),
+                    style: GoogleFonts.poppins(fontSize: 13.5, color: inputTextColor),
                     decoration: InputDecoration(
                       hintText: 'Konfirmasi kata sandi',
                       hintStyle: GoogleFonts.poppins(
-                        color: const Color(0xFF9CA3AF),
+                        color: hintColor,
                         fontSize: 13,
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.lock_outline_rounded,
-                        color: Color(0xFF6B7280),
+                        color: iconColor,
                         size: 20,
                       ),
                       suffixIcon: IconButton(
@@ -350,7 +362,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           _isConfirmObscured
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: const Color(0xFF6B7280),
+                          color: iconColor,
                           size: 20,
                         ),
                         onPressed: () {
@@ -360,15 +372,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         },
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: fieldFill,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        borderSide: BorderSide(color: fieldBorder),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        borderSide: BorderSide(color: fieldBorder),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -385,21 +397,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF4A5568),
+                      color: labelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
                   _buildRuleItem(
                     isValid: _hasMinLength,
                     text: 'Minimal 8 karakter',
+                    isDark: isDark,
                   ),
                   _buildRuleItem(
                     isValid: _hasUpperAndLower,
                     text: 'Mengandung huruf besar dan kecil',
+                    isDark: isDark,
                   ),
                   _buildRuleItem(
                     isValid: _hasNumber,
                     text: 'Mengandung angka',
+                    isDark: isDark,
                   ),
 
                   if (_errorMessage != null) ...[
@@ -407,20 +422,20 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        border: Border.all(color: Colors.red.shade200),
+                        color: isDark ? Colors.red.shade900.withValues(alpha: 0.25) : Colors.red.shade50,
+                        border: Border.all(color: isDark ? Colors.red.shade800 : Colors.red.shade200),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.error_outline_rounded, color: Colors.red.shade700, size: 18),
+                          Icon(Icons.error_outline_rounded, color: isDark ? Colors.red.shade300 : Colors.red.shade700, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               _errorMessage!,
                               style: GoogleFonts.poppins(
                                 fontSize: 12.5,
-                                color: Colors.red.shade700,
+                                color: isDark ? Colors.red.shade300 : Colors.red.shade700,
                               ),
                             ),
                           ),
@@ -476,7 +491,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF4F9B77),
+                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF4F9B77),
                         ),
                       ),
                     ),

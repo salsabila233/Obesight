@@ -39,6 +39,8 @@ class ImtResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF3F8463);
+    final panelGreen = isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73);
     final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
     final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F9F7);
     final cardBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFEBF7F2);
@@ -47,9 +49,9 @@ class ImtResultScreen extends StatelessWidget {
     final textSub = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
 
     return Scaffold(
-      backgroundColor: appBg,
+      backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
+        backgroundColor: headerColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
@@ -66,18 +68,25 @@ class ImtResultScreen extends StatelessWidget {
         centerTitle: false,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  children: [
-                    // HERO CARD HIJAU DENGAN ILUSTRASI PEREMPUAN BERLARI & ANGKA BESAR (BATAS BAWAH RATA)
-                    Container(
-                      width: double.infinity,
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
-                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: headerColor,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: [
+                // 1. PANEL HIJAU DENGAN LENGKUNGAN TEPAT DI BAWAH HEADER (ACUAN RIWAYAT SKRINING & SCREENSHOT 4)
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: panelGreen,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -168,136 +177,124 @@ class ImtResultScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-
-                    // BODY CONTENT (PANEL KONTEN DENGAN SUDUT ATAS MELENGKUNG - ACUAN RIWAYAT SKRINING)
-                    Container(
-                      width: double.infinity,
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: appBg,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                            child: Column(
-                              children: [
-                                // CARD 1: Pesan Status & Saran Singkat
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: cardBg,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: cardBorder),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Berat Badan Anda Dalam Kategori $category.',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: textHeading,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  _recommendationMessage,
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: textSub,
-                                    height: 1.45,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-
-                          // SLIDER INDIKATOR KATEGORI IMT & BADGE RISIKO
-                          _ImtCategoryBar(bmi: bmi, risk: risk, isDark: isDark),
-                          const SizedBox(height: 18),
-
-                          // CARD 2: Detail Data Anda / Ringkasan Data Fisik
-                          _DetailDataCard(
-                            age: age,
-                            gender: gender,
-                            height: height,
-                            weight: weight,
-                            isDark: isDark,
-                          ),
-                          const SizedBox(height: 18),
-
-                          // CARD 3: Tabel Kategori IMT
-                          _BmiCategoryTable(isDark: isDark),
-                          const SizedBox(height: 18),
-
-                          // SECTION: Rekomendasi Gaya Hidup & Aktivitas
-                          _LifestyleRecommendationsSection(isDark: isDark),
-                          const SizedBox(height: 24),
-
-                          // TOMBOL: Hitung Ulang ↻
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF4E8F73),
-                                foregroundColor: Colors.white,
-                                elevation: 3,
-                                shadowColor: const Color(0xFF4E8F73).withValues(alpha: 0.35),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                              ),
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Hitung Ulang',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 15.5,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.refresh_rounded, size: 20),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-
-                          // TOMBOL: Kembali ke Beranda
-                          TextButton(
-                            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                            child: Text(
-                              'Kembali ke Beranda',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w600,
-                                color: primaryGreen,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
-              ),
-                  ],
+
+                // 2. BAGIAN KONTEN HASIL IMT (BATAS ATAS RATA TANPA LENGKUNGAN SESUAI INSTRUKSI)
+                Container(
+                  width: double.infinity,
+                  color: appBg,
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  child: Column(
+                    children: [
+                      // CARD 1: Pesan Status & Saran Singkat
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: cardBorder),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Berat Badan Anda Dalam Kategori $category.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w700,
+                                color: textHeading,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _recommendationMessage,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: textSub,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      // SLIDER INDIKATOR KATEGORI IMT & BADGE RISIKO
+                      _ImtCategoryBar(bmi: bmi, risk: risk, isDark: isDark),
+                      const SizedBox(height: 18),
+
+                      // CARD 2: Detail Data Anda / Ringkasan Data Fisik
+                      _DetailDataCard(
+                        age: age,
+                        gender: gender,
+                        height: height,
+                        weight: weight,
+                        isDark: isDark,
+                      ),
+                      const SizedBox(height: 18),
+
+                      // CARD 3: Tabel Kategori IMT
+                      _BmiCategoryTable(isDark: isDark),
+                      const SizedBox(height: 18),
+
+                      // SECTION: Rekomendasi Gaya Hidup & Aktivitas
+                      _LifestyleRecommendationsSection(isDark: isDark),
+                      const SizedBox(height: 24),
+
+                      // TOMBOL: Hitung Ulang ↻
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4E8F73),
+                            foregroundColor: Colors.white,
+                            elevation: 3,
+                            shadowColor: const Color(0xFF4E8F73).withValues(alpha: 0.35),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Hitung Ulang',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.refresh_rounded, size: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // TOMBOL: Kembali ke Beranda
+                      TextButton(
+                        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                        child: Text(
+                          'Kembali ke Beranda',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            color: primaryGreen,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

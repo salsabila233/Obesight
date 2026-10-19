@@ -44,6 +44,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
     final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
@@ -82,28 +83,38 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                       Border border;
 
                       if (isSelected) {
-                        bgColor = const Color(0xFF36785A);
+                        bgColor = isDark ? const Color(0xFF22C55E) : const Color(0xFF36785A);
                         textColor = Colors.white;
                         subTextColor = Colors.white.withValues(alpha: 0.9);
-                        border = Border.all(color: const Color(0xFF36785A), width: 1.5);
+                        border = Border.all(
+                          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                          width: 1.5,
+                        );
                       } else if (isPast) {
                         // Past Days -> Merah
-                        bgColor = const Color(0xFFEF4444);
+                        bgColor = isDark ? const Color(0xFF991B1B) : const Color(0xFFEF4444);
                         textColor = Colors.white;
                         subTextColor = Colors.white.withValues(alpha: 0.85);
-                        border = Border.all(color: const Color(0xFFDC2626));
+                        border = Border.all(
+                          color: isDark ? const Color(0xFFEF4444) : const Color(0xFFDC2626),
+                        );
                       } else if (isToday) {
                         // Today -> Hijau Pastel
-                        bgColor = const Color(0xFFD1FAE5);
-                        textColor = const Color(0xFF065F46);
-                        subTextColor = const Color(0xFF047857);
-                        border = Border.all(color: const Color(0xFF10B981), width: 1.5);
+                        bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
+                        textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
+                        subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
+                        border = Border.all(
+                          color: const Color(0xFF10B981),
+                          width: 1.5,
+                        );
                       } else {
-                        // Future Days -> Putih
-                        bgColor = Colors.white;
-                        textColor = const Color(0xFF475569);
-                        subTextColor = const Color(0xFF94A3B8);
-                        border = Border.all(color: const Color(0xFFE2E8F0));
+                        // Future Days
+                        bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+                        textColor = isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569);
+                        subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8);
+                        border = Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        );
                       }
 
                       return GestureDetector(
@@ -123,7 +134,8 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                                      color: (isDark ? const Color(0xFF22C55E) : const Color(0xFF36785A))
+                                          .withValues(alpha: 0.25),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
                                     )
@@ -167,14 +179,15 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
 
                 // 1. Pilihan 1: Istirahat Siang
                 _buildOptionCard(
+                  isDark: isDark,
                   circleAsset: 'assets/progress/rest/circle_siang.png',
                   fallbackCircleAsset: 'assets/progress/clean/circle_siang.png',
                   fallbackIcon: Icons.wb_sunny_rounded,
                   title: 'Istirahat Siang',
                   desc: 'Membantu mengurangi rasa lelah dan meningkatkan fokus',
                   badges: [
-                    _buildPill(Icons.access_time_rounded, '13.00 - 14.00'),
-                    _buildPill(Icons.history_rounded, '20-30 menit'),
+                    _buildPill(isDark, Icons.access_time_rounded, '13.00 - 14.00'),
+                    _buildPill(isDark, Icons.history_rounded, '20-30 menit'),
                   ],
                   onTap: () {
                     Navigator.of(context).push(
@@ -186,14 +199,15 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
 
                 // 2. Pilihan 2: Waktu Tidur Malam
                 _buildOptionCard(
+                  isDark: isDark,
                   circleAsset: 'assets/progress/rest/circle_malam.png',
                   fallbackCircleAsset: 'assets/progress/clean/circle_malam.png',
                   fallbackIcon: Icons.nightlight_round,
                   title: 'Waktu Tidur Malam',
                   desc: 'Menjaga metabolisme tubuh dan mengurangi risiko obesitas',
                   badges: [
-                    _buildPill(Icons.access_time_rounded, '22.00 – 09.00'),
-                    _buildPill(Icons.nightlight_round, '7-8 jam'),
+                    _buildPill(isDark, Icons.access_time_rounded, '22.00 – 09.00'),
+                    _buildPill(isDark, Icons.nightlight_round, '7-8 jam'),
                   ],
                   onTap: () {
                     Navigator.of(context).push(
@@ -205,14 +219,15 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
 
                 // 3. Pilihan 3: Istirahat Setelah Aktivitas
                 _buildOptionCard(
+                  isDark: isDark,
                   circleAsset: 'assets/progress/rest/circle_aktivitas.png',
                   fallbackCircleAsset: 'assets/progress/clean/circle_aktivitas.png',
                   fallbackIcon: Icons.directions_run_rounded,
                   title: 'Istirahat Setelah Aktivitas',
                   desc: 'Membantu tubuh pulih dan mencegah kelelahan berlebih',
                   badges: [
-                    _buildPill(Icons.directions_run_rounded, 'Setelah beraktivitas'),
-                    _buildPill(Icons.history_rounded, '10-15 menit'),
+                    _buildPill(isDark, Icons.directions_run_rounded, 'Setelah beraktivitas'),
+                    _buildPill(isDark, Icons.history_rounded, '10-15 menit'),
                   ],
                   onTap: () {
                     Navigator.of(context).push(
@@ -227,8 +242,9 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFDFF1E8),
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFDFF1E8),
                     borderRadius: BorderRadius.circular(16),
+                    border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -236,8 +252,8 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                       Container(
                         width: 36,
                         height: 36,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF2E6B4F),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF36785A) : const Color(0xFF2E6B4F),
                           shape: BoxShape.circle,
                         ),
                         child: const Center(
@@ -250,7 +266,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                           TextSpan(
                             style: GoogleFonts.poppins(
                               fontSize: 11.5,
-                              color: const Color(0xFF2E6B4F),
+                              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF2E6B4F),
                               height: 1.45,
                             ),
                             children: const [
@@ -280,11 +296,13 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
               height: 54,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF489874),
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
                 borderRadius: BorderRadius.circular(28),
+                border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF2E6B4F).withValues(alpha: 0.35),
+                    color: (isDark ? Colors.black : const Color(0xFF2E6B4F))
+                        .withValues(alpha: isDark ? 0.4 : 0.35),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
@@ -333,6 +351,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
   }
 
   Widget _buildOptionCard({
+    required bool isDark,
     required String circleAsset,
     required String fallbackCircleAsset,
     required IconData fallbackIcon,
@@ -343,17 +362,17 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            color: const Color(0xFF0F172A).withValues(alpha: isDark ? 0.3 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
           width: 1.0,
         ),
       ),
@@ -382,8 +401,8 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                         fallbackCircleAsset,
                         fit: BoxFit.cover,
                         errorBuilder: (c, e, s) => Container(
-                          color: const Color(0xFFE2F1E8),
-                          child: Icon(fallbackIcon, color: const Color(0xFF36785A), size: 28),
+                          color: isDark ? const Color(0xFF0F3627) : const Color(0xFFE2F1E8),
+                          child: Icon(fallbackIcon, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A), size: 28),
                         ),
                       ),
                     ),
@@ -401,7 +420,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E3A2F),
+                          color: isDark ? Colors.white : const Color(0xFF1E3A2F),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -415,7 +434,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                         desc,
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          color: const Color(0xFF64748B),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           height: 1.35,
                         ),
                       ),
@@ -425,10 +444,10 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                 const SizedBox(width: 6),
 
                 // Trailing Chevron
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: Color(0xFF94A3B8),
+                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                 ),
               ],
             ),
@@ -438,24 +457,24 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
     );
   }
 
-  Widget _buildPill(IconData icon, String text) {
+  Widget _buildPill(bool isDark, IconData icon, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFDFF1E8),
+        color: isDark ? const Color(0xFF0F3627) : const Color(0xFFDFF1E8),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 11, color: const Color(0xFF2E6B4F)),
+          Icon(icon, size: 11, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF2E6B4F)),
           const SizedBox(width: 4),
           Text(
             text,
             style: GoogleFonts.poppins(
               fontSize: 9.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF2E6B4F),
+              color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF2E6B4F),
             ),
           ),
         ],

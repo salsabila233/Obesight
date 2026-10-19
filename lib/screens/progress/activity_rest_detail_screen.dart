@@ -35,9 +35,10 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF36785A),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF36785A),
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -47,7 +48,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
             expandedHeight: 240,
             pinned: true,
             elevation: _isSticky ? 2 : 0,
-            backgroundColor: const Color(0xFF36785A),
+            backgroundColor: headerColor,
             leading: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(7),
@@ -310,13 +311,13 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _buildCheckItem('Lakukan pendinginan ringan dan peregangan statis selama 5 menit.'),
+                        _buildCheckItem('Lakukan pendinginan ringan dan peregangan statis selama 5 menit.', isDark),
                         const SizedBox(height: 8),
-                        _buildCheckItem('Minum air putih secukupnya untuk mengganti cairan yang hilang.'),
+                        _buildCheckItem('Minum air putih secukupnya untuk mengganti cairan yang hilang.', isDark),
                         const SizedBox(height: 8),
-                        _buildCheckItem('Duduk atau berbaring rileks dengan posisi bernapas teratur.'),
+                        _buildCheckItem('Duduk atau berbaring rileks dengan posisi bernapas teratur.', isDark),
                         const SizedBox(height: 8),
-                        _buildCheckItem('Hindari langsung mandi air dingin sesaat setelah berolahraga intens.'),
+                        _buildCheckItem('Hindari langsung mandi air dingin sesaat setelah berolahraga intens.', isDark),
                       ],
                     ),
                   ),
@@ -377,13 +378,17 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
     );
   }
 
-  Widget _buildCheckItem(String text) {
+  Widget _buildCheckItem(String text, bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
-          child: Icon(Icons.check_rounded, size: 15, color: Color(0xFF36785A)),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.check_rounded,
+            size: 15,
+            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -391,7 +396,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
             text,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              color: const Color(0xFF365E4C),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF365E4C),
               height: 1.4,
             ),
           ),

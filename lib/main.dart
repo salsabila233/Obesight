@@ -46,6 +46,9 @@ Future<void> main() async {
   // Initialize sleep tracking service observer for auto/manual detection
   SleepTrackingService.instance.initialize();
 
+  // Load saved theme preference
+  await AppTheme.init();
+
   runApp(const ObeSightApp());
 }
 

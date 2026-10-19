@@ -199,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Widget _buildRuleItem(String text, bool isValid) {
+  Widget _buildRuleItem(String text, bool isValid, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Row(
@@ -210,9 +210,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color: Color(0xFF16A34A),
                   size: 15,
                 )
-              : const Icon(
+              : Icon(
                   Icons.radio_button_unchecked,
-                  color: Color(0xFF9CA3AF),
+                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
                   size: 15,
                 ),
           const SizedBox(width: 7),
@@ -221,7 +221,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               text,
               style: GoogleFonts.poppins(
                 fontSize: 11.5,
-                color: isValid ? const Color(0xFF166534) : const Color(0xFF6B7280),
+                color: isValid
+                    ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534))
+                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280)),
                 fontWeight: isValid ? FontWeight.w500 : FontWeight.normal,
               ),
             ),
@@ -233,8 +235,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF4A5568);
+    final fieldFill = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final fieldBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final hintColor = isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF);
+    final inputTextColor = isDark ? Colors.white : const Color(0xFF1F2937);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -258,7 +267,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 21,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF2C6348),
+                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2C6348),
                           letterSpacing: -0.2,
                         ),
                       ),
@@ -268,7 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF264E3C),
+                          color: isDark ? Colors.white : const Color(0xFF264E3C),
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -284,7 +293,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF4A5568),
+                    color: labelColor,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -293,26 +302,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: InputDecoration(
                     hintText: 'Masukkan nama lengkap anda',
                     hintStyle: GoogleFonts.poppins(
-                      color: const Color(0xFF9CA3AF),
+                      color: hintColor,
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: fieldFill,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(color: Color(0xFF4F9B77)),
                     ),
                   ),
-                  style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1F2937)),
+                  style: GoogleFonts.poppins(fontSize: 13.5, color: inputTextColor),
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
                       return 'Nama lengkap wajib diisi';
@@ -329,7 +338,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF4A5568),
+                    color: labelColor,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -339,26 +348,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: InputDecoration(
                     hintText: 'Masukkan email anda',
                     hintStyle: GoogleFonts.poppins(
-                      color: const Color(0xFF9CA3AF),
+                      color: hintColor,
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: fieldFill,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(color: Color(0xFF4F9B77)),
                     ),
                   ),
-                  style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1F2937)),
+                  style: GoogleFonts.poppins(fontSize: 13.5, color: inputTextColor),
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
                       return 'Email wajib diisi';
@@ -379,7 +388,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF4A5568),
+                    color: labelColor,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -389,16 +398,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: InputDecoration(
                     hintText: 'Masukkan kata sandi anda',
                     hintStyle: GoogleFonts.poppins(
-                      color: const Color(0xFF9CA3AF),
+                      color: hintColor,
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: fieldFill,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: const Color(0xFF6B7280),
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
                         size: 20,
                       ),
                       onPressed: () {
@@ -409,18 +418,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(color: Color(0xFF4F9B77)),
                     ),
                   ),
-                  style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1F2937)),
+                  style: GoogleFonts.poppins(fontSize: 13.5, color: inputTextColor),
                 ),
 
                 // Password Rules Checklist
@@ -428,9 +437,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   padding: const EdgeInsets.only(top: 8, bottom: 4),
                   child: Column(
                     children: [
-                      _buildRuleItem('Minimum 8 karakter (maksimal 16)', _hasValidLength),
-                      _buildRuleItem('Terdapat minimum 1 angka', _hasNumber),
-                      _buildRuleItem('Terdapat minimum 1 huruf besar dan 1 huruf kecil', _hasUpperAndLower),
+                      _buildRuleItem('Minimum 8 karakter (maksimal 16)', _hasValidLength, isDark),
+                      _buildRuleItem('Terdapat minimum 1 angka', _hasNumber, isDark),
+                      _buildRuleItem('Terdapat minimum 1 huruf besar dan 1 huruf kecil', _hasUpperAndLower, isDark),
                     ],
                   ),
                 ),
@@ -443,7 +452,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF4A5568),
+                    color: labelColor,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -453,16 +462,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: InputDecoration(
                     hintText: 'Masukkan konfirmasi kata sandi',
                     hintStyle: GoogleFonts.poppins(
-                      color: const Color(0xFF9CA3AF),
+                      color: hintColor,
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: fieldFill,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isConfirmPasswordObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: const Color(0xFF6B7280),
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
                         size: 20,
                       ),
                       onPressed: () {
@@ -473,18 +482,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: fieldBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(color: Color(0xFF4F9B77)),
                     ),
                   ),
-                  style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1F2937)),
+                  style: GoogleFonts.poppins(fontSize: 13.5, color: inputTextColor),
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return 'Konfirmasi kata sandi wajib diisi';
@@ -511,7 +520,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        side: const BorderSide(color: Color(0xFF9CA3AF), width: 1.8),
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
+                          width: 1.8,
+                        ),
                         onChanged: (val) {
                           setState(() {
                             _isTermsAgreed = val ?? false;
@@ -534,7 +546,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFF374151),
+                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF374151),
                           ),
                         ),
                       ),
@@ -587,9 +599,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Separator: ─── atau ───
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Divider(
-                        color: AppColors.dividerColor,
+                        color: isDark ? const Color(0xFF334155) : AppColors.dividerColor,
                         thickness: 1.0,
                       ),
                     ),
@@ -600,13 +612,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.normal,
-                          color: AppColors.dividerText,
+                          color: isDark ? const Color(0xFF94A3B8) : AppColors.dividerText,
                         ),
                       ),
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Divider(
-                        color: AppColors.dividerColor,
+                        color: isDark ? const Color(0xFF334155) : AppColors.dividerColor,
                         thickness: 1.0,
                       ),
                     ),
@@ -622,9 +634,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: OutlinedButton(
                     onPressed: _isLoading ? null : _handleGoogleSignIn,
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF1F2937),
-                      side: const BorderSide(color: AppColors.inputBorder, width: 1.0),
+                      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      foregroundColor: isDark ? Colors.white : const Color(0xFF1F2937),
+                      side: BorderSide(
+                        color: isDark ? const Color(0xFF334155) : AppColors.inputBorder,
+                        width: 1.0,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -656,7 +671,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF1F2937),
+                                    color: isDark ? Colors.white : const Color(0xFF1F2937),
                                   ),
                                 ),
                               ),
@@ -675,10 +690,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       text: TextSpan(
                         style: GoogleFonts.poppins(fontSize: 13),
                         children: [
-                          const TextSpan(
+                          TextSpan(
                             text: 'Sudah punya akun?  ',
                             style: TextStyle(
-                              color: Color(0xFF4B5563),
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4B5563),
                               fontWeight: FontWeight.normal,
                             ),
                           ),

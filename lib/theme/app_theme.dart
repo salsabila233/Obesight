@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app_colors.dart';
 
 class AppTheme {
+  static const String _themePrefKey = 'obesight_theme_mode';
+
   // Notifier global untuk mengontrol tema di seluruh aplikasi
   static final ValueNotifier<ThemeMode> themeModeNotifier =
       ValueNotifier<ThemeMode>(ThemeMode.light);
@@ -10,12 +13,35 @@ class AppTheme {
   static ThemeMode get currentThemeMode => themeModeNotifier.value;
   static bool get isDark => themeModeNotifier.value == ThemeMode.dark;
 
+  /// Inisialisasi preferensi tema dari penyimpanan lokal (SharedPreferences)
+  static Future<void> init() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final modeIndex = prefs.getInt(_themePrefKey);
+      if (modeIndex != null && modeIndex >= 0 && modeIndex < ThemeMode.values.length) {
+        themeModeNotifier.value = ThemeMode.values[modeIndex];
+      }
+    } catch (e) {
+      debugPrint('Error loading theme preference: $e');
+    }
+  }
+
   static void setThemeMode(ThemeMode mode) {
     themeModeNotifier.value = mode;
+    _saveThemeMode(mode);
+  }
+
+  static Future<void> _saveThemeMode(ThemeMode mode) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_themePrefKey, mode.index);
+    } catch (e) {
+      debugPrint('Error saving theme preference: $e');
+    }
   }
 
   static void toggleDarkMode(bool enable) {
-    themeModeNotifier.value = enable ? ThemeMode.dark : ThemeMode.light;
+    setThemeMode(enable ? ThemeMode.dark : ThemeMode.light);
   }
 
   static ThemeData get lightTheme {

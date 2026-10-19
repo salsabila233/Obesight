@@ -118,9 +118,10 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
 
-    // Transisi latar belakang menjadi putih bersih
+    // Transisi latar belakang menjadi putih bersih atau gelap sesuai preferensi tema
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     setState(() {
-      _backgroundColor = Colors.white;
+      _backgroundColor = isDark ? const Color(0xFF0F172A) : Colors.white;
     });
 
     // Jeda sejenak untuk transisi warna
@@ -256,7 +257,9 @@ class _SplashScreenState extends State<SplashScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 32,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.brandTitleGreen,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF58AF86)
+                            : AppColors.brandTitleGreen,
                         letterSpacing: -0.5,
                       ),
                     ),

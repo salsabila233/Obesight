@@ -144,8 +144,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -168,7 +170,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 21,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF2C6348),
+                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF2C6348),
                           letterSpacing: -0.2,
                         ),
                       ),
@@ -178,7 +180,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF234C37),
+                          color: isDark ? Colors.white : const Color(0xFF234C37),
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -188,16 +190,16 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         text: TextSpan(
                           style: GoogleFonts.poppins(
                             fontSize: 13,
-                            color: const Color(0xFF4A5568),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF4A5568),
                             height: 1.45,
                           ),
                           children: [
                             const TextSpan(text: 'Kode verifikasi telah dikirim ke email\n'),
                             TextSpan(
                               text: '$_email.\n',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF1F2937),
+                                color: isDark ? Colors.white : const Color(0xFF1F2937),
                               ),
                             ),
                             const TextSpan(text: 'Masukkan kode 6 digit di bawah ini.'),
@@ -231,28 +233,34 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1F2937),
+                          color: isDark ? Colors.white : const Color(0xFF1F2937),
                         ),
                         decoration: InputDecoration(
                           hintText: '-',
                           hintStyle: GoogleFonts.poppins(
-                            color: const Color(0xFF9CA3AF),
+                            color: isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
                             fontWeight: FontWeight.w400,
                           ),
                           filled: true,
-                          fillColor: isFilled ? const Color(0xFFF0FDF4) : Colors.white,
+                          fillColor: isFilled
+                              ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.35) : const Color(0xFFF0FDF4))
+                              : (isDark ? const Color(0xFF1E293B) : Colors.white),
                           contentPadding: EdgeInsets.zero,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isFilled ? const Color(0xFF4F9B77) : const Color(0xFFE2E8F0),
+                              color: isFilled
+                                  ? const Color(0xFF4F9B77)
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                               width: 1.5,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isFilled ? const Color(0xFF4F9B77) : const Color(0xFFE2E8F0),
+                              color: isFilled
+                                  ? const Color(0xFF4F9B77)
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                               width: 1.5,
                             ),
                           ),
@@ -300,16 +308,16 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                                 color: _cooldownSeconds == 0
-                                    ? const Color(0xFF4F9B77)
-                                    : const Color(0xFF9CA3AF),
+                                    ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF4F9B77))
+                                    : (isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF)),
                               ),
                             ),
                             Icon(
                               Icons.refresh_rounded,
                               size: 16,
                               color: _cooldownSeconds == 0
-                                  ? const Color(0xFF4F9B77)
-                                  : const Color(0xFF9CA3AF),
+                                  ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF4F9B77))
+                                  : (isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF)),
                             ),
                           ],
                         ),
@@ -321,7 +329,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF9CA3AF),
+                            color: isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF),
                           ),
                         ),
                       ],
@@ -334,20 +342,20 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      border: Border.all(color: Colors.red.shade200),
+                      color: isDark ? Colors.red.shade900.withValues(alpha: 0.25) : Colors.red.shade50,
+                      border: Border.all(color: isDark ? Colors.red.shade800 : Colors.red.shade200),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline_rounded, color: Colors.red.shade700, size: 18),
+                        Icon(Icons.error_outline_rounded, color: isDark ? Colors.red.shade300 : Colors.red.shade700, size: 18),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _errorMessage!,
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
-                              color: Colors.red.shade700,
+                              color: isDark ? Colors.red.shade300 : Colors.red.shade700,
                             ),
                           ),
                         ),
@@ -403,7 +411,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF4F9B77),
+                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF4F9B77),
                       ),
                     ),
                   ),

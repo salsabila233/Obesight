@@ -31,6 +31,15 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final dialogBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textTitle = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSubtitle = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final iconBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F5EE);
+    final cancelBtnBorder = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+    final cancelBtnText = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569);
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 28),
@@ -38,11 +47,12 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: dialogBg,
           borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: dialogBorder),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -56,7 +66,7 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F5EE),
+                color: iconBg,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: const Color(0xFF489874).withValues(alpha: 0.18),
@@ -80,7 +90,7 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: textTitle,
                 height: 1.35,
               ),
             ),
@@ -93,7 +103,7 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w400,
-                color: const Color(0xFF64748B),
+                color: textSubtitle,
                 height: 1.45,
               ),
             ),
@@ -106,8 +116,8 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF475569),
-                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                      foregroundColor: cancelBtnText,
+                      side: BorderSide(color: cancelBtnBorder, width: 1.2),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -126,7 +136,7 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF475569),
+                        color: cancelBtnText,
                       ),
                     ),
                   ),

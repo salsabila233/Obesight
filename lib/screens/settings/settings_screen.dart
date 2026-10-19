@@ -101,12 +101,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
     _isDarkMode = AppTheme.isDark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+      backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: headerColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),

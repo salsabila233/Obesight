@@ -191,58 +191,60 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
     _showSuccessAndPop();
   }
 
- void _showSuccessAndPop() {
-  if (!mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      behavior: SnackBarBehavior.floating,
-      // Mengatur posisi agar muncul di bagian atas layar
-      margin: EdgeInsets.only(
-        bottom: MediaQuery.of(context).size.height - 150,
-        left: 16,
-        right: 16,
-      ),
-      content: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white, // Latar belakang putih
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+  void _showSuccessAndPop() {
+    if (!mounted) return;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        behavior: SnackBarBehavior.floating,
+        // Mengatur posisi agar muncul di bagian atas layar
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 150,
+          left: 16,
+          right: 16,
         ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.check_circle_rounded, 
-              color: Color(0xFF36785A), // Ikon warna hijau
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                widget.recordToEdit != null
-                    ? 'Catatan tidur berhasil diperbarui'
-                    : 'Catatan tidur baru berhasil disimpan',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF36785A), // Teks warna hijau
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.check_circle_rounded, 
+                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.recordToEdit != null
+                      ? 'Catatan tidur berhasil diperbarui'
+                      : 'Catatan tidur baru berhasil disimpan',
+                  style: GoogleFonts.poppins(
+                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF36785A),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        duration: const Duration(seconds: 2),
       ),
-      duration: const Duration(seconds: 2),
-    ),
-  );
+    );
     Navigator.of(context).pop();
   }
 
@@ -298,11 +300,12 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
     final isEditing = widget.recordToEdit != null;
     final screenTitle = isEditing ? 'Edit Data Tidur' : 'Masukkan Data Istirahat';
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF489874),
+      backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF489874),
+        backgroundColor: headerColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -346,11 +349,12 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
+                  border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1E293B).withValues(alpha: 0.05),
+                      color: const Color(0xFF1E293B).withValues(alpha: isDark ? 0.2 : 0.05),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -366,10 +370,10 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE2F1E8),
+                            color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.bed_rounded, size: 20, color: Color(0xFF36785A)),
+                          child: Icon(Icons.bed_rounded, size: 20, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A)),
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -377,7 +381,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 15.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF265C45),
+                            color: isDark ? Colors.white : const Color(0xFF265C45),
                           ),
                         ),
                       ],
@@ -407,33 +411,36 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
 
                     // Tile 1: Jam tidur
                     _buildSettingTile(
+                      context,
                       icon: Icons.bed_rounded,
-                      iconBg: const Color(0xFFE2F1E8),
-                      iconColor: const Color(0xFF36785A),
+                      iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
+                      iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
                       title: 'Jam istirahat',
                       value: _formatTimeOfDay(_startTime),
                       showChevron: true,
                       onTap: () => _pickTime(isStart: true),
                     ),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                    Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
 
                     // Tile 2: Jam bangun
                     _buildSettingTile(
+                      context,
                       icon: Icons.alarm_on_rounded,
-                      iconBg: const Color(0xFFFFFBEB),
+                      iconBg: isDark ? const Color(0xFF3E2D12) : const Color(0xFFFFFBEB),
                       iconColor: const Color(0xFFF59E0B),
                       title: 'Jam selesai',
                       value: _formatTimeOfDay(_endTime),
                       showChevron: true,
                       onTap: () => _pickTime(isStart: false),
                     ),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+                    Divider(height: 1, thickness: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
 
                     // Tile 3: Durasi tidur (Auto-calculated!)
                     _buildSettingTile(
+                      context,
                       icon: Icons.access_time_rounded,
-                      iconBg: const Color(0xFFEDF7F2),
-                      iconColor: const Color(0xFF36785A),
+                      iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFEDF7F2),
+                      iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
                       title: 'Durasi istirahat',
                       value: _durationFormatted,
                       showChevron: false,
@@ -450,9 +457,9 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF475569),
-                        side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+                        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), width: 1.2),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                       ),
@@ -462,7 +469,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475569),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                         ),
                       ),
                     ),
@@ -497,7 +504,8 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
   );
 }
 
-  Widget _buildSettingTile({
+  Widget _buildSettingTile(
+    BuildContext context, {
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -506,6 +514,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
     required bool showChevron,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -529,7 +538,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF475569),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                 ),
               ),
             ),
@@ -538,7 +547,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E293B),
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
               ),
             ),
             if (showChevron) ...[

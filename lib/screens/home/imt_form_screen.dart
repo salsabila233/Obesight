@@ -154,6 +154,8 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73);
+    final bannerBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3);
     final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF4E8F73);
     final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F9F7);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
@@ -162,9 +164,9 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
     final textSub = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Scaffold(
-      backgroundColor: appBg,
+      backgroundColor: headerColor,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
+        backgroundColor: headerColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
@@ -181,18 +183,25 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
         centerTitle: false,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // HERO CARD (BANNER HIJAU DENGAN BATAS BAWAH RATA)
-                    Container(
-                      width: double.infinity,
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: headerColor,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. BANNER HIJAU MUDA DENGAN LENGKUNGAN TEPAT DI BAWAH HEADER (ACUAN RIWAYAT SKRINING)
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: bannerBg,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 16, 20),
                       child: Row(
                         children: [
@@ -236,33 +245,26 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                         ],
                       ),
                     ),
+                  ),
+                ),
 
-                    // PANEL KONTEN DENGAN SUDUT ATAS MELENGKUNG (ACUAN RIWAYAT SKRINING)
-                    Container(
-                      width: double.infinity,
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3),
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: appBg,
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                // 2. BAGIAN DATA FISIK PENGGUNA (RATA TANPA LENGKUNGAN SESUAI INSTRUKSI)
+                Container(
+                  width: double.infinity,
+                  color: appBg,
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // SECTION: Data Fisik Pengguna
+                      Text(
+                        'Data Fisik Pengguna',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: textHeading,
                         ),
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                          // SECTION: Data Fisik Pengguna
-                          Text(
-                            'Data Fisik Pengguna',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: textHeading,
-                            ),
-                          ),
+                      ),
                           const SizedBox(height: 16),
 
                           // 1. Usia Card
@@ -430,18 +432,13 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                         ],
                       ),
                     ),
-                  ),
-                ),
-              ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
+        );
+      }
 }
 
 // ==========================================
