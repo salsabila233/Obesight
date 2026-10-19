@@ -149,6 +149,17 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
         final CategoryRecommendation rec =
             SkriningRecommendationRules.getRecommendationByCategory(categoryKey);
 
+        // Kategori tampilan yang selaras dengan halaman hasil skrining ("Insufficient Weight", dsb.)
+        final String displayCategory = hasScreening
+            ? (categoryKey.toLowerCase().contains('underweight') ||
+                    categoryKey.toLowerCase().contains('insufficient') ||
+                    activeSkrining.classificationCategory.toLowerCase().contains('underweight') ||
+                    activeSkrining.categoryTitle.toLowerCase().contains('insufficient') ||
+                    rec.categoryDisplayName.toLowerCase().contains('underweight')
+                ? 'Insufficient Weight'
+                : rec.categoryDisplayName)
+            : 'Normal';
+
         final List<Map<String, dynamic>> activities = hasScreening
             ? PhysicalActivityService.instance.getActivitiesForCategory(
                 categoryKey,
@@ -188,6 +199,8 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
         }
 
         final selectedDateKey = PhysicalActivityService.instance.formatDateKey(_selectedDate);
+        final selectedDateOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+        final isFutureDate = selectedDateOnly.isAfter(today);
 
         return ProgressPageScaffold(
           title: 'Rekomendasi Aktivitas Fisik',
@@ -319,6 +332,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                     activeSkrining,
                     rec,
                     categoryKey,
+                    displayCategory,
                     isDark,
                     textPrimary,
                     textSecondary,
@@ -326,65 +340,25 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
 
                   const SizedBox(height: 18),
 
-                  // Section Header: Pilihan Aktivitas Olahraga & Progres Harian
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  // Section Header: Pilihan Aktivitas Olahraga
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Pilihan Aktivitas Olahraga',
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              _getCategoryActivityFocusSubtitle(categoryKey),
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: textSecondary,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Pilihan Aktivitas Olahraga',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: (isDark ? const Color(0xFF58AF86) : const Color(0xFF489874))
-                              .withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: (isDark ? const Color(0xFF58AF86) : const Color(0xFF489874))
-                                .withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.task_alt_rounded,
-                              size: 13,
-                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${PhysicalActivityService.instance.getProgressFractionForDate(selectedDateKey, activities)} Selesai',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                              ),
-                            ),
-                          ],
+                      const SizedBox(height: 3),
+                      Text(
+                        _getCategoryActivityFocusSubtitle(categoryKey),
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: textSecondary,
                         ),
                       ),
                     ],
@@ -392,7 +366,12 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   const SizedBox(height: 12),
 
                   // Daftar Vertikal Kartu Aktivitas Fisik Sesuai Hasil Skrining
-                  ...activities.map((act) => _buildActivityCard(act, isDark, selectedDateKey)),
+                  ...activities.map((act) => _buildActivityCard(
+                        act,
+                        isDark,
+                        selectedDateKey,
+                        isFuture: isFutureDate,
+                      )),
                 ],
 
                 const SizedBox(height: 20),
@@ -409,6 +388,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     SkriningData data,
     CategoryRecommendation rec,
     String categoryKey,
+    String displayCategory,
     bool isDark,
     Color textPrimary,
     Color textSecondary,
@@ -421,7 +401,9 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     final isObesitySpecialCare = categoryKey.contains('Obesitas II') ||
         categoryKey.contains('Obesitas III') ||
         categoryKey.contains('Obesitas I');
-    final isUnderweightCare = categoryKey.contains('Underweight');
+    final isUnderweightCare = categoryKey.toLowerCase().contains('underweight') ||
+        categoryKey.toLowerCase().contains('insufficient') ||
+        displayCategory.toLowerCase().contains('insufficient');
 
     return Container(
       width: double.infinity,
@@ -497,7 +479,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      rec.categoryDisplayName,
+                      displayCategory,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -692,7 +674,12 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     );
   }
 
-  Widget _buildActivityCard(Map<String, dynamic> act, bool isDark, String dateKey) {
+  Widget _buildActivityCard(
+    Map<String, dynamic> act,
+    bool isDark,
+    String dateKey, {
+    bool isFuture = false,
+  }) {
     final actId = act['id'] as String;
     final isCompleted = PhysicalActivityService.instance.isCompleted(dateKey, actId);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
@@ -828,15 +815,18 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 const SizedBox(width: 6),
 
                 // Status Indicator (Dapat ditekan untuk toggle selesai/belum atau otomatis via timer)
+                // Hanya aktif pada hari ini dan tanggal lampau; nonaktif pada tanggal mendatang
                 InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: () {
-                    PhysicalActivityService.instance.toggleActivity(
-                      dateKey: dateKey,
-                      activity: act,
-                      context: context,
-                    );
-                  },
+                  onTap: isFuture
+                      ? null
+                      : () {
+                          PhysicalActivityService.instance.toggleActivity(
+                            dateKey: dateKey,
+                            activity: act,
+                            context: context,
+                          );
+                        },
                   child: Padding(
                     padding: const EdgeInsets.only(right: 6, left: 2),
                     child: Icon(

@@ -324,5 +324,76 @@ void main() {
       expect(find.text('Berenang / Senam Air'), findsOneWidget);
       expect(find.text('Bersepeda Statis'), findsOneWidget);
     });
+
+    testWidgets('Revision Tests: Badge 0/4 Selesai is removed, Insufficient Weight is displayed, Checklist restricted to today', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.75;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final underData = SkriningData(
+        gender: 'Perempuan',
+        age: 22,
+        height: 165,
+        weight: 42,
+        aiCategoryKey: 'Underweight',
+        aiCategoryTitle: 'Insufficient\nWeight',
+        isPredictionSuccess: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PhysicalActivityScreen(skriningData: underData),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1. Badge "0/4 Selesai" / "Selesai" badge on header is NOT found
+      expect(find.textContaining('Selesai'), findsNothing);
+      expect(find.text('Pilihan Aktivitas Olahraga'), findsOneWidget);
+
+      // 2. Kategori "Insufficient Weight" tampil dengan benar, bukan "Underweight"
+      expect(find.text('Insufficient Weight'), findsOneWidget);
+      expect(find.text('Underweight'), findsNothing);
+
+      // 3. Rekomendasi aktivitas underweight tampil
+      expect(find.text('Latihan Beban & Kekuatan (Strength)'), findsOneWidget);
+
+      // 4. Checklist pada hari ini aktif (onTap != null)
+      final checkIconFinder = find.byIcon(Icons.radio_button_unchecked_rounded).first;
+      final todayInkWell = tester.widget<InkWell>(
+        find.ancestor(of: checkIconFinder, matching: find.byType(InkWell)).first,
+      );
+      expect(todayInkWell.onTap, isNotNull, reason: 'Checklist harus aktif pada hari ini');
+
+      // 5. Pilih tanggal mendatang (besok)
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final tomorrowStr = '${tomorrow.day}/${tomorrow.month}/${tomorrow.year.toString().substring(2)}';
+      final tomorrowDateWidget = find.text(tomorrowStr);
+      if (tomorrowDateWidget.evaluate().isNotEmpty) {
+        await tester.tap(tomorrowDateWidget);
+        await tester.pumpAndSettle();
+
+        // Checklist pada tanggal mendatang nonaktif (onTap == null)
+        final futureCheckIconFinder = find.byIcon(Icons.radio_button_unchecked_rounded).first;
+        final futureInkWell = tester.widget<InkWell>(
+          find.ancestor(of: futureCheckIconFinder, matching: find.byType(InkWell)).first,
+        );
+        expect(futureInkWell.onTap, isNull, reason: 'Checklist harus nonaktif pada tanggal masa depan');
+
+        // 6. Kembali ke hari ini
+        final todayFinder = find.text('Hari ini');
+        expect(todayFinder, findsOneWidget);
+        await tester.tap(todayFinder);
+        await tester.pumpAndSettle();
+
+        // Checklist aktif kembali pada hari ini
+        final restoredCheckIcon = find.byIcon(Icons.radio_button_unchecked_rounded).first;
+        final restoredInkWell = tester.widget<InkWell>(
+          find.ancestor(of: restoredCheckIcon, matching: find.byType(InkWell)).first,
+        );
+        expect(restoredInkWell.onTap, isNotNull, reason: 'Checklist harus aktif kembali saat kembali ke hari ini');
+      }
+    });
   });
 }
