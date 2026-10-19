@@ -26,17 +26,31 @@ class PhysicalActivityScreen extends StatefulWidget {
 
 class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
   late final ScrollController _dateScrollController;
-  final int _todayOffset = 7; // Index of today in [-7 .. +13] (total 21 days)
-  late int _selectedDayIndex;
+  late DateTime _selectedDate;
   late String _userKey;
+  bool _hasInitialScrolled = false;
 
   UserModel get _effectiveUser =>
       widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
 
+  void _scrollToToday(int todayIndex) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_dateScrollController.hasClients) {
+        final scrollPosition = (todayIndex * 68.0) - 120.0;
+        _dateScrollController.animateTo(
+          scrollPosition.clamp(0.0, _dateScrollController.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    _selectedDayIndex = _todayOffset;
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
     _dateScrollController = ScrollController();
 
     final user = _effectiveUser;
@@ -50,18 +64,6 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
 
     // Muat data dan dengarkan pembaruan real-time dari Cloud Firestore (Requirement 9)
     PhysicalActivityService.instance.listenToFirestoreSessions(PhysicalActivityService.instance.todayKey);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_dateScrollController.hasClients) {
-        // Scroll so today's pill is centered
-        final scrollPosition = (_todayOffset * 64.0) - 120.0;
-        _dateScrollController.animateTo(
-          scrollPosition.clamp(0.0, _dateScrollController.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
   }
 
   @override
@@ -123,6 +125,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
@@ -134,18 +137,10 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
         ScreeningHistoryService.instance,
       ]),
       builder: (context, _) {
-        final offset = _selectedDayIndex - _todayOffset;
-        final selectedDate = now.add(Duration(days: offset));
-        final selectedDateKey = PhysicalActivityService.instance.formatDateKey(selectedDate);
-
         // 1. Dapatkan hasil skrining pengguna yang sedang login
-        SkriningData? activeSkrining = widget.skriningData;
-        if (activeSkrining == null) {
-          final history = ScreeningHistoryService.instance.getHistory(_userKey);
-          if (history.isNotEmpty) {
-            activeSkrining = history.first.skriningData;
-          }
-        }
+        final history = ScreeningHistoryService.instance.getHistory(_userKey);
+        final latestScreeningItem = history.isNotEmpty ? history.first : null;
+        SkriningData? activeSkrining = widget.skriningData ?? latestScreeningItem?.skriningData;
 
         final bool hasScreening = activeSkrining != null;
         final String categoryKey = hasScreening
@@ -161,6 +156,39 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
               )
             : const [];
 
+        // Sumber tanggal skrining terbaru (dinormalisasi tahun-bulan-hari)
+        final DateTime? rawScreeningDate = latestScreeningItem?.date ?? activeSkrining?.date;
+        final DateTime? screeningDate = rawScreeningDate != null
+            ? DateTime(rawScreeningDate.year, rawScreeningDate.month, rawScreeningDate.day)
+            : null;
+
+        // Tanggal awal scroller: tanggal skrining terbaru (atau today jika belum ada skrining / deviasi waktu)
+        final DateTime startDate;
+        if (screeningDate != null) {
+          startDate = screeningDate.isAfter(today) ? today : screeningDate;
+        } else {
+          startDate = today;
+        }
+
+        final int pastDays = today.difference(startDate).inDays;
+        final int todayIndex = pastDays;
+        const int futureDays = 13;
+        final int totalDays = pastDays + 1 + futureDays;
+        final DateTime endDate = DateTime(startDate.year, startDate.month, startDate.day + totalDays - 1);
+
+        // Pastikan tanggal terpilih otomatis berada di dalam rentang [startDate, endDate]
+        if (_selectedDate.isBefore(startDate) || _selectedDate.isAfter(endDate)) {
+          _selectedDate = today;
+        }
+
+        // Auto-scroll agar "Hari ini" terlihat jelas saat awal render
+        if (!_hasInitialScrolled) {
+          _hasInitialScrolled = true;
+          _scrollToToday(todayIndex);
+        }
+
+        final selectedDateKey = PhysicalActivityService.instance.formatDateKey(_selectedDate);
+
         return ProgressPageScaffold(
           title: 'Rekomendasi Aktivitas Fisik',
           body: SingleChildScrollView(
@@ -169,20 +197,23 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Horizontal Real-Time Date Scroller (21 days: -7 to +13)
+                // Horizontal Real-Time Date Scroller (Mulai dari Skrining Terbaru)
                 SizedBox(
                   height: 74,
                   child: ListView.builder(
                     controller: _dateScrollController,
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
-                    itemCount: 21,
+                    itemCount: totalDays,
                     itemBuilder: (context, index) {
-                      final itemOffset = index - _todayOffset;
-                      final date = now.add(Duration(days: itemOffset));
-                      final isSelected = _selectedDayIndex == index;
-                      final isPast = itemOffset < 0;
-                      final isToday = itemOffset == 0;
+                      final date = DateTime(startDate.year, startDate.month, startDate.day + index);
+                      final isSelected = (_selectedDate.year == date.year &&
+                          _selectedDate.month == date.month &&
+                          _selectedDate.day == date.day);
+                      final isPast = date.isBefore(today);
+                      final isToday = (date.year == today.year &&
+                          date.month == today.month &&
+                          date.day == today.day);
 
                       final dayName = isToday ? 'Hari ini' : dayNames[date.weekday % 7];
                       final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
@@ -220,10 +251,9 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                       return GestureDetector(
                         onTap: () {
                           setState(() {
-                            _selectedDayIndex = index;
+                            _selectedDate = date;
                           });
-                          final selectedDate = now.add(Duration(days: itemOffset));
-                          final dKey = PhysicalActivityService.instance.formatDateKey(selectedDate);
+                          final dKey = PhysicalActivityService.instance.formatDateKey(date);
                           PhysicalActivityService.instance.listenToFirestoreSessions(dKey);
                         },
                         child: AnimatedContainer(
@@ -633,6 +663,8 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
               ).then((_) {
                 if (mounted) {
                   ScreeningHistoryService.instance.loadHistory(_userKey);
+                  _hasInitialScrolled = false;
+                  setState(() {});
                 }
               });
             },
