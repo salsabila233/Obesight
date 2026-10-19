@@ -39,14 +39,27 @@ class _NutritionRecommendationScreenState
     extends State<NutritionRecommendationScreen> with WidgetsBindingObserver {
   late NutritionFilter _currentFilter;
 
-  // Date Scroller state (21 days: -7 to +13)
+  // Date Scroller state
   late final ScrollController _dateScrollController;
-  final int _todayOffset = 7;
   late DateTime _selectedDate;
   late String _userKey;
+  bool _hasInitialScrolled = false;
 
   UserModel get _effectiveUser =>
       widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
+
+  void _scrollToToday(int todayIndex) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_dateScrollController.hasClients) {
+        final scrollPosition = (todayIndex * 68.0) - 120.0;
+        _dateScrollController.animateTo(
+          scrollPosition.clamp(0.0, _dateScrollController.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -64,18 +77,6 @@ class _NutritionRecommendationScreenState
     final now = DateTime.now();
     _selectedDate = DateTime(now.year, now.month, now.day);
     _dateScrollController = ScrollController();
-
-    // Auto-scroll date scroller agar hari ini di tengah
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_dateScrollController.hasClients) {
-        final scrollPosition = (_todayOffset * 64.0) - 120.0;
-        _dateScrollController.animateTo(
-          scrollPosition.clamp(0.0, _dateScrollController.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
 
     // Sinkronisasi bila ada pembaruan profil / hasil skrining baru
     AuthService().profileUpdateNotifier.addListener(_onProfileUpdated);
@@ -103,6 +104,7 @@ class _NutritionRecommendationScreenState
 
   void _onProfileUpdated() {
     if (mounted) {
+      _hasInitialScrolled = false;
       setState(() {});
     }
   }
@@ -142,19 +144,46 @@ class _NutritionRecommendationScreenState
       ]),
       builder: (context, _) {
         // 1. Dapatkan hasil skrining pengguna yang sedang login
-        SkriningData? activeSkrining = widget.skriningData;
-        if (activeSkrining == null) {
-          final history = ScreeningHistoryService.instance.getHistory(_userKey);
-          if (history.isNotEmpty) {
-            activeSkrining = history.first.skriningData;
-          }
-        }
+        final history = ScreeningHistoryService.instance.getHistory(_userKey);
+        final latestScreeningItem = history.isNotEmpty ? history.first : null;
+        SkriningData? activeSkrining = widget.skriningData ?? latestScreeningItem?.skriningData;
 
         final bool hasScreening = activeSkrining != null;
         final String? categoryKey = hasScreening ? activeSkrining.classificationCategory : null;
         final calorieGroup = CalorieTargetService.resolveGroup(categoryKey);
         final groupDisplayName = CalorieTargetService.getGroupDisplayName(calorieGroup);
         final targetCalories = CalorieTargetService.getDailyCalorieTarget(calorieGroup);
+
+        // Sumber tanggal skrining terbaru (dinormalisasi tahun-bulan-hari)
+        final DateTime? rawScreeningDate = latestScreeningItem?.date ?? activeSkrining?.date;
+        final DateTime? screeningDate = rawScreeningDate != null
+            ? DateTime(rawScreeningDate.year, rawScreeningDate.month, rawScreeningDate.day)
+            : null;
+
+        // Tanggal awal scroller: tanggal skrining terbaru (atau today jika belum ada skrining / deviasi waktu)
+        final DateTime startDate;
+        if (screeningDate != null) {
+          startDate = screeningDate.isAfter(today) ? today : screeningDate;
+        } else {
+          startDate = today;
+        }
+
+        final int pastDays = today.difference(startDate).inDays;
+        final int todayIndex = pastDays;
+        const int futureDays = 13;
+        final int totalDays = pastDays + 1 + futureDays;
+        final DateTime endDate = DateTime(startDate.year, startDate.month, startDate.day + totalDays - 1);
+
+        // Pastikan tanggal terpilih otomatis berada di dalam rentang [startDate, endDate]
+        if (_selectedDate.isBefore(startDate) || _selectedDate.isAfter(endDate)) {
+          _selectedDate = today;
+        }
+
+        // Auto-scroll agar "Hari ini" terlihat jelas saat awal render
+        if (!_hasInitialScrolled) {
+          _hasInitialScrolled = true;
+          _scrollToToday(todayIndex);
+        }
 
         final selectedDateKey = NutritionChecklistService.instance.formatDateKey(_selectedDate);
         final bool isSelectedDateToday = (_selectedDate.year == today.year &&
@@ -208,17 +237,16 @@ class _NutritionRecommendationScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Horizontal Real-Time Date Scroller (21 days: -7 to +13)
+                // 1. Horizontal Real-Time Date Scroller (Mulai dari Skrining Terbaru)
                 SizedBox(
                   height: 74,
                   child: ListView.builder(
                     controller: _dateScrollController,
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
-                    itemCount: 21,
+                    itemCount: totalDays,
                     itemBuilder: (context, index) {
-                      final itemOffset = index - _todayOffset;
-                      final date = today.add(Duration(days: itemOffset));
+                      final date = DateTime(startDate.year, startDate.month, startDate.day + index);
                       final isSelected = (_selectedDate.year == date.year &&
                           _selectedDate.month == date.month &&
                           _selectedDate.day == date.day);
@@ -329,6 +357,8 @@ class _NutritionRecommendationScreenState
                     onScreeningReturned: () {
                       if (mounted) {
                         ScreeningHistoryService.instance.loadHistory(_userKey);
+                        _hasInitialScrolled = false;
+                        setState(() {});
                       }
                     },
                   ),

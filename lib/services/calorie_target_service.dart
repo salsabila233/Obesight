@@ -99,7 +99,7 @@ class CalorieTargetService {
   static String getGroupDisplayName(ScreeningCalorieGroup group) {
     switch (group) {
       case ScreeningCalorieGroup.underweight:
-        return 'Underweight (Berat Kurang)';
+        return 'Insufficient';
       case ScreeningCalorieGroup.normal:
         return 'Normal (Berat Ideal)';
       case ScreeningCalorieGroup.overweightObesity:
