@@ -73,14 +73,10 @@ class ImtResultScreen extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    // HERO CARD HIJAU DENGAN ILUSTRASI PEREMPUAN BERLARI & ANGKA BESAR
+                    // HERO CARD HIJAU DENGAN ILUSTRASI PEREMPUAN BERLARI & ANGKA BESAR (BATAS BAWAH RATA)
                     Container(
                       width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
-                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
-                      ),
-                      clipBehavior: Clip.antiAlias,
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
                       padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,12 +169,23 @@ class ImtResultScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // BODY CONTENT
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-                      child: Column(
-                        children: [
-                          // CARD 1: Pesan Status & Saran Singkat
+                    // BODY CONTENT (PANEL KONTEN DENGAN SUDUT ATAS MELENGKUNG - ACUAN RIWAYAT SKRINING)
+                    Container(
+                      width: double.infinity,
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: appBg,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                            child: Column(
+                              children: [
+                                // CARD 1: Pesan Status & Saran Singkat
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
@@ -283,6 +290,9 @@ class ImtResultScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ),
+                ),
+              ),
                   ],
                 ),
               ),

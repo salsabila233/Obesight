@@ -166,9 +166,6 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF4E8F73),
         elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-        ),
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
           onPressed: () => Navigator.of(context).pop(),
@@ -192,13 +189,10 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // HERO CARD
+                    // HERO CARD (BANNER HIJAU DENGAN BATAS BAWAH RATA)
                     Container(
                       width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3),
-                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
-                      ),
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3),
                       padding: const EdgeInsets.fromLTRB(20, 16, 16, 20),
                       child: Row(
                         children: [
@@ -243,11 +237,23 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                       ),
                     ),
 
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                    // PANEL KONTEN DENGAN SUDUT ATAS MELENGKUNG (ACUAN RIWAYAT SKRINING)
+                    Container(
+                      width: double.infinity,
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFD6F0E3),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: appBg,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                           // SECTION: Data Fisik Pengguna
                           Text(
                             'Data Fisik Pengguna',
@@ -424,6 +430,9 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
                         ],
                       ),
                     ),
+                  ),
+                ),
+              ),
                   ],
                 ),
               ),
