@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../models/screening_history_model.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/physical_activity_service.dart';
@@ -29,6 +30,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
   late DateTime _selectedDate;
   late String _userKey;
   bool _hasInitialScrolled = false;
+  String? _lastScreeningId;
 
   UserModel get _effectiveUser =>
       widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
@@ -139,8 +141,17 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
       builder: (context, _) {
         // 1. Dapatkan hasil skrining pengguna yang sedang login
         final history = ScreeningHistoryService.instance.getHistory(_userKey);
-        final latestScreeningItem = history.isNotEmpty ? history.first : null;
-        SkriningData? activeSkrining = widget.skriningData ?? latestScreeningItem?.skriningData;
+        ScreeningHistoryItem? latestScreeningItem;
+        if (history.isNotEmpty) {
+          latestScreeningItem = history.reduce((curr, next) => curr.date.isAfter(next.date) ? curr : next);
+        }
+        final SkriningData? activeSkrining = latestScreeningItem?.skriningData ?? widget.skriningData;
+
+        // Reset auto-scroll jika terdeteksi skrining baru
+        if (latestScreeningItem != null && latestScreeningItem.id != _lastScreeningId) {
+          _lastScreeningId = latestScreeningItem.id;
+          _hasInitialScrolled = false;
+        }
 
         final bool hasScreening = activeSkrining != null;
         final String categoryKey = hasScreening
@@ -170,7 +181,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
         // Sumber tanggal skrining terbaru (dinormalisasi tahun-bulan-hari)
         final DateTime? rawScreeningDate = latestScreeningItem?.date ?? activeSkrining?.date;
         final DateTime? screeningDate = rawScreeningDate != null
-            ? DateTime(rawScreeningDate.year, rawScreeningDate.month, rawScreeningDate.day)
+            ? PhysicalActivityService.normalizeDate(rawScreeningDate)
             : null;
 
         // Tanggal awal scroller: tanggal skrining terbaru (atau today jika belum ada skrining / deviasi waktu)
@@ -188,7 +199,15 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
 
         // Pastikan tanggal terpilih otomatis berada di dalam rentang siklus skrining [startDate, endDate]
         if (_selectedDate.isBefore(startDate) || _selectedDate.isAfter(endDate)) {
+<<<<<<< HEAD
           _selectedDate = today.isBefore(startDate) ? startDate : (today.isAfter(endDate) ? endDate : today);
+=======
+          _selectedDate = today;
+          final dKey = PhysicalActivityService.instance.formatDateKey(today);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            PhysicalActivityService.instance.listenToFirestoreSessions(dKey);
+          });
+>>>>>>> eb284c8 (Perbaikan progres aktivitas fisik dan periode skrining)
         }
 
         // Auto-scroll agar "Hari ini" terlihat jelas saat awal render
@@ -198,8 +217,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
         }
 
         final selectedDateKey = PhysicalActivityService.instance.formatDateKey(_selectedDate);
-        final selectedDateOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-        final isFutureDate = selectedDateOnly.isAfter(today);
+        final isFutureDate = PhysicalActivityService.isFutureDate(_selectedDate);
 
         return ProgressPageScaffold(
           title: 'Rekomendasi Aktivitas Fisik',
@@ -817,7 +835,20 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 InkWell(
                   borderRadius: BorderRadius.circular(20),
                   onTap: isFuture
-                      ? null
+                      ? () {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                              ),
+                              backgroundColor: const Color(0xFFEF4444),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          );
+                        }
                       : () {
                           PhysicalActivityService.instance.toggleActivity(
                             dateKey: dateKey,

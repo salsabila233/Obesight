@@ -273,19 +273,23 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
     // Catat permulaan sesi ke Cloud Firestore (riwayat_sesi)
     if (_activeSessionId == null && _activeActivity != null && _activeActivity?['isRest'] != true) {
-      _sessionLocalStartTime ??= DateTime.now();
-      _startSessionFuture = PhysicalActivityService.instance.startSession(
-        activity: _activeActivity!,
-        dateKey: _dateKey,
-      );
-      _startSessionFuture!.then((sid) {
-        if (sid != null) {
-          _activeSessionId = sid;
-          debugPrint('[ActivityTimerService] Active sessionId terdaftar: $sid');
-        }
-      }).catchError((e) {
-        debugPrint('[ActivityTimerService] Error startSession Firestore: $e');
-      });
+      if (!PhysicalActivityService.isFutureDateKey(_dateKey)) {
+        _sessionLocalStartTime ??= DateTime.now();
+        _startSessionFuture = PhysicalActivityService.instance.startSession(
+          activity: _activeActivity!,
+          dateKey: _dateKey,
+        );
+        _startSessionFuture!.then((sid) {
+          if (sid != null) {
+            _activeSessionId = sid;
+            debugPrint('[ActivityTimerService] Active sessionId terdaftar: $sid');
+          }
+        }).catchError((e) {
+          debugPrint('[ActivityTimerService] Error startSession Firestore: $e');
+        });
+      } else {
+        debugPrint('[ActivityTimerService] Tidak mencatat sesi Firestore untuk tanggal mendatang: $_dateKey');
+      }
     }
 
     _startTicker();
@@ -365,6 +369,12 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     final actId = act['id'] as String? ?? '';
     final dKey = _dateKey ?? PhysicalActivityService.instance.todayKey;
 
+    // Menolak auto-save jika tanggal target merupakan tanggal mendatang
+    if (PhysicalActivityService.isFutureDateKey(dKey)) {
+      debugPrint('[ActivityTimerService] Menolak autoSaveChecklist: tanggal mendatang ($dKey). Progres hanya dapat dicatat untuk hari ini.');
+      return false;
+    }
+
     if (actId.isNotEmpty && meetsMinimum50Percent) {
       // Tunggu future startSession jika masih dalam proses
       if (_activeSessionId == null && _startSessionFuture != null) {
@@ -421,6 +431,16 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     _segmentStartTime = null;
 
     final isEligible = meetsMinimum50Percent;
+    final dKey = _dateKey ?? PhysicalActivityService.instance.todayKey;
+    final isRest = _activeActivity?['isRest'] == true;
+
+    if (!isRest && PhysicalActivityService.isFutureDateKey(dKey)) {
+      debugPrint('[ActivityTimerService] Menolak finishManually: tanggal mendatang ($dKey).');
+      _status = ActivityTimerStatus.paused;
+      notifyListeners();
+      return false;
+    }
+
     if (isEligible) {
       _status = ActivityTimerStatus.completed;
       final saved = await _autoSaveChecklistIfEligible();

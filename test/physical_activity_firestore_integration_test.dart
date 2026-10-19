@@ -98,7 +98,7 @@ void main() {
 
     test('Unauthenticated user is handled safely without throwing or creating fake UIDs', () async {
       final service = PhysicalActivityService.instance;
-      final dateKey = '2026-10-20';
+      final dateKey = service.todayKey;
       final act = service.getActivitiesForCategory('Underweight').first;
 
       // When Firebase.apps is empty and no user is logged in, completing an activity

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
+import '../../services/physical_activity_service.dart';
 import 'activity_timer_screen.dart';
 import 'activity_rest_detail_screen.dart';
 
@@ -510,34 +511,53 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                       final isRunningThis = service.hasActiveSession &&
                           (service.activeActivity?['id'] == actId);
 
+                      final isFuture = PhysicalActivityService.isFutureDateKey(widget.dateKey);
+
                       return ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: accentGreen,
+                          backgroundColor: isFuture
+                              ? (isDark ? const Color(0xFF334155) : const Color(0xFF94A3B8))
+                              : accentGreen,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           elevation: 0,
                         ),
-                        onPressed: () async {
-                          final result = await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ActivityTimerScreen(
-                                activity: widget.activity,
-                                dateKey: widget.dateKey,
-                              ),
-                            ),
-                          );
-                          if (!context.mounted) return;
-                          if (result == 'rest') {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) => const ActivityRestDetailScreen(),
-                              ),
-                            );
-                          } else if (result == true) {
-                            Navigator.of(context).pop(true);
-                          }
-                        },
+                        onPressed: isFuture
+                            ? () {
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Latihan tidak dapat dimulai untuk tanggal mendatang. Progres hanya dapat dicatat untuk hari ini.',
+                                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                                    ),
+                                    backgroundColor: const Color(0xFFEF4444),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                );
+                              }
+                            : () async {
+                                final result = await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ActivityTimerScreen(
+                                      activity: widget.activity,
+                                      dateKey: widget.dateKey,
+                                    ),
+                                  ),
+                                );
+                                if (!context.mounted) return;
+                                if (result == 'rest') {
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (_) => const ActivityRestDetailScreen(),
+                                    ),
+                                  );
+                                } else if (result == true) {
+                                  Navigator.of(context).pop(true);
+                                }
+                              },
                         icon: Icon(
                           isRunningThis ? Icons.timer_rounded : Icons.play_arrow_rounded,
                           size: 22,

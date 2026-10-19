@@ -122,6 +122,47 @@ class PhysicalActivityService extends ChangeNotifier {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
+  /// Normalisasi DateTime ke tanggal kalender (hanya tahun, bulan, hari dengan jam, menit, detik = 0)
+  static DateTime normalizeDate(DateTime dt) {
+    return DateTime(dt.year, dt.month, dt.day);
+  }
+
+  /// Memeriksa apakah [date] merupakan tanggal di masa mendatang (setelah hari ini berdasarkan kalender)
+  static bool isFutureDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(date.year, date.month, date.day);
+    return target.isAfter(today);
+  }
+
+  /// Memeriksa apakah [dateKey] (format 'yyyy-MM-dd') merupakan tanggal mendatang (setelah hari ini)
+  static bool isFutureDateKey(String? dateKey) {
+    if (dateKey == null || dateKey.trim().isEmpty) return false;
+    try {
+      final parsed = DateTime.parse(dateKey.trim());
+      return isFutureDate(parsed);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Memeriksa apakah [date] adalah hari ini berdasarkan kalender
+  static bool isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && date.month == now.month && date.day == now.day;
+  }
+
+  /// Memeriksa apakah [dateKey] adalah hari ini berdasarkan kalender
+  static bool isTodayDateKey(String? dateKey) {
+    if (dateKey == null || dateKey.trim().isEmpty) return false;
+    try {
+      final parsed = DateTime.parse(dateKey.trim());
+      return isToday(parsed);
+    } catch (_) {
+      return false;
+    }
+  }
+
   String get todayKey => formatDateKey(DateTime.now());
 
   bool isCompleted(String dateKey, String activityId) {
@@ -343,6 +384,12 @@ class PhysicalActivityService extends ChangeNotifier {
     String? dateKey,
     String? candidateName,
   }) async {
+    final dKey = dateKey ?? todayKey;
+    if (isFutureDateKey(dKey)) {
+      debugPrint('[PhysicalActivityService] Menolak startSession pada tanggal mendatang: $dKey. Progres hanya dapat dicatat untuk hari ini.');
+      return null;
+    }
+
     if (customAuth == null && customFirestore == null) {
       try {
         if (Firebase.apps.isEmpty) return null;
@@ -408,6 +455,12 @@ class PhysicalActivityService extends ChangeNotifier {
     String? dateKey,
     DateTime? localStartTime,
   }) async {
+    final dKey = dateKey ?? todayKey;
+    if (isFutureDateKey(dKey)) {
+      debugPrint('[PhysicalActivityService] Menolak finishSession pada tanggal mendatang: $dKey. Progres hanya dapat dicatat untuk hari ini.');
+      return false;
+    }
+
     if (customAuth == null && customFirestore == null) {
       try {
         if (Firebase.apps.isEmpty) return false;
@@ -778,6 +831,11 @@ class PhysicalActivityService extends ChangeNotifier {
     int? elapsedSeconds,
     BuildContext? context,
   }) async {
+    if (isFutureDateKey(dateKey)) {
+      debugPrint('[PhysicalActivityService] Menolak _recordDirectSession pada tanggal mendatang: $dateKey.');
+      return false;
+    }
+
     if (customAuth == null && customFirestore == null) {
       try {
         if (Firebase.apps.isEmpty) return true;
@@ -938,6 +996,25 @@ class PhysicalActivityService extends ChangeNotifier {
     int? elapsedSeconds,
     BuildContext? context,
   }) async {
+    if (isFutureDateKey(dateKey)) {
+      debugPrint('[PhysicalActivityService] Menolak completeActivity pada tanggal mendatang: $dateKey. Progres hanya dapat dicatat untuk hari ini.');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+      return false;
+    }
+
     if (!_completedActivitiesByDate.containsKey(dateKey)) {
       _completedActivitiesByDate[dateKey] = <String>{};
     }
@@ -971,6 +1048,25 @@ class PhysicalActivityService extends ChangeNotifier {
     Map<String, dynamic>? activity,
     BuildContext? context,
   }) async {
+    if (isFutureDateKey(dateKey)) {
+      debugPrint('[PhysicalActivityService] Menolak uncompleteActivity pada tanggal mendatang: $dateKey.');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+      return false;
+    }
+
     if (_completedActivitiesByDate.containsKey(dateKey)) {
       _completedActivitiesByDate[dateKey]!.remove(activityId);
       notifyListeners();
@@ -1002,6 +1098,25 @@ class PhysicalActivityService extends ChangeNotifier {
     required Map<String, dynamic> activity,
     BuildContext? context,
   }) async {
+    if (isFutureDateKey(dateKey)) {
+      debugPrint('[PhysicalActivityService] Menolak toggleActivity pada tanggal mendatang: $dateKey.');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+      return;
+    }
+
     final actId = activity['id'] as String;
     final currentlyCompleted = isCompleted(dateKey, actId);
 

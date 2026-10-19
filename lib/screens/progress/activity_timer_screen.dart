@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
 import '../../services/activity_alarm_service.dart';
+import '../../services/physical_activity_service.dart';
 import 'activity_rest_detail_screen.dart';
 
 class ActivityTimerScreen extends StatefulWidget {
@@ -188,6 +189,25 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
   void _toggleTimer() {
     final service = ActivityTimerService.instance;
+    final targetDateKey = widget.dateKey ?? service.dateKey;
+    final isRest = widget.activity['isRest'] == true;
+
+    if (!isRest && PhysicalActivityService.isFutureDateKey(targetDateKey)) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Latihan tidak dapat dimulai untuk tanggal mendatang. Progres hanya dapat dicatat untuk hari ini.',
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
     if (service.targetDuration <= 0 && service.selectedPreset == null) {
       final presets = _getPresets();
       service.setPreset(presets.first);
@@ -197,6 +217,24 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
   void _onTimerFinishedNaturally() {
     final isRest = widget.activity['isRest'] == true;
+    final targetDateKey = widget.dateKey ?? ActivityTimerService.instance.dateKey;
+
+    if (!isRest && PhysicalActivityService.isFutureDateKey(targetDateKey)) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
     if (isRest) {
       _showRestCompletionDialog();
     } else {
@@ -211,6 +249,23 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     if (isRest) {
       service.pause();
       _showRestCompletionDialog();
+      return;
+    }
+
+    final targetDateKey = widget.dateKey ?? service.dateKey;
+    if (PhysicalActivityService.isFutureDateKey(targetDateKey)) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
       return;
     }
 
