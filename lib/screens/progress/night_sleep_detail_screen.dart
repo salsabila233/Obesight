@@ -24,8 +24,8 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
 
   void _openForm({SleepRecord? recordToEdit}) {
     final service = SleepTrackingService.instance;
-    final recs = service.getRecordsForDate(_selectedDate);
-    final targetRecord = recordToEdit ?? (recs.isNotEmpty ? recs.first : null);
+    final rec = service.getSavedRecordForDate(_selectedDate);
+    final targetRecord = recordToEdit ?? rec;
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -340,7 +340,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             ],
                           ),
                         ),
-                        // Tombol Aksi: "Tersimpan" jika data sudah tercatat, atau "Catat waktu ini" jika belum
+                        // Tombol Aksi: Status "Sudah Dicatat" jika data sudah tercatat, atau "Catat waktu ini" jika belum
                         if (hasDataForSelectedDate)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -359,7 +359,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  'Tersimpan',
+                                  'Sudah Dicatat',
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -379,22 +379,24 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                         _isSaving = true;
                                       });
                                       try {
-                                        final success = await service.acceptPendingAutoRecord();
-                                        if (success) {
-                                          if (mounted) {
+                                        final autoData = pendingAuto;
+                                        final success = await service.acceptPendingAutoRecord(targetDate: selectedDate);
+                                        if (mounted) {
+                                          setState(() {
+                                            _isSaving = false;
+                                          });
+                                          if (success) {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  'Perkiraan waktu tidur (${pendingAuto.timeRangeFormatted}) berhasil dicatat ke progres harian dan database.',
+                                                  'Waktu tidur berhasil dicatat (${autoData.timeRangeFormatted}) dan grafik langsung diperbarui.',
                                                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
                                                 ),
                                                 backgroundColor: const Color(0xFF36785A),
                                                 behavior: SnackBarBehavior.floating,
                                               ),
                                             );
-                                          }
-                                        } else {
-                                          if (mounted) {
+                                          } else {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
                                                 content: Text(
@@ -409,6 +411,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                         }
                                       } catch (e) {
                                         if (mounted) {
+                                          setState(() {
+                                            _isSaving = false;
+                                          });
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text(

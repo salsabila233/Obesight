@@ -8,6 +8,7 @@ class SleepRecord {
   final DateTime endTime;
   final int durationMinutes;
   final String source; // 'automatic' (aktivitas HP) atau 'manual' (input pengguna)
+  final bool isConfirmed; // Flag status konfirmasi pencatatan tidur
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? note;
@@ -20,6 +21,7 @@ class SleepRecord {
     required DateTime endTime,
     int? durationMinutes,
     this.source = 'manual',
+    this.isConfirmed = true,
     DateTime? createdAt,
     DateTime? updatedAt,
     this.note,
@@ -94,14 +96,27 @@ class SleepRecord {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'userId': userId,
       'user_id': userId,
+      'date': date,
       'tanggal': date,
+      'startTime': startTime.toUtc().toIso8601String(),
       'waktu_mulai': startTime.toUtc().toIso8601String(),
+      'endTime': endTime.toUtc().toIso8601String(),
       'waktu_bangun': endTime.toUtc().toIso8601String(),
+      'durationMinutes': durationMinutes,
+      'duration': durationMinutes,
       'durasi': durationMinutes,
+      'source': source,
       'sumber_data': source,
+      'isConfirmed': isConfirmed,
+      'status_konfirmasi': isConfirmed,
+      'status': isConfirmed ? 'confirmed' : 'pending',
+      'createdAt': createdAt.toUtc().toIso8601String(),
       'created_at': createdAt.toUtc().toIso8601String(),
+      'updatedAt': updatedAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
+      'note': note,
       'catatan': note,
     };
   }
@@ -109,14 +124,27 @@ class SleepRecord {
   Map<String, dynamic> toFirestoreMap() {
     return {
       'id': id,
+      'userId': userId,
       'user_id': userId,
+      'date': date,
       'tanggal': date,
+      'startTime': Timestamp.fromDate(startTime.toUtc()),
       'waktu_mulai': Timestamp.fromDate(startTime.toUtc()),
+      'endTime': Timestamp.fromDate(endTime.toUtc()),
       'waktu_bangun': Timestamp.fromDate(endTime.toUtc()),
+      'durationMinutes': durationMinutes,
+      'duration': durationMinutes,
       'durasi': durationMinutes,
+      'source': source,
       'sumber_data': source,
+      'isConfirmed': isConfirmed,
+      'status_konfirmasi': isConfirmed,
+      'status': isConfirmed ? 'confirmed' : 'pending',
+      'createdAt': Timestamp.fromDate(createdAt.toUtc()),
       'created_at': Timestamp.fromDate(createdAt.toUtc()),
+      'updatedAt': Timestamp.fromDate(updatedAt.toUtc()),
       'updated_at': Timestamp.fromDate(updatedAt.toUtc()),
+      'note': note,
       'catatan': note,
     };
   }
@@ -133,27 +161,33 @@ class SleepRecord {
     return fallback;
   }
 
-  factory SleepRecord.fromMap(Map<String, dynamic> map, [String? docId]) {
-    final startRaw = map['waktu_mulai'] ?? map['startTime'];
-    final endRaw = map['waktu_bangun'] ?? map['endTime'];
+  factory SleepRecord.fromMap(Map<String, dynamic> map, [String? docId, String? defaultUserId]) {
+    final startRaw = map['startTime'] ?? map['waktu_mulai'];
+    final endRaw = map['endTime'] ?? map['waktu_bangun'];
     final start = _parseDateTime(startRaw, DateTime.now());
     final end = _parseDateTime(endRaw, start.add(const Duration(hours: 7)));
 
-    final createdRaw = map['created_at'] ?? map['createdAt'];
-    final updatedRaw = map['updated_at'] ?? map['updatedAt'];
+    final createdRaw = map['createdAt'] ?? map['created_at'];
+    final updatedRaw = map['updatedAt'] ?? map['updated_at'];
+
+    final rawDuration = map['durationMinutes'] ?? map['duration'] ?? map['durasi'];
+    final rawConfirmed = map['isConfirmed'] ?? map['status_konfirmasi'] ?? map['is_confirmed'] ?? (map['status'] == 'confirmed');
+
+    // Gunakan tanggal waktu bangun (pagi hari sesi tidur malam) sebagai fallback jika tanggal kosong
+    final fallbackDate = '${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}';
 
     return SleepRecord(
       id: docId ?? (map['id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString()),
-      userId: (map['user_id'] ?? map['userId']) as String? ?? 'guest',
-      date: (map['tanggal'] ?? map['date']) as String? ??
-          '${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}',
+      userId: (map['userId'] ?? map['user_id']) as String? ?? defaultUserId ?? 'guest_user',
+      date: (map['date'] ?? map['tanggal']) as String? ?? fallbackDate,
       startTime: start,
       endTime: end,
-      durationMinutes: (map['durasi'] ?? map['duration']) as int?,
-      source: (map['sumber_data'] ?? map['source']) as String? ?? 'manual',
+      durationMinutes: rawDuration is int ? rawDuration : (rawDuration is num ? rawDuration.toInt() : null),
+      source: (map['source'] ?? map['sumber_data']) as String? ?? 'manual',
+      isConfirmed: rawConfirmed == null ? true : (rawConfirmed == true || rawConfirmed == 1 || rawConfirmed == 'true' || rawConfirmed == 'confirmed'),
       createdAt: createdRaw != null ? _parseDateTime(createdRaw, DateTime.now()) : null,
       updatedAt: updatedRaw != null ? _parseDateTime(updatedRaw, DateTime.now()) : null,
-      note: (map['catatan'] ?? map['note']) as String?,
+      note: (map['note'] ?? map['catatan']) as String?,
     );
   }
 
@@ -165,6 +199,7 @@ class SleepRecord {
     DateTime? endTime,
     int? durationMinutes,
     String? source,
+    bool? isConfirmed,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? note,
@@ -177,6 +212,7 @@ class SleepRecord {
       endTime: endTime ?? this.endTime,
       durationMinutes: durationMinutes ?? this.durationMinutes,
       source: source ?? this.source,
+      isConfirmed: isConfirmed ?? this.isConfirmed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       note: note ?? this.note,
