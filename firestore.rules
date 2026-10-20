@@ -9,77 +9,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 1. Profil Pengguna & Data Pribadi
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      // Catatan Tidur
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // 1. Profil Pengguna & Sub-Koleksinya
+    // 1. Profil Pengguna & Data Pribadi (Sub-Koleksinya)
     match /users/{userId} {
       // Pemilik akun dapat membaca dan memperbarui profilnya sendiri
       allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      // Sub-koleksi Catatan Progress Nutrisi (Makanan & Minuman Harian)
-      match /nutrition_progress/{dateKey} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
 
       // Sub-koleksi Catatan Pelacakan Tidur (Sleep Records)
       match /sleep_records/{recordId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Progress Makanan & Minuman (Sub-koleksi per Pengguna)
+      // Sub-koleksi Catatan Progress Nutrisi (Makanan & Minuman Harian)
       match /nutrition_progress/{dateKey} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
       // Sub-koleksi Hasil & Riwayat Skrining Obesitas (Screening Sessions)
       match /screenings/{screeningId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
 
-<<<<<<< Updated upstream
-    // 2. Koleksi Utama: Progress Makanan & Minuman (Muncul di Panel Kiri Console)
-=======
-    // 2. Koleksi Utama: Progress Nutrisi & Katalog Makanan
->>>>>>> Stashed changes
+    // 2. Koleksi Utama: Progress Nutrisi & Makanan
     match /nutrition_progress/{docId} {
       allow read, write: if request.auth != null;
     }
 
-<<<<<<< Updated upstream
     // 3. Katalog Menu Master (Hanya Baca)
-=======
->>>>>>> Stashed changes
     match /nutrition_meals/{mealId} {
       allow read: if request.auth != null;
       allow write: if false;
     }
 
-<<<<<<< Updated upstream
-    // 4. Layanan OTP & Email
-    match /otp_verifications/{email} {
-      allow read, write: if true;
-    }
-
-    match /mail/{mailId} {
-      allow create: if true;
-      allow read, update, delete: if false;
-    }
-
-    // 5. Koleksi Artikel Kesehatan (RULES FINAL)
-    match /articles/{articleId} {
-      // Hanya artikel yang sudah berstatus terbit (isPublished == true) yang dapat dibaca aplikasi
-      allow read: if resource.data.isPublished == true;
-      // Penulisan/pengeditan/penghapusan dari client ditolak (hanya diizinkan via Firebase Console oleh admin)
-      allow write: if false;
-    }
-    // Antrean Kirim Email Otomatis (Firebase Trigger Email)
-=======
-    // 3. Koleksi Utama: Progress Aktivitas Fisik & Riwayat Sesi
+    // 4. Koleksi Utama: Progress Aktivitas Fisik & Riwayat Sesi
     // Dokumen utama per pengguna diidentifikasi menggunakan namaPengguna (dengan validasi idPengguna)
     match /progress_aktivitas_fisik/{namaPengguna} {
       // Pengguna hanya dapat membaca dan memodifikasi dokumen miliknya sendiri
@@ -91,7 +53,6 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.idPengguna == request.auth.uid;
 
       // Sub-koleksi: Riwayat Sesi Olahraga
-      // Sub-koleksi memerlukan aturan tersendiri karena tidak otomatis mewarisi aturan dokumen induk
       match /riwayat_sesi/{sessionId} {
         allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
         allow create: if request.auth != null && request.resource.data.idPengguna == request.auth.uid;
@@ -102,25 +63,24 @@ service cloud.firestore {
       }
     }
 
-    // 4. Kalkulator IMT
+    // 5. Kalkulator IMT
     match /kalkulator_imt/{calcId} {
       allow read, write: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
     }
 
-    // 5. Artikel Edukasi Kesehatan
+    // 6. Koleksi Artikel Kesehatan (Hanya Baca)
     match /articles/{articleId} {
       allow read: if true;
       allow write: if false;
     }
 
-    // 6. Antrean Kirim Email Otomatis (Firebase Trigger Email)
->>>>>>> Stashed changes
+    // 7. Antrean Kirim Email Otomatis (Firebase Trigger Email)
     match /mail/{mailId} {
       allow create: if request.auth != null;
-      allow read, update, delete: false;
+      allow read, update, delete: if false;
     }
 
-    // 7. Verifikasi OTP Pendaftaran & Lupa Sandi
+    // 8. Verifikasi OTP Pendaftaran & Lupa Sandi
     match /otp_verifications/{email} {
       allow read, write: if true;
     }

@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:obesight/services/physical_activity_service.dart';
 import 'package:obesight/services/activity_timer_service.dart';
-import 'package:obesight/services/screening_history_service.dart';
 import 'package:obesight/models/screening_history_model.dart';
 import 'package:obesight/screens/skrining/skrining_models.dart';
 import 'package:obesight/screens/skrining/skrining_recommendation_rules.dart';

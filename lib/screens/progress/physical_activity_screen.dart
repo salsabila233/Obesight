@@ -199,15 +199,11 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
 
         // Pastikan tanggal terpilih otomatis berada di dalam rentang siklus skrining [startDate, endDate]
         if (_selectedDate.isBefore(startDate) || _selectedDate.isAfter(endDate)) {
-<<<<<<< HEAD
           _selectedDate = today.isBefore(startDate) ? startDate : (today.isAfter(endDate) ? endDate : today);
-=======
-          _selectedDate = today;
-          final dKey = PhysicalActivityService.instance.formatDateKey(today);
+          final dKey = PhysicalActivityService.instance.formatDateKey(_selectedDate);
           WidgetsBinding.instance.addPostFrameCallback((_) {
             PhysicalActivityService.instance.listenToFirestoreSessions(dKey);
           });
->>>>>>> eb284c8 (Perbaikan progres aktivitas fisik dan periode skrining)
         }
 
         // Auto-scroll agar "Hari ini" terlihat jelas saat awal render
