@@ -5,6 +5,7 @@ import '../../services/activity_timer_service.dart';
 import '../../services/physical_activity_service.dart';
 import 'activity_timer_screen.dart';
 import 'activity_rest_detail_screen.dart';
+import 'activity_duration_picker_screen.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
@@ -539,19 +540,31 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                 );
                               }
                             : () async {
+                                final Widget targetScreen;
+                                if (isRunningThis) {
+                                  targetScreen = ActivityTimerScreen(
+                                    activity: widget.activity,
+                                    dateKey: widget.dateKey,
+                                  );
+                                } else {
+                                  targetScreen = ActivityDurationPickerScreen(
+                                    activity: widget.activity,
+                                    dateKey: widget.dateKey,
+                                  );
+                                }
+
                                 final result = await Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => ActivityTimerScreen(
-                                      activity: widget.activity,
-                                      dateKey: widget.dateKey,
-                                    ),
+                                    builder: (_) => targetScreen,
                                   ),
                                 );
                                 if (!context.mounted) return;
                                 if (result == 'rest') {
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
-                                      builder: (_) => const ActivityRestDetailScreen(),
+                                      builder: (_) => ActivityRestDetailScreen(
+                                        previousActivity: widget.activity,
+                                      ),
                                     ),
                                   );
                                 } else if (result == true) {

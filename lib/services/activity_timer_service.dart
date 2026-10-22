@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'physical_activity_service.dart';
 import 'activity_alarm_service.dart';
+import 'activity_rest_helper.dart';
 
 enum ActivityTimerStatus {
   idle,
@@ -19,9 +22,14 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   factory ActivityTimerService() => _instance;
   static ActivityTimerService get instance => _instance;
 
+  static const String _storagePrefix = 'obesight_timer_session_';
+  static const int _timerRunningNotificationId = 99102;
+  static const int _timerNotificationId = 99101;
+
   ActivityTimerService._internal() {
     WidgetsBinding.instance.addObserver(this);
     _initNotifications();
+    restoreSessionFromStorage();
   }
 
   // State
@@ -37,7 +45,6 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   Timer? _ticker;
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   bool _notificationsInitialized = false;
-  static const int _timerNotificationId = 99101;
 
   // Firestore Workout Session Tracker
   String? _activeSessionId;
@@ -91,7 +98,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   // --- Notification Initialization & Permission ---
 
   Future<void> _initNotifications() async {
-    if (kIsWeb) return;
+    if (kIsWeb || ActivityAlarmService.isTestMode) return;
     try {
       tz.initializeTimeZones();
 
@@ -118,7 +125,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Meminta izin notifikasi ke pengguna saat dibutuhkan (Android 13+ & iOS)
   Future<bool> requestNotificationPermission() async {
-    if (kIsWeb) return false;
+    if (kIsWeb || ActivityAlarmService.isTestMode) return false;
     try {
       final androidPlugin = _notificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -143,10 +150,68 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     return false;
   }
 
-  Future<void> _scheduleFinishNotification() async {
-    if (kIsWeb || !_notificationsInitialized) return;
+  /// Menampilkan notifikasi timer berjalan secara real-time / ongoing
+  Future<void> _showRunningNotification() async {
+    if (kIsWeb || !_notificationsInitialized || ActivityAlarmService.isTestMode) return;
     try {
-      await _cancelNotification();
+      final title = _activeActivity?['title'] as String? ?? 'Aktivitas Fisik';
+      final isRest = _activeActivity?['isRest'] == true;
+      final m = secondsRemaining ~/ 60;
+      final s = secondsRemaining % 60;
+      final timeStr = '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+      final durationMins = _targetDuration ~/ 60;
+
+      final androidDetails = AndroidNotificationDetails(
+        'activity_timer_running_channel',
+        'Timer Berjalan',
+        channelDescription: 'Status waktu timer aktivitas fisik yang sedang berlangsung',
+        importance: Importance.low,
+        priority: Priority.low,
+        ongoing: true,
+        onlyAlertOnce: true,
+        showWhen: true,
+        when: DateTime.now().millisecondsSinceEpoch + (secondsRemaining * 1000),
+        usesChronometer: true,
+        chronometerCountDown: true,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: false,
+        presentBadge: false,
+        presentSound: false,
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notificationsPlugin.show(
+        id: _timerRunningNotificationId,
+        title: isRest ? 'Sesi Istirahat Berlangsung 🌿' : 'Timer aktivitas fisik berjalan',
+        body: isRest
+            ? 'Sesi: Istirahat • $durationMins menit | Sisa: $timeStr'
+            : 'Sesi: $title • $durationMins menit | Sisa waktu: $timeStr',
+        notificationDetails: notificationDetails,
+      );
+    } catch (e) {
+      debugPrint('Error showing running notification: $e');
+    }
+  }
+
+  Future<void> _cancelRunningNotification() async {
+    if (kIsWeb || !_notificationsInitialized || ActivityAlarmService.isTestMode) return;
+    try {
+      await _notificationsPlugin.cancel(id: _timerRunningNotificationId);
+    } catch (e) {
+      debugPrint('Error canceling running notification: $e');
+    }
+  }
+
+  Future<void> _scheduleFinishNotification() async {
+    if (kIsWeb || !_notificationsInitialized || ActivityAlarmService.isTestMode) return;
+    try {
+      await _cancelScheduledNotification();
 
       final remaining = secondsRemaining;
       if (remaining <= 0) return;
@@ -178,10 +243,10 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
       await _notificationsPlugin.zonedSchedule(
         id: _timerNotificationId,
-        title: isRest ? 'Istirahat Selesai! 🌿' : 'Latihan Selesai! 🎉',
+        title: isRest ? 'Istirahat Selesai! 🌿' : 'Aktivitas Fisik Selesai! 🎉',
         body: isRest
             ? 'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar!'
-            : 'Hebat! Anda telah menyelesaikan sesi $title.',
+            : 'Kamu telah menyelesaikan sesi $title selama ${_targetDuration ~/ 60} menit.',
         scheduledDate: scheduledDate,
         notificationDetails: notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -191,12 +256,140 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _cancelNotification() async {
-    if (kIsWeb || !_notificationsInitialized) return;
+  Future<void> _showCompletionNotification() async {
+    if (kIsWeb || !_notificationsInitialized || ActivityAlarmService.isTestMode) return;
+    try {
+      final title = _activeActivity?['title'] as String? ?? 'Aktivitas';
+      final isRest = _activeActivity?['isRest'] == true;
+
+      const androidDetails = AndroidNotificationDetails(
+        'activity_timer_channel',
+        'Timer Aktivitas',
+        channelDescription: 'Notifikasi saat timer aktivitas selesai',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      const notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notificationsPlugin.show(
+        id: _timerNotificationId,
+        title: isRest ? 'Istirahat Selesai! 🌿' : 'Aktivitas Fisik Selesai! 🎉',
+        body: isRest
+            ? 'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar!'
+            : 'Kamu telah menyelesaikan $title selama ${_targetDuration ~/ 60} menit.',
+        notificationDetails: notificationDetails,
+      );
+    } catch (e) {
+      debugPrint('Error showing completion notification: $e');
+    }
+  }
+
+  Future<void> _cancelScheduledNotification() async {
+    if (kIsWeb || !_notificationsInitialized || ActivityAlarmService.isTestMode) return;
     try {
       await _notificationsPlugin.cancel(id: _timerNotificationId);
     } catch (e) {
-      debugPrint('Error canceling notification: $e');
+      debugPrint('Error canceling scheduled notification: $e');
+    }
+  }
+
+  Future<void> _cancelAllNotifications() async {
+    await _cancelRunningNotification();
+    await _cancelScheduledNotification();
+  }
+
+  // --- Session Persistence (SharedPreferences) ---
+
+  Future<void> _saveSessionToStorage() async {
+    if (ActivityAlarmService.isTestMode) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_status == ActivityTimerStatus.idle || _activeActivity == null) {
+        await _clearSessionFromStorage();
+        return;
+      }
+      final data = {
+        'activeActivity': _activeActivity,
+        'dateKey': _dateKey,
+        'targetDuration': _targetDuration,
+        'selectedPreset': _selectedPreset,
+        'accumulatedElapsedSeconds': _accumulatedElapsedSeconds,
+        'segmentStartTime': _segmentStartTime?.toIso8601String(),
+        'status': _status.name,
+        'activeSessionId': _activeSessionId,
+        'sessionLocalStartTime': _sessionLocalStartTime?.toIso8601String(),
+      };
+      await prefs.setString('${_storagePrefix}data', jsonEncode(data));
+    } catch (e) {
+      debugPrint('[ActivityTimerService] Error saving session to storage: $e');
+    }
+  }
+
+  Future<void> restoreSessionFromStorage() async {
+    if (ActivityAlarmService.isTestMode) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('${_storagePrefix}data');
+      if (raw == null || raw.isEmpty) return;
+
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      _activeActivity = data['activeActivity'] != null ? Map<String, dynamic>.from(data['activeActivity'] as Map) : null;
+      _dateKey = data['dateKey'] as String?;
+      _targetDuration = (data['targetDuration'] as num?)?.toInt() ?? 0;
+      _selectedPreset = (data['selectedPreset'] as num?)?.toInt();
+      _accumulatedElapsedSeconds = (data['accumulatedElapsedSeconds'] as num?)?.toInt() ?? 0;
+      _activeSessionId = data['activeSessionId'] as String?;
+      if (data['sessionLocalStartTime'] != null) {
+        _sessionLocalStartTime = DateTime.tryParse(data['sessionLocalStartTime'] as String);
+      }
+
+      final statusStr = data['status'] as String? ?? 'idle';
+      if (data['segmentStartTime'] != null) {
+        _segmentStartTime = DateTime.tryParse(data['segmentStartTime'] as String);
+      }
+
+      if (statusStr == 'running') {
+        _status = ActivityTimerStatus.running;
+        // Hitung apakah sudah mencapai atau melampaui waktu selesai saat aplikasi dibuka kembali
+        if (secondsRemaining <= 0) {
+          _onTimeCompleted();
+        } else {
+          _startTicker();
+          _showRunningNotification();
+          _scheduleFinishNotification();
+        }
+      } else if (statusStr == 'paused') {
+        _status = ActivityTimerStatus.paused;
+      } else if (statusStr == 'completed') {
+        _status = ActivityTimerStatus.completed;
+      } else {
+        _status = ActivityTimerStatus.idle;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[ActivityTimerService] Error restoring session from storage: $e');
+    }
+  }
+
+  Future<void> _clearSessionFromStorage() async {
+    if (ActivityAlarmService.isTestMode) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('${_storagePrefix}data');
+    } catch (e) {
+      debugPrint('[ActivityTimerService] Error clearing session storage: $e');
     }
   }
 
@@ -207,6 +400,8 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _checkTimerProgress();
       notifyListeners();
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _saveSessionToStorage();
     }
   }
 
@@ -214,6 +409,8 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     if (_status == ActivityTimerStatus.running) {
       if (secondsRemaining <= 0) {
         _onTimeCompleted();
+      } else {
+        _showRunningNotification();
       }
     }
   }
@@ -233,17 +430,25 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     _sessionLocalStartTime = null;
     _activeActivity = activity;
     _dateKey = dateKey ?? PhysicalActivityService.instance.todayKey;
+
     _selectedPreset = presetSeconds;
     _targetDuration = presetSeconds ?? 0;
     _accumulatedElapsedSeconds = 0;
     _segmentStartTime = null;
     _status = ActivityTimerStatus.idle;
     _stopTicker();
-    _cancelNotification();
+    _cancelAllNotifications();
+    _saveSessionToStorage();
     notifyListeners();
   }
 
-  /// Mengubah pilihan preset durasi (misal 30m, 45m, 60m)
+  /// Mengatur durasi timer aktivitas fisik kustom (antara 15 hingga 60 menit)
+  void setDurationMinutes(int minutes) {
+    final clamped = ActivityRestHelper.clampActivityDuration(minutes);
+    setPreset(clamped * 60);
+  }
+
+  /// Mengubah pilihan preset durasi (misal 15m, 20m, 30m, 45m, 60m)
   void setPreset(int seconds) {
     ActivityAlarmService.instance.stopAlarm();
     _alarmTriggeredForSession = false;
@@ -253,7 +458,8 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     _segmentStartTime = null;
     _status = ActivityTimerStatus.idle;
     _stopTicker();
-    _cancelNotification();
+    _cancelAllNotifications();
+    _saveSessionToStorage();
     notifyListeners();
   }
 
@@ -266,6 +472,11 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
     if (_targetDuration <= 0 && _selectedPreset != null) {
       _targetDuration = _selectedPreset!;
+    } else if (_targetDuration <= 0) {
+      final isRest = _activeActivity?['isRest'] == true;
+      final defaultMinutes = isRest ? 15 : ActivityRestHelper.getRecommendedActivityDuration(_activeActivity);
+      _targetDuration = defaultMinutes * 60;
+      _selectedPreset = _targetDuration;
     }
 
     _segmentStartTime = DateTime.now();
@@ -283,6 +494,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
           if (sid != null) {
             _activeSessionId = sid;
             debugPrint('[ActivityTimerService] Active sessionId terdaftar: $sid');
+            _saveSessionToStorage();
           }
         }).catchError((e) {
           debugPrint('[ActivityTimerService] Error startSession Firestore: $e');
@@ -293,7 +505,9 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     _startTicker();
+    _showRunningNotification();
     _scheduleFinishNotification();
+    _saveSessionToStorage();
     notifyListeners();
   }
 
@@ -312,8 +526,10 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     _status = ActivityTimerStatus.paused;
 
     _stopTicker();
-    _cancelNotification();
+    _cancelRunningNotification();
+    _cancelScheduledNotification();
     ActivityAlarmService.instance.stopAlarm();
+    _saveSessionToStorage();
     notifyListeners();
   }
 
@@ -326,10 +542,12 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// Ketika waktu habis secara natural (100%)
+  /// Ketika waktu habis secara natural (100% / 00:00)
   void _onTimeCompleted() {
     _stopTicker();
-    _cancelNotification();
+    _cancelRunningNotification();
+    _cancelScheduledNotification();
+    _showCompletionNotification();
 
     // Pastikan accumulated elapsed seconds mencakup durasi penuh
     _accumulatedElapsedSeconds = _targetDuration;
@@ -350,6 +568,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
 
+    _clearSessionFromStorage();
     notifyListeners();
   }
 
@@ -426,7 +645,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
       _accumulatedElapsedSeconds += diff;
     }
     _stopTicker();
-    _cancelNotification();
+    _cancelAllNotifications();
     ActivityAlarmService.instance.stopAlarm();
     _segmentStartTime = null;
 
@@ -437,6 +656,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     if (!isRest && PhysicalActivityService.isFutureDateKey(dKey)) {
       debugPrint('[ActivityTimerService] Menolak finishManually: tanggal mendatang ($dKey).');
       _status = ActivityTimerStatus.paused;
+      _saveSessionToStorage();
       notifyListeners();
       return false;
     }
@@ -444,10 +664,12 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     if (isEligible) {
       _status = ActivityTimerStatus.completed;
       final saved = await _autoSaveChecklistIfEligible();
+      _clearSessionFromStorage();
       notifyListeners();
       return saved;
     } else {
       _status = ActivityTimerStatus.paused;
+      _saveSessionToStorage();
       notifyListeners();
       return false;
     }
@@ -463,7 +685,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     _startSessionFuture = null;
     _sessionLocalStartTime = null;
     _stopTicker();
-    _cancelNotification();
+    _cancelAllNotifications();
     ActivityAlarmService.instance.stopAlarm();
     _alarmTriggeredForSession = false;
     _activeActivity = null;
@@ -473,6 +695,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     _accumulatedElapsedSeconds = 0;
     _segmentStartTime = null;
     _status = ActivityTimerStatus.idle;
+    _clearSessionFromStorage();
     notifyListeners();
   }
 

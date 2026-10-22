@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/activity_timer_service.dart';
+import '../../services/activity_rest_helper.dart';
 import 'activity_timer_screen.dart';
 
+/// Halaman Pemilihan Durasi Istirahat sesuai Storyboard Gambar 4 (Halaman Istirahat).
 class ActivityRestDetailScreen extends StatefulWidget {
-  const ActivityRestDetailScreen({super.key});
+  final Map<String, dynamic>? previousActivity;
+  final int? completedDurationMinutes;
+
+  const ActivityRestDetailScreen({
+    super.key,
+    this.previousActivity,
+    this.completedDurationMinutes,
+  });
 
   @override
   State<ActivityRestDetailScreen> createState() => _ActivityRestDetailScreenState();
@@ -12,6 +22,8 @@ class ActivityRestDetailScreen extends StatefulWidget {
 class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isSticky = false;
+  late int _selectedMinutes;
+  late int _recommendedMinutes;
 
   @override
   void initState() {
@@ -24,6 +36,12 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
         setState(() => _isSticky = false);
       }
     });
+
+    _recommendedMinutes = ActivityRestHelper.getRecommendedRestMinutes(
+      activity: widget.previousActivity,
+      completedDurationMinutes: widget.completedDurationMinutes,
+    );
+    _selectedMinutes = _recommendedMinutes;
   }
 
   @override
@@ -32,10 +50,41 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
     super.dispose();
   }
 
+  void _onStartRest() {
+    final service = ActivityTimerService.instance;
+    final restActivity = {
+      'id': 'rest_activity',
+      'title': 'Istirahat Setelah Aktivitas',
+      'heroImg': 'assets/progress/rest/hero_aktivitas_clean.png',
+      'isRest': true,
+      'targetText': '$_selectedMinutes menit',
+    };
+
+    service.setupSession(
+      activity: restActivity,
+      presetSeconds: _selectedMinutes * 60,
+    );
+    service.startOrResume();
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => ActivityTimerScreen(
+          activity: restActivity,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final accentGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
+    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
+    final availableOptions = ActivityRestHelper.getAvailableRestOptions(widget.previousActivity);
 
     return Scaffold(
       backgroundColor: headerColor,
@@ -43,7 +92,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // Sticky Collapsing SliverAppBar
+          // Sticky Collapsing SliverAppBar dengan hero image ilustrasi wanita istirahat / stretching
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
@@ -68,7 +117,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
               opacity: _isSticky ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
               child: Text(
-                'Istirahat Setelah Aktivitas',
+                'Waktu Istirahat',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
@@ -85,13 +134,14 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   Image.asset(
-                    'assets/progress/rest/hero_aktivitas.png',
+                    'assets/progress/rest/hero_aktivitas_clean.png',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Image.asset(
                       'assets/progress/clean/hero_aktivitas.png',
                       fit: BoxFit.cover,
                       errorBuilder: (c, e, s) => Container(
                         color: headerColor,
+                        child: const Icon(Icons.spa_rounded, size: 72, color: Colors.white70),
                       ),
                     ),
                   ),
@@ -99,7 +149,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.black.withValues(alpha: 0.4),
+                          Colors.black.withValues(alpha: 0.35),
                           Colors.transparent,
                           Colors.black.withValues(alpha: 0.75),
                         ],
@@ -108,12 +158,45 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                       ),
                     ),
                   ),
+                  // Title overlay on hero image
+                  Positioned(
+                    bottom: 24,
+                    left: 20,
+                    right: 20,
+                    child: AnimatedOpacity(
+                      opacity: _isSticky ? 0.0 : 1.0,
+                      duration: const Duration(milliseconds: 150),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: accentGreen.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.spa_rounded, color: Colors.white, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Waktu Istirahat',
+                              style: GoogleFonts.poppins(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
 
-          // Content in Curved White Container Sheet (Radius 28)
+          // Content in Curved Sheet (Radius 28)
           SliverToBoxAdapter(
             child: Container(
               width: double.infinity,
@@ -129,167 +212,183 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                 ],
               ),
               transform: Matrix4.translationValues(0, -20, 0),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Row: Circle Activity Rest Icon & Title side-by-side
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F4EE),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x14000000),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/progress/rest/circle_aktivitas.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) => Image.asset(
-                              'assets/progress/clean/circle_aktivitas.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (ctx, err, st) => Container(
-                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2F1E8),
-                                child: Icon(Icons.directions_run_rounded, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874), size: 32),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          'Istirahat Setelah Aktivitas',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
-                            height: 1.25,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Subtitle
+                  // Subtitle sesuai Storyboard Gambar 4
                   Text(
-                    'Setelah beraktivitas fisik, tubuh membutuhkan waktu untuk memulihkan energi dan menurunkan detak jantung. Berikut rekomendasi waktu istirahat yang sesuai untuk Anda.',
+                    'Istirahat membantu tubuh pulih dan mengurangi risiko cedera.',
                     style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      fontSize: 13,
+                      color: textSecondary,
                       height: 1.45,
                     ),
                   ),
-                  const SizedBox(height: 18),
-
-                  // Two info cards: Durasi Istirahat & Manfaat
-                  Row(
-                    children: [
-                      // Card 1: Durasi Istirahat
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEDF7F2),
-                            borderRadius: BorderRadius.circular(14),
-                            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.history_rounded, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    child: Text(
-                                      'Durasi Istirahat',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '10 - 20 Menit',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-
-                      // Card 2: Manfaat
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEDF7F2),
-                            borderRadius: BorderRadius.circular(14),
-                            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.favorite_rounded, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    child: Text(
-                                      'Manfaat Utama',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Pemulihan Otot',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 20),
 
-                  // Tips Istirahat Card
+                  // Section Title: Pilih Durasi Istirahat
+                  Text(
+                    'Pilih Durasi Istirahat',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Daftar Opsi Durasi Istirahat (5, 10, 15, 20, 30 menit)
+                  ...availableOptions.map((opt) {
+                    final isSelected = _selectedMinutes == opt.minutes;
+                    final isRecommended = opt.minutes == _recommendedMinutes;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _selectedMinutes = opt.minutes;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2))
+                                : cardBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? accentGreen
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                              width: isSelected ? 2 : 1,
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: accentGreen.withValues(alpha: 0.15),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Row(
+                            children: [
+                              // Radio Indicator
+                              Container(
+                                width: 22,
+                                height: 22,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? accentGreen
+                                        : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
+                                    width: 2,
+                                  ),
+                                  color: isSelected ? accentGreen : Colors.transparent,
+                                ),
+                                child: isSelected
+                                    ? const Center(
+                                        child: Icon(Icons.circle, size: 10, color: Colors.white),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 14),
+
+                              // Text Durasi & Keterangan
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          opt.label,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isSelected ? accentGreen : textPrimary,
+                                          ),
+                                        ),
+                                        if (isRecommended) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: isDark ? const Color(0xFF065F46) : const Color(0xFFDCFCE7),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              'Rekomendasi',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF16A34A),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      opt.subtitle,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        color: textSecondary,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 24),
+
+                  // Tombol "Mulai Istirahat"
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentGreen,
+                        foregroundColor: Colors.white,
+                        elevation: 3,
+                        shadowColor: accentGreen.withValues(alpha: 0.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: _onStartRest,
+                      child: Text(
+                        'Mulai Istirahat',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Tips Pemulihan Optimal
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF7FAF8),
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAF9),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isDark ? const Color(0xFF334155) : const Color(0xFFE2EFE7),
@@ -300,77 +399,31 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.lightbulb_outline_rounded, size: 18, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
+                            Icon(Icons.lightbulb_outline_rounded,
+                                size: 18, color: accentGreen),
                             const SizedBox(width: 8),
                             Text(
                               'Tips Pemulihan Optimal',
                               style: GoogleFonts.poppins(
-                                fontSize: 13.5,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: textPrimary,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        _buildCheckItem('Lakukan pendinginan ringan dan peregangan statis selama 5 menit.', isDark),
-                        const SizedBox(height: 8),
-                        _buildCheckItem('Minum air putih secukupnya untuk mengganti cairan yang hilang.', isDark),
-                        const SizedBox(height: 8),
-                        _buildCheckItem('Duduk atau berbaring rileks dengan posisi bernapas teratur.', isDark),
-                        const SizedBox(height: 8),
-                        _buildCheckItem('Hindari langsung mandi air dingin sesaat setelah berolahraga intens.', isDark),
+                        const SizedBox(height: 10),
+                        _buildCheckItem(
+                            'Lakukan peregangan statis ringan selama sesi istirahat.', isDark),
+                        const SizedBox(height: 6),
+                        _buildCheckItem(
+                            'Minum air putih secukupnya untuk rehidrasi cairan tubuh.', isDark),
+                        const SizedBox(height: 6),
+                        _buildCheckItem(
+                            'Tarik napas perlahan dan biarkan detak jantung menurun stabil.', isDark),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Action Button "Mulai Istirahat"
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                        foregroundColor: Colors.white,
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ActivityTimerScreen(
-                              activity: {
-                                'id': 'rest_activity',
-                                'title': 'Istirahat Setelah Aktivitas',
-                                'heroImg': 'assets/progress/rest/hero_aktivitas.png',
-                                'isRest': true,
-                                'targetText': '15 menit',
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.play_circle_outline_rounded, size: 20, color: Colors.white),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Mulai Istirahat',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
                 ],
               ),
             ),
@@ -388,7 +441,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
           padding: const EdgeInsets.only(top: 2),
           child: Icon(
             Icons.check_rounded,
-            size: 15,
+            size: 14,
             color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF16A34A),
           ),
         ),
@@ -397,8 +450,8 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
           child: Text(
             text,
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+              fontSize: 11.5,
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
               height: 1.4,
             ),
           ),
