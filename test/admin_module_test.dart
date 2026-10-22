@@ -112,7 +112,7 @@ void main() {
 
       // Verified on Admin Dashboard
       expect(find.text('Beranda'), findsWidgets);
-      expect(find.text('Selamat datang Admin!'), findsOneWidget);
+      expect(find.textContaining('Selamat datang'), findsOneWidget);
       expect(find.text('Total Pengguna'), findsOneWidget);
       expect(find.text('Total Artikel'), findsOneWidget);
     });
@@ -137,12 +137,13 @@ void main() {
       // Reference Elements
       expect(find.text('ObeSight'), findsOneWidget);
       expect(find.text('Beranda'), findsWidgets);
-      expect(find.text('Selamat datang Admin!'), findsOneWidget);
+      expect(find.textContaining('Selamat datang'), findsOneWidget);
       expect(find.text('Total Pengguna'), findsOneWidget);
       expect(find.text('Total Artikel'), findsOneWidget);
-      expect(find.text('Navigasi'), findsOneWidget);
+      expect(find.text('Statistik Pengguna'), findsOneWidget);
+      expect(find.text('Aktivitas Terbaru'), findsOneWidget);
 
-      // Grid items
+      // Bottom nav items
       expect(find.text('Pengguna'), findsWidgets);
       expect(find.text('Artikel'), findsWidgets);
       expect(find.text('Laporan'), findsWidgets);

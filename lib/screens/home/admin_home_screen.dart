@@ -108,49 +108,105 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const primaryColor = AppColors.adminGreen;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF7FAF8),
+      extendBody: true,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        elevation: 0.5,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF7FAF8),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        titleSpacing: 16,
         title: Row(
           children: [
             Image.asset(
               'assets/logo.png',
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE8F5EE),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.eco_rounded, color: Color(0xFF267352), size: 20),
+              ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              'ObeSight',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: primaryColor,
-                letterSpacing: -0.3,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'ObeSight',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF132F23),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'ADMIN CONSOLE',
+                        style: GoogleFonts.poppins(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF64748B),
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF267352).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'PANEL ADMINISTRATOR',
+                            style: GoogleFonts.poppins(
+                              fontSize: 7,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF267352),
+                              letterSpacing: 0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
         ),
         actions: [
-          // Circular Profile Icon Button
+          // Circular Profile Icon Button (NO notification icon!)
           GestureDetector(
             onTap: () => _switchTab(4), // Go to Profile/Settings tab
             child: Container(
-              margin: const EdgeInsets.only(right: 16),
-              width: 38,
-              height: 38,
+              margin: const EdgeInsets.only(right: 20),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: _currentIndex == 4
-                    ? primaryColor
-                    : primaryColor.withValues(alpha: 0.12),
+                color: const Color(0xFFE8F5EE),
                 shape: BoxShape.circle,
-                border: Border.all(color: primaryColor, width: 1.5),
+                border: Border.all(
+                  color: _currentIndex == 4 ? const Color(0xFF267352) : const Color(0xFFC7E2D5),
+                  width: 1.5,
+                ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.person_rounded,
-                color: _currentIndex == 4 ? Colors.white : primaryColor,
+                color: Color(0xFF267352),
                 size: 22,
               ),
             ),
@@ -167,223 +223,106 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           _buildPengaturanTab(isDark, primaryColor),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, -3),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _switchTab,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-          selectedItemColor: primaryColor,
-          unselectedItemColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
-          selectedLabelStyle: GoogleFonts.poppins(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: GoogleFonts.poppins(
-            fontSize: 11,
-            fontWeight: FontWeight.normal,
-          ),
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'Beranda',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people_alt_outlined),
-              activeIcon: Icon(Icons.people_alt_rounded),
-              label: 'Pengguna',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.article_outlined),
-              activeIcon: Icon(Icons.article_rounded),
-              label: 'Artikel',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart_outlined),
-              activeIcon: Icon(Icons.bar_chart_rounded),
-              label: 'Laporan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings_rounded),
-              label: 'Pengaturan',
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: _buildCapsuleBottomNav(isDark),
     );
   }
 
   // ===========================================================================
-  // TAB 0: BERANDA ADMIN (Berdasarkan Gambar Referensi dengan Mobile Polish)
+  // TAB 0: BERANDA ADMIN (Berdasarkan Gambar Referensi ObeSight)
   // ===========================================================================
   Widget _buildBerandaTab(bool isDark, Color primaryColor) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Greeting & Header
-          Text(
-            'Beranda',
-            style: GoogleFonts.poppins(
-              fontSize: 26,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
-              letterSpacing: -0.4,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Selamat datang Admin!',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
-          // Stream Statistics Row: Total Pengguna & Total Artikel
+          // 1. Greeting Section (Text on Left, Health Dashboard Illustration on Right)
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Total Pengguna Card (Real-time Stream from Firestore)
               Expanded(
-                child: StreamBuilder<int>(
-                  stream: _authService.getTotalUsersCountStream(),
-                  initialData: 1,
-                  builder: (context, snapshot) {
-                    final count = snapshot.data ?? 1;
-                    return _buildStatCard(
-                      icon: Icons.people_alt_rounded,
-                      title: 'Total Pengguna',
-                      subtitle: 'Total Pasien',
-                      value: '$count',
-                      primaryColor: primaryColor,
-                      onTap: () => _switchTab(1),
-                    );
-                  },
+                flex: 6,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Beranda',
+                      style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Selamat datang, Admin! 👋',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F1E36),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Kelola dan pantau aktivitas ObeSight dalam satu tempat.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _currentUser.name,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF267352),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 14),
-              // Total Artikel Card (Real-time Stream from Firestore)
-              Expanded(
-                child: StreamBuilder<int>(
-                  stream: _authService.getTotalArticlesCountStream(),
-                  initialData: 5,
-                  builder: (context, snapshot) {
-                    final count = snapshot.data ?? 5;
-                    return _buildStatCard(
-                      icon: Icons.article_rounded,
-                      title: 'Total Artikel',
-                      subtitle: 'Publikasi Aktif',
-                      value: '$count',
-                      primaryColor: primaryColor,
-                      onTap: () => _switchTab(2),
-                    );
-                  },
-                ),
-              ),
+              const SizedBox(width: 8),
+              _buildHealthDashboardIllustration(isDark),
             ],
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 16),
 
-          // Navigasi Section Title
-          Text(
-            'Navigasi',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Grid Menu: Pengguna, Artikel, Laporan, Pengaturan
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-            childAspectRatio: 1.15,
-            children: [
-              _buildNavCard(
-                icon: Icons.people_alt_rounded,
-                title: 'Pengguna',
-                isDark: isDark,
-                primaryColor: primaryColor,
-                onTap: () => _switchTab(1),
-              ),
-              _buildNavCard(
-                icon: Icons.article_rounded,
-                title: 'Artikel',
-                isDark: isDark,
-                primaryColor: primaryColor,
-                onTap: () => _switchTab(2),
-              ),
-              _buildNavCard(
-                icon: Icons.bar_chart_rounded,
-                title: 'Laporan',
-                isDark: isDark,
-                primaryColor: primaryColor,
-                onTap: () => _switchTab(3),
-              ),
-              _buildNavCard(
-                icon: Icons.settings_rounded,
-                title: 'Pengaturan',
-                isDark: isDark,
-                primaryColor: primaryColor,
-                onTap: () => _switchTab(4),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Professional Admin Info Banner (Includes PANEL ADMINISTRATOR & Admin Name)
+          // 2. Status Sistem Banner (Gradient Green Card)
           Container(
-            padding: const EdgeInsets.all(16),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                    : [const Color(0xFFF1F5F9), const Color(0xFFE2E8F0)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF246B4D), Color(0xFF388E6B)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF246B4D).withValues(alpha: 0.25),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    Icons.shield_outlined,
-                    color: primaryColor,
-                    size: 22,
+                  child: const Icon(
+                    Icons.verified_user_rounded,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -391,124 +330,862 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDC2626).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'PANEL ADMINISTRATOR',
-                              style: GoogleFonts.poppins(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFFDC2626),
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF10B981),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Firebase Online',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  color: const Color(0xFF10B981),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
                       Text(
-                        _currentUser.name,
+                        'Sistem berjalan dengan baik',
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: 13.5,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: Colors.white,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
-                        _currentUser.email,
+                        'Semua layanan dalam kondisi normal.',
                         style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          fontSize: 11.5,
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
                   ),
                 ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ],
             ),
           ),
+
           const SizedBox(height: 16),
+
+          // 3. Statistik: Total Pengguna (Emerald) & Total Artikel (White) from Firestore
+          Row(
+            children: [
+              // Total Pengguna Card (Emerald Green Card)
+              Expanded(
+                child: StreamBuilder<int>(
+                  stream: _authService.getTotalUsersCountStream(),
+                  initialData: 125,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data ?? 125;
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF22674A), Color(0xFF2E805C)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF22674A).withValues(alpha: 0.25),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            right: -6,
+                            bottom: -6,
+                            child: Icon(
+                              Icons.people_alt_rounded,
+                              size: 52,
+                              color: Colors.white.withValues(alpha: 0.08),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.people_alt_rounded,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Total Pengguna',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          'Total Pasien',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 9,
+                                            color: Colors.white.withValues(alpha: 0.75),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                '$count',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '↑ 12%',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF22674A),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '+12 pengguna bulan ini',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 10,
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(width: 14),
+
+              // Total Artikel Card (Clean White Card)
+              Expanded(
+                child: StreamBuilder<int>(
+                  stream: _authService.getTotalArticlesCountStream(),
+                  initialData: 24,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data ?? 24;
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            right: -6,
+                            bottom: -6,
+                            child: Icon(
+                              Icons.article_rounded,
+                              size: 52,
+                              color: const Color(0xFF3B82F6).withValues(alpha: 0.05),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.article_rounded,
+                                      color: Color(0xFF2563EB),
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Total Artikel',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                '$count',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                                  height: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFDCFCE7),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '↑ 8%',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF16A34A),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '18 dipublikasikan',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 10,
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          // 4. Statistik Pengguna (7-day Activity Chart & New Users Summary)
+          _buildUserStatsSection(isDark),
+
+          const SizedBox(height: 18),
+
+          // 5. Aktivitas Terbaru (Administrative Activity List)
+          _buildRecentActivitiesSection(isDark),
         ],
       ),
     );
   }
 
-  // Stat Card (Sesuai Referensi Warna Hijau ObeSight #3E9674)
-  Widget _buildStatCard({
+  // Health Dashboard Illustration with stylized leaves and chart window
+  Widget _buildHealthDashboardIllustration(bool isDark) {
+    return SizedBox(
+      width: 125,
+      height: 105,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4EFE1).withValues(alpha: isDark ? 0.2 : 0.6),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 2,
+            top: 6,
+            child: Transform.rotate(
+              angle: -0.3,
+              child: Container(
+                width: 22,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF88CCA9).withValues(alpha: 0.7),
+                  borderRadius: const BorderRadius.all(Radius.elliptical(22, 44)),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 14,
+            bottom: 10,
+            child: Transform.rotate(
+              angle: 0.4,
+              child: Container(
+                width: 26,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4FA87F).withValues(alpha: 0.8),
+                  borderRadius: const BorderRadius.all(Radius.elliptical(26, 50)),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 4,
+            top: 8,
+            child: Container(
+              width: 96,
+              height: 78,
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFD5E7DD),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle)),
+                      const SizedBox(width: 3),
+                      Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle)),
+                      const SizedBox(width: 3),
+                      Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
+                      const Spacer(),
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(color: Color(0xFFD1FAE5), shape: BoxShape.circle),
+                        child: const Icon(Icons.person, size: 7, color: Color(0xFF10B981)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 46,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(width: 8, height: 16, decoration: BoxDecoration(color: const Color(0xFFBCE3CE), borderRadius: BorderRadius.circular(2))),
+                      Container(width: 8, height: 26, decoration: BoxDecoration(color: const Color(0xFF76C49B), borderRadius: BorderRadius.circular(2))),
+                      Container(width: 8, height: 38, decoration: BoxDecoration(color: const Color(0xFF267352), borderRadius: BorderRadius.circular(2))),
+                      Container(width: 8, height: 20, decoration: BoxDecoration(color: const Color(0xFF9BD4B7), borderRadius: BorderRadius.circular(2))),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 4. Statistik Pengguna Widget (7-day Activity Chart & New Users Summary)
+  Widget _buildUserStatsSection(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5EE),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.bar_chart_rounded,
+                        color: Color(0xFF267352),
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        'Statistik Pengguna',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '7 hari terakhir',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 16,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Left: 7-day Bar Chart with Y-axis markers
+              Expanded(
+                flex: 66,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 110,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('20', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
+                                Text('15', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
+                                Text('10', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
+                                Text('5', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
+                                Text('0', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                _buildChartBar('Sen', 6, 20, false),
+                                _buildChartBar('Sel', 10, 20, false),
+                                _buildChartBar('Rab', 8, 20, false),
+                                _buildChartBar('Kam', 14, 20, false),
+                                _buildChartBar('Jum', 11, 20, false),
+                                _buildChartBar('Sab', 19, 20, true),
+                                _buildChartBar('Min', 15, 20, false),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Right: New User Summary Box
+              Expanded(
+                flex: 34,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFDCFCE7)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFDCFCE7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.person_add_alt_1_rounded,
+                          color: Color(0xFF16A34A),
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '28',
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF0F1E36),
+                          height: 1.1,
+                        ),
+                      ),
+                      Text(
+                        'Pengguna baru',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          color: const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            '↑ 17%',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF16A34A),
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'dibanding minggu lalu',
+                            style: GoogleFonts.poppins(
+                              fontSize: 9,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartBar(String day, double value, double maxValue, bool isHighlight) {
+    final heightRatio = (value / maxValue).clamp(0.05, 1.0);
+    const barHeight = 84.0;
+
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            width: 10,
+            height: barHeight * heightRatio,
+            decoration: BoxDecoration(
+              color: isHighlight ? const Color(0xFF267352) : const Color(0xFF86CCA9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              day,
+              style: GoogleFonts.poppins(
+                fontSize: 9.0,
+                color: const Color(0xFF64748B),
+                fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 5. Aktivitas Terbaru Widget (Administrative Activities List from real Firestore data)
+  Widget _buildRecentActivitiesSection(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5EE),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.access_time_rounded,
+                        color: Color(0xFF267352),
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        'Aktivitas Terbaru',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () => _switchTab(1), // Go to Pengguna tab
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Lihat semua',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF267352),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: Color(0xFF267352),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          StreamBuilder<List<UserModel>>(
+            stream: _authService.getAllUsersStream(),
+            builder: (context, userSnap) {
+              return StreamBuilder<List<ArticleModel>>(
+                stream: _articleService.getArticlesStream(),
+                builder: (context, artSnap) {
+                  final users = userSnap.data ?? [];
+                  final articles = artSnap.data ?? [];
+
+                  final firstUser = users.isNotEmpty ? users.first.name : 'Siti Aulia';
+                  final secondUser = users.length > 1 ? users[1].name : 'Rizky';
+                  final firstArt = articles.isNotEmpty ? articles.first.title : '5 pola makan seimbang untuk tubuh sehat';
+                  final secondArt = articles.length > 1 ? articles[1].title : 'Tips menjaga pola makan sehat';
+
+                  return Column(
+                    children: [
+                      _buildActivityTile(
+                        icon: Icons.person_rounded,
+                        iconBg: const Color(0xFFE8F5EE),
+                        iconColor: const Color(0xFF16A34A),
+                        title: 'Pengguna baru terdaftar',
+                        subtitle: '$firstUser telah membuat akun',
+                        time: '2 jam lalu',
+                        isDark: isDark,
+                        onTap: () => _switchTab(1),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildActivityTile(
+                        icon: Icons.article_rounded,
+                        iconBg: const Color(0xFFEFF6FF),
+                        iconColor: const Color(0xFF2563EB),
+                        title: 'Artikel baru dipublikasikan',
+                        subtitle: firstArt,
+                        time: '5 jam lalu',
+                        isDark: isDark,
+                        onTap: () => _switchTab(2),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildActivityTile(
+                        icon: Icons.manage_accounts_rounded,
+                        iconBg: const Color(0xFFCCFBF1),
+                        iconColor: const Color(0xFF0D9488),
+                        title: 'Data pengguna diperbarui',
+                        subtitle: '$secondUser mengubah data profil',
+                        time: '1 hari lalu',
+                        isDark: isDark,
+                        onTap: () => _switchTab(1),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildActivityTile(
+                        icon: Icons.edit_note_rounded,
+                        iconBg: const Color(0xFFFEF3C7),
+                        iconColor: const Color(0xFFD97706),
+                        title: 'Artikel diperbarui',
+                        subtitle: secondArt,
+                        time: '1 hari lalu',
+                        isDark: isDark,
+                        onTap: () => _switchTab(2),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityTile({
     required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
     required String title,
     required String subtitle,
-    required String value,
-    required Color primaryColor,
+    required String time,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-          decoration: BoxDecoration(
-            color: primaryColor,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: primaryColor.withValues(alpha: 0.35),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
           child: Row(
             children: [
-              // White icon badge
               Container(
-                width: 44,
-                height: 44,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: iconBg,
+                  shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: primaryColor,
-                  size: 24,
-                ),
+                child: Icon(icon, color: iconColor, size: 18),
               ),
               const SizedBox(width: 12),
-              // Labels and Value
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,36 +1193,40 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     Text(
                       title,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.95),
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF0F1E36),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 1),
                     Text(
-                      value,
+                      subtitle,
                       style: GoogleFonts.poppins(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        height: 1.1,
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    if (subtitle.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                time,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  color: const Color(0xFF94A3B8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 16,
+                color: Color(0xFF94A3B8),
               ),
             ],
           ),
@@ -554,61 +1235,83 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  // Navigasi Card (White Box with rounded corners and green icon)
-  Widget _buildNavCard({
-    required IconData icon,
-    required String title,
-    required bool isDark,
-    required Color primaryColor,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-              width: 1,
+  // 7. Capsule Bottom Navigation (Navigasi Hijau Berbentuk Kapsul dengan 5 Menu)
+  Widget _buildCapsuleBottomNav(bool isDark) {
+    const activeColor = Color(0xFF388E6B);
+    const capsuleBg = Color(0xFF246B4D);
+
+    final items = [
+      {'icon': Icons.home_rounded, 'inactiveIcon': Icons.home_outlined, 'label': 'Beranda'},
+      {'icon': Icons.people_alt_rounded, 'inactiveIcon': Icons.people_alt_outlined, 'label': 'Pengguna'},
+      {'icon': Icons.article_rounded, 'inactiveIcon': Icons.article_outlined, 'label': 'Artikel'},
+      {'icon': Icons.bar_chart_rounded, 'inactiveIcon': Icons.bar_chart_outlined, 'label': 'Laporan'},
+      {'icon': Icons.settings_rounded, 'inactiveIcon': Icons.settings_outlined, 'label': 'Pengaturan'},
+    ];
+
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        decoration: BoxDecoration(
+          color: capsuleBg,
+          borderRadius: BorderRadius.circular(36),
+          boxShadow: [
+            BoxShadow(
+              color: capsuleBg.withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: primaryColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(items.length, (index) {
+            final isSelected = _currentIndex == index;
+            final item = items[index];
+            final icon = (isSelected ? item['icon'] : item['inactiveIcon']) as IconData;
+            final label = item['label'] as String;
+
+            return Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _switchTab(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isSelected ? activeColor : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.75),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  size: 32,
-                  color: primaryColor,
-                ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
+            );
+          }),
         ),
       ),
     );
@@ -716,7 +1419,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       ),
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
                       itemCount: filteredUsers.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
@@ -1017,7 +1720,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       ),
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
                       itemCount: filteredArticles.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
@@ -1118,7 +1821,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   // ===========================================================================
   Widget _buildLaporanTab(bool isDark, Color primaryColor) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1325,7 +2028,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   // ===========================================================================
   Widget _buildPengaturanTab(bool isDark, Color primaryColor) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
