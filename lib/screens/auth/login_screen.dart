@@ -7,6 +7,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/animated_illustration.dart';
 import '../../widgets/antigravity_floating.dart';
 import '../../widgets/custom_text_field.dart';
+import '../admin/admin_login_screen.dart';
 import '../profile/complete_profile_screen.dart';
 import '../home/admin_home_screen.dart';
 import '../home/user_home_screen.dart';
@@ -463,7 +464,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
                         // Bottom Link: "Belum punya akun?   Daftar"
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
+                          padding: const EdgeInsets.only(bottom: 8),
                           child: Center(
                             child: GestureDetector(
                               onTap: () {
@@ -493,6 +494,39 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Admin Portal Access Link
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Center(
+                            child: TextButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const AdminLoginScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.admin_panel_settings_outlined,
+                                size: 16,
+                                color: AppColors.adminGreen,
+                              ),
+                              label: Text(
+                                'Masuk sebagai Administrator',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.adminGreen,
+                                ),
+                              ),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                visualDensity: VisualDensity.compact,
                               ),
                             ),
                           ),

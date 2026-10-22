@@ -1,32 +1,48 @@
-// ============================================================================
-// SECURITY RULES LENGKAP CLOUD FIRESTORE OBESIGHT
-// Salin seluruh isi file ini dan tempelkan (Paste) ke tab Rules di Firebase Console
-// atau deploy via: firebase deploy --only firestore:rules
-// ============================================================================
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper: Periksa apakah pengguna memiliki hak akses role 'admin'
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.role == 'admin' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
     // 1. Profil Pengguna & Data Pribadi (Sub-Koleksinya)
     match /users/{userId} {
-      // Pemilik akun dapat membaca dan memperbarui profilnya sendiri
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Pemilik akun atau Admin dapat membaca profil pengguna
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+
+      // Pendaftaran akun baru
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Update profil:
+      // Pengguna biasa HANYA boleh mengubah profilnya sendiri dan DILARANG mengubah field 'role'
+      // Administrator dapat memperbarui data pengguna
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))) ||
+        isAdmin()
+      );
+
+      // Penghapusan akun: hanya pemilik atau admin
+      allow delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
 
       // Sub-koleksi Catatan Pelacakan Tidur (Sleep Records)
       match /sleep_records/{recordId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       }
 
       // Sub-koleksi Catatan Progress Nutrisi (Makanan & Minuman Harian)
       match /nutrition_progress/{dateKey} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       }
 
       // Sub-koleksi Hasil & Riwayat Skrining Obesitas (Screening Sessions)
       match /screenings/{screeningId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       }
     }
 
@@ -35,49 +51,47 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
-    // 3. Katalog Menu Master (Hanya Baca)
+    // 3. Katalog Menu Master (Admin dapat mengelola, Pengguna hanya membaca)
     match /nutrition_meals/{mealId} {
       allow read: if request.auth != null;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // 4. Koleksi Utama: Progress Aktivitas Fisik & Riwayat Sesi
     // Dokumen utama per pengguna diidentifikasi menggunakan namaPengguna (dengan validasi idPengguna)
     match /progress_aktivitas_fisik/{namaPengguna} {
-      // Pengguna hanya dapat membaca dan memodifikasi dokumen miliknya sendiri
-      allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
+      // Pengguna membaca miliknya sendiri, Admin dapat memonitor
+      allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
       allow create: if request.auth != null && request.resource.data.idPengguna == request.auth.uid;
       allow update: if request.auth != null 
-                    && (resource == null || resource.data.idPengguna == request.auth.uid) 
-                    && request.resource.data.idPengguna == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.idPengguna == request.auth.uid;
+                    && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null && (resource.data.idPengguna == request.auth.uid || isAdmin());
 
       // Sub-koleksi: Riwayat Sesi Olahraga
       match /riwayat_sesi/{sessionId} {
-        allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
+        allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
         allow create: if request.auth != null && request.resource.data.idPengguna == request.auth.uid;
         allow update: if request.auth != null 
-                      && (resource == null || resource.data.idPengguna == request.auth.uid) 
-                      && request.resource.data.idPengguna == request.auth.uid;
-        allow delete: if request.auth != null && resource.data.idPengguna == request.auth.uid;
+                      && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
+        allow delete: if request.auth != null && (resource.data.idPengguna == request.auth.uid || isAdmin());
       }
     }
 
     // 5. Kalkulator IMT
     match /kalkulator_imt/{calcId} {
-      allow read, write: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid);
+      allow read, write: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
     }
 
-    // 6. Koleksi Artikel Kesehatan (Hanya Baca)
+    // 6. Koleksi Artikel Kesehatan (Publik/User hanya membaca, Admin dapat menulis & mengelola)
     match /articles/{articleId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // 7. Antrean Kirim Email Otomatis (Firebase Trigger Email)
     match /mail/{mailId} {
       allow create: if request.auth != null;
-      allow read, update, delete: if false;
+      allow read, update, delete: if isAdmin();
     }
 
     // 8. Verifikasi OTP Pendaftaran & Lupa Sandi

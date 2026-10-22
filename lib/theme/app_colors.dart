@@ -7,6 +7,7 @@ class AppColors {
   static const Color brandTitleGreen = Color(0xFF2C6348);
   static const Color darkGreen = Color(0xFF234C37);
   static const Color splashGreen = Color(0xFF529A7B);
+  static const Color adminGreen = Color(0xFF3E9674);
 
   // Backgrounds
   static const Color background = Color(0xFFF4F8F8);

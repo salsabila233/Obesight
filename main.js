@@ -703,8 +703,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const cleanId = identifier.toLowerCase();
 
       // Admin account check
-      if ((cleanId === 'admin@obesight.com' || cleanId === 'admin') && password === 'admin123') {
-        navigateToDashboard('admin', 'Dr. Hendra Wijaya, Sp.GK', 'admin@obesight.com');
+      if ((cleanId === 'adminobesight@gmail.com' || cleanId === 'admin@obesight.com' || cleanId === 'admin') && password === 'admin123') {
+        navigateToDashboard('admin', 'Dr. Hendra Wijaya, Sp.GK', 'adminobesight@gmail.com');
         return;
       }
 
@@ -1157,8 +1157,8 @@ document.addEventListener('DOMContentLoaded', () => {
         matchedEmail = 'zahrafitrie@gmail.com';
       } else if (cleanId === 'zahraalfitiarisa' || cleanId === 'zahraalfitiarisa@gmail.com') {
         matchedEmail = 'zahraalfitiarisa@gmail.com';
-      } else if (cleanId === 'admin' || cleanId === 'admin@obesight.com') {
-        matchedEmail = 'admin@obesight.com';
+      } else if (cleanId === 'admin' || cleanId === 'adminobesight@gmail.com' || cleanId === 'admin@obesight.com') {
+        matchedEmail = 'adminobesight@gmail.com';
       } else {
         const found = registeredUsers.find(u =>
           u.email.toLowerCase() === cleanId || u.name.toLowerCase() === cleanId
@@ -4554,6 +4554,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cleanEmail === 'zahraafitriana@gmail.com' ||
         cleanEmail === 'zahrafitrie@gmail.com' ||
         cleanEmail === 'zahraalfitiarisa@gmail.com' ||
+        cleanEmail === 'adminobesight@gmail.com' ||
         cleanEmail === 'admin@obesight.com'
       );
       const registeredUser = registeredUsers.find(u => u.email && u.email.toLowerCase() === cleanEmail);

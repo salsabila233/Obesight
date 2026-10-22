@@ -446,7 +446,7 @@ class AuthService {
   static const UserModel defaultAdminAccount = UserModel(
     id: 'adm_001',
     name: 'Dr. Hendra Wijaya, Sp.GK',
-    email: 'admin@obesight.com',
+    email: 'adminobesight@gmail.com',
     username: 'admin',
     role: UserRole.admin,
     title: 'Kepala Medis & Administrator Sistem',
@@ -515,7 +515,7 @@ class AuthService {
       'name': 'Dr. Hendra Wijaya, Sp.GK',
       'dob': '20 November 1988',
       'gender': 'Laki-laki',
-      'email': 'admin@obesight.com',
+      'email': 'adminobesight@gmail.com',
       'phone': '081198765432',
       'joined': 'Bergabung sejak Januari 2024',
       'avatar': 'assets/avatar_zahra.png',
@@ -1282,7 +1282,7 @@ class AuthService {
     }
 
     // 1. Cek Admin preset untuk kenyamanan pengujian
-    if ((effectiveEmail == 'admin@obesight.com' || cleanId == 'admin') &&
+    if ((effectiveEmail == 'adminobesight@gmail.com' || effectiveEmail == 'admin@obesight.com' || cleanId == 'admin') &&
         (cleanPass == (customPass ?? 'admin123'))) {
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
       _currentUser = defaultAdminAccount.copyWith(
@@ -1409,6 +1409,189 @@ class AuthService {
     }
 
     return const AuthResponse.failure('Email atau kata sandi salah');
+  }
+
+  /// Login khusus Administrator dengan verifikasi ketat field 'role' di Cloud Firestore.
+  /// Hanya akun yang memiliki field role: 'admin' yang diizinkan masuk ke dashboard admin.
+  Future<AuthResponse> loginAdmin({
+    required String email,
+    required String password,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanPass = password.trim();
+
+    // 0. Cek apakah akun terdaftar di daftar akun yang dihapus
+    if (_deletedAccounts.contains(cleanEmail)) {
+      return const AuthResponse.failure('Akun ini telah dinonaktifkan.');
+    }
+
+    // 1. Akun Preset Administrator (untuk pengujian & offline fallback)
+    if ((cleanEmail == 'adminobesight@gmail.com' || cleanEmail == 'admin@obesight.com' || cleanEmail == 'admin') &&
+        (cleanPass == 'admin123')) {
+      final bmiInfo = getUserBmi(defaultAdminAccount.id);
+      _currentUser = defaultAdminAccount.copyWith(
+        isBiodataComplete: true,
+        bmiScore: (bmiInfo['bmi'] as num).toDouble(),
+        bmiCategory: bmiInfo['category'] as String,
+        obesityRisk: bmiInfo['risk'] as String,
+      );
+      _saveSession(_currentUser!);
+      profileUpdateNotifier.value++;
+      return AuthResponse.success(_currentUser);
+    }
+
+    // 2. Autentikasi Firebase Authentication dan Verifikasi Firestore role: 'admin'
+    if (isFirebaseAvailable) {
+      try {
+        final credential = await _firebaseAuth.signInWithEmailAndPassword(
+          email: cleanEmail,
+          password: cleanPass,
+        );
+
+        final firebaseUser = credential.user;
+        if (firebaseUser == null) {
+          return const AuthResponse.failure('Gagal memverifikasi akun administrator.');
+        }
+
+        final uid = firebaseUser.uid;
+
+        // Verifikasi ke dokumen Firestore users/{uid}
+        final userDoc = await _firestore.collection('users').doc(uid).get().timeout(
+          const Duration(seconds: 6),
+          onTimeout: () => throw TimeoutException('Waktu verifikasi Firestore habis'),
+        );
+
+        if (!userDoc.exists || userDoc.data() == null) {
+          await _firebaseAuth.signOut();
+          return const AuthResponse.failure('Akses ditolak: Data pengguna tidak ditemukan di sistem.');
+        }
+
+        final data = userDoc.data()!;
+        final role = data['role'] as String?;
+
+        // VALIDASI ROLE: Hanya 'admin' yang diperbolehkan!
+        if (role != 'admin') {
+          await _firebaseAuth.signOut();
+          return const AuthResponse.failure('Akses ditolak: Akun Anda tidak memiliki hak akses Administrator.');
+        }
+
+        final name = (data['name'] as String?)?.trim() ?? firebaseUser.displayName ?? 'Administrator';
+        final userEmail = (data['email'] as String?)?.trim() ?? firebaseUser.email ?? cleanEmail;
+        final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ?? '';
+        final phone = (data['phone'] as String?) ?? '';
+        final dob = (data['dob'] as String?) ?? '';
+        final gender = (data['gender'] as String?) ?? 'Laki-laki';
+
+        _currentUser = UserModel(
+          id: uid,
+          name: name,
+          email: userEmail,
+          username: userEmail.split('@').first,
+          role: UserRole.admin,
+          avatarUrl: photoUrl.isNotEmpty ? photoUrl : null,
+          photoPath: photoUrl.isNotEmpty ? photoUrl : null,
+          phone: phone,
+          dob: dob,
+          gender: gender,
+          isBiodataComplete: true,
+        );
+
+        _saveSession(_currentUser!);
+        profileUpdateNotifier.value++;
+        return AuthResponse.success(_currentUser);
+      } on FirebaseAuthException catch (e) {
+        debugPrint('FirebaseAuthException loginAdmin: ${e.code} - ${e.message}');
+        String msg = 'Email atau kata sandi salah.';
+        if (e.code == 'user-not-found') {
+          msg = 'Akun administrator dengan email ini tidak ditemukan.';
+        } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+          msg = 'Email atau kata sandi administrator salah.';
+        } else if (e.code == 'user-disabled') {
+          msg = 'Akun administrator ini telah dinonaktifkan.';
+        } else if (e.code == 'too-many-requests') {
+          msg = 'Terlalu banyak percobaan gagal. Silakan tunggu beberapa saat lagi.';
+        } else if (e.code == 'network-request-failed') {
+          msg = 'Koneksi internet bermasalah. Periksa jaringan Anda.';
+        }
+        return AuthResponse.failure(msg);
+      } catch (e) {
+        debugPrint('General error in loginAdmin: $e');
+        return AuthResponse.failure('Gagal memproses autentikasi: $e');
+      }
+    }
+
+    return const AuthResponse.failure('Email atau kata sandi administrator salah.');
+  }
+
+  /// Mendengarkan daftar seluruh pengguna terdaftar dari Cloud Firestore secara real-time
+  Stream<List<UserModel>> getAllUsersStream() {
+    if (!isFirebaseAvailable) {
+      return Stream.value([
+        defaultAdminAccount,
+        defaultUserAccount,
+        alternativeUserAccount,
+        zahraCantikAccount,
+        akuZahraAccount,
+      ]);
+    }
+
+    try {
+      return _firestore.collection('users').snapshots().map((snapshot) {
+        if (snapshot.docs.isEmpty) {
+          return [
+            defaultAdminAccount,
+            defaultUserAccount,
+            alternativeUserAccount,
+          ];
+        }
+        return snapshot.docs.map((doc) {
+          return UserModel.fromMap(doc.data(), doc.id);
+        }).toList();
+      }).handleError((e) {
+        debugPrint('Notice getAllUsersStream: $e');
+        return [
+          defaultAdminAccount,
+          defaultUserAccount,
+          alternativeUserAccount,
+        ];
+      });
+    } catch (e) {
+      debugPrint('getAllUsersStream exception: $e');
+      return Stream.value([
+        defaultAdminAccount,
+        defaultUserAccount,
+      ]);
+    }
+  }
+
+  /// Mendengarkan jumlah total pengguna terdaftar dari Cloud Firestore secara real-time
+  Stream<int> getTotalUsersCountStream() {
+    if (!isFirebaseAvailable) {
+      return Stream.value(_userProfileCache.isNotEmpty ? _userProfileCache.length : 1);
+    }
+    try {
+      return _firestore.collection('users').snapshots().map((snapshot) {
+        final count = snapshot.docs.length;
+        return count > 0 ? count : 1;
+      }).handleError((_) => 1);
+    } catch (_) {
+      return Stream.value(1);
+    }
+  }
+
+  /// Mendengarkan jumlah total artikel kesehatan dari Cloud Firestore secara real-time
+  Stream<int> getTotalArticlesCountStream() {
+    if (!isFirebaseAvailable) {
+      return Stream.value(6);
+    }
+    try {
+      return _firestore.collection('articles').snapshots().map((snapshot) {
+        final count = snapshot.docs.length;
+        return count > 0 ? count : 5;
+      }).handleError((_) => 5);
+    } catch (_) {
+      return Stream.value(5);
+    }
   }
 
   /// Login mock Google account (untuk demo picker)
@@ -1613,23 +1796,16 @@ class AuthService {
         }
       }
 
-      // 2. Simpan ke Firestore users/{uid}
-      if (uid.isNotEmpty) {
+      // 2. Perbarui timestamp perubahan kata sandi di Firestore (Tanpa menyimpan teks sandi terbuka!)
+      if (uid.isNotEmpty && isFirebaseAvailable) {
         try {
           await _firestore.collection('users').doc(uid).set({
-            'customPassword': cleanNewPass,
+            'passwordUpdatedAt': FieldValue.serverTimestamp(),
             'updatedAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
         } catch (e) {
-          debugPrint('Notice saving password to Firestore: $e');
+          debugPrint('Notice updating password timestamp in Firestore: $e');
         }
-      }
-
-      // 3. Simpan ke persistent preferences
-      if (email.isNotEmpty) {
-        _customPasswords[email.toLowerCase()] = cleanNewPass;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('${_keyCustomPasswords}_${email.toLowerCase()}', cleanNewPass);
       }
 
       return AuthResponse.success(_currentUser);

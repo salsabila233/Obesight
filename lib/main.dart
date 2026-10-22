@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'screens/admin/admin_login_screen.dart';
 import 'screens/auth/auth_wrapper.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -76,6 +77,7 @@ class ObeSightApp extends StatelessWidget {
             '/forgot-password': (context) => const ForgotPasswordScreen(),
             '/verify-otp': (context) => const VerifyOtpScreen(),
             '/reset-password': (context) => const ResetPasswordScreen(),
+            '/admin/login': (context) => const AdminLoginScreen(),
           },
         );
       },

@@ -35,7 +35,7 @@ const presetUsers = [
   { email: 'zahraafitriana@gmail.com', username: 'zahraafitriana', name: 'Zahra Fitriana' },
   { email: 'zahrafitrie@gmail.com', username: 'zahrafitrie', name: 'Zahra Fitrie' },
   { email: 'zahraalfitiarisa@gmail.com', username: 'zahraalfitiarisa', name: 'Zahra Alfitiarisa' },
-  { email: 'admin@obesight.com', username: 'admin', name: 'Administrator' }
+  { email: 'adminobesight@gmail.com', username: 'admin', name: 'Administrator' }
 ];
 
 async function sendEmailOtp(email, otp) {

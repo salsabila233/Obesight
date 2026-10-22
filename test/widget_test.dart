@@ -155,7 +155,7 @@ void main() {
 
     // Enter Admin credentials directly into the same unified login form
     final adminFields = find.byType(TextField);
-    await tester.enterText(adminFields.at(0), 'admin@obesight.com');
+    await tester.enterText(adminFields.at(0), 'adminobesight@gmail.com');
     await tester.enterText(adminFields.at(1), 'admin123');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
