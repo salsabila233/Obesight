@@ -19,7 +19,11 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   @override
   void initState() {
     super.initState();
+    SleepTrackingService.instance.checkDeviceInactivityCandidate();
     SleepTrackingService.instance.startFirestoreRealtimeListener();
+    if (SleepTrackingService.instance.reminderEnabled) {
+      SleepTrackingService.instance.scheduleBedtimeNotification();
+    }
   }
 
   void _openForm({SleepRecord? recordToEdit}) {
@@ -138,6 +142,13 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         service: service,
                         summaries: summaries,
                         hasDataForSelectedDate: hasDataForSelectedDate,
+                        isDark: isDark,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // --- CARD 3: Pengingat Waktu Tidur (Background Push Notification) ---
+                      _buildSleepReminderCard(
+                        service: service,
                         isDark: isDark,
                       ),
                       const SizedBox(height: 16),
@@ -343,7 +354,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             ],
                           ),
                         ),
-                        // Tombol Aksi: Status "Sudah Dicatat" jika data sudah tercatat, atau "Catat waktu ini" jika belum
+                        // Tombol Aksi: Status "Tercatat" jika data sudah tercatat, atau "Catat waktu ini" jika belum
                         if (hasDataForSelectedDate)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -361,13 +372,26 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                   color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                                 ),
                                 const SizedBox(width: 5),
-                                Text(
-                                  'Sudah Dicatat',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
-                                  ),
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Text(
+                                      'Tercatat',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
+                                      ),
+                                    ),
+                                    Text(
+                                      'Sudah Dicatat',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.transparent,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -498,7 +522,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Perkiraan waktu tidur berdasarkan waktu layar HP dimatikan di malam hari hingga dinyalakan kembali pada pagi hari.',
+                    'Perkiraan waktu tidur otomatis berdasarkan kombinasi aktivitas layar HP dan sensor cahaya lingkungan (ambient light sensor).',
                     style: GoogleFonts.poppins(
                       fontSize: 10,
                       color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -894,6 +918,248 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // ==========================================
+  // CARD 3: Pengingat Waktu Tidur (Background Push Notification)
+  // ==========================================
+  Widget _buildSleepReminderCard({
+    required SleepTrackingService service,
+    required bool isDark,
+  }) {
+    final reminderTimeFormatted = SleepTrackingService.formatTimeOfDay(service.reminderTime);
+    final bedtimeFormatted = SleepTrackingService.formatTimeOfDay(service.bedtimeTarget);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFFE2F1E8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.notifications_active_rounded,
+                  size: 20,
+                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Pengingat Waktu Tidur',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                ),
+              ),
+              Switch(
+                value: service.reminderEnabled,
+                activeThumbColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                activeTrackColor: isDark ? const Color(0xFF065F46) : null,
+                onChanged: (val) async {
+                  if (val) {
+                    final granted = await service.requestNotificationPermission();
+                    service.reminderEnabled = true;
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            granted
+                                ? 'Pengingat aktif! Notifikasi dijadwalkan setiap malam pukul $reminderTimeFormatted.'
+                                : 'Pengingat diaktifkan. Pastikan izin notifikasi diizinkan pada pengaturan sistem ponsel.',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: const Color(0xFF36785A),
+                        ),
+                      );
+                    }
+                  } else {
+                    service.reminderEnabled = false;
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Pengingat waktu tidur dinonaktifkan.'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Aplikasi akan mengirimkan notifikasi sistem secara otomatis 1 jam sebelum target waktu tidur agar Anda bersiap meletakkan gadget dan beristirahat.',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Target Bedtime tile
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              Icons.bedtime_rounded,
+              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+            ),
+            title: Text(
+              'Target Waktu Tidur',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+              ),
+            ),
+            subtitle: Text(
+              'Notifikasi aktif pada $reminderTimeFormatted (1 jam sebelumnya)',
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
+            trailing: InkWell(
+              onTap: service.reminderEnabled
+                  ? () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: service.bedtimeTarget,
+                        builder: (context, child) {
+                          return Theme(
+                            data: isDark
+                                ? ThemeData.dark().copyWith(
+                                    colorScheme: const ColorScheme.dark(
+                                      primary: Color(0xFF489874),
+                                      onPrimary: Colors.white,
+                                      surface: Color(0xFF1E293B),
+                                      onSurface: Colors.white,
+                                    ),
+                                    dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF1E293B)),
+                                  )
+                                : Theme.of(context).copyWith(
+                                    colorScheme: const ColorScheme.light(
+                                      primary: Color(0xFF36785A),
+                                      onPrimary: Colors.white,
+                                      surface: Colors.white,
+                                      onSurface: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        service.bedtimeTarget = picked;
+                        if (mounted && service.reminderEnabled) {
+                          final newReminderTime = SleepTrackingService.formatTimeOfDay(service.reminderTime);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Target tidur diatur ke ${SleepTrackingService.formatTimeOfDay(picked)}. Notifikasi pengingat dijadwalkan pukul $newReminderTime (1 jam sebelumnya).',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: const Color(0xFF36785A),
+                            ),
+                          );
+                        }
+                      }
+                    }
+                  : null,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+                ),
+                child: Text(
+                  bedtimeFormatted,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+          // Status Info Card
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: service.reminderEnabled
+                  ? (isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2))
+                  : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: service.reminderEnabled
+                    ? (isDark ? const Color(0xFF334155) : const Color(0xFFA5D6C1))
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  service.reminderEnabled
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.info_outline_rounded,
+                  color: service.reminderEnabled
+                      ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    service.reminderEnabled
+                        ? 'Sistem pengingat aktif otomatis di latar belakang. Anda akan menerima notifikasi setiap malam pukul $reminderTimeFormatted.'
+                        : 'Pengingat waktu tidur nonaktif. Aktifkan switch di atas untuk menjadwalkan notifikasi harian otomatis di sistem perangkat Anda.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      color: service.reminderEnabled
+                          ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF265C45))
+                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      height: 1.45,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

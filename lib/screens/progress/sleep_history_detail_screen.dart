@@ -76,11 +76,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                     _buildDynamicChartCard(service, summaries, isDark),
                     const SizedBox(height: 20),
 
-                    // 3. Section: Pengaturan Notifikasi Waktu Tidur
-                    _buildReminderSection(service, isDark),
-                    const SizedBox(height: 20),
-
-                    // 4. Section: Riwayat Catatan Tidur (List records with edit & delete)
+                    // 3. Section: Riwayat Catatan Tidur (List records with edit & delete)
                     _buildRecordListSection(service, isDark),
                   ],
                 ),
@@ -1236,148 +1232,6 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
     );
   }
 
-  Widget _buildReminderSection(SleepTrackingService service, bool isDark) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFFE2F1E8),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.notifications_active_rounded, size: 20, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Pengingat Waktu Tidur',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                  ),
-                ),
-              ),
-              Switch(
-                value: service.reminderEnabled,
-                activeThumbColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
-                activeTrackColor: isDark ? const Color(0xFF065F46) : null,
-                onChanged: (val) async {
-                  if (val) {
-                    await service.requestNotificationPermission();
-                  }
-                  service.reminderEnabled = val;
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Aplikasi akan mengirimkan notifikasi sistem 1 jam sebelum target waktu tidur agar Anda bersiap meletakkan gadget dan beristirahat.',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Target Bedtime tile
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.bedtime_rounded, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
-            title: Text(
-              'Target Waktu Tidur',
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF1E293B)),
-            ),
-            subtitle: Text(
-              'Notifikasi aktif pada ${_formatTimeOfDay(service.reminderTime)} (1 jam sebelumnya)',
-              style: GoogleFonts.poppins(fontSize: 11, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-            ),
-            trailing: InkWell(
-              onTap: service.reminderEnabled
-                  ? () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: service.bedtimeTarget,
-                      );
-                      if (picked != null) {
-                        service.bedtimeTarget = picked;
-                      }
-                    }
-                  : null,
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-                ),
-                child: Text(
-                  _formatTimeOfDay(service.bedtimeTarget),
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          if (service.reminderEnabled) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEDF7F2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFA5D6C1)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.check_circle_outline_rounded, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45), size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Sistem pengingat aktif otomatis di latar belakang. Anda akan menerima notifikasi setiap malam pukul ${_formatTimeOfDay(service.reminderTime)} (1 jam sebelum target tidur).',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF265C45),
-                        height: 1.45,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildRecordListSection(SleepTrackingService service, bool isDark) {
     final allRecords = service.allRecords;
 
@@ -1589,12 +1443,6 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       return 'Hari ini, ${date.day} ${monthNames[date.month]} ${date.year}';
     }
     return '${dayNames[date.weekday % 7]}, ${date.day} ${monthNames[date.month]} ${date.year}';
-  }
-
-  String _formatTimeOfDay(TimeOfDay time) {
-    final h = time.hour.toString().padLeft(2, '0');
-    final m = time.minute.toString().padLeft(2, '0');
-    return '$h:$m';
   }
 }
 

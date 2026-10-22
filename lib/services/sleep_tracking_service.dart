@@ -218,11 +218,16 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   bool _isInitialized = false;
 
-  // Inactivity tracking parameters
+  // Inactivity & sensor tracking parameters
   int _minimumInactivityMinutes = 15; // Batas minimum tidak aktif HP (default: 15 menit)
   static const int _minimumNightSleepMinutes = 180; // Minimal 3 jam (180 menit) untuk sesi tidur malam
   DateTime? _lastInactiveTime;
   DateTime? _lastNightInactiveTime;
+  DateTime? _lastScreenOffTime;
+  DateTime? _lastScreenOnTime;
+  DateTime? _lastDarkTime;
+  DateTime? _lastLightRiseTime;
+  double _currentAmbientLux = -1.0;
   SleepRecord? _pendingAutoDetectedRecord;
 
   // User target & reminder settings
@@ -239,7 +244,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   bool _notificationsInitialized = false;
   static const int _sleepReminderNotificationId = 88101;
   static const int _testNotificationId = 88102;
-  static const String _sleepChannelId = 'sleep_reminder_channel';
+  static const String _sleepChannelId = 'sleep_reminder_channel_v2';
   static const String _sleepChannelName = 'Pengingat Waktu Tidur';
 
   // Getters
@@ -250,7 +255,27 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   DateTime? get lastInactiveTime => _lastInactiveTime;
+  DateTime? get lastNightInactiveTime => _lastNightInactiveTime;
+  DateTime? get lastScreenOffTime => _lastScreenOffTime;
+  DateTime? get lastScreenOnTime => _lastScreenOnTime;
+  DateTime? get lastDarkTime => _lastDarkTime;
+  DateTime? get lastLightRiseTime => _lastLightRiseTime;
+  double get currentAmbientLux => _currentAmbientLux;
+  bool get isSensorTrackingActive => _isInitialized;
   SleepRecord? get pendingAutoDetectedRecord => _pendingAutoDetectedRecord;
+
+  /// Membaca intensitas cahaya lingkungan (ambient light lux) dari sensor perangkat
+  Future<double?> getAmbientLux() async {
+    if (kIsWeb) return null;
+    try {
+      final lux = await _platformChannel.invokeMethod<num>('getAmbientLux');
+      if (lux != null) {
+        _currentAmbientLux = lux.toDouble();
+        return _currentAmbientLux;
+      }
+    } catch (_) {}
+    return null;
+  }
 
   /// Seluruh catatan tidur yang tersimpan (1 Tanggal = Maksimal 1 Data Unik)
   List<SleepRecord> get allRecords {
@@ -370,16 +395,50 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   // NOTIFICATION SYSTEM (Local Push Notifications)
   // ==========================================
 
+  void _configureLocalTimeZone() {
+    try {
+      tz.initializeTimeZones();
+      final String currentTimeZone = DateTime.now().timeZoneName;
+      if (tz.timeZoneDatabase.locations.containsKey(currentTimeZone)) {
+        tz.setLocalLocation(tz.getLocation(currentTimeZone));
+        return;
+      }
+      // Cocokkan offset waktu perangkat lokal
+      final offset = DateTime.now().timeZoneOffset;
+      tz.Location? matchedLocation;
+      for (final loc in tz.timeZoneDatabase.locations.values) {
+        if (loc.currentTimeZone.offset == offset) {
+          matchedLocation = loc;
+          break;
+        }
+      }
+      if (matchedLocation != null) {
+        tz.setLocalLocation(matchedLocation);
+      } else if (tz.timeZoneDatabase.locations.containsKey('Asia/Jakarta')) {
+        tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+      }
+    } catch (e) {
+      debugPrint('[SleepTrackingService] Notice setting timezone location: $e');
+    }
+  }
+
+  static String formatTimeOfDay(TimeOfDay time) {
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
   Future<void> initNotifications() async {
     if (kIsWeb) return;
     try {
       tz.initializeTimeZones();
+      _configureLocalTimeZone();
 
       const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosSettings = DarwinInitializationSettings(
-        requestAlertPermission: false,
-        requestBadgePermission: false,
-        requestSoundPermission: false,
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
       );
 
       const initSettings = InitializationSettings(
@@ -387,24 +446,33 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         iOS: iosSettings,
       );
 
-      await _notificationsPlugin.initialize(
-        settings: initSettings,
-      );
+      try {
+        await _notificationsPlugin.initialize(
+          settings: initSettings,
+        );
+      } catch (e) {
+        debugPrint('[SleepTrackingService] Notifications plugin initialize notice: $e');
+      }
 
-      // Buat notification channel dengan prioritas tinggi di Android
-      const AndroidNotificationChannel sleepChannel = AndroidNotificationChannel(
-        _sleepChannelId,
-        _sleepChannelName,
-        description: 'Pengingat harian jadwal waktu istirahat tidur malam',
-        importance: Importance.max,
-        playSound: true,
-        enableVibration: true,
-      );
+      // Buat notification channel dengan prioritas tertinggi di Android (Heads-up banner & sound)
+      try {
+        const AndroidNotificationChannel sleepChannel = AndroidNotificationChannel(
+          _sleepChannelId,
+          _sleepChannelName,
+          description: 'Pengingat harian jadwal waktu istirahat tidur malam',
+          importance: Importance.max,
+          playSound: true,
+          enableVibration: true,
+          showBadge: true,
+        );
 
-      final androidPlugin = _notificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      if (androidPlugin != null) {
-        await androidPlugin.createNotificationChannel(sleepChannel);
+        final androidPlugin = _notificationsPlugin
+            .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+        if (androidPlugin != null) {
+          await androidPlugin.createNotificationChannel(sleepChannel);
+        }
+      } catch (e) {
+        debugPrint('[SleepTrackingService] Notification channel create notice: $e');
       }
 
       _notificationsInitialized = true;
@@ -423,7 +491,17 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       final androidPlugin = _notificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       if (androidPlugin != null) {
+        final areEnabled = await androidPlugin.areNotificationsEnabled();
+        if (areEnabled == true) {
+          try {
+            await androidPlugin.requestExactAlarmsPermission();
+          } catch (_) {}
+          return true;
+        }
         final granted = await androidPlugin.requestNotificationsPermission();
+        try {
+          await androidPlugin.requestExactAlarmsPermission();
+        } catch (_) {}
         return granted ?? false;
       }
       final iosPlugin = _notificationsPlugin
@@ -443,25 +521,28 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> scheduleBedtimeNotification() async {
-    if (kIsWeb || !_notificationsInitialized || !_reminderEnabled) return;
+    if (kIsWeb || !_reminderEnabled) return;
     try {
+      if (!_notificationsInitialized) {
+        await initNotifications();
+      }
       await cancelBedtimeNotification();
+      _configureLocalTimeZone();
 
-      final now = DateTime.now();
       final rTime = reminderTime;
-      var scheduledDate = DateTime(
-        now.year,
-        now.month,
-        now.day,
+      final nowTz = tz.TZDateTime.now(tz.local);
+      var tzScheduled = tz.TZDateTime(
+        tz.local,
+        nowTz.year,
+        nowTz.month,
+        nowTz.day,
         rTime.hour,
         rTime.minute,
       );
 
-      if (scheduledDate.isBefore(now)) {
-        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      if (!tzScheduled.isAfter(nowTz)) {
+        tzScheduled = tzScheduled.add(const Duration(days: 1));
       }
-
-      final tzScheduled = tz.TZDateTime.from(scheduledDate, tz.local);
 
       const androidDetails = AndroidNotificationDetails(
         _sleepChannelId,
@@ -471,6 +552,10 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         priority: Priority.high,
         playSound: true,
         enableVibration: true,
+        visibility: NotificationVisibility.public,
+        category: AndroidNotificationCategory.reminder,
+        ticker: 'Pengingat Waktu Tidur',
+        showWhen: true,
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -484,22 +569,26 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         iOS: iosDetails,
       );
 
+      final targetStr = formatTimeOfDay(_bedtimeTarget);
+      const title = 'Pengingat Waktu Tidur 🌙';
+      final body = 'Waktu tidurmu semakin dekat (Target: $targetStr). Yuk mulai bersiap tidur agar tubuh tetap bugar besok.';
+
       try {
         await _notificationsPlugin.zonedSchedule(
           id: _sleepReminderNotificationId,
-          title: 'Pengingat Waktu Tidur 🌙',
-          body: 'Waktu tidurmu semakin dekat (Target: ${_bedtimeTarget.hour.toString().padLeft(2, '0')}.${_bedtimeTarget.minute.toString().padLeft(2, '0')}). Yuk mulai bersiap tidur.',
+          title: title,
+          body: body,
           scheduledDate: tzScheduled,
           notificationDetails: notificationDetails,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
         );
-      } catch (_) {
-        // Fallback jika exact alarm memerlukan izin khusus di perangkat tertentu
+      } catch (e) {
+        debugPrint('[SleepTrackingService] Fallback to inexact alarm: $e');
         await _notificationsPlugin.zonedSchedule(
           id: _sleepReminderNotificationId,
-          title: 'Pengingat Waktu Tidur 🌙',
-          body: 'Waktu tidurmu semakin dekat (Target: ${_bedtimeTarget.hour.toString().padLeft(2, '0')}.${_bedtimeTarget.minute.toString().padLeft(2, '0')}). Yuk mulai bersiap tidur.',
+          title: title,
+          body: body,
           scheduledDate: tzScheduled,
           notificationDetails: notificationDetails,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -527,14 +616,20 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     if (!_notificationsInitialized) {
       await initNotifications();
     }
+    await requestNotificationPermission();
     try {
       const androidDetails = AndroidNotificationDetails(
         _sleepChannelId,
         _sleepChannelName,
         channelDescription: 'Pengingat harian jadwal waktu istirahat tidur malam',
-        importance: Importance.high,
+        importance: Importance.max,
         priority: Priority.high,
         playSound: true,
+        enableVibration: true,
+        visibility: NotificationVisibility.public,
+        category: AndroidNotificationCategory.reminder,
+        ticker: 'Pengingat Waktu Tidur',
+        showWhen: true,
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -548,13 +643,13 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         iOS: iosDetails,
       );
 
-      final hStr = _bedtimeTarget.hour.toString().padLeft(2, '0');
-      final mStr = _bedtimeTarget.minute.toString().padLeft(2, '0');
+      final targetStr = formatTimeOfDay(_bedtimeTarget);
+      final reminderStr = formatTimeOfDay(reminderTime);
 
       await _notificationsPlugin.show(
         id: _testNotificationId,
         title: 'Pengingat Waktu Tidur 🌙',
-        body: 'Waktu tidurmu semakin dekat (Target: $hStr.$mStr). Yuk mulai bersiap untuk beristirahat!',
+        body: 'Pengingat aktif pukul $reminderStr (Target tidur: $targetStr). Yuk mulai bersiap untuk beristirahat!',
         notificationDetails: notificationDetails,
       );
       debugPrint('[SleepTrackingService] Test notification shown successfully');
@@ -659,6 +754,11 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     _pendingAutoDetectedRecord = null;
     _lastInactiveTime = null;
     _lastNightInactiveTime = null;
+    _lastScreenOffTime = null;
+    _lastScreenOnTime = null;
+    _lastDarkTime = null;
+    _lastLightRiseTime = null;
+    _currentAmbientLux = -1.0;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_keyRecords);
@@ -670,7 +770,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ==========================================
-  // DEVICE INACTIVITY & SCREEN MONITORING
+  // DEVICE INACTIVITY & SENSOR MONITORING
   // ==========================================
 
   @override
@@ -692,12 +792,118 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// Memeriksa aktivitas layar mati semalam dan nyala pagi hari (Samsung Health model)
+  /// Logika Deteksi Waktu Tidur Berbasis Sensor:
+  /// Mengintegrasikan deteksi otomatis waktu tidur yang menggabungkan dua indikator:
+  /// a. Aktivitas Layar Perangkat: Layar HP dimatikan (screen off) di malam hari hingga dinyalakan kembali di pagi hari.
+  /// b. Sensor Cahaya Lingkungan (Ambient Light Sensor): Mendeteksi ruangan gelap di malam hari (lux rendah < 5 lux)
+  ///    dan peningkatan cahaya di pagi hari (> 40 lux).
+  SleepRecord? detectSleepFromSensors({
+    DateTime? screenOff,
+    DateTime? screenOn,
+    DateTime? darkTime,
+    DateTime? lightRiseTime,
+    DateTime? referenceNow,
+  }) {
+    final now = referenceNow ?? DateTime.now();
+
+    // 1. Tentukan Titik Mulai Tidur (Waktu Malam: >= 20.00 atau < 05.00)
+    DateTime? effectiveStart;
+    final isScreenNight = screenOff != null && (screenOff.hour >= 20 || screenOff.hour < 5);
+    final isDarkNight = darkTime != null && (darkTime.hour >= 20 || darkTime.hour < 5);
+
+    if (isScreenNight && isDarkNight) {
+      // Jika kedua indikator mendeteksi kondisi malam hari:
+      // Tidur efektif dimulai saat layar dimatikan DAN ruangan telah gelap (ambil titik paling akhir jika selisih wajar)
+      if (darkTime.difference(screenOff).abs().inMinutes <= 90) {
+        effectiveStart = darkTime.isAfter(screenOff) ? darkTime : screenOff;
+      } else {
+        effectiveStart = screenOff;
+      }
+    } else if (isScreenNight) {
+      effectiveStart = screenOff;
+    } else if (isDarkNight) {
+      effectiveStart = darkTime;
+    }
+
+    if (effectiveStart == null) return null;
+
+    // 2. Tentukan Titik Bangun Tidur (Pagi Hari: >= 05.00 s.d. 14.00)
+    DateTime? effectiveEnd;
+    final morningOn = (screenOn != null && screenOn.isAfter(effectiveStart) && screenOn.hour >= 5 && screenOn.hour <= 14)
+        ? screenOn
+        : null;
+    final morningRise = (lightRiseTime != null && lightRiseTime.isAfter(effectiveStart) && lightRiseTime.hour >= 5 && lightRiseTime.hour <= 14)
+        ? lightRiseTime
+        : null;
+
+    if (morningOn != null && morningRise != null) {
+      // Jika kedua sensor (layar HP menyala & sensor cahaya ruangan terang) mendeteksi pagi hari:
+      // Ambil waktu paling awal saat aktivitas bangun terdeteksi jika rentangnya berdekatan (<= 90 menit)
+      if (morningOn.difference(morningRise).abs().inMinutes <= 90) {
+        effectiveEnd = morningRise.isBefore(morningOn) ? morningRise : morningOn;
+      } else {
+        effectiveEnd = morningOn;
+      }
+    } else if (morningOn != null) {
+      effectiveEnd = morningOn;
+    } else if (morningRise != null) {
+      effectiveEnd = morningRise;
+    } else if (screenOn == null && lightRiseTime == null && now.isAfter(effectiveStart) && now.hour >= 5 && now.hour <= 14) {
+      // Fallback ketika pengguna membuka aplikasi di pagi hari tanpa adanya event sensor
+      effectiveEnd = now;
+    }
+
+    if (effectiveEnd == null) return null;
+
+    // 3. Validasi Durasi Sesi Tidur Malam (Minimal 3 jam / 180 menit s.d. 14 jam / 840 menit)
+    final diffMinutes = effectiveEnd.difference(effectiveStart).inMinutes;
+    if (diffMinutes < _minimumNightSleepMinutes || diffMinutes > 840) {
+      return null;
+    }
+
+    final dateKey = formatDateKey(effectiveEnd);
+    return SleepRecord(
+      id: 'auto_${DateTime.now().millisecondsSinceEpoch}',
+      userId: currentUserId,
+      date: dateKey,
+      startTime: effectiveStart,
+      endTime: effectiveEnd,
+      source: 'automatic',
+      isConfirmed: false,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  /// Simulasi deteksi sensor untuk keperluan testing dan demo
+  void simulateSensorDetection({
+    DateTime? screenOff,
+    DateTime? screenOn,
+    DateTime? darkTime,
+    DateTime? lightRiseTime,
+    DateTime? referenceNow,
+  }) {
+    final candidate = detectSleepFromSensors(
+      screenOff: screenOff,
+      screenOn: screenOn,
+      darkTime: darkTime,
+      lightRiseTime: lightRiseTime,
+      referenceNow: referenceNow,
+    );
+    if (candidate != null) {
+      _pendingAutoDetectedRecord = candidate;
+      _saveToLocal();
+      notifyListeners();
+    }
+  }
+
+  /// Memeriksa aktivitas layar mati semalam dan nyala pagi hari didukung sensor cahaya ruangan
   Future<void> checkDeviceInactivityCandidate() async {
     final now = DateTime.now();
     final savedToday = getSavedRecordForDate(now);
 
-    // Jika hari ini sudah ada catatan tidur resmi tersimpan, jangan tampilkan pending auto lagi
+    // Jika hari ini sudah ada catatan tidur resmi tersimpan, jangan tampilkan pending auto lagi.
+    // Layanan background tetap aktif memantau aktivitas layar dan sensor untuk hari berikutnya.
     if (savedToday != null) {
       if (_pendingAutoDetectedRecord != null) {
         _pendingAutoDetectedRecord = null;
@@ -708,49 +914,44 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     try {
-      // 1. Coba periksa native Android BroadcastReceiver & Sensor timestamp via Platform Channel
+      // 1. Periksa native Android BroadcastReceiver & Sensor timestamp via Platform Channel
       final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
       final lastOnMillis = await _platformChannel.invokeMethod<int>('getLastScreenOn');
       final lastDarkMillis = await _platformChannel.invokeMethod<int>('getLastDarkTime');
       final lastLightRiseMillis = await _platformChannel.invokeMethod<int>('getLastLightRiseTime');
 
-      if (lastOffMillis != null && lastOffMillis > 0) {
-        var offDt = DateTime.fromMillisecondsSinceEpoch(lastOffMillis);
-        
-        // Sempurnakan dengan sensor cahaya: jika lampu kamar dimatikan (ruangan gelap) sekitar waktu layar mati
-        if (lastDarkMillis != null && lastDarkMillis > 0) {
-          final darkDt = DateTime.fromMillisecondsSinceEpoch(lastDarkMillis);
-          // Jika waktu gelap terjadi dalam rentang 45 menit dari layar mati di malam hari
-          if (darkDt.isAfter(offDt) && darkDt.difference(offDt).inMinutes <= 45) {
-            offDt = darkDt;
-          }
-        }
+      final screenOff = (lastOffMillis != null && lastOffMillis > 0)
+          ? DateTime.fromMillisecondsSinceEpoch(lastOffMillis)
+          : null;
+      final screenOn = (lastOnMillis != null && lastOnMillis > 0)
+          ? DateTime.fromMillisecondsSinceEpoch(lastOnMillis)
+          : null;
+      final darkTime = (lastDarkMillis != null && lastDarkMillis > 0)
+          ? DateTime.fromMillisecondsSinceEpoch(lastDarkMillis)
+          : null;
+      final lightRiseTime = (lastLightRiseMillis != null && lastLightRiseMillis > 0)
+          ? DateTime.fromMillisecondsSinceEpoch(lastLightRiseMillis)
+          : null;
 
-        final isNightStart = offDt.hour >= 20 || offDt.hour < 5;
+      _lastScreenOffTime = screenOff;
+      _lastScreenOnTime = screenOn;
+      _lastDarkTime = darkTime;
+      _lastLightRiseTime = lightRiseTime;
 
-        DateTime onDt;
-        if (lastOnMillis != null && lastOnMillis > lastOffMillis) {
-          onDt = DateTime.fromMillisecondsSinceEpoch(lastOnMillis);
-        } else if (lastLightRiseMillis != null && lastLightRiseMillis > lastOffMillis) {
-          // Terdeteksi cahaya pagi / lampu dinyalakan di pagi hari
-          onDt = DateTime.fromMillisecondsSinceEpoch(lastLightRiseMillis);
-        } else if (now.hour >= 5 && now.hour <= 14 && now.isAfter(offDt)) {
-          // Pengguna membuka HP pada pagi hari
-          onDt = now;
-        } else {
-          onDt = offDt;
-        }
+      final candidate = detectSleepFromSensors(
+        screenOff: screenOff,
+        screenOn: screenOn,
+        darkTime: darkTime,
+        lightRiseTime: lightRiseTime,
+        referenceNow: now,
+      );
 
-        final diffMinutes = onDt.difference(offDt).inMinutes;
-
-        // Syarat sesi tidur malam:
-        // Titik terakhir layar mati / gelap di rentang malam (>= 20.00 atau < 05.00),
-        // layar nyala / terang di pagi hari, dan durasi istirahat substansial minimal 3 jam (180 menit) s.d. 14 jam (840 menit)
-        if (isNightStart && diffMinutes >= _minimumNightSleepMinutes && diffMinutes <= 840) {
-          _recordAutomaticSleepCandidate(offDt, onDt);
-          await _platformChannel.invokeMethod('clearScreenTimes');
-          return;
-        }
+      if (candidate != null) {
+        _pendingAutoDetectedRecord = candidate;
+        _saveToLocal();
+        await _platformChannel.invokeMethod('clearScreenTimes');
+        notifyListeners();
+        return;
       }
     } catch (_) {
       // Platform channel tidak tersedia di environment test / non-Android

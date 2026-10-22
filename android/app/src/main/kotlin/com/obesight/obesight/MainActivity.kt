@@ -148,10 +148,12 @@ class MainActivity : FlutterActivity() {
                         }
 
                         // 2. Deteksi transisi terang / matahari / lampu pagi (> 40 lux) di pagi hari
-                        if (lux > 40.0f && (hour in 5..11)) {
+                        if (lux > 40.0f && (hour in 5..14)) {
                             val lastOff = prefs.getLong("last_screen_off_millis", 0L)
+                            val lastDark = prefs.getLong("last_dark_millis", 0L)
+                            val nightStart = if (lastOff > 0L) lastOff else lastDark
                             val lastRise = prefs.getLong("last_light_rise_millis", 0L)
-                            if (lastOff > 0L && lastRise <= lastOff) {
+                            if (nightStart > 0L && lastRise <= nightStart) {
                                 prefs.edit().putLong("last_light_rise_millis", now).apply()
                             }
                         }

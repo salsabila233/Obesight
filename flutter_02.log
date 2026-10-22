@@ -1,0 +1,87 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter test test/sleep* test/night_sleep*
+
+## exception
+
+ArgumentError: Invalid argument(s): Illegal character in path
+
+```
+#0      _Uri._checkWindowsPathReservedCharacters (dart:core/uri.dart:2169:11)
+#1      _Uri._makeWindowsFileUrl (dart:core/uri.dart:2242:7)
+#2      new _Uri.file (dart:core/uri.dart:2132:11)
+#3      TestCommand._parseTestArgument (package:flutter_tools/src/commands/test.dart:797:16)
+#4      MappedListIterable.elementAt (dart:_internal/iterable.dart:443:31)
+#5      ListIterator.moveNext (dart:_internal/iterable.dart:372:26)
+#6      new _GrowableList._ofEfficientLengthIterable (dart:core-patch/growable_array.dart:194:27)
+#7      new _GrowableList.of (dart:core-patch/growable_array.dart:154:28)
+#8      new List.of (dart:core-patch/array_patch.dart:39:18)
+#9      ListIterable.toList (dart:_internal/iterable.dart:224:7)
+#10     TestCommand.verifyThenRunCommand (package:flutter_tools/src/commands/test.dart:365:73)
+#11     FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1292:33)
+<asynchronous suspension>
+#12     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#13     CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+<asynchronous suspension>
+#14     FlutterCommandRunner.runCommand.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:639:9)
+<asynchronous suspension>
+#15     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#16     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:574:5)
+<asynchronous suspension>
+#17     FlutterCommandRunner.run (package:flutter_tools/src/runner/flutter_command_runner.dart:358:5)
+<asynchronous suspension>
+#18     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:150:11)
+<asynchronous suspension>
+#19     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+<asynchronous suspension>
+#20     main (package:flutter_tools/executable.dart:114:3)
+<asynchronous suspension>
+```
+
+## flutter doctor
+
+```
+[✓] Flutter (Channel beta, 3.49.0-0.1.pre, on Microsoft Windows [Version 10.0.22621.4317], locale id-ID) [262ms]
+    • Flutter version 3.49.0-0.1.pre on channel beta at C:\src\flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision e1dc10cc04 (4 weeks ago), 2026-09-21 11:00:50 -0700
+    • Engine revision 774a767348
+    • Dart version 3.14.0 (build 3.14.0-211.1.beta)
+    • DevTools version 2.61.0-dev.0
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, enable-record-use, enable-swift-package-manager, omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration, enable-hcpp
+
+[✓] Windows Version (11 Pro 64-bit, 22H2, 2009) [2,3s]
+
+[!] Android toolchain - develop for Android devices (Android SDK version 36.0.0) [3,9s]
+    • Android SDK at C:\Users\USER\AppData\Local\Android\sdk
+    • Emulator version 37.1.11.0 (build_id 15917651) (CL:N/A)
+    • Platform android-37.1, build-tools 36.0.0
+    • Java binary at: C:\Program Files\Android\Android Studio\jbr\bin\java
+      This is the JDK bundled with the latest Android Studio installation on this machine.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    • Java version OpenJDK Runtime Environment (build 25.0.3+-15898627-b508.16)
+    ! Some Android licenses not accepted. To resolve this, run: flutter doctor --android-licenses
+
+[✓] Chrome - develop for the web [13ms]
+    • Chrome at C:\Program Files\Google\Chrome\Application\chrome.exe
+
+[✗] Visual Studio - develop Windows apps [11ms]
+    ✗ Visual Studio not installed; this is necessary to develop Windows apps.
+      Download at https://visualstudio.microsoft.com/downloads/.
+      Please install the "Desktop development with C++" workload, including all of its default components
+
+[✓] Connected device (3 available) [2,3s]
+    • Windows (desktop) • windows • windows-x64    • Microsoft Windows [Version 10.0.22621.4317]
+    • Chrome (web)      • chrome  • web-javascript • Google Chrome 155.0.8059.80
+    • Edge (web)        • edge    • web-javascript • Microsoft Edge 155.0.4283.62
+
+[✓] Network resources [596ms]
+    • All expected network resources are available.
+
+! Doctor found issues in 2 categories.
+```

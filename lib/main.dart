@@ -43,8 +43,8 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Initialize sleep tracking service observer for auto/manual detection
-  SleepTrackingService.instance.initialize();
+  // Initialize sleep tracking service observer for auto/manual detection & notification scheduling
+  await SleepTrackingService.instance.initialize();
 
   // Load saved theme preference
   await AppTheme.init();
