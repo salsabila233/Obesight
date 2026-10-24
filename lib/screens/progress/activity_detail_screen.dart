@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
@@ -591,13 +592,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
                             Clipboard.setData(ClipboardData(text: refLink));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Tautan referensi berhasil disalin', style: GoogleFonts.poppins()),
-                                backgroundColor: accentGreen,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
+                            AppAlert.showSuccess(
+                              context,
+                              'Tautan referensi berhasil disalin',
                             );
                           },
                           child: Container(
@@ -669,17 +666,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         ),
                         onPressed: isFuture
                             ? () {
-                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Latihan tidak dapat dimulai untuk tanggal mendatang. Progres hanya dapat dicatat untuk hari ini.',
-                                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-                                    ),
-                                    backgroundColor: const Color(0xFFEF4444),
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
+                                AppAlert.showWarning(
+                                  context,
+                                  'Latihan tidak dapat dimulai untuk tanggal mendatang. Progres hanya dapat dicatat untuk hari ini.',
                                 );
                               }
                             : () async {

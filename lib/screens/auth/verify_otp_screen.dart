@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
@@ -76,32 +77,15 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     final res = await AuthService().generateAndSendOtp(_email);
     if (!mounted) return;
     if (res.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.mark_email_read_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Kode verifikasi OTP baru telah dikirim ke email $_email.',
-                  style: GoogleFonts.poppins(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF235B42),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          duration: const Duration(seconds: 6),
-        ),
+      AppAlert.showSuccess(
+        context,
+        'Kode verifikasi OTP baru telah dikirim ke email $_email.',
+        duration: const Duration(seconds: 4),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(res.errorMessage ?? 'Gagal mengirim ulang kode OTP.'),
-          backgroundColor: Colors.red.shade700,
-        ),
+      AppAlert.showError(
+        context,
+        res.errorMessage ?? 'Gagal mengirim ulang kode OTP.',
       );
     }
   }

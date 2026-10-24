@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/sleep_record_model.dart';
 import '../../services/sleep_tracking_service.dart';
+import '../../widgets/app_alert.dart';
 import 'sleep_history_detail_screen.dart';
 import 'sleep_record_form_screen.dart';
 
@@ -42,6 +43,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   void _openHistoryDetail() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const SleepHistoryDetailScreen(),
@@ -413,26 +415,14 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                             _isSaving = false;
                                           });
                                           if (success) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Waktu tidur berhasil dicatat (${autoData.timeRangeFormatted}) dan grafik langsung diperbarui.',
-                                                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
-                                                ),
-                                                backgroundColor: const Color(0xFF36785A),
-                                                behavior: SnackBarBehavior.floating,
-                                              ),
+                                            AppAlert.showSuccess(
+                                              context,
+                                              'Waktu tidur berhasil dicatat (${autoData.timeRangeFormatted}) dan grafik langsung diperbarui.',
                                             );
                                           } else {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Gagal menyimpan data tidur. Silakan coba lagi.',
-                                                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
-                                                ),
-                                                backgroundColor: const Color(0xFFEF4444),
-                                                behavior: SnackBarBehavior.floating,
-                                              ),
+                                            AppAlert.showError(
+                                              context,
+                                              'Gagal menyimpan data tidur. Silakan coba lagi.',
                                             );
                                           }
                                         }
@@ -441,15 +431,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                           setState(() {
                                             _isSaving = false;
                                           });
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Terjadi kesalahan saat menyimpan data: $e',
-                                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
-                                              ),
-                                              backgroundColor: const Color(0xFFEF4444),
-                                              behavior: SnackBarBehavior.floating,
-                                            ),
+                                          AppAlert.showError(
+                                            context,
+                                            'Terjadi kesalahan saat menyimpan data: $e',
                                           );
                                         }
                                       } finally {
@@ -460,15 +444,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                         }
                                       }
                                     } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Data perkiraan waktu tidur belum tersedia. Silakan gunakan tombol Masukkan data.',
-                                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
-                                          ),
-                                          backgroundColor: const Color(0xFFE11D48),
-                                          behavior: SnackBarBehavior.floating,
-                                        ),
+                                      AppAlert.showWarning(
+                                        context,
+                                        'Data perkiraan waktu tidur belum tersedia. Silakan gunakan tombol Masukkan data.',
                                       );
                                     }
                                   },
@@ -986,26 +964,24 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                     final granted = await service.requestNotificationPermission();
                     service.reminderEnabled = true;
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            granted
-                                ? 'Pengingat aktif! Notifikasi dijadwalkan setiap malam pukul $reminderTimeFormatted.'
-                                : 'Pengingat diaktifkan. Pastikan izin notifikasi diizinkan pada pengaturan sistem ponsel.',
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: const Color(0xFF36785A),
-                        ),
-                      );
+                      if (granted) {
+                        AppAlert.showSuccess(
+                          context,
+                          'Pengingat aktif! Notifikasi dijadwalkan setiap malam pukul $reminderTimeFormatted.',
+                        );
+                      } else {
+                        AppAlert.showWarning(
+                          context,
+                          'Pengingat diaktifkan. Pastikan izin notifikasi diizinkan pada pengaturan sistem ponsel.',
+                        );
+                      }
                     }
                   } else {
                     service.reminderEnabled = false;
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Pengingat waktu tidur dinonaktifkan.'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
+                      AppAlert.showInfo(
+                        context,
+                        'Pengingat waktu tidur dinonaktifkan.',
                       );
                     }
                   }
@@ -1080,14 +1056,9 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         service.bedtimeTarget = picked;
                         if (mounted && service.reminderEnabled) {
                           final newReminderTime = SleepTrackingService.formatTimeOfDay(service.reminderTime);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Target tidur diatur ke ${SleepTrackingService.formatTimeOfDay(picked)}. Notifikasi pengingat dijadwalkan pukul $newReminderTime (1 jam sebelumnya).',
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor: const Color(0xFF36785A),
-                            ),
+                          AppAlert.showSuccess(
+                            context,
+                            'Target tidur diatur ke ${SleepTrackingService.formatTimeOfDay(picked)}. Notifikasi pengingat dijadwalkan pukul $newReminderTime (1 jam sebelumnya).',
                           );
                         }
                       }

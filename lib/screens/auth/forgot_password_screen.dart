@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -113,57 +114,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   /// Menampilkan SnackBar kustom berwarna putih di bagian atas dengan teks & ikon hijau
   void _showSuccessSnackBar(String email) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: screenHeight > 300 ? screenHeight - 160 : 20,
-          left: 16,
-          right: 16,
-        ),
-        duration: const Duration(seconds: 4),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.check_circle_rounded,
-                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF235B42),
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Tautan pemulihan kata sandi telah dikirim ke email $email. Silakan periksa kotak masuk atau folder spam Anda.',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF235B42),
-                    fontWeight: FontWeight.w500,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    AppAlert.showSuccess(
+      context,
+      'Tautan pemulihan kata sandi telah dikirim ke email $email. Silakan periksa kotak masuk atau folder spam Anda.',
+      duration: const Duration(seconds: 4),
     );
   }
 

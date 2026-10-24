@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/article_model.dart';
 import '../../models/user_model.dart';
@@ -1774,27 +1775,31 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   Widget _buildArticleFilterTab(String label, int index, bool isDark) {
     final isSelected = _selectedArticleTab == index;
 
-    return GestureDetector(
-      onTap: () => setState(() => _selectedArticleTab = index),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
-              width: 2.2,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedArticleTab = index),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+                width: 2.2,
+              ),
             ),
           ),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected
-                ? const Color(0xFF2563EB)
-                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected
+                  ? const Color(0xFF2563EB)
+                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            ),
           ),
         ),
       ),
@@ -1885,14 +1890,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          article.date,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10.5,
-                            color: const Color(0xFF94A3B8),
-                            fontWeight: FontWeight.w500,
+                        Flexible(
+                          child: Text(
+                            article.date,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10.5,
+                              color: const Color(0xFF94A3B8),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -2403,33 +2412,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   adminEmail: _currentUser.email,
                 );
                 if (success == true && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Kata sandi administrator berhasil diperbarui.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: AppColors.success,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
+                  AppAlert.showSuccess(
+                    context,
+                    'Kata sandi administrator berhasil diperbarui.',
                   );
                 }
               },

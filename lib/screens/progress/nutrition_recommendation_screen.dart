@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/nutrition_meal_model.dart';
 import '../../models/user_model.dart';
@@ -991,20 +992,10 @@ class _NutritionRecommendationScreenState
                   onTap: () {
                     if (!isToday) {
                       // Tanggal kemarin / besok: tampilkan pesan singkat
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Ceklis hanya bisa diisi pada hari ini',
-                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.white),
-                          ),
-                          backgroundColor: const Color(0xFF36785A),
-                          behavior: SnackBarBehavior.floating,
-                          duration: const Duration(seconds: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
+                      AppAlert.showInfo(
+                        context,
+                        'Ceklis hanya bisa diisi pada hari ini',
+                        duration: const Duration(seconds: 2),
                       );
                       return;
                     }

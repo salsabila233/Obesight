@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
 import '../../services/activity_alarm_service.dart';
@@ -311,17 +312,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     final isRest = widget.activity['isRest'] == true;
 
     if (!isRest && PhysicalActivityService.isFutureDateKey(targetDateKey)) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Latihan tidak dapat dimulai untuk tanggal mendatang. Progres hanya dapat dicatat untuk hari ini.',
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      AppAlert.showWarning(
+        context,
+        'Latihan tidak dapat dimulai untuk tanggal mendatang. Progres hanya dapat dicatat untuk hari ini.',
       );
       return;
     }
@@ -338,17 +331,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     final targetDateKey = widget.dateKey ?? ActivityTimerService.instance.dateKey;
 
     if (!isRest && PhysicalActivityService.isFutureDateKey(targetDateKey)) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      AppAlert.showWarning(
+        context,
+        'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
       );
       return;
     }
@@ -372,17 +357,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
     final targetDateKey = widget.dateKey ?? service.dateKey;
     if (PhysicalActivityService.isFutureDateKey(targetDateKey)) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      AppAlert.showWarning(
+        context,
+        'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
       );
       return;
     }
@@ -398,15 +375,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     if (success) {
       _showCompletionDialog();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Gagal menyimpan progres aktivitas ke Firestore. Silakan periksa koneksi Anda.',
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showError(
+        context,
+        'Gagal menyimpan progres aktivitas ke Firestore. Silakan periksa koneksi Anda.',
       );
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -462,49 +463,11 @@ class SkriningRecommendationScreen extends StatelessWidget {
                           ProgressTrackingService.instance.updateFromScreening(data);
 
                           // Show top success banner / notification
-                          ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    elevation: 0,
-    backgroundColor: Colors.transparent,
-    behavior: SnackBarBehavior.floating,
-    margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-    content: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white, // Latar belakang putih
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.check_circle_rounded,
-            color: Color(0xFF2E7D5B), // Ikon warna hijau
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Rekomendasi berhasil dilanjutkan sebagai progres!',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF2E7D5B), // Teks warna hijau
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-    duration: const Duration(seconds: 2),
-  ),
-);
+                          AppAlert.showSuccess(
+                            context,
+                            'Rekomendasi berhasil dilanjutkan sebagai progres!',
+                            duration: const Duration(seconds: 2),
+                          );
 
                           // Navigate to ProgressScreen
                           Navigator.of(context).push(

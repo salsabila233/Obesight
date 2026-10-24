@@ -149,7 +149,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.lightTheme,
-          home: const SleepHistoryDetailScreen(),
+          home: const NightSleepDetailScreen(),
         ),
       );
       await tester.pumpAndSettle();
@@ -167,6 +167,8 @@ void main() {
       // 4. Toggle pengingat otomatis mengubah state dan menjadwalkan notifikasi
       final switchFinder = find.byType(Switch);
       expect(switchFinder, findsOneWidget);
+      await tester.ensureVisible(switchFinder);
+      await tester.pumpAndSettle();
       await tester.tap(switchFinder);
       await tester.pumpAndSettle();
       expect(service.reminderEnabled, isFalse);

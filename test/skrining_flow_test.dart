@@ -78,7 +78,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Header & Stepper
-    expect(find.text('Skrining Obesitas'), findsOneWidget);
+    expect(find.text('Skrining'), findsOneWidget);
     expect(find.text('Langkah 1 dari 5'), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
     expect(find.text('5'), findsOneWidget);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/sleep_record_model.dart';
 import '../../services/sleep_tracking_service.dart';
@@ -105,15 +106,9 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
   Future<void> _saveRecord() async {
     // Validasi 1: Waktu bangun tidak boleh sama dengan waktu tidur
     if (_startTime.hour == _endTime.hour && _startTime.minute == _endTime.minute) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Waktu bangun tidak boleh sama persis dengan waktu tidur.',
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showError(
+        context,
+        'Waktu bangun tidak boleh sama persis dengan waktu tidur.',
       );
       return;
     }
@@ -193,57 +188,12 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
 
   void _showSuccessAndPop() {
     if (!mounted) return;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        behavior: SnackBarBehavior.floating,
-        // Mengatur posisi agar muncul di bagian atas layar
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - 150,
-          left: 16,
-          right: 16,
-        ),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.check_circle_rounded, 
-                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  widget.recordToEdit != null
-                      ? 'Catatan tidur berhasil diperbarui'
-                      : 'Catatan tidur baru berhasil disimpan',
-                  style: GoogleFonts.poppins(
-                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF36785A),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
+    AppAlert.showSuccess(
+      context,
+      widget.recordToEdit != null
+          ? 'Catatan tidur berhasil diperbarui'
+          : 'Catatan tidur baru berhasil disimpan',
+      duration: const Duration(seconds: 2),
     );
     Navigator.of(context).pop();
   }

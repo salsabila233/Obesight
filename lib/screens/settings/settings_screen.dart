@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -272,11 +273,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             setState(() {
                               _isDarkMode = val;
                             });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(val ? 'Mode Gelap diterapkan ke seluruh halaman' : 'Mode Terang diterapkan ke seluruh halaman'),
-                                duration: const Duration(seconds: 1),
-                              ),
+                            AppAlert.showSuccess(
+                              context,
+                              val ? 'Mode Gelap diterapkan ke seluruh halaman' : 'Mode Terang diterapkan ke seluruh halaman',
+                              duration: const Duration(seconds: 2),
                             );
                           },
                         ),

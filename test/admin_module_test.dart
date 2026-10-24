@@ -158,13 +158,13 @@ void main() {
       await tester.tap(find.byIcon(Icons.people_alt_outlined));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text('Kelola Pengguna'), findsOneWidget);
+      expect(find.text('Pengguna'), findsWidgets);
 
       // Test tapping Artikel bottom nav switches to Artikel tab
       await tester.tap(find.byIcon(Icons.article_outlined));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text('Artikel Edukasi Kesehatan'), findsOneWidget);
+      expect(find.text('Dipublikasikan'), findsWidgets);
 
       // Test tapping Laporan bottom nav switches to Laporan tab
       await tester.tap(find.byIcon(Icons.bar_chart_outlined));

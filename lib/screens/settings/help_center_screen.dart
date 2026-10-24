@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,15 +26,9 @@ class HelpCenterScreen extends StatelessWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Tidak dapat membuka aplikasi email. Silakan kirim email ke: adminobesight@gmail.com',
-              style: GoogleFonts.poppins(fontSize: 12),
-            ),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: const Color(0xFFDC2626),
-          ),
+        AppAlert.showError(
+          context,
+          'Tidak dapat membuka aplikasi email. Silakan kirim email ke: adminobesight@gmail.com',
         );
       }
     }
@@ -55,15 +50,9 @@ class HelpCenterScreen extends StatelessWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Tidak dapat membuka WhatsApp. Silakan hubungi: +62 856-0277-8748',
-              style: GoogleFonts.poppins(fontSize: 12),
-            ),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: const Color(0xFFDC2626),
-          ),
+        AppAlert.showError(
+          context,
+          'Tidak dapat membuka WhatsApp. Silakan hubungi: +62 856-0277-8748',
         );
       }
     }
@@ -79,15 +68,9 @@ class HelpCenterScreen extends StatelessWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Situs resmi: www.obesight.com',
-              style: GoogleFonts.poppins(fontSize: 12),
-            ),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: const Color(0xFF36785A),
-          ),
+        AppAlert.showInfo(
+          context,
+          'Situs resmi: www.obesight.com',
         );
       }
     }

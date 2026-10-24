@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,16 +26,9 @@ class ClinicalInfoScreen extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String urlString, String title) {
     Clipboard.setData(ClipboardData(text: urlString));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Tautan "$title" berhasil disalin ke papan klip',
-          style: GoogleFonts.poppins(fontSize: 12),
-        ),
-        backgroundColor: const Color(0xFF36785A),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+    AppAlert.showSuccess(
+      context,
+      'Tautan "$title" berhasil disalin ke papan klip',
     );
   }
 

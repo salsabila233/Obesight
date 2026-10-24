@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
@@ -174,18 +175,9 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
         _isAnalyzing = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal menjalankan analisis Random Forest: $e'),
-          backgroundColor: const Color(0xFFDC2626),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-          action: SnackBarAction(
-            label: 'Coba Lagi',
-            textColor: Colors.white,
-            onPressed: _finishScreening,
-          ),
-        ),
+      AppAlert.showError(
+        context,
+        'Gagal menjalankan analisis Random Forest: $e',
       );
       return; // Hentikan alur agar tidak menampilkan hasil palsu
     }

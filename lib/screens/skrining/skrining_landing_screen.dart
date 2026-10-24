@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -37,15 +38,9 @@ class _SkriningLandingScreenState extends State<SkriningLandingScreen> {
     final userId = widget.user?.id ?? AuthService().currentUser?.id ?? 'usr_001';
     final isComplete = AuthService().isProfileComplete(userId);
     if (!isComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Lengkapi data diri (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) terlebih dahulu sebelum memulai skrining.',
-            style: GoogleFonts.poppins(fontSize: 13),
-          ),
-          backgroundColor: const Color(0xFFD97706),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showWarning(
+        context,
+        'Lengkapi data diri (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) terlebih dahulu sebelum memulai skrining.',
       );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(

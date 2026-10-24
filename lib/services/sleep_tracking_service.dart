@@ -848,9 +848,6 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       effectiveEnd = morningOn;
     } else if (morningRise != null) {
       effectiveEnd = morningRise;
-    } else if (screenOn == null && lightRiseTime == null && now.isAfter(effectiveStart) && now.hour >= 5 && now.hour <= 14) {
-      // Fallback ketika pengguna membuka aplikasi di pagi hari tanpa adanya event sensor
-      effectiveEnd = now;
     }
 
     if (effectiveEnd == null) return null;
@@ -955,21 +952,6 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       }
     } catch (_) {
       // Platform channel tidak tersedia di environment test / non-Android
-    }
-
-    // 2. Fallback: Gunakan titik terakhir layar HP dimatikan semalam dari Flutter lifecycle
-    if (_lastNightInactiveTime != null) {
-      final diff = now.difference(_lastNightInactiveTime!);
-      final isMorningOrDay = now.hour >= 5 && now.hour <= 14;
-
-      // Sesi tidur malam yang valid:
-      // Mulai semalam, dibuka di pagi/siang hari, dengan durasi minimal 3 jam
-      if (diff.inMinutes >= _minimumNightSleepMinutes && diff.inMinutes <= 840 && isMorningOrDay) {
-        _recordAutomaticSleepCandidate(_lastNightInactiveTime!, now);
-        _lastNightInactiveTime = null;
-        _saveToLocal();
-        return;
-      }
     }
   }
 

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../widgets/app_alert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -848,17 +848,10 @@ class PhysicalActivityService extends ChangeNotifier {
     if (currentUser == null) {
       debugPrint('[PhysicalActivityService] Pengguna belum login. Progres disimpan secara lokal.');
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Pengguna belum login dengan Firebase Authentication. Progres disimpan secara lokal.',
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
-          ),
+        AppAlert.showError(
+          context,
+          'Pengguna belum login dengan Firebase Authentication. Progres disimpan secara lokal.',
+          duration: const Duration(seconds: 4),
         );
       }
       return true;
@@ -973,15 +966,9 @@ class PhysicalActivityService extends ChangeNotifier {
         debugPrint('[PhysicalActivityService] Gagal merekam direct session: $e');
       }
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menyimpan progres aktivitas ke Firestore.',
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppAlert.showError(
+          context,
+          'Gagal menyimpan progres aktivitas ke Firestore.',
         );
       }
       return false;
@@ -999,17 +986,9 @@ class PhysicalActivityService extends ChangeNotifier {
     if (isFutureDateKey(dateKey)) {
       debugPrint('[PhysicalActivityService] Menolak completeActivity pada tanggal mendatang: $dateKey. Progres hanya dapat dicatat untuk hari ini.');
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
+        AppAlert.showWarning(
+          context,
+          'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
         );
       }
       return false;
@@ -1051,17 +1030,9 @@ class PhysicalActivityService extends ChangeNotifier {
     if (isFutureDateKey(dateKey)) {
       debugPrint('[PhysicalActivityService] Menolak uncompleteActivity pada tanggal mendatang: $dateKey.');
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
+        AppAlert.showWarning(
+          context,
+          'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
         );
       }
       return false;
@@ -1101,17 +1072,9 @@ class PhysicalActivityService extends ChangeNotifier {
     if (isFutureDateKey(dateKey)) {
       debugPrint('[PhysicalActivityService] Menolak toggleActivity pada tanggal mendatang: $dateKey.');
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
+        AppAlert.showWarning(
+          context,
+          'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
         );
       }
       return;

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../models/article_model.dart';
@@ -160,15 +161,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
     if (!isGatedComplete) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Lengkapi data diri (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) terlebih dahulu sebelum mengakses skrining.',
-            style: GoogleFonts.poppins(fontSize: 13),
-          ),
-          backgroundColor: const Color(0xFFD97706),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showWarning(
+        context,
+        'Lengkapi data diri (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) terlebih dahulu sebelum mengakses skrining.',
       );
       // Redirect otomatis ke Halaman "Lengkapi Profil"
       await Navigator.of(context).push(

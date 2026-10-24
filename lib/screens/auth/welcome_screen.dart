@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
@@ -86,7 +87,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
+                        builder: (ctx) => const LoginScreen(),
                       ),
                     );
                   },
@@ -116,7 +117,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => const RegisterScreen(),
+                      builder: (ctx) => const RegisterScreen(),
                     ),
                   );
                 },
@@ -172,7 +173,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             if (!signedUser.hasCompletedRequiredProfile && !signedUser.isAdmin && signedUser.id != 'usr_001') {
                               nav.pushReplacement(
                                 MaterialPageRoute(
-                                  builder: (context) => CompleteProfileScreen(
+                                  builder: (ctx) => CompleteProfileScreen(
                                     user: signedUser,
                                     isGatedFlow: false,
                                     redirectToHomeAfterSave: true,
@@ -182,7 +183,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             } else {
                               nav.pushReplacement(
                                 MaterialPageRoute(
-                                  builder: (context) => signedUser.isAdmin
+                                  builder: (ctx) => signedUser.isAdmin
                                       ? AdminHomeScreen(user: signedUser)
                                       : UserHomeScreen(user: signedUser),
                                 ),
@@ -191,14 +192,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             return;
                           }
 
+                          if (!context.mounted) return;
                           if (response.errorMessage != null &&
                               !response.errorMessage!.contains('dibatalkan')) {
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(response.errorMessage!),
-                                backgroundColor: const Color(0xFFDC2626),
-                                behavior: SnackBarBehavior.floating,
-                              ),
+                            AppAlert.showError(
+                              context,
+                              response.errorMessage!,
                             );
                           }
                         },

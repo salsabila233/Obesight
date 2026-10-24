@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -144,73 +145,23 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
     });
 
     if (res.isSuccess) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      behavior: SnackBarBehavior.floating,
-      // Mengatur posisi agar muncul di bagian atas layar
-      margin: EdgeInsets.only(
-        bottom: MediaQuery.of(context).size.height - 150,
-        left: 16,
-        right: 16,
-      ),
-      content: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white, // Latar belakang putih bersih
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.error_outline_rounded, 
-              color: Colors.red, // Ikon warna merah
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Akun Anda telah berhasil dihapus secara permanen.',
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red, // Teks warna merah
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      duration: const Duration(seconds: 3),
-    ),
-  );
+      AppAlert.showSuccess(
+        context,
+        'Akun Anda telah berhasil dihapus secara permanen.',
+        duration: const Duration(seconds: 3),
+      );
 
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (_) => const LoginScreen()),
-    (route) => false,
-  );
-} else {
-  _showWarningSnackBar(res.errorMessage ?? 'Gagal menghapus akun.');
-}
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } else {
+      _showWarningSnackBar(res.errorMessage ?? 'Gagal menghapus akun.');
+    }
 }
 
   void _showWarningSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: GoogleFonts.poppins(fontSize: 12.5)),
-        backgroundColor: const Color(0xFFDC2626),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    AppAlert.showError(context, message);
   }
 
   @override

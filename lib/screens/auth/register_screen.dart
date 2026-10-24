@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
@@ -67,14 +68,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isPasswordValid = _hasValidLength && _hasNumber && _hasUpperAndLower;
 
     if (!isPasswordValid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Kata sandi belum memenuhi seluruh kriteria yang ditentukan.',
-            style: GoogleFonts.poppins(fontSize: 13),
-          ),
-          backgroundColor: Colors.red.shade700,
-        ),
+      AppAlert.showError(
+        context,
+        'Kata sandi belum memenuhi seluruh kriteria yang ditentukan.',
       );
       return;
     }
@@ -131,14 +127,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response.errorMessage ?? 'Gagal mendaftarkan akun.',
-              style: GoogleFonts.poppins(fontSize: 13),
-            ),
-            backgroundColor: Colors.red.shade700,
-          ),
+        AppAlert.showError(
+          context,
+          response.errorMessage ?? 'Gagal mendaftarkan akun.',
         );
       }
     }
@@ -186,15 +177,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (response.errorMessage != null &&
         !response.errorMessage!.contains('dibatalkan')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            response.errorMessage!,
-            style: GoogleFonts.poppins(fontSize: 13),
-          ),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showError(
+        context,
+        response.errorMessage!,
       );
     }
   }

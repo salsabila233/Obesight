@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/screening_history_model.dart';
 import '../../models/user_model.dart';
@@ -832,17 +833,9 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   borderRadius: BorderRadius.circular(20),
                   onTap: isFuture
                       ? () {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
-                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-                              ),
-                              backgroundColor: const Color(0xFFEF4444),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
+                          AppAlert.showWarning(
+                            context,
+                            'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
                           );
                         }
                       : () {

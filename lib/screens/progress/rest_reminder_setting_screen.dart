@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/sleep_record_model.dart';
 import '../../services/sleep_tracking_service.dart';
@@ -167,57 +168,12 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
       );
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        behavior: SnackBarBehavior.floating,
-        // Mengatur posisi agar muncul di bagian atas layar
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - 150,
-          left: 16,
-          right: 16,
-        ),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.check_circle_rounded, 
-                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  widget.type == RestType.day
-                      ? 'Pengingat istirahat siang berhasil disimpan'
-                      : 'Pengingat tidur malam berhasil disimpan',
-                  style: GoogleFonts.poppins(
-                    color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
+    AppAlert.showSuccess(
+      context,
+      widget.type == RestType.day
+          ? 'Pengingat istirahat siang berhasil disimpan'
+          : 'Pengingat tidur malam berhasil disimpan',
+      duration: const Duration(seconds: 2),
     );
 
     Navigator.of(context).pop();

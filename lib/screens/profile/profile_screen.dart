@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -55,54 +56,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Jika profil berhasil diperbarui, muat ulang data dan tampilkan Snackbar hijau
     if (updated == true && mounted) {
       _loadProfileData();
-
-      final isDark = Theme.of(context).brightness == Brightness.dark;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          behavior: SnackBarBehavior.floating,
-          // Mengatur posisi agar muncul di bagian atas layar
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 150,
-            left: 16,
-            right: 16,
-          ),
-          content: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check_circle_rounded, 
-                  color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF2D6A4F),
-                  size: 22,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Profil berhasil diperbarui!',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF2D6A4F),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          duration: const Duration(seconds: 3),
-        ),
+      AppAlert.showSuccess(
+        context,
+        'Profil berhasil diperbarui!',
+        duration: const Duration(seconds: 3),
       );
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 
@@ -154,54 +155,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        behavior: SnackBarBehavior.floating,
-        // Menggeser posisi SnackBar agar muncul di bagian atas layar
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - 150, 
-          left: 16,
-          right: 16,
-        ),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.check_circle,
-                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF235B42),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13, 
-                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF235B42),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        duration: const Duration(seconds: 4),
-      ),
+    AppAlert.showSuccess(
+      context,
+      'Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.',
+      duration: const Duration(seconds: 4),
     );
 
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);

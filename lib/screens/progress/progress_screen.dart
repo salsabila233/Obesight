@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -50,15 +51,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
         await AuthService().checkProfileGating(widget.user.id);
     if (!mounted) return;
     if (!isComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Lengkapi data diri terlebih dahulu sebelum melakukan skrining.',
-            style: GoogleFonts.poppins(fontSize: 13),
-          ),
-          backgroundColor: const Color(0xFFD97706),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showWarning(
+        context,
+        'Lengkapi data diri terlebih dahulu sebelum melakukan skrining.',
       );
       Navigator.of(context).push(
         MaterialPageRoute(
