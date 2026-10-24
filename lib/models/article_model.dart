@@ -182,7 +182,13 @@ class ArticleModel {
         return (raw != null && raw.isNotEmpty) ? raw : null;
       }(),
       author: (map['author'] as String?)?.trim() ?? 'Tim Medis ObeSight',
-      isPublished: map['isPublished'] as bool? ?? true,
+      isPublished: () {
+        final raw = map['isPublished'];
+        if (raw is bool) return raw;
+        if (raw is String) return raw.toLowerCase() == 'true' || raw == '1';
+        if (raw is num) return raw == 1;
+        return true;
+      }(),
       publishedAt: parsedPublishedAt,
       updatedAt: parsedUpdatedAt,
     );

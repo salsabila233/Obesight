@@ -250,11 +250,21 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               padding: const EdgeInsets.only(bottom: 72),
               child: FloatingActionButton(
                 onPressed: () async {
-                  await Navigator.of(context).push(
+                  final result = await Navigator.of(context).push<Map<String, dynamic>>(
                     MaterialPageRoute(
                       builder: (context) => const AdminAddArticleScreen(),
                     ),
                   );
+                  if (result != null && mounted) {
+                    setState(() {
+                      _articleSearchQuery = '';
+                      if (result['isPublished'] == false) {
+                        _selectedArticleTab = 2; // Otomatis ke tab Draft
+                      } else {
+                        _selectedArticleTab = 1; // Otomatis ke tab Dipublikasikan
+                      }
+                    });
+                  }
                 },
                 backgroundColor: const Color(0xFF388E6B),
                 elevation: 4,
@@ -538,11 +548,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
               // Total Artikel Card (Clean White Card)
               Expanded(
-                child: StreamBuilder<int>(
-                  stream: _authService.getTotalArticlesCountStream(),
-                  initialData: 24,
+                child: StreamBuilder<List<ArticleModel>>(
+                  stream: _articleService.getAllArticlesStream(),
+                  initialData: _articleService.getArticles(),
                   builder: (context, snapshot) {
-                    final count = snapshot.data ?? 24;
+                    final count = snapshot.hasData ? snapshot.data!.length : _articleService.getArticles().length;
                     return GestureDetector(
                       onTap: () => _switchTab(2),
                       child: Container(
@@ -1761,6 +1771,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               // 3. Daftar Kartu Artikel dari Stream Firestore
               Expanded(
                 child: StreamBuilder<List<ArticleModel>>(
+                  initialData: _articleService.getArticles(),
                   stream: _articleService.getAllArticlesStream(),
                   builder: (context, snapshot) {
                     final allArticles = snapshot.data ?? _articleService.getArticles();

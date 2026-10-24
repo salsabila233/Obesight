@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -179,11 +181,13 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
     required Color effectiveHeaderColor,
     required Color effectiveSheetColor,
   }) {
-    final hasRemoteImage = widget.imageUrl != null &&
-        widget.imageUrl!.trim().startsWith('http');
-    final hasLocalImage = widget.imageUrl != null &&
-        !widget.imageUrl!.trim().startsWith('http') &&
-        widget.imageUrl!.trim().isNotEmpty;
+    final rawUrl = widget.imageUrl?.trim() ?? '';
+    final hasDataImage = rawUrl.startsWith('data:image');
+    final hasRemoteImage = rawUrl.startsWith('http') || rawUrl.startsWith('blob:');
+    final hasLocalImage = !kIsWeb &&
+        !hasDataImage &&
+        !hasRemoteImage &&
+        rawUrl.isNotEmpty;
     final hasAssetImage =
         widget.imageAsset != null && widget.imageAsset!.trim().isNotEmpty;
 
@@ -238,16 +242,31 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (hasRemoteImage)
+                  if (hasDataImage)
+                    Builder(builder: (ctx) {
+                      try {
+                        final comma = rawUrl.indexOf(',');
+                        final b64 = comma != -1 ? rawUrl.substring(comma + 1) : rawUrl;
+                        return Image.memory(
+                          base64Decode(b64),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildPlaceholder(effectiveHeaderColor),
+                        );
+                      } catch (_) {
+                        return _buildPlaceholder(effectiveHeaderColor);
+                      }
+                    })
+                  else if (hasRemoteImage)
                     Image.network(
-                      widget.imageUrl!,
+                      rawUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           _buildPlaceholder(effectiveHeaderColor),
                     )
                   else if (hasLocalImage)
                     Image.file(
-                      File(widget.imageUrl!),
+                      File(rawUrl),
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           _buildPlaceholder(effectiveHeaderColor),

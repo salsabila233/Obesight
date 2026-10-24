@@ -11,6 +11,7 @@ import 'screens/auth/reset_password_screen.dart';
 import 'screens/auth/verify_otp_screen.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'screens/splash/splash_screen.dart';
+import 'services/article_service.dart';
 import 'services/sleep_tracking_service.dart';
 import 'theme/app_theme.dart';
 
@@ -28,6 +29,9 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Firebase initializeApp notice: $e');
   }
+
+  // Initialize ArticleService listener with Firestore
+  ArticleService().ensureInitialized();
 
   // Set system UI overlay style to match the light theme
   SystemChrome.setSystemUIOverlayStyle(

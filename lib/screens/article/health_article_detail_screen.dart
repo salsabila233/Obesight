@@ -4,6 +4,8 @@ import '../../models/article_model.dart';
 import '../../services/article_service.dart';
 import '../../widgets/article_thumbnail_image.dart';
 import '../../widgets/curved_header_scaffold.dart';
+import '../../widgets/formatted_article_content.dart';
+import '../admin/admin_add_article_screen.dart';
 
 class HealthArticleDetailScreen extends StatefulWidget {
   final dynamic article;
@@ -77,6 +79,28 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
       imagePlaceholderIcon: _article.icon,
       imagePlaceholderColor: _article.headerColor,
       overlap: 24,
+      actions: widget.isAdmin
+          ? [
+              IconButton(
+                icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 24),
+                tooltip: 'Edit Artikel',
+                onPressed: () async {
+                  final result = await Navigator.of(context).push<Map<String, dynamic>>(
+                    MaterialPageRoute(
+                      builder: (context) => AdminAddArticleScreen(initialArticle: _article),
+                    ),
+                  );
+                  if (result != null && mounted) {
+                    if (result['article'] is ArticleModel) {
+                      setState(() {
+                        _article = result['article'] as ArticleModel;
+                      });
+                    }
+                  }
+                },
+              ),
+            ]
+          : null,
       contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,21 +246,11 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
               ),
             ),
 
-          // Konten Artikel Paragraf demi Paragraf
-          ..._article.content.split('\n\n').map((paragraph) {
-            if (paragraph.trim().isEmpty) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: Text(
-                paragraph.trim(),
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155),
-                  height: 1.7,
-                ),
-              ),
-            );
-          }),
+          // Konten Artikel dengan Format Kaya (Bold, Italic, Underline, Bullet, Numbering)
+          FormattedArticleContent(
+            content: _article.content,
+            isDark: isDark,
+          ),
           const SizedBox(height: 16),
 
           // Key Takeaways Box (jika ada)

@@ -185,31 +185,63 @@ class ArticleService {
   /// Cache memori aktif (dimulai dengan 6 data default agar UI langsung memiliki konten)
   List<ArticleModel> _cachedArticles = List.from(_initialArticles);
 
-  /// Reactive Stream Controllers untuk update seketika di semua tampilan
-  final StreamController<List<ArticleModel>> _allArticlesController =
-      StreamController<List<ArticleModel>>.broadcast();
-  final StreamController<List<ArticleModel>> _publishedArticlesController =
-      StreamController<List<ArticleModel>>.broadcast();
+  /// Reactive Stream Controllers (Lazy & Static agar tidak pernah undefined saat hot reload)
+  static StreamController<List<ArticleModel>>? _allArticlesController;
+  static StreamController<List<ArticleModel>>? _publishedArticlesController;
+
+  static StreamController<List<ArticleModel>> get _safeAllArticlesController {
+    if (_allArticlesController == null || _allArticlesController!.isClosed) {
+      _allArticlesController = StreamController<List<ArticleModel>>.broadcast();
+    }
+    return _allArticlesController!;
+  }
+
+  static StreamController<List<ArticleModel>> get _safePublishedArticlesController {
+    if (_publishedArticlesController == null || _publishedArticlesController!.isClosed) {
+      _publishedArticlesController = StreamController<List<ArticleModel>>.broadcast();
+    }
+    return _publishedArticlesController!;
+  }
 
   void _notifyStreams() {
-    if (!_allArticlesController.isClosed) {
-      _allArticlesController.add(List.unmodifiable(_cachedArticles));
+    try {
+      _safeAllArticlesController.add(List.unmodifiable(_cachedArticles));
+    } catch (e) {
+      debugPrint('[ArticleService] _notifyStreams all notice: $e');
     }
-    if (!_publishedArticlesController.isClosed) {
-      _publishedArticlesController.add(
+    try {
+      _safePublishedArticlesController.add(
         _cachedArticles.where((a) => a.isPublished).toList(),
       );
+    } catch (e) {
+      debugPrint('[ArticleService] _notifyStreams published notice: $e');
     }
   }
 
+  bool _isListenerAttached = false;
+
+  /// Memastikan Firestore listener terpasang saat Firebase siap
+  void ensureInitialized() {
+    if (_isListenerAttached) return;
+    _initFirestoreListener();
+  }
+
   void _initFirestoreListener() {
+    if (_isListenerAttached) return;
     try {
-      FirebaseFirestore.instance.collection('articles').snapshots().listen(
+      final articlesCol = FirebaseFirestore.instance.collection('articles');
+      _isListenerAttached = true;
+      articlesCol.snapshots().listen(
         (snapshot) {
           if (snapshot.docs.isNotEmpty) {
-            final parsedList = snapshot.docs.map((doc) {
-              return ArticleModel.fromFirestore(doc);
-            }).toList();
+            final parsedList = <ArticleModel>[];
+            for (final doc in snapshot.docs) {
+              try {
+                parsedList.add(ArticleModel.fromFirestore(doc));
+              } catch (err) {
+                debugPrint('[ArticleService] Parsing error doc ${doc.id}: $err');
+              }
+            }
 
             parsedList.sort((a, b) {
               final aTime = a.updatedAt ?? a.publishedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -226,6 +258,8 @@ class ArticleService {
 
             _cachedArticles = parsedList;
             _notifyStreams();
+          } else {
+            _seedIfEmpty();
           }
         },
         onError: (e) {
@@ -233,7 +267,19 @@ class ArticleService {
         },
       );
     } catch (e) {
+      _isListenerAttached = false;
       debugPrint('[ArticleService] Firestore init listener error: $e');
+    }
+  }
+
+  Future<void> _seedIfEmpty() async {
+    try {
+      final coll = FirebaseFirestore.instance.collection('articles');
+      for (final a in _initialArticles) {
+        await coll.doc(a.id).set(a.toFirestoreMap(), SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint('[ArticleService] Auto seed error: $e');
     }
   }
 
@@ -304,13 +350,13 @@ class ArticleService {
   /// Mengalirkan data seketika tanpa delay dan tanpa menunggu roundtrip server
   Stream<List<ArticleModel>> getAllArticlesStream() async* {
     yield List.unmodifiable(_cachedArticles);
-    yield* _allArticlesController.stream;
+    yield* _safeAllArticlesController.stream;
   }
 
   /// STREAM UNTUK PENGGUNA: Hanya mengambil artikel yang sudah berstatus dipublikasikan (isPublished == true)
   Stream<List<ArticleModel>> getArticlesStream() async* {
     yield _cachedArticles.where((a) => a.isPublished).toList();
-    yield* _publishedArticlesController.stream;
+    yield* _safePublishedArticlesController.stream;
   }
 
   /// Mengambil data artikel sekali jalan (Future) dari Cloud Firestore
@@ -353,8 +399,17 @@ class ArticleService {
     String? category,
     String? author,
   }) async {
+    ensureInitialized();
     final now = DateTime.now();
-    final docRef = FirebaseFirestore.instance.collection('articles').doc();
+
+    String docId = 'article_${now.millisecondsSinceEpoch}';
+    DocumentReference? docRef;
+    try {
+      docRef = FirebaseFirestore.instance.collection('articles').doc();
+      docId = docRef.id;
+    } catch (e) {
+      debugPrint('[ArticleService] Firestore doc reference creation notice: $e');
+    }
 
     final autoSnippet = (snippet != null && snippet.trim().isNotEmpty)
         ? snippet.trim()
@@ -369,7 +424,7 @@ class ArticleService {
         const <String>[];
 
     final newArticle = ArticleModel(
-      id: docRef.id,
+      id: docId,
       title: title.trim(),
       snippet: autoSnippet,
       date: formatIndonesianDate(now),
@@ -391,16 +446,21 @@ class ArticleService {
     _notifyStreams();
 
     // 2. Simpan ke Cloud Firestore di latar belakang tanpa memblokir UI
-    unawaited(
-      docRef.set(newArticle.toFirestoreMap()).timeout(
-        const Duration(seconds: 4),
-        onTimeout: () {
-          debugPrint('[ArticleService] Firestore set timed out, saved locally.');
-        },
-      ).catchError((e) {
-        debugPrint('[ArticleService] Firestore createArticle notice: $e');
-      }),
-    );
+    try {
+      final ref = docRef ?? FirebaseFirestore.instance.collection('articles').doc(docId);
+      unawaited(
+        ref.set(newArticle.toFirestoreMap()).timeout(
+          const Duration(seconds: 4),
+          onTimeout: () {
+            debugPrint('[ArticleService] Firestore set timed out, saved locally.');
+          },
+        ).catchError((e) {
+          debugPrint('[ArticleService] Firestore createArticle notice: $e');
+        }),
+      );
+    } catch (e) {
+      debugPrint('[ArticleService] Firestore set init error: $e');
+    }
 
     return newArticle;
   }

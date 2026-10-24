@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 /// Widget reusable untuk menampilkan gambar sampul artikel secara aman dan mulus.
-/// Mendukung network URL, file lokal hasil ImagePicker, asset lokal, dan fallback placeholder.
+/// Mendukung format Base64 (data:image), network URL, blob URL, file lokal (mobile/desktop),
+/// asset lokal, dan fallback placeholder.
 class ArticleThumbnailImage extends StatelessWidget {
   final String? imageUrl;
   final String? imageAsset;
@@ -28,23 +31,41 @@ class ArticleThumbnailImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget imageWidget;
-    final isNetwork = imageUrl != null && imageUrl!.trim().startsWith('http');
-    final isLocalFile = imageUrl != null &&
-        !imageUrl!.trim().startsWith('http') &&
-        imageUrl!.trim().isNotEmpty &&
-        (imageUrl!.startsWith('/') || imageUrl!.contains(r':\') || imageUrl!.contains('/'));
+    final rawUrl = imageUrl?.trim() ?? '';
+    final isDataUri = rawUrl.startsWith('data:image');
+    final isNetworkOrBlob = rawUrl.startsWith('http') || rawUrl.startsWith('blob:');
+    final isLocalFile = !kIsWeb &&
+        !isDataUri &&
+        !isNetworkOrBlob &&
+        rawUrl.isNotEmpty &&
+        (rawUrl.startsWith('/') || rawUrl.contains(r':\') || rawUrl.contains('/'));
 
-    if (isNetwork) {
+    if (isDataUri) {
+      try {
+        final commaIdx = rawUrl.indexOf(',');
+        final base64Data = commaIdx != -1 ? rawUrl.substring(commaIdx + 1) : rawUrl;
+        final bytes = base64Decode(base64Data);
+        imageWidget = Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => _buildAssetOrPlaceholder(),
+        );
+      } catch (_) {
+        imageWidget = _buildAssetOrPlaceholder();
+      }
+    } else if (isNetworkOrBlob) {
       imageWidget = Image.network(
-        imageUrl!.trim(),
+        rawUrl,
         width: width,
         height: height,
         fit: fit,
-        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+        errorBuilder: (context, error, stackTrace) => _buildAssetOrPlaceholder(),
       );
     } else if (isLocalFile) {
       try {
-        final file = File(imageUrl!.trim());
+        final file = File(rawUrl);
         if (file.existsSync()) {
           imageWidget = Image.file(
             file,
@@ -98,12 +119,15 @@ class ArticleThumbnailImage extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      color: placeholderColor ?? const Color(0xFFE2E8F0),
+      decoration: BoxDecoration(
+        color: placeholderColor ?? const Color(0xFFE8F5EF),
+        borderRadius: borderRadius,
+      ),
       child: Center(
         child: Icon(
           placeholderIcon,
-          size: (width != null && width! < 60) ? 24 : 36,
-          color: const Color(0xFF94A3B8),
+          size: (width != null && height != null) ? (width! * 0.35).clamp(20.0, 48.0) : 32.0,
+          color: const Color(0xFF388E6B).withValues(alpha: 0.6),
         ),
       ),
     );
