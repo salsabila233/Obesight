@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -180,6 +181,9 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
   }) {
     final hasRemoteImage = widget.imageUrl != null &&
         widget.imageUrl!.trim().startsWith('http');
+    final hasLocalImage = widget.imageUrl != null &&
+        !widget.imageUrl!.trim().startsWith('http') &&
+        widget.imageUrl!.trim().isNotEmpty;
     final hasAssetImage =
         widget.imageAsset != null && widget.imageAsset!.trim().isNotEmpty;
 
@@ -237,6 +241,13 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
                   if (hasRemoteImage)
                     Image.network(
                       widget.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildPlaceholder(effectiveHeaderColor),
+                    )
+                  else if (hasLocalImage)
+                    Image.file(
+                      File(widget.imageUrl!),
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           _buildPlaceholder(effectiveHeaderColor),

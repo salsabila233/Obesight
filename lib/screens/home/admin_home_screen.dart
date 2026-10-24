@@ -6,9 +6,11 @@ import '../../services/article_service.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
+import '../admin/admin_add_article_screen.dart';
 import '../admin/admin_change_password_sheet.dart';
 import '../article/health_article_detail_screen.dart';
 import '../auth/login_screen.dart';
+import '../../widgets/article_thumbnail_image.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   final UserModel user;
@@ -33,6 +35,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   String _userSearchQuery = '';
   String _selectedRoleFilter = 'Semua';
   String _articleSearchQuery = '';
+  int _selectedArticleTab = 0; // 0: Semua, 1: Dipublikasikan, 2: Draft
 
   @override
   void initState() {
@@ -110,109 +113,128 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF7FAF8),
       extendBody: true,
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF7FAF8),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-        titleSpacing: 16,
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/logo.png',
-              width: 36,
-              height: 36,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F5EE),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.eco_rounded, color: Color(0xFF267352), size: 20),
+      appBar: _currentIndex == 2
+          ? AppBar(
+              backgroundColor: const Color(0xFF388E6B),
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+                onPressed: () => _switchTab(0),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+              title: Text(
+                'Artikel',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          : AppBar(
+              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF7FAF8),
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              automaticallyImplyLeading: false,
+              titleSpacing: 16,
+              title: Row(
                 children: [
-                  Text(
-                    'ObeSight',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : const Color(0xFF132F23),
-                      letterSpacing: -0.3,
+                  Image.asset(
+                    'assets/logo.png',
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE8F5EE),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.eco_rounded, color: Color(0xFF267352), size: 20),
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'ADMIN CONSOLE',
-                        style: GoogleFonts.poppins(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF64748B),
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF267352).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(4),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'ObeSight',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : const Color(0xFF132F23),
+                            letterSpacing: -0.3,
                           ),
-                          child: Text(
-                            'PANEL ADMINISTRATOR',
-                            style: GoogleFonts.poppins(
-                              fontSize: 7,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF267352),
-                              letterSpacing: 0.3,
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'ADMIN CONSOLE',
+                              style: GoogleFonts.poppins(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF64748B),
+                                letterSpacing: 0.8,
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF267352).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'PANEL ADMINISTRATOR',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 7,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF267352),
+                                    letterSpacing: 0.3,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-        actions: [
-          // Circular Profile Icon Button (NO notification icon!)
-          GestureDetector(
-            onTap: () => _switchTab(4), // Go to Profile/Settings tab
-            child: Container(
-              margin: const EdgeInsets.only(right: 20),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5EE),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _currentIndex == 4 ? const Color(0xFF267352) : const Color(0xFFC7E2D5),
-                  width: 1.5,
+              actions: [
+                // Circular Profile Icon Button (NO notification icon!)
+                GestureDetector(
+                  onTap: () => _switchTab(4), // Go to Profile/Settings tab
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 20),
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5EE),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _currentIndex == 4 ? const Color(0xFF267352) : const Color(0xFFC7E2D5),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      color: Color(0xFF267352),
+                      size: 22,
+                    ),
+                  ),
                 ),
-              ),
-              child: const Icon(
-                Icons.person_rounded,
-                color: Color(0xFF267352),
-                size: 22,
-              ),
+              ],
             ),
-          ),
-        ],
-      ),
       body: IndexedStack(
         index: _currentIndex,
         children: [
@@ -223,6 +245,24 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           _buildPengaturanTab(isDark, primaryColor),
         ],
       ),
+      floatingActionButton: _currentIndex == 2
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 72),
+              child: FloatingActionButton(
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AdminAddArticleScreen(),
+                    ),
+                  );
+                },
+                backgroundColor: const Color(0xFF388E6B),
+                elevation: 4,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
+              ),
+            )
+          : null,
       bottomNavigationBar: _buildCapsuleBottomNav(isDark),
     );
   }
@@ -503,110 +543,113 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   initialData: 24,
                   builder: (context, snapshot) {
                     final count = snapshot.data ?? 24;
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    return GestureDetector(
+                      onTap: () => _switchTab(2),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                           ),
-                        ],
-                      ),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned(
-                            right: -6,
-                            bottom: -6,
-                            child: Icon(
-                              Icons.article_rounded,
-                              size: 52,
-                              color: const Color(0xFF3B82F6).withValues(alpha: 0.05),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.article_rounded,
-                                      color: Color(0xFF2563EB),
-                                      size: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'Total Artikel',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                          ],
+                        ),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned(
+                              right: -6,
+                              bottom: -6,
+                              child: Icon(
+                                Icons.article_rounded,
+                                size: 52,
+                                color: const Color(0xFF3B82F6).withValues(alpha: 0.05),
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      child: const Icon(
+                                        Icons.article_rounded,
+                                        color: Color(0xFF2563EB),
+                                        size: 18,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                '$count',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : const Color(0xFF0F1E36),
-                                  height: 1.1,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Total Artikel',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 4,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFDCFCE7),
-                                      borderRadius: BorderRadius.circular(8),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '$count',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                                    height: 1.1,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFDCFCE7),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '↑ 8%',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF16A34A),
+                                        ),
+                                      ),
                                     ),
-                                    child: Text(
-                                      '↑ 8%',
+                                    Text(
+                                      '18 dipublikasikan',
                                       style: GoogleFonts.poppins(
                                         fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF16A34A),
+                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                  ),
-                                  Text(
-                                    '18 dipublikasikan',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10,
-                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -1651,166 +1694,286 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   // ===========================================================================
-  // TAB 2: ARTIKEL (Health Articles Management from Firestore)
+  // TAB 2: ARTIKEL (Health Articles Management - Persis Desain Mockup ObeSight)
   // ===========================================================================
   Widget _buildArtikelTab(bool isDark, Color primaryColor) {
-    return StreamBuilder<List<ArticleModel>>(
-      stream: _articleService.getArticlesStream(),
-      builder: (context, snapshot) {
-        final articles = snapshot.data ?? [];
-
-        final filteredArticles = articles.where((a) {
-          if (_articleSearchQuery.isEmpty) return true;
-          return a.title.toLowerCase().contains(_articleSearchQuery.toLowerCase()) ||
-              a.category.toLowerCase().contains(_articleSearchQuery.toLowerCase());
-        }).toList();
-
-        return Column(
-          children: [
-            Container(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Artikel Edukasi Kesehatan',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Kelola publikasi dan materi gizi seimbang ObeSight',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    onChanged: (val) => setState(() => _articleSearchQuery = val),
-                    decoration: InputDecoration(
-                      hintText: 'Cari judul artikel atau topik...',
-                      hintStyle: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF94A3B8)),
-                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: filteredArticles.isEmpty
-                  ? Center(
-                      child: Text(
-                        'Belum ada artikel ditemukan.',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
-                      itemCount: filteredArticles.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final article = filteredArticles[index];
-                        return _buildArticleCard(article, isDark, primaryColor);
-                      },
-                    ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildArticleCard(ArticleModel article, bool isDark, Color primaryColor) {
-    return Material(
-      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-      borderRadius: BorderRadius.circular(14),
+    return Container(
+      color: const Color(0xFF388E6B),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          ),
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(12),
-          leading: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: primaryColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(article.icon, color: primaryColor),
-          ),
-          title: Text(
-            article.title,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: Column(
             children: [
-              const SizedBox(height: 4),
-              Text(
-                article.snippet,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              // Header Putih Melengkung dengan Tab Bar & Search
+              Container(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Column(
+                  children: [
+                    // 1. Tab Bar: Semua | Dipublikasikan | Draft
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildArticleFilterTab('Semua', 0, isDark),
+                        _buildArticleFilterTab('Dipublikasikan', 1, isDark),
+                        _buildArticleFilterTab('Draft', 2, isDark),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 2. Search Field "Cari"
+                    Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        ),
+                      ),
+                      child: TextField(
+                        onChanged: (val) => setState(() => _articleSearchQuery = val),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Cari',
+                          hintStyle: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: const Color(0xFF94A3B8),
+                          ),
+                          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Color(0xFF94A3B8)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      article.category,
-                      style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: primaryColor),
-                    ),
-                  ),
-                  Text(
-                    article.readTime,
-                    style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF94A3B8)),
-                  ),
-                ],
+
+              // 3. Daftar Kartu Artikel dari Stream Firestore
+              Expanded(
+                child: StreamBuilder<List<ArticleModel>>(
+                  stream: _articleService.getAllArticlesStream(),
+                  builder: (context, snapshot) {
+                    final allArticles = snapshot.data ?? _articleService.getArticles();
+
+                    // Filter Tab: 0 = Semua, 1 = Dipublikasikan, 2 = Draft
+                    final tabFiltered = allArticles.where((a) {
+                      if (_selectedArticleTab == 1) return a.isPublished;
+                      if (_selectedArticleTab == 2) return !a.isPublished;
+                      return true;
+                    }).toList();
+
+                    // Filter Search Query
+                    final searchFiltered = tabFiltered.where((a) {
+                      if (_articleSearchQuery.trim().isEmpty) return true;
+                      final q = _articleSearchQuery.trim().toLowerCase();
+                      return a.title.toLowerCase().contains(q) ||
+                          a.snippet.toLowerCase().contains(q) ||
+                          a.content.toLowerCase().contains(q);
+                    }).toList();
+
+                    if (searchFiltered.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.article_outlined,
+                              size: 48,
+                              color: const Color(0xFF94A3B8).withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              _selectedArticleTab == 2
+                                  ? 'Belum ada draf artikel.'
+                                  : (_selectedArticleTab == 1
+                                      ? 'Belum ada artikel dipublikasikan.'
+                                      : 'Belum ada artikel ditemukan.'),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                color: const Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: searchFiltered.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final article = searchFiltered[index];
+                        return _buildMockupArticleCard(article, isDark);
+                      },
+                    );
+                  },
+                ),
               ),
             ],
           ),
-          trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF94A3B8)),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => HealthArticleDetailScreen(article: article),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArticleFilterTab(String label, int index, bool isDark) {
+    final isSelected = _selectedArticleTab == index;
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedArticleTab = index),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+              width: 2.2,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected
+                ? const Color(0xFF2563EB)
+                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMockupArticleCard(ArticleModel article, bool isDark) {
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+
+    return Material(
+      color: cardBg,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => HealthArticleDetailScreen(
+                article: article,
+                isAdmin: true,
               ),
-            );
-          },
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gambar Sampul di Kiri
+              ArticleThumbnailImage(
+                imageUrl: article.imageUrl,
+                imageAsset: article.imageAsset,
+                width: 68,
+                height: 68,
+                borderRadius: BorderRadius.circular(10),
+                fit: BoxFit.cover,
+              ),
+              const SizedBox(width: 12),
+
+              // Detail Teks di Kanan
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Judul Artikel
+                    Text(
+                      article.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+
+                    // Snippet / Subtitle
+                    Text(
+                      article.snippet,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Baris Bawah: Tanggal & Badge Status
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          article.date,
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.5,
+                            color: const Color(0xFF94A3B8),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: article.isPublished
+                                ? const Color(0xFF388E6B)
+                                : const Color(0xFFEAB308),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            article.isPublished ? 'Dipublikasikan' : 'Draft',
+                            style: GoogleFonts.poppins(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: article.isPublished ? Colors.white : const Color(0xFF451A03),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

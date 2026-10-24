@@ -13,6 +13,7 @@ import '../progress/progress_screen.dart';
 import '../progress/screening_history_screen.dart';
 import '../article/health_article_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
+import '../../widgets/article_thumbnail_image.dart';
 import 'imt_form_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 import '../../services/screening_history_service.dart';
@@ -1131,33 +1132,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
+                  ArticleThumbnailImage(
+                    imageUrl: art.imageUrl,
+                    imageAsset: art.imageAsset,
+                    width: double.infinity,
+                    height: 95,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: SizedBox(
-                      height: 95,
-                      width: double.infinity,
-                      child: (art.imageUrl != null && art.imageUrl!.trim().startsWith('http'))
-                          ? Image.network(
-                              art.imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                color: art.headerColor.withValues(alpha: 0.15),
-                                child: Center(
-                                  child: Icon(art.icon, size: 36, color: art.headerColor),
-                                ),
-                              ),
-                            )
-                          : Image.asset(
-                              art.imageAsset,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                color: art.headerColor.withValues(alpha: 0.15),
-                                child: Center(
-                                  child: Icon(art.icon, size: 36, color: art.headerColor),
-                                ),
-                              ),
-                            ),
-                    ),
+                    fit: BoxFit.cover,
                   ),
                   Expanded(
                     child: Padding(

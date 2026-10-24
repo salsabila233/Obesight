@@ -38,6 +38,44 @@ class ArticleModel {
     this.updatedAt,
   });
 
+  ArticleModel copyWith({
+    String? id,
+    String? title,
+    String? snippet,
+    String? date,
+    String? readTime,
+    Color? headerColor,
+    IconData? icon,
+    String? imageAsset,
+    String? content,
+    List<String>? takeaways,
+    String? category,
+    String? imageUrl,
+    String? author,
+    bool? isPublished,
+    DateTime? publishedAt,
+    DateTime? updatedAt,
+  }) {
+    return ArticleModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      snippet: snippet ?? this.snippet,
+      date: date ?? this.date,
+      readTime: readTime ?? this.readTime,
+      headerColor: headerColor ?? this.headerColor,
+      icon: icon ?? this.icon,
+      imageAsset: imageAsset ?? this.imageAsset,
+      content: content ?? this.content,
+      takeaways: takeaways ?? this.takeaways,
+      category: category ?? this.category,
+      imageUrl: imageUrl ?? this.imageUrl,
+      author: author ?? this.author,
+      isPublished: isPublished ?? this.isPublished,
+      publishedAt: publishedAt ?? this.publishedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   /// Getter representasi string hex dari headerColor
   String get headerColorHex => _colorToHex(headerColor);
 

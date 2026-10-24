@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/article_model.dart';
 import '../../services/article_service.dart';
 import 'health_article_detail_screen.dart';
-
+import '../../widgets/article_thumbnail_image.dart';
 import '../../widgets/curved_header_scaffold.dart';
 
 class HealthArticleListScreen extends StatefulWidget {
@@ -392,31 +392,15 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Gambar Artikel di bagian atas kartu
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                        child: AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: (art.imageUrl != null && art.imageUrl!.trim().startsWith('http'))
-                              ? Image.network(
-                                  art.imageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    color: art.headerColor.withValues(alpha: 0.2),
-                                    child: Center(
-                                      child: Icon(art.icon, size: 48, color: art.headerColor),
-                                    ),
-                                  ),
-                                )
-                              : Image.asset(
-                                  art.imageAsset,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    color: art.headerColor.withValues(alpha: 0.2),
-                                    child: Center(
-                                      child: Icon(art.icon, size: 48, color: art.headerColor),
-                                    ),
-                                  ),
-                                ),
+                      AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: ArticleThumbnailImage(
+                          imageUrl: art.imageUrl,
+                          imageAsset: art.imageAsset,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                          fit: BoxFit.cover,
+                          placeholderColor: art.headerColor.withValues(alpha: 0.2),
+                          placeholderIcon: art.icon,
                         ),
                       ),
 
