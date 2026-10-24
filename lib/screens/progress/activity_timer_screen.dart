@@ -24,6 +24,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ActivityTimerService.instance.setTimerScreenActive(true);
+    });
 
     _scrollController.addListener(() {
       final offset = _scrollController.offset;
@@ -75,6 +78,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
   @override
   void dispose() {
+    ActivityTimerService.instance.setTimerScreenActive(false);
     ActivityAlarmService.instance.stopAlarm();
     ActivityTimerService.instance.removeListener(_handleTimerServiceUpdate);
     _scrollController.dispose();
@@ -165,29 +169,6 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
       return null;
     }
     return widget.activity['targetText'] as String? ?? '30-60 menit';
-  }
-
-  double _getCalorieRatePerMinute() {
-    final id = (widget.activity['id'] as String? ?? '').toLowerCase();
-    final title = (widget.activity['title'] as String? ?? '').toLowerCase();
-
-    if (id.contains('hiit') || title.contains('hiit') || title.contains('interval')) {
-      return 350.0 / 22.5;
-    } else if (id.contains('bodyweight') || title.contains('bodyweight') || title.contains('kekuatan')) {
-      return 250.0 / 32.5;
-    } else if (id.contains('yoga') || title.contains('yoga')) {
-      return 150.0 / 30.0;
-    } else if (id.contains('cycling') || title.contains('sepeda')) {
-      return 300.0 / 45.0;
-    } else {
-      return 300.0 / 45.0;
-    }
-  }
-
-  int _calculateBurnedCalories(int elapsedSecs) {
-    final minutes = elapsedSecs / 60.0;
-    final rate = _getCalorieRatePerMinute();
-    return (minutes * rate).round();
   }
 
   void _selectPreset(int seconds) {
@@ -535,110 +516,87 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     );
   }
 
-  // Popup Latihan Selesai sesuai Storyboard Gambar 3 (Alarm & Card Selesai)
-  // Menampilkan ikon lonceng, 00:00 eksplisit, tombol "Selesai", dan tombol "Lanjut Istirahat"
+  // Popup Latihan Selesai sesuai gambar referensi Image 5 (Waktu Aktivitas Habis)
   void _showCompletionDialog() {
     _hasShownDialog = true;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final service = ActivityTimerService.instance;
-    final title = (widget.activity['name'] as String?) ?? (widget.activity['title'] as String?) ?? 'Aktivitas';
-    final durationMins = service.targetDuration ~/ 60;
 
     showDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (ctx) => AlertDialog(
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
-        titlePadding: EdgeInsets.zero,
-        title: Stack(
-          children: [
-            Positioned(
-              top: 12,
-              right: 12,
-              child: IconButton(
-                icon: const Icon(Icons.close_rounded, size: 22, color: Color(0xFF94A3B8)),
-                splashRadius: 18,
-                onPressed: () {
-                  ActivityAlarmService.instance.stopAlarm();
-                  Navigator.pop(ctx);
-                  service.cancelSession();
-                  Navigator.of(context).pop(true);
-                },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Clock Icon matching Image 5
+              const Icon(
+                Icons.access_time_rounded,
+                size: 42,
+                color: Color(0xFF489874),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 26, left: 20, right: 20),
-              child: Center(
-                child: Column(
-                  children: [
-                    // Ikon lonceng hijau melingkar sesuai Storyboard Gambar 3
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.notifications_active_rounded,
-                        color: Color(0xFF16A34A),
-                        size: 38,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      'Aktivitas Fisik Selesai!',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 14),
+              Text(
+                'Waktu Aktivitas Habis',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF3B7A5E),
                 ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Kamu telah menyelesaikan ${title.toLowerCase()} selama $durationMins menit.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Tampilan waktu eksplisit 00:00 (Besar & Jelas)
-            Text(
-              '00:00',
-              style: GoogleFonts.poppins(
-                fontSize: 44,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -1,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 22),
-
-            // Tombol 1: "Selesai" (Filled Green)
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              const SizedBox(height: 16),
+              // "00:00"
+              Text(
+                '00:00',
+                style: GoogleFonts.poppins(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
+              ),
+              const SizedBox(height: 24),
+              // Tombol 1: "Lanjutkan istirahat" (filled green)
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF529B7A),
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () {
+                    ActivityAlarmService.instance.stopAlarm();
+                    Navigator.pop(ctx);
+                    service.cancelSession();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => ActivityRestDetailScreen(
+                          previousActivity: widget.activity,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Lanjutkan istirahat',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Tombol 2: "Batal dan Selesai" (green text button)
+              TextButton(
                 onPressed: () {
                   ActivityAlarmService.instance.stopAlarm();
                   Navigator.pop(ctx);
@@ -646,61 +604,20 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                   Navigator.of(context).pop(true);
                 },
                 child: Text(
-                  'Selesai',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Tombol 2: "Lanjut Istirahat" (Outlined Green)
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                  side: BorderSide(
-                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                    width: 1.5,
-                  ),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                onPressed: () {
-                  ActivityAlarmService.instance.stopAlarm();
-                  Navigator.pop(ctx);
-                  service.cancelSession();
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => ActivityRestDetailScreen(
-                        previousActivity: widget.activity,
-                        completedDurationMinutes: durationMins,
-                      ),
-                    ),
-                  );
-                },
-                child: Text(
-                  'Lanjut Istirahat',
+                  'Batal dan Selesai',
                   style: GoogleFonts.poppins(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w600,
+                    color: const Color(0xFF529B7A),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ).then((_) {
       ActivityAlarmService.instance.stopAlarm();
-      if (mounted && Navigator.of(context).canPop()) {
-        service.cancelSession();
-        Navigator.of(context).pop(true);
-      }
     });
   }
 
@@ -822,7 +739,6 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
         final isRunning = service.isRunning;
         final isPaused = service.isPaused;
         final selectedPreset = service.selectedPreset;
-        final initialMinutes = (service.targetDuration > 0 ? (service.targetDuration ~/ 60) : 30);
 
         // Progress countdown (0.0 sampai 1.0)
         final double progress;
@@ -1045,20 +961,20 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
                           // Big Circular Progress Timer (Countdown Ring)
                           GestureDetector(
-                            onTap: service.isIdle && !isRest ? _showCustomDurationPicker : null,
+                            onTap: service.isIdle && !isRest ? _showCustomDurationPicker : _toggleTimer,
                             child: SizedBox(
-                              width: 230,
-                              height: 230,
+                              width: 250,
+                              height: 250,
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
                                   // Background Circular Ring
                                   SizedBox(
-                                    width: 220,
-                                    height: 220,
+                                    width: 235,
+                                    height: 235,
                                     child: CircularProgressIndicator(
                                       value: isRunning || isPaused ? progress : 1.0,
-                                      strokeWidth: 10,
+                                      strokeWidth: 11,
                                       strokeCap: StrokeCap.round,
                                       backgroundColor: isDark
                                           ? const Color(0xFF1E293B)
@@ -1074,38 +990,12 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                       Text(
                                         _formatTime(secondsRemaining),
                                         style: GoogleFonts.poppins(
-                                          fontSize: 46,
+                                          fontSize: 50,
                                           fontWeight: FontWeight.w800,
                                           letterSpacing: -1,
                                           color: isDark ? Colors.white : const Color(0xFF0F172A),
                                         ),
                                       ),
-                                      Text(
-                                        'Sisa Waktu',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                        ),
-                                      ),
-                                      if (service.isIdle && !isRest) ...[
-                                        const SizedBox(height: 6),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.tune_rounded, size: 13, color: accentGreen),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'Ketuk untuk ubah',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 10.5,
-                                                fontWeight: FontWeight.w600,
-                                                color: accentGreen,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
                                     ],
                                   ),
                                 ],
@@ -1113,103 +1003,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 20),
-
-                          // Info Row: Durasi Awal & Badge Status sesuai Storyboard Gambar 2
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Durasi Awal (hanya ditampilkan untuk aktivitas fisik, sesi istirahat sudah memiliki Durasi Istirahat)
-                                if (!isRest)
-                                  Flexible(
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.access_time_rounded,
-                                          size: 18,
-                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Flexible(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'Durasi awal',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 11,
-                                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                                ),
-                                              ),
-                                              Text(
-                                                '$initialMinutes menit',
-                                                overflow: TextOverflow.ellipsis,
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                else
-                                  const SizedBox.shrink(),
-
-                                // Status Badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: isRunning
-                                        ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7))
-                                        : (isPaused
-                                            ? (isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7))
-                                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: isRunning
-                                              ? const Color(0xFF16A34A)
-                                              : (isPaused ? const Color(0xFFD97706) : const Color(0xFF94A3B8)),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        isRunning
-                                            ? 'Sedang Berjalan'
-                                            : (isPaused ? 'Dijeda' : 'Siap Dimulai'),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w600,
-                                          color: isRunning
-                                              ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF16A34A))
-                                              : (isPaused
-                                                  ? const Color(0xFFD97706)
-                                                  : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B))),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 24),
 
                           // Preset Chips jika Timer Idle
                           if (service.isIdle) ...[
@@ -1256,43 +1050,15 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                             const SizedBox(height: 18),
                           ],
 
-                          // Tombol Utama: "Jeda" / "Lanjutkan" / "Mulai" sesuai Storyboard Gambar 2
+                          // Tombol "Selesaikan Aktivitas" / "Selesaikan Istirahat" (Filled Green matching Image 2)
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: 48,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: accentGreen,
                                 foregroundColor: Colors.white,
-                                elevation: 3,
-                                shadowColor: accentGreen.withValues(alpha: 0.35),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              onPressed: _toggleTimer,
-                              child: Text(
-                                isRunning
-                                    ? 'Jeda'
-                                    : (isPaused ? 'Lanjutkan' : 'Mulai'),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // Tombol "Selesaikan Aktivitas" / "Selesaikan Istirahat"
-                          SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: accentGreen,
-                                side: BorderSide(color: accentGreen, width: 1.5),
+                                elevation: 2,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -1301,8 +1067,8 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                               child: Text(
                                 isRest ? 'Selesaikan Istirahat' : 'Selesaikan Aktivitas',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
@@ -1322,7 +1088,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                color: accentGreen,
                               ),
                             ),
                           ),

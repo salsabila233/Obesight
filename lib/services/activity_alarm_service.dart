@@ -11,7 +11,6 @@ class ActivityAlarmService {
   ActivityAlarmService._internal();
 
   /// Mode pengujian untuk menguji logika tanpa memanggil native audio platform
-  @visibleForTesting
   static bool isTestMode = false;
 
   AudioPlayer? _player;

@@ -155,15 +155,8 @@ void main() {
       );
       await tester.pump();
 
-      // Header
-      expect(find.text('Mulai Timer'), findsOneWidget);
-      expect(find.text('Atur durasi aktivitas fisik sesuai kebutuhanmu.'), findsOneWidget);
-
-      // Helper Text
-      expect(find.text('Durasi minimal 15 menit dan maksimal 60 menit.'), findsOneWidget);
-
-      // Card Aktivitas Fisik
-      expect(find.text('Aktivitas Fisik'), findsOneWidget);
+      // Header & Target
+      expect(find.text('Target'), findsOneWidget);
       expect(find.text('Jalan Cepat'), findsOneWidget);
 
       // Tombol Mulai
@@ -273,20 +266,20 @@ void main() {
       expect(ActivityAlarmService.instance.currentAlarmType, equals('activity'));
 
       // Verify Dialog Elements from Storyboard Panel 3
-      expect(find.text('Aktivitas Fisik Selesai!'), findsOneWidget);
+      expect(find.text('Waktu Aktivitas Habis'), findsOneWidget);
       expect(find.text('00:00'), findsWidgets); // Dialog explicit 00:00
-      expect(find.text('Selesai'), findsOneWidget);
-      expect(find.text('Lanjut Istirahat'), findsOneWidget);
+      expect(find.text('Batal dan Selesai'), findsOneWidget);
+      expect(find.text('Lanjutkan istirahat'), findsOneWidget);
 
-      // Tapping "Lanjut Istirahat" stops alarm and navigates to ActivityRestDetailScreen
-      await tester.tap(find.text('Lanjut Istirahat'));
+      // Tapping "Lanjutkan istirahat" stops alarm and navigates to ActivityRestDetailScreen
+      await tester.tap(find.text('Lanjutkan istirahat'));
       await tester.pumpAndSettle();
 
       expect(ActivityAlarmService.instance.isPlaying, isFalse);
       expect(find.byType(ActivityRestDetailScreen), findsOneWidget);
     });
 
-    testWidgets('Tapping Selesai stops alarm and cleans timer session', (WidgetTester tester) async {
+    testWidgets('Tapping Batal dan Selesai stops alarm and cleans timer session', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(412, 915);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -312,10 +305,10 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Selesai'), findsOneWidget);
+      expect(find.text('Batal dan Selesai'), findsOneWidget);
 
-      // Tap "Selesai"
-      await tester.tap(find.text('Selesai'));
+      // Tap "Batal dan Selesai"
+      await tester.tap(find.text('Batal dan Selesai'));
       await tester.pumpAndSettle();
 
       expect(ActivityAlarmService.instance.isPlaying, isFalse);

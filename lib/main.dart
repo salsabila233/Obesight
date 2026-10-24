@@ -14,6 +14,8 @@ import 'screens/auth/welcome_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'services/article_service.dart';
 import 'services/sleep_tracking_service.dart';
+import 'services/activity_timer_service.dart';
+import 'widgets/global_floating_timer_overlay.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -69,11 +71,17 @@ class ObeSightApp extends StatelessWidget {
       valueListenable: AppTheme.themeModeNotifier,
       builder: (context, currentMode, _) {
         return MaterialApp(
+          navigatorKey: ActivityTimerService.navigatorKey,
           title: 'ObeSight',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: currentMode,
+          builder: (context, child) {
+            return GlobalFloatingTimerOverlay(
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
           initialRoute: '/',
           routes: {
             '/': (context) => const SplashScreen(),

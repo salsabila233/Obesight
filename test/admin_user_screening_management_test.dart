@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:obesight/models/screening_history_model.dart';
 import 'package:obesight/models/user_model.dart';
 import 'package:obesight/screens/admin/admin_user_list_screen.dart';
 import 'package:obesight/screens/admin/admin_user_screening_detail_screen.dart';
 import 'package:obesight/screens/home/admin_home_screen.dart';
-import 'package:obesight/screens/skrining/skrining_models.dart';
-import 'package:obesight/services/admin_user_service.dart';
-import 'package:obesight/services/auth_service.dart';
 import 'package:obesight/theme/app_theme.dart';
 
 void main() {

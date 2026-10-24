@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
+import '../../services/activity_alarm_service.dart';
 import '../../services/physical_activity_service.dart';
 import 'activity_timer_screen.dart';
 import 'activity_rest_detail_screen.dart';
 import 'activity_duration_picker_screen.dart';
+import '../../widgets/global_floating_timer_overlay.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
@@ -24,6 +26,8 @@ class ActivityDetailScreen extends StatefulWidget {
 class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isSticky = false;
+  bool _isCardExpanded = false;
+  bool _hasShownCompletionDialog = false;
 
   @override
   void initState() {
@@ -36,12 +40,151 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         setState(() => _isSticky = false);
       }
     });
+
+    final service = ActivityTimerService.instance;
+    service.addListener(_handleTimerServiceUpdate);
+
+    if (service.isCompleted) {
+      final actId = widget.activity['id'] as String? ?? '';
+      if (service.activeActivity?['id'] == actId) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _showCompletionDialog();
+        });
+      }
+    }
+  }
+
+  void _handleTimerServiceUpdate() {
+    if (!mounted) return;
+    final service = ActivityTimerService.instance;
+    final actId = widget.activity['id'] as String? ?? '';
+    final isMatching = service.activeActivity?['id'] == actId;
+
+    if (service.isCompleted && isMatching && !_hasShownCompletionDialog) {
+      _hasShownCompletionDialog = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _showCompletionDialog();
+      });
+    }
   }
 
   @override
   void dispose() {
+    ActivityTimerService.instance.removeListener(_handleTimerServiceUpdate);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  String _formatTime(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  void _showCompletionDialog() {
+    _hasShownCompletionDialog = true;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final service = ActivityTimerService.instance;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => Dialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Clock Icon (Green outline icon matching reference)
+              const Icon(
+                Icons.access_time_rounded,
+                size: 42,
+                color: Color(0xFF489874),
+              ),
+              const SizedBox(height: 14),
+              // Title "Waktu Aktivitas Habis"
+              Text(
+                'Waktu Aktivitas Habis',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF3B7A5E),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // "00:00"
+              Text(
+                '00:00',
+                style: GoogleFonts.poppins(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Button 1: "Lanjutkan istirahat" (filled green)
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF529B7A),
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    ActivityAlarmService.instance.stopAlarm();
+                    Navigator.pop(dialogCtx);
+                    service.cancelSession();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => ActivityRestDetailScreen(
+                          previousActivity: widget.activity,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Lanjutkan istirahat',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Button 2: "Batal dan Selesai" (green text button)
+              TextButton(
+                onPressed: () {
+                  ActivityAlarmService.instance.stopAlarm();
+                  Navigator.pop(dialogCtx);
+                  service.cancelSession();
+                },
+                child: Text(
+                  'Batal dan Selesai',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF529B7A),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).then((_) {
+      ActivityAlarmService.instance.stopAlarm();
+    });
   }
 
   @override
@@ -514,7 +657,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
                       final isFuture = PhysicalActivityService.isFutureDateKey(widget.dateKey);
 
-                      return ElevatedButton.icon(
+                      return ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isFuture
                               ? (isDark ? const Color(0xFF334155) : const Color(0xFF94A3B8))
@@ -522,7 +665,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
+                          elevation: 3,
                         ),
                         onPressed: isFuture
                             ? () {
@@ -567,17 +710,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                       ),
                                     ),
                                   );
-                                } else if (result == true) {
-                                  Navigator.of(context).pop(true);
                                 }
                               },
-                        icon: Icon(
-                          isRunningThis ? Icons.timer_rounded : Icons.play_arrow_rounded,
-                          size: 22,
-                        ),
-                        label: Text(
-                          isRunningThis ? 'Lanjutkan Latihan' : 'Mulai Latihan',
-                          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+                        child: Text(
+                          'Mulai',
+                          style: GoogleFonts.poppins(fontSize: 15.5, fontWeight: FontWeight.w700),
                         ),
                       );
                     },
@@ -585,6 +722,165 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                 ),
               ),
             ),
+          ),
+
+          // 3. Mini Timer / Expanded Timer Card in Header (Top Right)
+          ListenableBuilder(
+            listenable: ActivityTimerService.instance,
+            builder: (context, _) {
+              final service = ActivityTimerService.instance;
+              final actId = widget.activity['id'] as String? ?? '';
+              final isRunningThis = service.hasActiveSession &&
+                  (service.activeActivity?['id'] == actId);
+
+              if (!isRunningThis || GlobalFloatingTimerOverlay.isGlobalOverlayMounted) {
+                return const SizedBox.shrink();
+              }
+
+              final topPadding = MediaQuery.of(context).padding.top;
+
+              if (!_isCardExpanded) {
+                // Mini Timer Pill (Image 3)
+                return Positioned(
+                  top: topPadding + 6,
+                  right: 18,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isCardExpanded = true;
+                      });
+                    },
+                    child: Container(
+                      height: 42,
+                      padding: const EdgeInsets.only(left: 14, right: 3, top: 3, bottom: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.16),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF5A9E80),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Text(
+                              _formatTime(service.secondsRemaining),
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.5,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                // Larger Timer Card (Image 4)
+                final progress = service.targetDuration > 0
+                    ? (service.elapsedSeconds / service.targetDuration).clamp(0.0, 1.0)
+                    : 0.0;
+
+                return Positioned(
+                  top: topPadding + 6,
+                  right: 18,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isCardExpanded = false;
+                      });
+                    },
+                    child: Container(
+                      width: 175,
+                      padding: const EdgeInsets.fromLTRB(14, 8, 12, 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Top right: Expand icon
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () async {
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => ActivityTimerScreen(
+                                        activity: widget.activity,
+                                        dateKey: widget.dateKey,
+                                      ),
+                                    ),
+                                  );
+                                  if (mounted) {
+                                    setState(() {
+                                      _isCardExpanded = false;
+                                    });
+                                  }
+                                },
+                                child: const Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Icon(
+                                    Icons.open_in_full_rounded,
+                                    size: 15,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            _formatTime(service.secondsRemaining),
+                            style: GoogleFonts.poppins(
+                              fontSize: 27,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // Progress bar
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              height: 7,
+                              width: double.infinity,
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                backgroundColor: const Color(0xFFE2E8F0),
+                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5A9E80)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),

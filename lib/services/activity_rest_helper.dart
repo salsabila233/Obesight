@@ -51,11 +51,43 @@ class ActivityRestHelper {
     ),
   ];
 
-  /// Memvalidasi durasi aktivitas fisik agar berada dalam rentang 15-60 menit
-  static int clampActivityDuration(int minutes) {
-    if (minutes < minActivityDurationMinutes) return minActivityDurationMinutes;
-    if (minutes > maxActivityDurationMinutes) return maxActivityDurationMinutes;
+  /// Memvalidasi durasi aktivitas fisik agar berada dalam rentang minimum dan maksimum
+  static int clampActivityDuration(int minutes, [Map<String, dynamic>? activity]) {
+    final min = activity != null ? getMinActivityDuration(activity) : minActivityDurationMinutes;
+    final max = activity != null ? getMaxActivityDuration(activity) : maxActivityDurationMinutes;
+    if (minutes < min) return min;
+    if (minutes > max) return max;
     return minutes;
+  }
+
+  /// Mendapatkan durasi minimum aktivitas fisik sesuai informasi pada halaman aktivitas
+  static int getMinActivityDuration(Map<String, dynamic>? activity) {
+    if (activity == null) return minActivityDurationMinutes;
+    final durationStr = (activity['specs']?['duration'] as String?) ??
+        (activity['targetText'] as String?) ??
+        (activity['duration'] as String?) ??
+        '';
+    final match = RegExp(r'(\d+)').firstMatch(durationStr);
+    if (match != null) {
+      final parsed = int.tryParse(match.group(1)!);
+      if (parsed != null && parsed > 0) return parsed;
+    }
+    return getRecommendedActivityDuration(activity);
+  }
+
+  /// Mendapatkan durasi maksimum aktivitas fisik sesuai informasi pada halaman aktivitas
+  static int getMaxActivityDuration(Map<String, dynamic>? activity) {
+    if (activity == null) return maxActivityDurationMinutes;
+    final durationStr = (activity['specs']?['duration'] as String?) ??
+        (activity['targetText'] as String?) ??
+        (activity['duration'] as String?) ??
+        '';
+    final matches = RegExp(r'(\d+)').allMatches(durationStr).toList();
+    if (matches.length >= 2) {
+      final parsed = int.tryParse(matches[1].group(1)!);
+      if (parsed != null && parsed >= 60) return parsed;
+    }
+    return maxActivityDurationMinutes;
   }
 
   /// Rekomendasi durasi awal aktivitas fisik berdasarkan jenis aktivitas

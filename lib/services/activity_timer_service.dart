@@ -22,6 +22,8 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   factory ActivityTimerService() => _instance;
   static ActivityTimerService get instance => _instance;
 
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   static const String _storagePrefix = 'obesight_timer_session_';
   static const int _timerRunningNotificationId = 99102;
   static const int _timerNotificationId = 99101;
@@ -41,6 +43,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? _segmentStartTime;
   ActivityTimerStatus _status = ActivityTimerStatus.idle;
   bool _alarmTriggeredForSession = false;
+  bool _isTimerScreenActive = false;
 
   Timer? _ticker;
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -63,6 +66,16 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   bool get isPaused => _status == ActivityTimerStatus.paused;
   bool get isCompleted => _status == ActivityTimerStatus.completed;
   bool get isIdle => _status == ActivityTimerStatus.idle;
+  bool get isTimerScreenActive => _isTimerScreenActive;
+
+  void setTimerScreenActive(bool active) {
+    if (_isTimerScreenActive != active) {
+      _isTimerScreenActive = active;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
+  }
 
   bool get hasActiveSession => _activeActivity != null && _status != ActivityTimerStatus.idle;
 
@@ -165,14 +178,15 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
         'activity_timer_running_channel',
         'Timer Berjalan',
         channelDescription: 'Status waktu timer aktivitas fisik yang sedang berlangsung',
-        importance: Importance.low,
-        priority: Priority.low,
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
         ongoing: true,
         onlyAlertOnce: true,
         showWhen: true,
         when: DateTime.now().millisecondsSinceEpoch + (secondsRemaining * 1000),
         usesChronometer: true,
         chronometerCountDown: true,
+        visibility: NotificationVisibility.public,
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -243,10 +257,10 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
       await _notificationsPlugin.zonedSchedule(
         id: _timerNotificationId,
-        title: isRest ? 'Istirahat Selesai! 🌿' : 'Aktivitas Fisik Selesai! 🎉',
+        title: isRest ? 'Istirahat Selesai! 🌿' : 'Waktu Aktivitas Habis',
         body: isRest
             ? 'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar!'
-            : 'Kamu telah menyelesaikan sesi $title selama ${_targetDuration ~/ 60} menit.',
+            : 'Durasi ${title.toLowerCase()} telah selesai.',
         scheduledDate: scheduledDate,
         notificationDetails: notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -284,10 +298,10 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
       await _notificationsPlugin.show(
         id: _timerNotificationId,
-        title: isRest ? 'Istirahat Selesai! 🌿' : 'Aktivitas Fisik Selesai! 🎉',
+        title: isRest ? 'Istirahat Selesai! 🌿' : 'Waktu Aktivitas Habis',
         body: isRest
             ? 'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar!'
-            : 'Kamu telah menyelesaikan $title selama ${_targetDuration ~/ 60} menit.',
+            : 'Durasi ${title.toLowerCase()} telah selesai.',
         notificationDetails: notificationDetails,
       );
     } catch (e) {
@@ -401,6 +415,9 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
       _checkTimerProgress();
       notifyListeners();
     } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (_status == ActivityTimerStatus.running) {
+        _showRunningNotification();
+      }
       _saveSessionToStorage();
     }
   }
