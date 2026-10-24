@@ -1,7 +1,6 @@
-enum UserRole {
-  user,
-  admin,
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum UserRole { user, admin }
 
 class UserModel {
   final String id;
@@ -19,6 +18,8 @@ class UserModel {
   final double bmiScore;
   final String bmiCategory;
   final String obesityRisk;
+  final DateTime? createdAt;
+  final String? joined;
 
   const UserModel({
     required this.id,
@@ -36,6 +37,8 @@ class UserModel {
     this.bmiScore = 22.8,
     this.bmiCategory = 'Normal',
     this.obesityRisk = 'Rendah',
+    this.createdAt,
+    this.joined,
   });
 
   bool get isAdmin => role == UserRole.admin;
@@ -51,14 +54,111 @@ class UserModel {
     return validDob && validGender && validPhone;
   }
 
+  /// Format tanggal bergabung yang rapi
+  String get joinedFormatted {
+    if (joined != null && joined!.trim().isNotEmpty) {
+      return joined!.trim();
+    }
+    if (createdAt != null) {
+      const months = [
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
+      ];
+      return '${createdAt!.day} ${months[createdAt!.month - 1]} ${createdAt!.year}';
+    }
+    return 'Belum tersedia';
+  }
+
+  /// Perkiraan usia dari tanggal lahir jika tersedia
+  int? get age {
+    if (dob == null || dob!.trim().isEmpty) return null;
+    final cleanDob = dob!.trim();
+
+    // 1. Ekstrak 4 digit tahun (contoh "12 Juli 2003" atau "2003-07-12")
+    final match = RegExp(r'\b(19\d\d|20\d\d)\b').firstMatch(cleanDob);
+    if (match != null) {
+      final y = int.tryParse(match.group(1)!);
+      if (y != null && y <= DateTime.now().year) {
+        return DateTime.now().year - y;
+      }
+    }
+
+    final parsed = DateTime.tryParse(cleanDob);
+    if (parsed != null) {
+      var calculatedAge = DateTime.now().year - parsed.year;
+      if (DateTime.now().month < parsed.month ||
+          (DateTime.now().month == parsed.month &&
+              DateTime.now().day < parsed.day)) {
+        calculatedAge--;
+      }
+      return calculatedAge;
+    }
+    return null;
+  }
+
+  /// Gabungan jenis kelamin dan usia dengan dot (contoh: "Perempuan • 23 Tahun")
+  String get genderAndAgeDotFormatted {
+    final hasGender = gender != null && gender!.trim().isNotEmpty;
+    final userAge = age;
+
+    if (hasGender && userAge != null) {
+      return '${gender!.trim()} • $userAge Tahun';
+    } else if (hasGender) {
+      return gender!.trim();
+    } else if (userAge != null) {
+      return '$userAge Tahun';
+    }
+    return '--';
+  }
+
+  /// Gabungan jenis kelamin dan usia (contoh: "Perempuan, 21 tahun" atau "Laki-laki")
+  String get genderAndAgeFormatted {
+    final hasGender = gender != null && gender!.trim().isNotEmpty;
+    final userAge = age;
+
+    if (hasGender && userAge != null) {
+      return '${gender!.trim()}, $userAge tahun';
+    } else if (hasGender) {
+      return gender!.trim();
+    } else if (userAge != null) {
+      return '$userAge tahun';
+    }
+    return '--';
+  }
+
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
+    DateTime? parsedCreatedAt;
+    final createdVal = map['createdAt'] ?? map['created_at'];
+    if (createdVal is Timestamp) {
+      parsedCreatedAt = createdVal.toDate();
+    } else if (createdVal is String) {
+      parsedCreatedAt = DateTime.tryParse(createdVal);
+    } else if (createdVal is int) {
+      parsedCreatedAt = DateTime.fromMillisecondsSinceEpoch(createdVal);
+    }
+
     return UserModel(
       id: id,
       name: map['name'] as String? ?? 'Pengguna ObeSight',
       email: map['email'] as String? ?? '',
-      username: map['username'] as String? ?? (map['email'] != null ? (map['email'] as String).split('@').first : 'user'),
+      username:
+          map['username'] as String? ??
+          (map['email'] != null
+              ? (map['email'] as String).split('@').first
+              : 'user'),
       role: (map['role'] == 'admin') ? UserRole.admin : UserRole.user,
-      avatarUrl: (map['photoUrl'] ?? map['avatarUrl']) as String?,
+      avatarUrl:
+          (map['photoUrl'] ?? map['avatarUrl'] ?? map['avatar']) as String?,
       photoPath: (map['photoPath'] ?? map['photo_path']) as String?,
       title: map['title'] as String?,
       dob: map['dob'] as String?,
@@ -68,6 +168,8 @@ class UserModel {
       bmiScore: (map['bmiScore'] as num?)?.toDouble() ?? 22.8,
       bmiCategory: (map['bmiCategory'] as String?) ?? 'Normal',
       obesityRisk: (map['obesityRisk'] as String?) ?? 'Rendah',
+      createdAt: parsedCreatedAt,
+      joined: map['joined'] as String?,
     );
   }
 
@@ -88,6 +190,8 @@ class UserModel {
       'bmiScore': bmiScore,
       'bmiCategory': bmiCategory,
       'obesityRisk': obesityRisk,
+      if (createdAt != null) 'createdAt': Timestamp.fromDate(createdAt!),
+      if (joined != null) 'joined': joined,
     };
   }
 
@@ -107,6 +211,8 @@ class UserModel {
     double? bmiScore,
     String? bmiCategory,
     String? obesityRisk,
+    DateTime? createdAt,
+    String? joined,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -124,6 +230,8 @@ class UserModel {
       bmiScore: bmiScore ?? this.bmiScore,
       bmiCategory: bmiCategory ?? this.bmiCategory,
       obesityRisk: obesityRisk ?? this.obesityRisk,
+      createdAt: createdAt ?? this.createdAt,
+      joined: joined ?? this.joined,
     );
   }
 }

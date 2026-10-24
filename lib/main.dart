@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/admin/admin_login_screen.dart';
+import 'screens/admin/admin_user_list_screen.dart';
 import 'screens/auth/auth_wrapper.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -24,7 +25,9 @@ Future<void> main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      debugPrint('Firebase successfully initialized for project: ${DefaultFirebaseOptions.currentPlatform.projectId}');
+      debugPrint(
+        'Firebase successfully initialized for project: ${DefaultFirebaseOptions.currentPlatform.projectId}',
+      );
     }
   } catch (e) {
     debugPrint('Firebase initializeApp notice: $e');
@@ -82,6 +85,7 @@ class ObeSightApp extends StatelessWidget {
             '/verify-otp': (context) => const VerifyOtpScreen(),
             '/reset-password': (context) => const ResetPasswordScreen(),
             '/admin/login': (context) => const AdminLoginScreen(),
+            '/admin/users': (context) => const AdminUserListScreen(),
           },
         );
       },

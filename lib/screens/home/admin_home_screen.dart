@@ -8,6 +8,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../admin/admin_add_article_screen.dart';
 import '../admin/admin_change_password_sheet.dart';
+import '../admin/admin_user_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/article_thumbnail_image.dart';
@@ -15,10 +16,7 @@ import '../../widgets/article_thumbnail_image.dart';
 class AdminHomeScreen extends StatefulWidget {
   final UserModel user;
 
-  const AdminHomeScreen({
-    super.key,
-    required this.user,
-  });
+  const AdminHomeScreen({super.key, required this.user});
 
   @override
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
@@ -32,8 +30,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   late UserModel _currentUser;
 
   // Search & Filters for Tabs
-  String _userSearchQuery = '';
-  String _selectedRoleFilter = 'Semua';
   String _articleSearchQuery = '';
   int _selectedArticleTab = 0; // 0: Semua, 1: Dipublikasikan, 2: Draft
 
@@ -87,7 +83,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: Text(
               'Keluar',
@@ -111,16 +109,45 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const primaryColor = AppColors.adminGreen;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF7FAF8),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF7FAF8),
       extendBody: true,
-      appBar: _currentIndex == 2
+      appBar: _currentIndex == 1
+          ? AppBar(
+              backgroundColor: const Color(0xFF529471),
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                onPressed: () => _switchTab(0),
+              ),
+              title: Text(
+                'Pengguna',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          : _currentIndex == 2
           ? AppBar(
               backgroundColor: const Color(0xFF388E6B),
               elevation: 0,
               scrolledUnderElevation: 0,
               centerTitle: true,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
                 onPressed: () => _switchTab(0),
               ),
               title: Text(
@@ -133,7 +160,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
             )
           : AppBar(
-              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF7FAF8),
+              backgroundColor: isDark
+                  ? const Color(0xFF1E293B)
+                  : const Color(0xFFF7FAF8),
               elevation: 0,
               scrolledUnderElevation: 0,
               automaticallyImplyLeading: false,
@@ -152,7 +181,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         color: Color(0xFFE8F5EE),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.eco_rounded, color: Color(0xFF267352), size: 20),
+                      child: const Icon(
+                        Icons.eco_rounded,
+                        color: Color(0xFF267352),
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -166,7 +199,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : const Color(0xFF132F23),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF132F23),
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -185,9 +220,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF267352).withValues(alpha: 0.12),
+                                  color: const Color(
+                                    0xFF267352,
+                                  ).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -222,7 +262,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       color: const Color(0xFFE8F5EE),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: _currentIndex == 4 ? const Color(0xFF267352) : const Color(0xFFC7E2D5),
+                        color: _currentIndex == 4
+                            ? const Color(0xFF267352)
+                            : const Color(0xFFC7E2D5),
                         width: 1.5,
                       ),
                     ),
@@ -250,18 +292,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               padding: const EdgeInsets.only(bottom: 72),
               child: FloatingActionButton(
                 onPressed: () async {
-                  final result = await Navigator.of(context).push<Map<String, dynamic>>(
-                    MaterialPageRoute(
-                      builder: (context) => const AdminAddArticleScreen(),
-                    ),
-                  );
+                  final result = await Navigator.of(context)
+                      .push<Map<String, dynamic>>(
+                        MaterialPageRoute(
+                          builder: (context) => const AdminAddArticleScreen(),
+                        ),
+                      );
                   if (result != null && mounted) {
                     setState(() {
                       _articleSearchQuery = '';
                       if (result['isPublished'] == false) {
                         _selectedArticleTab = 2; // Otomatis ke tab Draft
                       } else {
-                        _selectedArticleTab = 1; // Otomatis ke tab Dipublikasikan
+                        _selectedArticleTab =
+                            1; // Otomatis ke tab Dipublikasikan
                       }
                     });
                   }
@@ -269,7 +313,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 backgroundColor: const Color(0xFF388E6B),
                 elevation: 4,
                 shape: const CircleBorder(),
-                child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
               ),
             )
           : null,
@@ -311,7 +359,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F1E36),
+                        color: isDark
+                            ? const Color(0xFFF1F5F9)
+                            : const Color(0xFF0F1E36),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -319,7 +369,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       'Kelola dan pantau aktivitas ObeSight dalam satu tempat.',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                         height: 1.35,
                       ),
                     ),
@@ -420,124 +472,143 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   initialData: 125,
                   builder: (context, snapshot) {
                     final count = snapshot.data ?? 125;
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF22674A), Color(0xFF2E805C)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                    return GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const AdminUserListScreen(),
                         ),
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF22674A).withValues(alpha: 0.25),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned(
-                            right: -6,
-                            bottom: -6,
-                            child: Icon(
-                              Icons.people_alt_rounded,
-                              size: 52,
-                              color: Colors.white.withValues(alpha: 0.08),
-                            ),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF22674A), Color(0xFF2E805C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.people_alt_rounded,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Total Pengguna',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Text(
-                                          'Total Pasien',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 9,
-                                            color: Colors.white.withValues(alpha: 0.75),
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF22674A,
+                              ).withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned(
+                              right: -6,
+                              bottom: -6,
+                              child: Icon(
+                                Icons.people_alt_rounded,
+                                size: 52,
+                                color: Colors.white.withValues(alpha: 0.08),
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                '$count',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 4,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '↑ 12%',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF22674A),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.people_alt_rounded,
+                                        color: Colors.white,
+                                        size: 18,
                                       ),
                                     ),
-                                  ),
-                                  Text(
-                                    '+12 pengguna bulan ini',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10,
-                                      color: Colors.white.withValues(alpha: 0.9),
-                                      fontWeight: FontWeight.w500,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Total Pengguna',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            'Total Pasien',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 9,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.75,
+                                              ),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '$count',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    height: 1.1,
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '↑ 12%',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF22674A),
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '+12 pengguna bulan ini',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 10,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -552,20 +623,28 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   stream: _articleService.getAllArticlesStream(),
                   initialData: _articleService.getArticles(),
                   builder: (context, snapshot) {
-                    final count = snapshot.hasData ? snapshot.data!.length : _articleService.getArticles().length;
+                    final count = snapshot.hasData
+                        ? snapshot.data!.length
+                        : _articleService.getArticles().length;
                     return GestureDetector(
                       onTap: () => _switchTab(2),
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.2 : 0.04,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -580,7 +659,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               child: Icon(
                                 Icons.article_rounded,
                                 size: 52,
-                                color: const Color(0xFF3B82F6).withValues(alpha: 0.05),
+                                color: const Color(
+                                  0xFF3B82F6,
+                                ).withValues(alpha: 0.05),
                               ),
                             ),
                             Column(
@@ -607,7 +688,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                         style: GoogleFonts.poppins(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                                          color: isDark
+                                              ? Colors.white
+                                              : const Color(0xFF0F1E36),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -621,7 +704,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                   style: GoogleFonts.poppins(
                                     fontSize: 28,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F1E36),
                                     height: 1.1,
                                   ),
                                 ),
@@ -632,7 +717,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFDCFCE7),
                                         borderRadius: BorderRadius.circular(8),
@@ -650,7 +738,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                       '18 dipublikasikan',
                                       style: GoogleFonts.poppins(
                                         fontSize: 10,
-                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                        color: isDark
+                                            ? const Color(0xFF94A3B8)
+                                            : const Color(0xFF64748B),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -697,7 +787,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: const Color(0xFFD4EFE1).withValues(alpha: isDark ? 0.2 : 0.6),
+                color: const Color(
+                  0xFFD4EFE1,
+                ).withValues(alpha: isDark ? 0.2 : 0.6),
                 shape: BoxShape.circle,
               ),
             ),
@@ -712,7 +804,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 height: 44,
                 decoration: BoxDecoration(
                   color: const Color(0xFF88CCA9).withValues(alpha: 0.7),
-                  borderRadius: const BorderRadius.all(Radius.elliptical(22, 44)),
+                  borderRadius: const BorderRadius.all(
+                    Radius.elliptical(22, 44),
+                  ),
                 ),
               ),
             ),
@@ -727,7 +821,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 height: 50,
                 decoration: BoxDecoration(
                   color: const Color(0xFF4FA87F).withValues(alpha: 0.8),
-                  borderRadius: const BorderRadius.all(Radius.elliptical(26, 50)),
+                  borderRadius: const BorderRadius.all(
+                    Radius.elliptical(26, 50),
+                  ),
                 ),
               ),
             ),
@@ -743,7 +839,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFD5E7DD),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFD5E7DD),
                   width: 1.2,
                 ),
                 boxShadow: [
@@ -759,17 +857,45 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 children: [
                   Row(
                     children: [
-                      Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle)),
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       const SizedBox(width: 3),
-                      Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle)),
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF59E0B),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       const SizedBox(width: 3),
-                      Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFF10B981), shape: BoxShape.circle)),
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF10B981),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       const Spacer(),
                       Container(
                         width: 10,
                         height: 10,
-                        decoration: const BoxDecoration(color: Color(0xFFD1FAE5), shape: BoxShape.circle),
-                        child: const Icon(Icons.person, size: 7, color: Color(0xFF10B981)),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD1FAE5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          size: 7,
+                          color: Color(0xFF10B981),
+                        ),
                       ),
                     ],
                   ),
@@ -787,10 +913,38 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Container(width: 8, height: 16, decoration: BoxDecoration(color: const Color(0xFFBCE3CE), borderRadius: BorderRadius.circular(2))),
-                      Container(width: 8, height: 26, decoration: BoxDecoration(color: const Color(0xFF76C49B), borderRadius: BorderRadius.circular(2))),
-                      Container(width: 8, height: 38, decoration: BoxDecoration(color: const Color(0xFF267352), borderRadius: BorderRadius.circular(2))),
-                      Container(width: 8, height: 20, decoration: BoxDecoration(color: const Color(0xFF9BD4B7), borderRadius: BorderRadius.circular(2))),
+                      Container(
+                        width: 8,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFBCE3CE),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      Container(
+                        width: 8,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF76C49B),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      Container(
+                        width: 8,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF267352),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      Container(
+                        width: 8,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF9BD4B7),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -848,7 +1002,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F1E36),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -859,12 +1015,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Row(
@@ -874,7 +1037,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       '7 hari terakhir',
                       style: GoogleFonts.poppins(
                         fontSize: 11,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF475569),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -882,7 +1047,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 16,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ],
                 ),
@@ -911,11 +1078,41 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('20', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
-                                Text('15', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
-                                Text('10', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
-                                Text('5', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
-                                Text('0', style: GoogleFonts.poppins(fontSize: 8.5, color: const Color(0xFF94A3B8))),
+                                Text(
+                                  '20',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 8.5,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                                Text(
+                                  '15',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 8.5,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                                Text(
+                                  '10',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 8.5,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                                Text(
+                                  '5',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 8.5,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                                Text(
+                                  '0',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 8.5,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -1020,7 +1217,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  Widget _buildChartBar(String day, double value, double maxValue, bool isHighlight) {
+  Widget _buildChartBar(
+    String day,
+    double value,
+    double maxValue,
+    bool isHighlight,
+  ) {
     final heightRatio = (value / maxValue).clamp(0.05, 1.0);
     const barHeight = 84.0;
 
@@ -1032,7 +1234,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             width: 10,
             height: barHeight * heightRatio,
             decoration: BoxDecoration(
-              color: isHighlight ? const Color(0xFF267352) : const Color(0xFF86CCA9),
+              color: isHighlight
+                  ? const Color(0xFF267352)
+                  : const Color(0xFF86CCA9),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -1099,7 +1303,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F1E36),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1113,7 +1319,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 onTap: () => _switchTab(1), // Go to Pengguna tab
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1149,10 +1358,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   final users = userSnap.data ?? [];
                   final articles = artSnap.data ?? [];
 
-                  final firstUser = users.isNotEmpty ? users.first.name : 'Siti Aulia';
+                  final firstUser = users.isNotEmpty
+                      ? users.first.name
+                      : 'Siti Aulia';
                   final secondUser = users.length > 1 ? users[1].name : 'Rizky';
-                  final firstArt = articles.isNotEmpty ? articles.first.title : '5 pola makan seimbang untuk tubuh sehat';
-                  final secondArt = articles.length > 1 ? articles[1].title : 'Tips menjaga pola makan sehat';
+                  final firstArt = articles.isNotEmpty
+                      ? articles.first.title
+                      : '5 pola makan seimbang untuk tubuh sehat';
+                  final secondArt = articles.length > 1
+                      ? articles[1].title
+                      : 'Tips menjaga pola makan sehat';
 
                   return Column(
                     children: [
@@ -1258,7 +1473,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       subtitle,
                       style: GoogleFonts.poppins(
                         fontSize: 11,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1294,11 +1511,31 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const capsuleBg = Color(0xFF246B4D);
 
     final items = [
-      {'icon': Icons.home_rounded, 'inactiveIcon': Icons.home_outlined, 'label': 'Beranda'},
-      {'icon': Icons.people_alt_rounded, 'inactiveIcon': Icons.people_alt_outlined, 'label': 'Pengguna'},
-      {'icon': Icons.article_rounded, 'inactiveIcon': Icons.article_outlined, 'label': 'Artikel'},
-      {'icon': Icons.bar_chart_rounded, 'inactiveIcon': Icons.bar_chart_outlined, 'label': 'Laporan'},
-      {'icon': Icons.settings_rounded, 'inactiveIcon': Icons.settings_outlined, 'label': 'Pengaturan'},
+      {
+        'icon': Icons.home_rounded,
+        'inactiveIcon': Icons.home_outlined,
+        'label': 'Beranda',
+      },
+      {
+        'icon': Icons.people_alt_rounded,
+        'inactiveIcon': Icons.people_alt_outlined,
+        'label': 'Pengguna',
+      },
+      {
+        'icon': Icons.article_rounded,
+        'inactiveIcon': Icons.article_outlined,
+        'label': 'Artikel',
+      },
+      {
+        'icon': Icons.bar_chart_rounded,
+        'inactiveIcon': Icons.bar_chart_outlined,
+        'label': 'Laporan',
+      },
+      {
+        'icon': Icons.settings_rounded,
+        'inactiveIcon': Icons.settings_outlined,
+        'label': 'Pengaturan',
+      },
     ];
 
     return SafeArea(
@@ -1321,7 +1558,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           children: List.generate(items.length, (index) {
             final isSelected = _currentIndex == index;
             final item = items[index];
-            final icon = (isSelected ? item['icon'] : item['inactiveIcon']) as IconData;
+            final icon =
+                (isSelected ? item['icon'] : item['inactiveIcon']) as IconData;
             final label = item['label'] as String;
 
             return Expanded(
@@ -1335,23 +1573,24 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected ? activeColor : Colors.transparent,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Icon(
-                          icon,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                        child: Icon(icon, color: Colors.white, size: 20),
                       ),
                       const SizedBox(height: 3),
                       Text(
                         label,
                         style: GoogleFonts.poppins(
                           fontSize: 10,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                           color: isSelected
                               ? Colors.white
                               : Colors.white.withValues(alpha: 0.75),
@@ -1371,335 +1610,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   // ===========================================================================
-  // TAB 1: PENGGUNA (User Management with Real-time Firestore Stream & Details)
+  // TAB 1: PENGGUNA (Halaman Daftar Pengguna Admin Terintegrasi Firestore)
   // ===========================================================================
   Widget _buildPenggunaTab(bool isDark, Color primaryColor) {
-    return StreamBuilder<List<UserModel>>(
-      stream: _authService.getAllUsersStream(),
-      builder: (context, snapshot) {
-        final users = snapshot.data ?? [];
-
-        // Apply local filtering
-        final filteredUsers = users.where((u) {
-          final matchesQuery = _userSearchQuery.isEmpty ||
-              u.name.toLowerCase().contains(_userSearchQuery.toLowerCase()) ||
-              u.email.toLowerCase().contains(_userSearchQuery.toLowerCase());
-
-          if (!matchesQuery) return false;
-
-          if (_selectedRoleFilter == 'Admin') {
-            return u.isAdmin;
-          } else if (_selectedRoleFilter == 'Pengguna') {
-            return !u.isAdmin;
-          }
-          return true;
-        }).toList();
-
-        return Column(
-          children: [
-            // Header Search & Filters
-            Container(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Kelola Pengguna',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Daftar akun dan hak akses pengguna ObeSight',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Search TextField
-                  TextField(
-                    onChanged: (val) => setState(() => _userSearchQuery = val),
-                    decoration: InputDecoration(
-                      hintText: 'Cari nama atau email...',
-                      hintStyle: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF94A3B8)),
-                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Role Filter Chips
-                  Row(
-                    children: [
-                      _buildFilterChip('Semua', primaryColor, isDark),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Pengguna', primaryColor, isDark),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Admin', primaryColor, isDark),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // User List View
-            Expanded(
-              child: filteredUsers.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.search_off_rounded, size: 48, color: const Color(0xFF94A3B8)),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Tidak ada pengguna yang cocok',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
-                      itemCount: filteredUsers.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final user = filteredUsers[index];
-                        return _buildUserTile(user, isDark, primaryColor);
-                      },
-                    ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildFilterChip(String label, Color primaryColor, bool isDark) {
-    final isSelected = _selectedRoleFilter == label;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedRoleFilter = label),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? primaryColor
-              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserTile(UserModel user, bool isDark, Color primaryColor) {
-    return Material(
-      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          ),
-        ),
-        child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        leading: CircleAvatar(
-          backgroundColor: user.isAdmin
-              ? primaryColor.withValues(alpha: 0.15)
-              : const Color(0xFF3B82F6).withValues(alpha: 0.15),
-          child: Text(
-            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w700,
-              color: user.isAdmin ? primaryColor : const Color(0xFF2563EB),
-            ),
-          ),
-        ),
-        title: Text(
-          user.name,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 2),
-            Text(
-              user.email,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              ),
-            ),
-          ],
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: user.isAdmin
-                ? primaryColor.withValues(alpha: 0.12)
-                : const Color(0xFF3B82F6).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            user.isAdmin ? 'Admin' : 'Pengguna',
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: user.isAdmin ? primaryColor : const Color(0xFF2563EB),
-            ),
-          ),
-        ),
-        onTap: () => _showUserDetailModal(user, isDark, primaryColor),
-      ),
-    ));
-  }
-
-  void _showUserDetailModal(UserModel user, bool isDark, Color primaryColor) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: primaryColor.withValues(alpha: 0.15),
-                  child: Text(
-                    user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: primaryColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.name,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      Text(
-                        user.email,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Divider(),
-            const SizedBox(height: 12),
-            _buildDetailRow('ID Pengguna', user.id, isDark),
-            _buildDetailRow('Hak Akses', user.isAdmin ? 'Administrator' : 'Pengguna Biasa', isDark),
-            _buildDetailRow('Jenis Kelamin', user.gender ?? 'Belum diisi', isDark),
-            _buildDetailRow('Nomor Telepon', (user.phone != null && user.phone!.isNotEmpty) ? user.phone! : 'Belum diisi', isDark),
-            _buildDetailRow('Skor IMT', '${user.bmiScore.toStringAsFixed(1)} (${user.bmiCategory})', isDark),
-            _buildDetailRow('Risiko Obesitas', user.obesityRisk, isDark),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text(
-                  'Tutup',
-                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return AdminUserListScreen(
+      isEmbedded: true,
+      onBackToHome: () => _switchTab(0),
     );
   }
 
@@ -1742,14 +1658,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         color: isDark ? const Color(0xFF0F172A) : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFCBD5E1),
                         ),
                       ),
                       child: TextField(
-                        onChanged: (val) => setState(() => _articleSearchQuery = val),
+                        onChanged: (val) =>
+                            setState(() => _articleSearchQuery = val),
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                         decoration: InputDecoration(
                           hintText: 'Cari',
@@ -1757,8 +1678,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             fontSize: 13,
                             color: const Color(0xFF94A3B8),
                           ),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Color(0xFF94A3B8)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            size: 20,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           border: InputBorder.none,
                           isDense: true,
                         ),
@@ -1774,7 +1702,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   initialData: _articleService.getArticles(),
                   stream: _articleService.getAllArticlesStream(),
                   builder: (context, snapshot) {
-                    final allArticles = snapshot.data ?? _articleService.getArticles();
+                    final allArticles =
+                        snapshot.data ?? _articleService.getArticles();
 
                     // Filter Tab: 0 = Semua, 1 = Dipublikasikan, 2 = Draft
                     final tabFiltered = allArticles.where((a) {
@@ -1800,15 +1729,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icon(
                               Icons.article_outlined,
                               size: 48,
-                              color: const Color(0xFF94A3B8).withValues(alpha: 0.5),
+                              color: const Color(
+                                0xFF94A3B8,
+                              ).withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: 10),
                             Text(
                               _selectedArticleTab == 2
                                   ? 'Belum ada draf artikel.'
                                   : (_selectedArticleTab == 1
-                                      ? 'Belum ada artikel dipublikasikan.'
-                                      : 'Belum ada artikel ditemukan.'),
+                                        ? 'Belum ada artikel dipublikasikan.'
+                                        : 'Belum ada artikel ditemukan.'),
                               style: GoogleFonts.poppins(
                                 fontSize: 13.5,
                                 color: const Color(0xFF94A3B8),
@@ -1823,7 +1754,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
                       physics: const BouncingScrollPhysics(),
                       itemCount: searchFiltered.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final article = searchFiltered[index];
                         return _buildMockupArticleCard(article, isDark);
@@ -1879,10 +1811,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => HealthArticleDetailScreen(
-                article: article,
-                isAdmin: true,
-              ),
+              builder: (context) =>
+                  HealthArticleDetailScreen(article: article, isAdmin: true),
             ),
           );
         },
@@ -1942,7 +1872,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                         fontSize: 11,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                         height: 1.35,
                       ),
                     ),
@@ -1962,7 +1894,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: article.isPublished
                                 ? const Color(0xFF388E6B)
@@ -1974,7 +1909,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
-                              color: article.isPublished ? Colors.white : const Color(0xFF451A03),
+                              color: article.isPublished
+                                  ? Colors.white
+                                  : const Color(0xFF451A03),
                             ),
                           ),
                         ),
@@ -2083,13 +2020,37 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildBmiBar('Normal (18.5 - 22.9)', 0.58, '58%', const Color(0xFF10B981), isDark),
+          _buildBmiBar(
+            'Normal (18.5 - 22.9)',
+            0.58,
+            '58%',
+            const Color(0xFF10B981),
+            isDark,
+          ),
           const SizedBox(height: 10),
-          _buildBmiBar('Kelebihan Berat Badan (23.0 - 24.9)', 0.24, '24%', const Color(0xFFF59E0B), isDark),
+          _buildBmiBar(
+            'Kelebihan Berat Badan (23.0 - 24.9)',
+            0.24,
+            '24%',
+            const Color(0xFFF59E0B),
+            isDark,
+          ),
           const SizedBox(height: 10),
-          _buildBmiBar('Obesitas I (25.0 - 29.9)', 0.12, '12%', const Color(0xFFEF4444), isDark),
+          _buildBmiBar(
+            'Obesitas I (25.0 - 29.9)',
+            0.12,
+            '12%',
+            const Color(0xFFEF4444),
+            isDark,
+          ),
           const SizedBox(height: 10),
-          _buildBmiBar('Obesitas II (≥ 30.0)', 0.06, '6%', const Color(0xFF991B1B), isDark),
+          _buildBmiBar(
+            'Obesitas II (≥ 30.0)',
+            0.06,
+            '6%',
+            const Color(0xFF991B1B),
+            isDark,
+          ),
         ],
       ),
     );
@@ -2146,7 +2107,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  Widget _buildBmiBar(String label, double ratio, String percent, Color barColor, bool isDark) {
+  Widget _buildBmiBar(
+    String label,
+    double ratio,
+    String percent,
+    Color barColor,
+    bool isDark,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2188,7 +2155,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             child: LinearProgressIndicator(
               value: ratio,
               minHeight: 6,
-              backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              backgroundColor: isDark
+                  ? const Color(0xFF334155)
+                  : const Color(0xFFE2E8F0),
               valueColor: AlwaysStoppedAnimation<Color>(barColor),
             ),
           ),
@@ -2249,7 +2218,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
@@ -2307,7 +2279,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
               ),
             ),
             child: Column(
@@ -2318,7 +2292,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     Icon(
                       Icons.lock_rounded,
                       size: 16,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -2327,7 +2303,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -2336,12 +2314,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
                     ),
                   ),
                   child: Row(
@@ -2352,14 +2337,21 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                            color: isDark
+                                ? const Color(0xFFCBD5E1)
+                                : const Color(0xFF334155),
                           ),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF64748B).withValues(alpha: 0.15),
+                          color: const Color(
+                            0xFF64748B,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -2379,7 +2371,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   'Alamat email administrator bersifat tetap dan tidak dapat diubah demi keamanan dan integritas audit sistem.',
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    color: isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8),
                   ),
                 ),
               ],
@@ -2413,19 +2407,28 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     SnackBar(
                       content: Row(
                         children: [
-                          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               'Kata sandi administrator berhasil diperbarui.',
-                              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
                       ),
                       backgroundColor: AppColors.success,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   );
                 }
@@ -2437,7 +2440,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Row(
@@ -2448,7 +2453,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         color: primaryColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(Icons.key_rounded, color: primaryColor, size: 22),
+                      child: Icon(
+                        Icons.key_rounded,
+                        color: primaryColor,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -2460,20 +2469,27 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                           Text(
                             'Wajib verifikasi kata sandi lama via Firebase Auth',
                             style: GoogleFonts.poppins(
                               fontSize: 11,
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ],
                 ),
               ),
@@ -2499,12 +2515,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             builder: (context, currentMode, _) {
               final isDarkModeActive = currentMode == ThemeMode.dark;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Row(
@@ -2513,8 +2534,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     Row(
                       children: [
                         Icon(
-                          isDarkModeActive ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                          color: isDarkModeActive ? const Color(0xFFF59E0B) : primaryColor,
+                          isDarkModeActive
+                              ? Icons.dark_mode_rounded
+                              : Icons.light_mode_rounded,
+                          color: isDarkModeActive
+                              ? const Color(0xFFF59E0B)
+                              : primaryColor,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -2522,7 +2547,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                           ),
                         ),
                       ],
@@ -2532,7 +2559,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       activeThumbColor: primaryColor,
                       activeTrackColor: primaryColor.withValues(alpha: 0.5),
                       onChanged: (val) {
-                        AppTheme.setThemeMode(val ? ThemeMode.dark : ThemeMode.light);
+                        AppTheme.setThemeMode(
+                          val ? ThemeMode.dark : ThemeMode.light,
+                        );
                       },
                     ),
                   ],
@@ -2549,7 +2578,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             height: 48,
             child: OutlinedButton.icon(
               onPressed: () => _handleLogout(context),
-              icon: const Icon(Icons.logout_rounded, size: 18, color: AppColors.error),
+              icon: const Icon(
+                Icons.logout_rounded,
+                size: 18,
+                color: AppColors.error,
+              ),
               label: Text(
                 'Keluar dari Sesi Administrator',
                 style: GoogleFonts.poppins(
@@ -2560,7 +2593,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.error, width: 1.2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
