@@ -11,12 +11,14 @@ class SkriningRecommendationScreen extends StatelessWidget {
   final SkriningData data;
   final UserModel? user;
   final String? customCategory; // Opsional jika ingin meng-override kategori klasifikasi
+  final bool isFromHistory;
 
   const SkriningRecommendationScreen({
     super.key,
     required this.data,
     this.user,
     this.customCategory,
+    this.isFromHistory = false,
   });
 
   static const Color primaryGreen = Color(0xFF4A8B6C); // Medical soft green
@@ -256,41 +258,44 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
-
                     // ACTION BUTTON: LANJUTKAN SEBAGAI PROGRES
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () => _showSaveProgressDialog(context, currentUser, rec),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryGreen,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22),
+                    // Hanya ditampilkan jika skrining baru (BUKAN dari riwayat skrining)
+                    if (!isFromHistory) ...[
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () => _showSaveProgressDialog(context, currentUser, rec),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryGreen,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Lanjutkan sebagai progres',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Lanjutkan sebagai progres',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
-                          ],
-                        ),
                       ),
-                    ),
-
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                    ] else ...[
+                      const SizedBox(height: 16),
+                    ],
                   ],
                 ),
               ),

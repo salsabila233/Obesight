@@ -688,6 +688,7 @@ class SkriningResultScreen extends StatelessWidget {
                               builder: (_) => SkriningRecommendationScreen(
                                 data: data,
                                 user: currentUser,
+                                isFromHistory: isFromHistory,
                               ),
                             ),
                           );
