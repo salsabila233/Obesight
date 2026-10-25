@@ -5,7 +5,6 @@ import 'package:obesight/screens/home/imt_form_screen.dart';
 import 'package:obesight/screens/home/imt_result_screen.dart';
 import 'package:obesight/services/auth_service.dart';
 import 'package:obesight/theme/app_theme.dart';
-import 'package:obesight/widgets/bmi_save_confirmation_dialog.dart';
 
 void main() {
   const dummyUser = UserModel(
@@ -44,8 +43,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. AppBar
-    expect(find.text('Hitung Indeks Masa Tubuh (IMT)'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_left_rounded), findsOneWidget);
+    expect(find.text('Hitung IMT'), findsWidgets);
+    expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
 
     // 2. Hero Card
     expect(find.text('Hitung Indeks Massa Tubuhmu'), findsOneWidget);
@@ -66,10 +65,10 @@ void main() {
     expect(find.text('Catatan Penting'), findsOneWidget);
 
     // 6. Action Button
-    expect(find.text('Hitung IMT'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Hitung IMT'), findsOneWidget);
   });
 
-  testWidgets('ImtFormScreen shows confirmation modal dialog and navigates to ImtResultScreen on Ya, Simpan', (WidgetTester tester) async {
+  testWidgets('ImtFormScreen langsung navigasi ke ImtResultScreen 1 kali tekan tombol Hitung IMT tanpa modal dialog', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.resetPhysicalSize);
@@ -83,7 +82,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Input: Weight 60, Height 160 -> IMT = 60 / (1.6*1.6) = 23.4375 -> 23,4 (Kelebihan Berat Badan)
+    // Input: Weight 60, Height 160 -> IMT = 60 / (1.6*1.6) = 23.4375 -> 23,4 (Normal)
     final textFields = find.byType(TextField);
     // Usia is at index 0, Tinggi Badan is at index 1, Berat Badan is at index 2
     await tester.enterText(textFields.at(1), '160');
@@ -91,23 +90,14 @@ void main() {
     await tester.pumpAndSettle();
 
     // Scroll to and tap action button
-    await tester.ensureVisible(find.text('Hitung IMT'));
-    await tester.tap(find.text('Hitung IMT'));
+    final hitungBtn = find.widgetWithText(ElevatedButton, 'Hitung IMT');
+    await tester.ensureVisible(hitungBtn);
+    await tester.tap(hitungBtn);
     await tester.pumpAndSettle();
 
-    // Verify confirmation modal dialog appears
-    expect(find.byType(BmiSaveConfirmationDialog), findsOneWidget);
-    expect(find.text('Apakah Anda ingin menyimpan perubahan?'), findsOneWidget);
-    expect(find.text('Batal'), findsOneWidget);
-    expect(find.text('Simpan'), findsOneWidget);
-
-    // Tap "Simpan"
-    await tester.tap(find.text('Simpan'));
-    await tester.pumpAndSettle();
-
-    // Now on ImtResultScreen
+    // Langsung berada pada ImtResultScreen tanpa dialog konfirmasi
     expect(find.byType(ImtResultScreen), findsOneWidget);
-    expect(find.text('Hasil Perhitungan IMT anda'), findsOneWidget);
+    expect(find.text('Hasil Perhitungan IMT'), findsOneWidget);
     expect(find.text('Indeks Masa Tubuh Anda'), findsOneWidget);
     expect(find.text('23,4'), findsOneWidget);
     expect(find.text('Detail Data Anda'), findsOneWidget);
@@ -141,7 +131,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Hasil Perhitungan IMT anda'), findsOneWidget);
+    expect(find.text('Hasil Perhitungan IMT'), findsOneWidget);
     expect(find.text('21,3'), findsOneWidget);
     expect(find.text('Normal'), findsWidgets);
     expect(find.text('58 KG'), findsOneWidget);

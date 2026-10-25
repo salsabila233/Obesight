@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/imt_calculator_service.dart';
 import 'bmi_result_screen.dart';
 
 class BmiCalculationScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
 
   String _selectedGender = 'Perempuan';
   String? _errorMessage;
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -58,45 +60,23 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
     super.dispose();
   }
 
-  double? get _parsedWeight => double.tryParse(_weightController.text.replaceAll(',', '.'));
-  double? get _parsedHeight => double.tryParse(_heightController.text.replaceAll(',', '.'));
-  int? get _parsedAge => int.tryParse(_ageController.text);
+  void _onSavePressed() async {
+    final w = ImtCalculatorService.parseDecimal(_weightController.text);
+    final h = ImtCalculatorService.parseDecimal(_heightController.text);
+    final a = int.tryParse(_ageController.text.trim()) ?? 22;
 
-  double? _calculateBmi() {
-    final w = _parsedWeight;
-    final h = _parsedHeight;
-    if (w == null || h == null || w <= 0 || h <= 0) return null;
-    final hMeters = h / 100.0;
-    return w / (hMeters * hMeters);
-  }
-
-  Map<String, String> _classifyBmi(double bmi) {
-    if (bmi < 18.5) {
-      return {'category': 'Kurus', 'risk': 'Rendah'};
-    } else if (bmi <= 22.9) {
-      return {'category': 'Normal', 'risk': 'Rendah'};
-    } else if (bmi <= 24.9) {
-      return {'category': 'Kelebihan Berat Badan', 'risk': 'Sedang'};
-    } else {
-      return {'category': 'Obesitas', 'risk': 'Tinggi'};
-    }
-  }
-
-  void _onSavePressed() {
-    final w = _parsedWeight;
-    final h = _parsedHeight;
-    final a = _parsedAge;
-
-    if (w == null || w < 20 || w > 350) {
+    final weightError = ImtCalculatorService.validateWeight(w);
+    if (weightError != null) {
       setState(() {
-        _errorMessage = 'Harap masukkan berat badan yang valid (20 - 350 kg)';
+        _errorMessage = weightError;
       });
       return;
     }
 
-    if (h == null || h < 50 || h > 260) {
+    final heightError = ImtCalculatorService.validateHeight(h);
+    if (heightError != null) {
       setState(() {
-        _errorMessage = 'Harap masukkan tinggi badan yang valid (50 - 260 cm)';
+        _errorMessage = heightError;
       });
       return;
     }
@@ -105,9 +85,12 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
       _errorMessage = null;
     });
 
-    final currentBmi = _calculateBmi() ?? 22.8;
-    final roundedBmi = double.parse(currentBmi.toStringAsFixed(1));
-    final classification = _classifyBmi(roundedBmi);
+    if (_isNavigating) return;
+    _isNavigating = true;
+
+    final rawBmi = ImtCalculatorService.calculateBmi(weight: w, height: h) ?? 22.8;
+    final roundedBmi = ImtCalculatorService.roundBmi(rawBmi);
+    final classification = ImtCalculatorService.classifyBmi(roundedBmi);
     final category = classification['category']!;
     final risk = classification['risk']!;
     final userId = widget.user?.id ?? AuthService().currentUser?.id ?? 'usr_001';
@@ -121,23 +104,29 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
       weight: w,
       height: h,
       gender: _selectedGender,
-      age: a ?? 22,
+      age: a,
     );
 
     // Directly navigate to BmiResultScreen
-    Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BmiResultScreen(
           bmi: roundedBmi,
-          weight: w,
-          height: h,
+          weight: w!,
+          height: h!,
           gender: _selectedGender,
-          age: a ?? 22,
+          age: a,
           category: category,
           risk: risk,
         ),
       ),
     );
+
+    if (mounted) {
+      setState(() {
+        _isNavigating = false;
+      });
+    }
   }
 
   @override

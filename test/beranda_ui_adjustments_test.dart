@@ -116,8 +116,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ImtFormScreen), findsOneWidget);
 
-    // Go back from ImtFormScreen (uses chevron_left_rounded)
-    final backBtnImt = find.byIcon(Icons.chevron_left_rounded).first;
+    // Go back from ImtFormScreen
+    final backBtnImt = find.byWidgetPredicate((w) => w is Icon && (w.icon == Icons.chevron_left_rounded || w.icon == Icons.arrow_back_ios_new_rounded)).first;
     await tester.tap(backBtnImt);
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();

@@ -43,7 +43,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // A. Header
-    expect(find.text('Perhitungan IMT'), findsOneWidget);
+    expect(find.text('Hitung IMT'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
 
     // B. Area Informasi Banner
@@ -105,7 +105,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Enter Weight = 60 kg, Height = 160 cm -> IMT = 60 / (1.6 * 1.6) = 23.4375 -> 23,4 (Kelebihan Berat Badan)
+    // Enter Weight = 60 kg, Height = 160 cm -> IMT = 60 / (1.6 * 1.6) = 23.4375 -> 23,4 (Normal)
     final textFields = find.byType(TextField);
     await tester.enterText(textFields.at(0), '60');
     await tester.enterText(textFields.at(1), '160');
@@ -127,7 +127,7 @@ void main() {
     expect(find.text('23,4'), findsOneWidget);
 
     // Check status badge
-    expect(find.text('Kelebihan Berat Badan'), findsWidgets);
+    expect(find.text('Normal'), findsWidgets);
 
     // Check data rows
     expect(find.text('60.0 kg'), findsOneWidget);
@@ -140,7 +140,7 @@ void main() {
     // Verify AuthService was updated
     final updatedBmi = AuthService().getUserBmi(dummyUser.id);
     expect(updatedBmi['bmi'], 23.4);
-    expect(updatedBmi['category'], 'Kelebihan Berat Badan');
+    expect(updatedBmi['category'], 'Normal');
   });
 
   testWidgets('BmiResultScreen with Normal BMI renders normal category and recommendations', (WidgetTester tester) async {

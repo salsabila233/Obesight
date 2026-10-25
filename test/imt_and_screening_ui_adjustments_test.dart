@@ -83,14 +83,14 @@ void main() {
       final appBarWidget = tester.widget<AppBar>(appBarFinder);
       expect(appBarWidget.shape, isNull);
 
-      // Verify Hero card container has flat bottom (no borderRadius)
+      // Verify Hero card container has borderRadius circular 20
       final heroFinder = find.ancestor(
         of: find.text('Hitung Indeks Massa Tubuhmu'),
         matching: find.byType(Container),
       ).first;
       final heroWidget = tester.widget<Container>(heroFinder);
       final heroDecoration = heroWidget.decoration as BoxDecoration?;
-      expect(heroDecoration?.borderRadius, isNull);
+      expect(heroDecoration?.borderRadius, BorderRadius.circular(20));
 
       // Verify content panel container has rounded top corners with Radius.circular(28)
       final panelWidget = tester.widgetList<Container>(find.byType(Container)).firstWhere(
@@ -105,8 +105,8 @@ void main() {
       expect(borderRadius.bottomRight, Radius.zero);
 
       // Verify original elements are preserved
-      expect(find.text('Hitung Indeks Masa Tubuh (IMT)'), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_left_rounded), findsOneWidget);
+      expect(find.text('Hitung IMT'), findsWidgets);
+      expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
       expect(find.text('Hitung Indeks Massa Tubuhmu'), findsOneWidget);
       expect(find.textContaining('Ketahui status berat badan dan risiko kesehatan'), findsOneWidget);
       expect(find.text('Data Fisik Pengguna'), findsOneWidget);
@@ -115,7 +115,7 @@ void main() {
       expect(find.text('Tinggi Badan'), findsOneWidget);
       expect(find.text('Berat Badan'), findsOneWidget);
       expect(find.text('Catatan Penting'), findsOneWidget);
-      expect(find.text('Hitung IMT'), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Hitung IMT'), findsOneWidget);
     });
   });
 
@@ -139,19 +139,19 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Title and Header content are present
-      expect(find.text('Hasil Perhitungan IMT anda'), findsOneWidget);
+      expect(find.text('Hasil Perhitungan IMT'), findsOneWidget);
       expect(find.text('Indeks Masa Tubuh Anda'), findsOneWidget);
       expect(find.text('33,1'), findsOneWidget);
       expect(find.text('Obesitas'), findsWidgets);
 
-      // Verify green hero container has flat bottom (no borderRadius in decoration)
+      // Verify green hero container decoration
       final heroContainerFinder = find.ancestor(
         of: find.text('Indeks Masa Tubuh Anda'),
         matching: find.byType(Container),
       ).first;
       final heroWidget = tester.widget<Container>(heroContainerFinder);
       final heroDecoration = heroWidget.decoration as BoxDecoration?;
-      expect(heroDecoration?.borderRadius, isNull);
+      expect(heroDecoration?.borderRadius, BorderRadius.circular(20));
 
       // Verify content panel container has rounded top corners with Radius.circular(28)
       final panelWidget = tester.widgetList<Container>(find.byType(Container)).firstWhere(
