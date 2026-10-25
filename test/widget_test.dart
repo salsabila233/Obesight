@@ -168,7 +168,7 @@ void main() {
 
     // Should navigate to Admin Dashboard
     expect(find.text('PANEL ADMINISTRATOR'), findsOneWidget);
-    expect(find.text('Dr. Hendra Wijaya, Sp.GK'), findsOneWidget);
+    expect(find.textContaining('Selamat datang, Admin'), findsOneWidget);
     expect(find.text('Total Pasien'), findsOneWidget);
   });
 
