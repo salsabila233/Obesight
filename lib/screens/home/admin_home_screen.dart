@@ -9,6 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../admin/admin_add_article_screen.dart';
 import '../admin/admin_change_password_sheet.dart';
+import '../admin/admin_profile_screen.dart';
 import '../admin/admin_user_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
 import '../auth/login_screen.dart';
@@ -308,9 +309,30 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ],
               ),
               actions: [
-                // Circular Profile Icon Button (NO notification icon!)
+                // Circular Profile Icon Button (Navigasi ke Halaman Profil Saya)
                 GestureDetector(
-                  onTap: () => _switchTab(4), // Go to Profile/Settings tab
+                  onTap: () async {
+                    final selectedTab = await Navigator.of(context).push<int>(
+                      MaterialPageRoute(
+                        builder: (context) => AdminProfileScreen(
+                          user: _currentUser,
+                          onProfileUpdated: (updatedUser) {
+                            if (mounted) {
+                              setState(() {
+                                _currentUser = updatedUser;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                    if (selectedTab != null && mounted) {
+                      _switchTab(selectedTab);
+                    }
+                    if (mounted) {
+                      _refreshProfile();
+                    }
+                  },
                   child: Container(
                     margin: const EdgeInsets.only(right: 20),
                     width: 40,
@@ -319,9 +341,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       color: const Color(0xFFE8F5EE),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: _currentIndex == 4
-                            ? const Color(0xFF267352)
-                            : const Color(0xFFC7E2D5),
+                        color: const Color(0xFFC7E2D5),
                         width: 1.5,
                       ),
                     ),
