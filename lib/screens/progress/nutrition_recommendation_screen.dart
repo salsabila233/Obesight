@@ -45,6 +45,7 @@ class _NutritionRecommendationScreenState
   late DateTime _selectedDate;
   late String _userKey;
   bool _hasInitialScrolled = false;
+  String? _lastScreeningId;
 
   UserModel get _effectiveUser =>
       widget.user ?? AuthService().currentUser ?? AuthService.defaultUserAccount;
@@ -149,6 +150,13 @@ class _NutritionRecommendationScreenState
         final latestScreeningItem = history.isNotEmpty ? history.first : null;
         SkriningData? activeSkrining = widget.skriningData ?? latestScreeningItem?.skriningData;
 
+        // Reset auto-scroll jika terdeteksi skrining baru atau skrining ulang
+        if (latestScreeningItem != null && latestScreeningItem.id != _lastScreeningId) {
+          _lastScreeningId = latestScreeningItem.id;
+          _hasInitialScrolled = false;
+          _selectedDate = today;
+        }
+
         final bool hasScreening = activeSkrining != null;
         final String? categoryKey = hasScreening ? activeSkrining.classificationCategory : null;
         final calorieGroup = CalorieTargetService.resolveGroup(categoryKey);
@@ -180,8 +188,8 @@ class _NutritionRecommendationScreenState
           _selectedDate = today;
         }
 
-        // Auto-scroll agar "Hari ini" terlihat jelas saat awal render
-        if (!_hasInitialScrolled) {
+        // Auto-scroll agar "Hari ini" terlihat jelas saat awal render (hanya jika sudah skrining)
+        if (!_hasInitialScrolled && hasScreening) {
           _hasInitialScrolled = true;
           _scrollToToday(todayIndex);
         }
@@ -238,115 +246,7 @@ class _NutritionRecommendationScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Horizontal Real-Time Date Scroller (Mulai dari Skrining Terbaru)
-                SizedBox(
-                  height: 74,
-                  child: ListView.builder(
-                    controller: _dateScrollController,
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: totalDays,
-                    itemBuilder: (context, index) {
-                      final date = DateTime(startDate.year, startDate.month, startDate.day + index);
-                      final isSelected = (_selectedDate.year == date.year &&
-                          _selectedDate.month == date.month &&
-                          _selectedDate.day == date.day);
-                      final isPast = date.isBefore(today);
-                      final isCurrentDay = (date.year == today.year &&
-                          date.month == today.month &&
-                          date.day == today.day);
-
-                      final dayName = isCurrentDay ? 'Hari ini' : dayNames[date.weekday % 7];
-                      final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
-
-                      Color bgColor;
-                      Color textColor;
-                      Color subTextColor;
-                      Border border;
-
-                      if (isSelected) {
-                        bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
-                        textColor = Colors.white;
-                        subTextColor = Colors.white.withValues(alpha: 0.9);
-                        border = Border.all(color: bgColor, width: 1.5);
-                      } else if (isPast) {
-                        bgColor = const Color(0xFFEF4444);
-                        textColor = Colors.white;
-                        subTextColor = Colors.white.withValues(alpha: 0.85);
-                        border = Border.all(color: const Color(0xFFDC2626));
-                      } else if (isCurrentDay) {
-                        bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
-                        textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
-                        subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
-                        border = Border.all(color: const Color(0xFF10B981), width: 1.5);
-                      } else {
-                        bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-                        textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-                        subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-                        border = Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
-                      }
-
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedDate = date;
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 58,
-                          margin: const EdgeInsets.only(right: 10),
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: border,
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF36785A).withValues(alpha: 0.25),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    )
-                                  ]
-                                : [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 1),
-                                    )
-                                  ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                dayName,
-                                style: GoogleFonts.poppins(
-                                  fontSize: isCurrentDay ? 9.5 : 11,
-                                  fontWeight: isCurrentDay || isSelected ? FontWeight.w700 : FontWeight.w500,
-                                  color: subTextColor,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                dateStr,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: textColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                // 2. KONDISI BELUM ADA SKRINING
+                // 1. KONDISI BELUM ADA SKRINING
                 if (!hasScreening) ...[
                   ScreeningEmptyStateWidget(
                     icon: Icons.restaurant_menu_rounded,
@@ -364,6 +264,114 @@ class _NutritionRecommendationScreenState
                     },
                   ),
                 ] else ...[
+                  // 2. Horizontal Real-Time Date Scroller (Mulai dari Skrining Terbaru)
+                  SizedBox(
+                    height: 74,
+                    child: ListView.builder(
+                      controller: _dateScrollController,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: totalDays,
+                      itemBuilder: (context, index) {
+                        final date = DateTime(startDate.year, startDate.month, startDate.day + index);
+                        final isSelected = (_selectedDate.year == date.year &&
+                            _selectedDate.month == date.month &&
+                            _selectedDate.day == date.day);
+                        final isPast = date.isBefore(today);
+                        final isCurrentDay = (date.year == today.year &&
+                            date.month == today.month &&
+                            date.day == today.day);
+
+                        final dayName = isCurrentDay ? 'Hari ini' : dayNames[date.weekday % 7];
+                        final dateStr = '${date.day}/${date.month}/${date.year.toString().substring(2)}';
+
+                        Color bgColor;
+                        Color textColor;
+                        Color subTextColor;
+                        Border border;
+
+                        if (isSelected) {
+                          bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
+                          textColor = Colors.white;
+                          subTextColor = Colors.white.withValues(alpha: 0.9);
+                          border = Border.all(color: bgColor, width: 1.5);
+                        } else if (isPast) {
+                          bgColor = const Color(0xFFEF4444);
+                          textColor = Colors.white;
+                          subTextColor = Colors.white.withValues(alpha: 0.85);
+                          border = Border.all(color: const Color(0xFFDC2626));
+                        } else if (isCurrentDay) {
+                          bgColor = isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5);
+                          textColor = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46);
+                          subTextColor = isDark ? const Color(0xFFA7F3D0) : const Color(0xFF047857);
+                          border = Border.all(color: const Color(0xFF10B981), width: 1.5);
+                        } else {
+                          bgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+                          textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+                          subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+                          border = Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
+                        }
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedDate = date;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 58,
+                            margin: const EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(16),
+                              border: border,
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      )
+                                    ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  dayName,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isCurrentDay ? 9.5 : 11,
+                                    fontWeight: isCurrentDay || isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    color: subTextColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  dateStr,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
                   // 3. Ringkasan Kalori Harian & Kategori Skrining
                   _buildCalorieSummaryBanner(
                     isDark: isDark,
