@@ -46,6 +46,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   bool _isTimerScreenActive = false;
 
   Timer? _ticker;
+  bool _isStarting = false;
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   bool _notificationsInitialized = false;
 
@@ -482,50 +483,70 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Mulai atau lanjutkan timer
   Future<void> startOrResume() async {
-    if (_status == ActivityTimerStatus.running) return;
-
-    // Pastikan izin notifikasi diminta jika belum ada
-    await requestNotificationPermission();
-
-    if (_targetDuration <= 0 && _selectedPreset != null) {
-      _targetDuration = _selectedPreset!;
-    } else if (_targetDuration <= 0) {
-      final isRest = _activeActivity?['isRest'] == true;
-      final defaultMinutes = isRest ? 15 : ActivityRestHelper.getRecommendedActivityDuration(_activeActivity);
-      _targetDuration = defaultMinutes * 60;
-      _selectedPreset = _targetDuration;
+    if (_status == ActivityTimerStatus.running ||
+        _status == ActivityTimerStatus.completed ||
+        _isStarting) {
+      return;
     }
+    _isStarting = true;
 
-    _segmentStartTime = DateTime.now();
-    _status = ActivityTimerStatus.running;
+    try {
+      // Pastikan izin notifikasi diminta jika belum ada
+      await requestNotificationPermission();
 
-    // Catat permulaan sesi ke Cloud Firestore (riwayat_sesi)
-    if (_activeSessionId == null && _activeActivity != null && _activeActivity?['isRest'] != true) {
-      if (!PhysicalActivityService.isFutureDateKey(_dateKey)) {
-        _sessionLocalStartTime ??= DateTime.now();
-        _startSessionFuture = PhysicalActivityService.instance.startSession(
-          activity: _activeActivity!,
-          dateKey: _dateKey,
-        );
-        _startSessionFuture!.then((sid) {
-          if (sid != null) {
-            _activeSessionId = sid;
-            debugPrint('[ActivityTimerService] Active sessionId terdaftar: $sid');
-            _saveSessionToStorage();
-          }
-        }).catchError((e) {
-          debugPrint('[ActivityTimerService] Error startSession Firestore: $e');
-        });
-      } else {
-        debugPrint('[ActivityTimerService] Tidak mencatat sesi Firestore untuk tanggal mendatang: $_dateKey');
+      // Periksa kembali jika status berubah saat proses async request permission
+      if (_status == ActivityTimerStatus.running ||
+          _status == ActivityTimerStatus.completed) {
+        return;
       }
-    }
 
-    _startTicker();
-    _showRunningNotification();
-    _scheduleFinishNotification();
-    _saveSessionToStorage();
-    notifyListeners();
+      if (_targetDuration <= 0 && _selectedPreset != null) {
+        _targetDuration = _selectedPreset!;
+      } else if (_targetDuration <= 0) {
+        final isRest = _activeActivity?['isRest'] == true;
+        final options = ActivityRestHelper.getActivityDurationOptions(_activeActivity);
+        final defaultMinutes = isRest
+            ? 15
+            : (options.isNotEmpty
+                ? options.first
+                : ActivityRestHelper.getRecommendedActivityDuration(_activeActivity));
+        _targetDuration = defaultMinutes * 60;
+        _selectedPreset = _targetDuration;
+      }
+
+      _segmentStartTime = DateTime.now();
+      _status = ActivityTimerStatus.running;
+
+      // Catat permulaan sesi ke Cloud Firestore (riwayat_sesi)
+      if (_activeSessionId == null && _activeActivity != null && _activeActivity?['isRest'] != true) {
+        if (!PhysicalActivityService.isFutureDateKey(_dateKey)) {
+          _sessionLocalStartTime ??= DateTime.now();
+          _startSessionFuture = PhysicalActivityService.instance.startSession(
+            activity: _activeActivity!,
+            dateKey: _dateKey,
+          );
+          _startSessionFuture!.then((sid) {
+            if (sid != null) {
+              _activeSessionId = sid;
+              debugPrint('[ActivityTimerService] Active sessionId terdaftar: $sid');
+              _saveSessionToStorage();
+            }
+          }).catchError((e) {
+            debugPrint('[ActivityTimerService] Error startSession Firestore: $e');
+          });
+        } else {
+          debugPrint('[ActivityTimerService] Tidak mencatat sesi Firestore untuk tanggal mendatang: $_dateKey');
+        }
+      }
+
+      _startTicker();
+      _showRunningNotification();
+      _scheduleFinishNotification();
+      _saveSessionToStorage();
+      notifyListeners();
+    } finally {
+      _isStarting = false;
+    }
   }
 
   /// Pause timer
@@ -554,6 +575,9 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> togglePlayPause() async {
     if (_status == ActivityTimerStatus.running) {
       pause();
+    } else if (_status == ActivityTimerStatus.completed) {
+      // Timer yang telah selesai di 00:00 tidak berjalan lagi tanpa pemilihan preset baru
+      return;
     } else {
       await startOrResume();
     }
@@ -701,6 +725,7 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     _activeSessionId = null;
     _startSessionFuture = null;
     _sessionLocalStartTime = null;
+    _isStarting = false;
     _stopTicker();
     _cancelAllNotifications();
     ActivityAlarmService.instance.stopAlarm();

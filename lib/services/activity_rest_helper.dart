@@ -51,6 +51,65 @@ class ActivityRestHelper {
     ),
   ];
 
+  /// Mendapatkan daftar preset durasi aktivitas fisik (dalam menit)
+  /// yang sesuai dengan rekomendasi jenis olahraga yang sedang dibuka.
+  static List<int> getActivityDurationOptions(Map<String, dynamic>? activity) {
+    if (activity == null) return const [30, 45, 60];
+
+    final isRest = activity['isRest'] == true;
+    if (isRest) {
+      return const [10, 15, 20];
+    }
+
+    final id = (activity['id'] as String? ?? '').toLowerCase();
+    final name = (activity['name'] as String? ?? '').toLowerCase();
+    final title = (activity['title'] as String? ?? '').toLowerCase();
+    final combined = '$id $name $title';
+
+    // 1. Latihan Beban & Kekuatan: 25, 35, 45, 60 menit
+    if (id == 'underweight_strength' ||
+        combined.contains('latihan beban & kekuatan') ||
+        combined.contains('beban & kekuatan') ||
+        combined.contains('strength training') ||
+        (combined.contains('latihan beban') && (combined.contains('kekuatan') || combined.contains('strength')))) {
+      return const [25, 35, 45, 60];
+    }
+
+    // 2. Kalistenik Kompon (Bodyweight): 20, 30, 45, 60 menit
+    if (id == 'underweight_calisthenics' ||
+        combined.contains('kalistenik') ||
+        combined.contains('kalistenik kompon')) {
+      return const [20, 30, 45, 60];
+    }
+
+    // 3. Latihan Otot Inti & Postur: 15, 20, 45, 60 menit
+    if (id == 'underweight_core' ||
+        combined.contains('otot inti') ||
+        combined.contains('stabilitas postur')) {
+      return const [15, 20, 45, 60];
+    }
+
+    // 4. Peregangan Pemulihan & Mobilitas: 15, 20, 45, 60 menit
+    if (id == 'underweight_recovery' ||
+        combined.contains('peregangan pemulihan') ||
+        combined.contains('pemulihan & mobilitas') ||
+        combined.contains('peregangan') ||
+        combined.contains('stretching')) {
+      return const [15, 20, 45, 60];
+    }
+
+    // Olahraga khusus lainnya
+    if (combined.contains('yoga')) {
+      return const [15, 30, 40, 60];
+    }
+    if (combined.contains('hiit') || combined.contains('interval')) {
+      return const [20, 25, 30, 45];
+    }
+
+    // Default umum (seperti Jogging, Cycling, Jalan Cepat): 30, 45, 60 menit
+    return const [30, 45, 60];
+  }
+
   /// Memvalidasi durasi aktivitas fisik agar berada dalam rentang minimum dan maksimum
   static int clampActivityDuration(int minutes, [Map<String, dynamic>? activity]) {
     final min = activity != null ? getMinActivityDuration(activity) : minActivityDurationMinutes;
@@ -63,6 +122,10 @@ class ActivityRestHelper {
   /// Mendapatkan durasi minimum aktivitas fisik sesuai informasi pada halaman aktivitas
   static int getMinActivityDuration(Map<String, dynamic>? activity) {
     if (activity == null) return minActivityDurationMinutes;
+    final options = getActivityDurationOptions(activity);
+    if (options.isNotEmpty) {
+      return options.first;
+    }
     final durationStr = (activity['specs']?['duration'] as String?) ??
         (activity['targetText'] as String?) ??
         (activity['duration'] as String?) ??
@@ -78,6 +141,10 @@ class ActivityRestHelper {
   /// Mendapatkan durasi maksimum aktivitas fisik sesuai informasi pada halaman aktivitas
   static int getMaxActivityDuration(Map<String, dynamic>? activity) {
     if (activity == null) return maxActivityDurationMinutes;
+    final options = getActivityDurationOptions(activity);
+    if (options.isNotEmpty) {
+      return options.last >= 60 ? options.last : 60;
+    }
     final durationStr = (activity['specs']?['duration'] as String?) ??
         (activity['targetText'] as String?) ??
         (activity['duration'] as String?) ??
@@ -93,6 +160,10 @@ class ActivityRestHelper {
   /// Rekomendasi durasi awal aktivitas fisik berdasarkan jenis aktivitas
   static int getRecommendedActivityDuration(Map<String, dynamic>? activity) {
     if (activity == null) return 30;
+    final options = getActivityDurationOptions(activity);
+    if (options.isNotEmpty) {
+      return options.first;
+    }
     final id = (activity['id'] as String? ?? '').toLowerCase();
     final title = (activity['title'] as String? ?? '').toLowerCase();
     final name = (activity['name'] as String? ?? '').toLowerCase();

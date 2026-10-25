@@ -25,6 +25,7 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
   late int _maxMinutes;
   late int _selectedMinutes;
   late int _selectedSeconds;
+  bool _isStarting = false;
 
   late FixedExtentScrollController _minutesController;
   late FixedExtentScrollController _secondsController;
@@ -33,19 +34,18 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
   void initState() {
     super.initState();
 
+    final options = ActivityRestHelper.getActivityDurationOptions(widget.activity);
     _minMinutes = ActivityRestHelper.getMinActivityDuration(widget.activity);
     _maxMinutes = ActivityRestHelper.getMaxActivityDuration(widget.activity);
     if (_maxMinutes < _minMinutes) {
       _maxMinutes = _minMinutes;
     }
 
-    // Default duration (disesuaikan dengan rekomendasi atau 45 menit jika berada dalam rentang)
-    final recommended = ActivityRestHelper.getRecommendedActivityDuration(widget.activity);
-    if (45 >= _minMinutes && 45 <= _maxMinutes) {
-      _selectedMinutes = 45;
-    } else {
-      _selectedMinutes = recommended.clamp(_minMinutes, _maxMinutes);
-    }
+    // Default duration disesuaikan dengan opsi pertama rekomendasi jenis olahraga yang dibuka
+    final recommended = options.isNotEmpty
+        ? options.first
+        : ActivityRestHelper.getRecommendedActivityDuration(widget.activity);
+    _selectedMinutes = recommended.clamp(_minMinutes, _maxMinutes);
     _selectedSeconds = 0;
 
     final initialMinuteIndex = _selectedMinutes - _minMinutes;
@@ -61,6 +61,10 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
   }
 
   List<int> _getPresetMinutes() {
+    final options = ActivityRestHelper.getActivityDurationOptions(widget.activity);
+    if (options.isNotEmpty) {
+      return options;
+    }
     final candidates = [30, 45, 60];
     final valid = candidates.where((m) => m >= _minMinutes && m <= _maxMinutes).toList();
     if (valid.isEmpty) {
@@ -93,28 +97,37 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
   }
 
   void _onStartPressed() async {
-    final validatedMinutes = _selectedMinutes.clamp(_minMinutes, _maxMinutes);
-    final totalSeconds = (validatedMinutes * 60) + _selectedSeconds;
-    final minSeconds = _minMinutes * 60;
-    final finalSeconds = totalSeconds < minSeconds ? minSeconds : totalSeconds;
+    if (_isStarting) return;
+    _isStarting = true;
 
-    final service = ActivityTimerService.instance;
-    service.setupSession(
-      activity: widget.activity,
-      presetSeconds: finalSeconds,
-      dateKey: widget.dateKey,
-    );
-    await service.startOrResume();
+    try {
+      final validatedMinutes = _selectedMinutes.clamp(_minMinutes, _maxMinutes);
+      final totalSeconds = (validatedMinutes * 60) + _selectedSeconds;
+      final minSeconds = _minMinutes * 60;
+      final finalSeconds = totalSeconds < minSeconds ? minSeconds : totalSeconds;
 
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => ActivityTimerScreen(
-          activity: widget.activity,
-          dateKey: widget.dateKey,
+      final service = ActivityTimerService.instance;
+      service.setupSession(
+        activity: widget.activity,
+        presetSeconds: finalSeconds,
+        dateKey: widget.dateKey,
+      );
+      await service.startOrResume();
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ActivityTimerScreen(
+            activity: widget.activity,
+            dateKey: widget.dateKey,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) {
+        _isStarting = false;
+      }
+    }
   }
 
   String _getTargetText() {
@@ -131,6 +144,52 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
     final title = widget.activity['title'] as String?;
     if (title != null && title.isNotEmpty) return title;
     return 'Jogging';
+  }
+
+  bool _isTargetHeaderSport() {
+    final id = (widget.activity['id'] as String? ?? '').toLowerCase();
+    final name = (widget.activity['name'] as String? ?? '').toLowerCase();
+    final title = (widget.activity['title'] as String? ?? '').toLowerCase();
+    final combined = '$id $name $title';
+
+    final isStrength = id == 'underweight_strength' ||
+        combined.contains('latihan beban & kekuatan') ||
+        combined.contains('beban & kekuatan') ||
+        combined.contains('strength training') ||
+        (combined.contains('latihan beban') && (combined.contains('kekuatan') || combined.contains('strength')));
+
+    final isCalisthenics = id == 'underweight_calisthenics' ||
+        combined.contains('kalistenik');
+
+    final isRecovery = id == 'underweight_recovery' ||
+        combined.contains('peregangan pemulihan') ||
+        combined.contains('pemulihan & mobilitas') ||
+        (combined.contains('peregangan') && combined.contains('mobilitas'));
+
+    return isStrength || isCalisthenics || isRecovery;
+  }
+
+  String _getTargetSportTitle() {
+    final id = (widget.activity['id'] as String? ?? '').toLowerCase();
+    final name = (widget.activity['name'] as String? ?? '').toLowerCase();
+    final title = (widget.activity['title'] as String? ?? '').toLowerCase();
+    final combined = '$id $name $title';
+
+    if (id == 'underweight_strength' ||
+        combined.contains('latihan beban & kekuatan') ||
+        combined.contains('beban & kekuatan') ||
+        combined.contains('strength training') ||
+        (combined.contains('latihan beban') && (combined.contains('kekuatan') || combined.contains('strength')))) {
+      return 'Latihan Beban &\nKekuatan';
+    } else if (id == 'underweight_calisthenics' || combined.contains('kalistenik')) {
+      return 'Kalistenik Kompon\n(Bodyweight)';
+    } else if (id == 'underweight_recovery' ||
+        combined.contains('peregangan pemulihan') ||
+        combined.contains('pemulihan & mobilitas') ||
+        (combined.contains('peregangan') && combined.contains('mobilitas'))) {
+      return 'Peregangan Pemulihan\n& Mobilitas';
+    }
+    return _getActivityTitle();
   }
 
   @override
@@ -208,7 +267,9 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
                 Positioned(
                   bottom: 34,
                   left: 20,
+                  right: _isTargetHeaderSport() ? 20 : null,
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
                         width: 44,
@@ -229,15 +290,32 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        activityTitle,
-                        style: GoogleFonts.poppins(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                      SizedBox(width: _isTargetHeaderSport() ? 14 : 12),
+                      if (_isTargetHeaderSport())
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              _getTargetSportTitle(),
+                              style: GoogleFonts.poppins(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                height: 1.15,
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Text(
+                          activityTitle,
+                          style: GoogleFonts.poppins(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -417,56 +495,63 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
 
                     const SizedBox(height: 24),
 
-                    // Preset Circular Buttons: 30:00, 45:00, 60:00
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: presetMinutes.map((minutes) {
-                        final isSelected =
-                            _selectedMinutes == minutes && _selectedSeconds == 0;
-                        final formattedPreset = '${minutes.toString().padLeft(2, '0')}:00';
+                    // Preset Circular Buttons
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: presetMinutes.map((minutes) {
+                          final isSelected =
+                              _selectedMinutes == minutes && _selectedSeconds == 0;
+                          final formattedPreset = '${minutes.toString().padLeft(2, '0')}:00';
+                          final btnSize = presetMinutes.length > 3 ? 60.0 : 66.0;
+                          final btnPadding = presetMinutes.length > 3 ? 5.0 : 8.0;
+                          final btnFontSize = presetMinutes.length > 3 ? 12.5 : 13.5;
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: GestureDetector(
-                            onTap: () => _onPresetTapped(minutes),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
-                              width: 66,
-                              height: 66,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                                border: Border.all(
-                                  color: isSelected
-                                      ? accentGreen
-                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                                  width: isSelected ? 2.6 : 1.6,
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: btnPadding),
+                            child: GestureDetector(
+                              onTap: () => _onPresetTapped(minutes),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                width: btnSize,
+                                height: btnSize,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? accentGreen
+                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                                    width: isSelected ? 2.6 : 1.6,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: accentGreen.withValues(alpha: 0.25),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
                                 ),
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: accentGreen.withValues(alpha: 0.25),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                formattedPreset,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSelected
-                                      ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF0F172A))
-                                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  formattedPreset,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: btnFontSize,
+                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                                    color: isSelected
+                                        ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF0F172A))
+                                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        }).toList(),
+                      ),
                     ),
 
                     const SizedBox(height: 32),

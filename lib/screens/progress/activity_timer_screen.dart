@@ -92,6 +92,11 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
       return [10 * 60, 15 * 60, 20 * 60];
     }
 
+    final options = ActivityRestHelper.getActivityDurationOptions(widget.activity);
+    if (options.isNotEmpty) {
+      return options.map((m) => m * 60).toList();
+    }
+
     final id = (widget.activity['id'] as String? ?? '').toLowerCase();
     final title = (widget.activity['title'] as String? ?? '').toLowerCase();
 
@@ -105,6 +110,29 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     }
   }
 
+  bool _isTargetHeaderSport() {
+    final id = (widget.activity['id'] as String? ?? '').toLowerCase();
+    final name = (widget.activity['name'] as String? ?? '').toLowerCase();
+    final title = (widget.activity['title'] as String? ?? '').toLowerCase();
+    final combined = '$id $name $title';
+
+    final isStrength = id == 'underweight_strength' ||
+        combined.contains('latihan beban & kekuatan') ||
+        combined.contains('beban & kekuatan') ||
+        combined.contains('strength training') ||
+        (combined.contains('latihan beban') && (combined.contains('kekuatan') || combined.contains('strength')));
+
+    final isCalisthenics = id == 'underweight_calisthenics' ||
+        combined.contains('kalistenik');
+
+    final isRecovery = id == 'underweight_recovery' ||
+        combined.contains('peregangan pemulihan') ||
+        combined.contains('pemulihan & mobilitas') ||
+        (combined.contains('peregangan') && combined.contains('mobilitas'));
+
+    return isStrength || isCalisthenics || isRecovery;
+  }
+
   String _getDisplayTitle() {
     final isRest = widget.activity['isRest'] == true;
     if (isRest) {
@@ -112,22 +140,39 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     }
 
     final id = (widget.activity['id'] as String? ?? '').toLowerCase();
-    final title = widget.activity['title'] as String? ?? 'Aktivitas';
+    final name = (widget.activity['name'] as String? ?? '').toLowerCase();
+    final title = (widget.activity['title'] as String? ?? '').toLowerCase();
+    final combined = '$id $name $title';
 
-    if (id.contains('bodyweight') || title.toLowerCase().contains('bodyweight')) {
+    if (id == 'underweight_strength' ||
+        combined.contains('latihan beban & kekuatan') ||
+        combined.contains('beban & kekuatan') ||
+        combined.contains('strength training') ||
+        (combined.contains('latihan beban') && (combined.contains('kekuatan') || combined.contains('strength')))) {
+      return 'Latihan Beban &\nKekuatan';
+    } else if (id == 'underweight_calisthenics' || combined.contains('kalistenik')) {
+      return 'Kalistenik Kompon\n(Bodyweight)';
+    } else if (id == 'underweight_recovery' ||
+        combined.contains('peregangan pemulihan') ||
+        combined.contains('pemulihan & mobilitas') ||
+        (combined.contains('peregangan') && combined.contains('mobilitas'))) {
+      return 'Peregangan Pemulihan\n& Mobilitas';
+    }
+
+    if (id.contains('bodyweight') || title.contains('bodyweight')) {
       return 'Latihan\nBodyweight';
-    } else if (id.contains('hiit') || title.toLowerCase().contains('hiit')) {
+    } else if (id.contains('hiit') || title.contains('hiit')) {
       return 'High-Intensity Interval\nTraining';
-    } else if (id.contains('cycling') || title.toLowerCase().contains('sepeda')) {
+    } else if (id.contains('cycling') || title.contains('sepeda')) {
       return 'Bersepeda';
-    } else if (id.contains('jogging') || title.toLowerCase().contains('jogging')) {
+    } else if (id.contains('jogging') || title.contains('jogging')) {
       return 'Jogging';
-    } else if (id.contains('yoga') || title.toLowerCase().contains('yoga')) {
+    } else if (id.contains('yoga') || title.contains('yoga')) {
       return 'Yoga';
-    } else if (id.contains('jalan') || title.toLowerCase().contains('jalan')) {
+    } else if (id.contains('jalan') || title.contains('jalan')) {
       return 'Jalan Cepat';
     }
-    return title;
+    return widget.activity['title'] as String? ?? 'Aktivitas';
   }
 
   String _getActivityCardTitle() {
@@ -180,8 +225,10 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
   void _showCustomDurationPicker() {
     final service = ActivityTimerService.instance;
-    int tempMinutes = (service.targetDuration > 0 ? (service.targetDuration ~/ 60) : 30)
-        .clamp(ActivityRestHelper.minActivityDurationMinutes, ActivityRestHelper.maxActivityDurationMinutes);
+    final minMin = ActivityRestHelper.getMinActivityDuration(widget.activity);
+    final maxMin = ActivityRestHelper.getMaxActivityDuration(widget.activity);
+    int tempMinutes = (service.targetDuration > 0 ? (service.targetDuration ~/ 60) : minMin)
+        .clamp(minMin, maxMin);
 
     showModalBottomSheet(
       context: context,
@@ -218,7 +265,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Pilih durasi antara 15 hingga 60 menit',
+                    'Pilih durasi antara $minMin hingga $maxMin menit',
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -241,7 +288,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                         ),
                         ListWheelScrollView.useDelegate(
                           controller: FixedExtentScrollController(
-                            initialItem: tempMinutes - ActivityRestHelper.minActivityDurationMinutes,
+                            initialItem: tempMinutes - minMin,
                           ),
                           itemExtent: 48,
                           perspective: 0.003,
@@ -249,15 +296,13 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                           physics: const FixedExtentScrollPhysics(),
                           onSelectedItemChanged: (idx) {
                             setModalState(() {
-                              tempMinutes = ActivityRestHelper.minActivityDurationMinutes + idx;
+                              tempMinutes = minMin + idx;
                             });
                           },
                           childDelegate: ListWheelChildBuilderDelegate(
-                            childCount: (ActivityRestHelper.maxActivityDurationMinutes -
-                                    ActivityRestHelper.minActivityDurationMinutes) +
-                                1,
+                            childCount: (maxMin - minMin) + 1,
                             builder: (context, idx) {
-                              final val = ActivityRestHelper.minActivityDurationMinutes + idx;
+                              final val = minMin + idx;
                               final isCur = val == tempMinutes;
                               return Center(
                                 child: Text(
@@ -316,6 +361,10 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
         context,
         'Latihan tidak dapat dimulai untuk tanggal mendatang. Progres hanya dapat dicatat untuk hari ini.',
       );
+      return;
+    }
+
+    if (service.isCompleted) {
       return;
     }
 
@@ -821,15 +870,29 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
-                                  child: Text(
-                                    _getDisplayTitle(),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                      height: 1.15,
-                                    ),
-                                  ),
+                                  child: _isTargetHeaderSport()
+                                      ? FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            _getDisplayTitle(),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                              height: 1.15,
+                                            ),
+                                          ),
+                                        )
+                                      : Text(
+                                          _getDisplayTitle(),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            height: 1.15,
+                                          ),
+                                        ),
                                 ),
                               ],
                             ),
@@ -978,45 +1041,52 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
                           // Preset Chips jika Timer Idle
                           if (service.isIdle) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: presets.map((duration) {
-                                final isSelected = selectedPreset == duration;
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                                  child: GestureDetector(
-                                    onTap: () => _selectPreset(duration),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 150),
-                                      width: 68,
-                                      height: 44,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        color: isSelected
-                                            ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2))
-                                            : (isDark ? const Color(0xFF1E293B) : Colors.white),
-                                        border: Border.all(
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: presets.map((duration) {
+                                  final isSelected = selectedPreset == duration;
+                                  final chipWidth = presets.length > 3 ? 64.0 : 68.0;
+                                  final chipPadding = presets.length > 3 ? 4.0 : 6.0;
+
+                                  return Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: chipPadding),
+                                    child: GestureDetector(
+                                      onTap: () => _selectPreset(duration),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 150),
+                                        width: chipWidth,
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(12),
                                           color: isSelected
-                                              ? accentGreen
-                                              : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                                          width: isSelected ? 2 : 1,
+                                              ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2))
+                                              : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? accentGreen
+                                                : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                                            width: isSelected ? 2 : 1,
+                                          ),
                                         ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        _formatTime(duration),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w700,
-                                          color: isSelected
-                                              ? accentGreen
-                                              : (isDark ? Colors.white : const Color(0xFF1A1A2E)),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          _formatTime(duration),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 13,
+                                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                                            color: isSelected
+                                                ? accentGreen
+                                                : (isDark ? Colors.white : const Color(0xFF1A1A2E)),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              }).toList(),
+                                  );
+                                }).toList(),
+                              ),
                             ),
                             const SizedBox(height: 18),
                           ],
