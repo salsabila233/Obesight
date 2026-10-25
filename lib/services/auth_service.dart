@@ -1526,22 +1526,30 @@ class AuthService {
   /// Mendengarkan daftar seluruh pengguna terdaftar dari Cloud Firestore secara real-time
   Stream<List<UserModel>> getAllUsersStream() {
     if (!isFirebaseAvailable) {
+      final now = DateTime.now();
       return Stream.value([
-        defaultAdminAccount,
-        defaultUserAccount,
-        alternativeUserAccount,
-        zahraCantikAccount,
-        akuZahraAccount,
+        defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
+        defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
+        alternativeUserAccount.copyWith(
+          createdAt: now.subtract(const Duration(days: 2)),
+          updatedAt: now.subtract(const Duration(hours: 4)),
+        ),
+        zahraCantikAccount.copyWith(createdAt: now.subtract(const Duration(hours: 2))),
+        akuZahraAccount.copyWith(createdAt: now.subtract(const Duration(hours: 5))),
       ]);
     }
 
     try {
       return _firestore.collection('users').snapshots().map((snapshot) {
         if (snapshot.docs.isEmpty) {
+          final now = DateTime.now();
           return [
-            defaultAdminAccount,
-            defaultUserAccount,
-            alternativeUserAccount,
+            defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
+            defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
+            alternativeUserAccount.copyWith(
+              createdAt: now.subtract(const Duration(days: 2)),
+              updatedAt: now.subtract(const Duration(hours: 4)),
+            ),
           ];
         }
         return snapshot.docs.map((doc) {
@@ -1549,17 +1557,22 @@ class AuthService {
         }).toList();
       }).handleError((e) {
         debugPrint('Notice getAllUsersStream: $e');
+        final now = DateTime.now();
         return [
-          defaultAdminAccount,
-          defaultUserAccount,
-          alternativeUserAccount,
+          defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
+          defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
+          alternativeUserAccount.copyWith(
+            createdAt: now.subtract(const Duration(days: 2)),
+            updatedAt: now.subtract(const Duration(hours: 4)),
+          ),
         ];
       });
     } catch (e) {
       debugPrint('getAllUsersStream exception: $e');
+      final now = DateTime.now();
       return Stream.value([
-        defaultAdminAccount,
-        defaultUserAccount,
+        defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
+        defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
       ]);
     }
   }

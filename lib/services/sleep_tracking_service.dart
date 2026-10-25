@@ -776,51 +776,48 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      final now = DateTime.now();
-      _lastInactiveTime = now;
-      // Deteksi titik terakhir layar HP dimatikan di malam hari (pukul 20.00 s.d. 04.30)
-      // Setiap kali HP dimatikan di malam hari, perbarui ke titik paling terakhir
-      if (now.hour >= 20 || now.hour < 5) {
-        _lastNightInactiveTime = now;
-      }
-      _saveToLocal();
-      debugPrint('[SleepTracker] Inactive at $now (lastNightOff: $_lastNightInactiveTime)');
-    } else if (state == AppLifecycleState.resumed) {
-      // HP kembali aktif / dibuka di pagi hari
+    if (state == AppLifecycleState.resumed) {
+      // Saat aplikasi dibuka / di-resume, periksa apakah ada data tidur dari aktivitas perangkat
       checkDeviceInactivityCandidate();
     }
   }
 
-  /// Logika Deteksi Waktu Tidur Berbasis Sensor:
-  /// Mengintegrasikan deteksi otomatis waktu tidur yang menggabungkan dua indikator:
-  /// a. Aktivitas Layar Perangkat: Layar HP dimatikan (screen off) di malam hari hingga dinyalakan kembali di pagi hari.
-  /// b. Sensor Cahaya Lingkungan (Ambient Light Sensor): Mendeteksi ruangan gelap di malam hari (lux rendah < 5 lux)
-  ///    dan peningkatan cahaya di pagi hari (> 40 lux).
+  /// Logika Deteksi Waktu Tidur Berbasis Sensor & Aktivitas Perangkat:
+  /// Mengintegrasikan deteksi otomatis waktu tidur yang menggabungkan indikator:
+  /// a. Aktivitas Layar Perangkat: Layar HP dimatikan (screen off) di malam hari hingga aktif kembali di pagi hari.
+  /// b. Ketidakaktifan Pengguna: Waktu terakhir interaksi pengguna dengan perangkat sebelum tidur.
+  /// c. Sensor Cahaya Lingkungan (Ambient Light Sensor): Mendeteksi ruangan gelap di malam hari (< 5 lux)
+  ///    dan peningkatan intensitas cahaya di pagi hari (> 40 lux). Jika sensor tidak tersedia, sistem tetap
+  ///    berjalan menggunakan indikator aktivitas perangkat lainnya.
+  /// CATATAN PENTING: Waktu buka/tutup aplikasi TIDAK digunakan sebagai waktu tidur/bangun!
   SleepRecord? detectSleepFromSensors({
     DateTime? screenOff,
     DateTime? screenOn,
     DateTime? darkTime,
     DateTime? lightRiseTime,
     DateTime? referenceNow,
+    DateTime? lastInactivityTime,
   }) {
     final now = referenceNow ?? DateTime.now();
 
     // 1. Tentukan Titik Mulai Tidur (Waktu Malam: >= 20.00 atau < 05.00)
+    // Harus bersumber dari layar HP dimatikan (screen off) atau sensor cahaya gelap (darkTime)
+    DateTime? primaryStart = screenOff ?? lastInactivityTime;
+
     DateTime? effectiveStart;
-    final isScreenNight = screenOff != null && (screenOff.hour >= 20 || screenOff.hour < 5);
+    final isScreenNight = primaryStart != null && (primaryStart.hour >= 20 || primaryStart.hour < 5);
     final isDarkNight = darkTime != null && (darkTime.hour >= 20 || darkTime.hour < 5);
 
     if (isScreenNight && isDarkNight) {
       // Jika kedua indikator mendeteksi kondisi malam hari:
-      // Tidur efektif dimulai saat layar dimatikan DAN ruangan telah gelap (ambil titik paling akhir jika selisih wajar)
-      if (darkTime.difference(screenOff).abs().inMinutes <= 90) {
-        effectiveStart = darkTime.isAfter(screenOff) ? darkTime : screenOff;
+      // Tidur efektif dimulai saat layar dimatikan DAN ruangan telah gelap (ambil titik paling akhir jika selisih wajar <= 90m)
+      if (darkTime.difference(primaryStart).abs().inMinutes <= 90) {
+        effectiveStart = darkTime.isAfter(primaryStart) ? darkTime : primaryStart;
       } else {
-        effectiveStart = screenOff;
+        effectiveStart = primaryStart;
       }
     } else if (isScreenNight) {
-      effectiveStart = screenOff;
+      effectiveStart = primaryStart;
     } else if (isDarkNight) {
       effectiveStart = darkTime;
     }
@@ -828,14 +825,18 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     if (effectiveStart == null) return null;
 
     // 2. Tentukan Titik Bangun Tidur (Pagi Hari: >= 05.00 s.d. 14.00)
-    DateTime? effectiveEnd;
-    final morningOn = (screenOn != null && screenOn.isAfter(effectiveStart) && screenOn.hour >= 5 && screenOn.hour <= 14)
-        ? screenOn
+    // Harus bersumber dari layar HP menyala (screen on / unlock) atau sensor cahaya terang (lightRiseTime)
+    // PENTING: Jangan gunakan waktu buka aplikasi sebagai waktu bangun!
+    DateTime? primaryEnd = screenOn;
+
+    final morningOn = (primaryEnd != null && primaryEnd.isAfter(effectiveStart) && primaryEnd.hour >= 5 && primaryEnd.hour <= 14)
+        ? primaryEnd
         : null;
     final morningRise = (lightRiseTime != null && lightRiseTime.isAfter(effectiveStart) && lightRiseTime.hour >= 5 && lightRiseTime.hour <= 14)
         ? lightRiseTime
         : null;
 
+    DateTime? effectiveEnd;
     if (morningOn != null && morningRise != null) {
       // Jika kedua sensor (layar HP menyala & sensor cahaya ruangan terang) mendeteksi pagi hari:
       // Ambil waktu paling awal saat aktivitas bangun terdeteksi jika rentangnya berdekatan (<= 90 menit)
@@ -850,21 +851,24 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       effectiveEnd = morningRise;
     }
 
+    // Jika belum ada sinyal bangun dari perangkat (layar on/sensor pagi), kembalikan null
+    // (JANGAN buat data tidur otomatis sembarangan berdasarkan waktu buka aplikasi)
     if (effectiveEnd == null) return null;
 
     // 3. Validasi Durasi Sesi Tidur Malam (Minimal 3 jam / 180 menit s.d. 14 jam / 840 menit)
-    final diffMinutes = effectiveEnd.difference(effectiveStart).inMinutes;
+    final diffMinutes = SleepRecord.calculateDurationMinutes(effectiveStart, effectiveEnd);
     if (diffMinutes < _minimumNightSleepMinutes || diffMinutes > 840) {
       return null;
     }
 
     final dateKey = formatDateKey(effectiveEnd);
     return SleepRecord(
-      id: 'auto_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'auto_${effectiveStart.millisecondsSinceEpoch}',
       userId: currentUserId,
       date: dateKey,
       startTime: effectiveStart,
       endTime: effectiveEnd,
+      durationMinutes: diffMinutes,
       source: 'automatic',
       isConfirmed: false,
       createdAt: now,
@@ -900,8 +904,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     final savedToday = getSavedRecordForDate(now);
 
     // Jika hari ini sudah ada catatan tidur resmi tersimpan, jangan tampilkan pending auto lagi.
-    // Layanan background tetap aktif memantau aktivitas layar dan sensor untuk hari berikutnya.
-    if (savedToday != null) {
+    if (savedToday != null && savedToday.isConfirmed) {
       if (_pendingAutoDetectedRecord != null) {
         _pendingAutoDetectedRecord = null;
         _saveToLocal();
@@ -910,67 +913,90 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
-    try {
-      // 1. Periksa native Android BroadcastReceiver & Sensor timestamp via Platform Channel
-      final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
-      final lastOnMillis = await _platformChannel.invokeMethod<int>('getLastScreenOn');
-      final lastDarkMillis = await _platformChannel.invokeMethod<int>('getLastDarkTime');
-      final lastLightRiseMillis = await _platformChannel.invokeMethod<int>('getLastLightRiseTime');
+    DateTime? screenOff;
+    DateTime? screenOn;
+    DateTime? darkTime;
+    DateTime? lightRiseTime;
 
-      final screenOff = (lastOffMillis != null && lastOffMillis > 0)
-          ? DateTime.fromMillisecondsSinceEpoch(lastOffMillis)
-          : null;
-      final screenOn = (lastOnMillis != null && lastOnMillis > 0)
-          ? DateTime.fromMillisecondsSinceEpoch(lastOnMillis)
-          : null;
-      final darkTime = (lastDarkMillis != null && lastDarkMillis > 0)
-          ? DateTime.fromMillisecondsSinceEpoch(lastDarkMillis)
-          : null;
-      final lightRiseTime = (lastLightRiseMillis != null && lastLightRiseMillis > 0)
-          ? DateTime.fromMillisecondsSinceEpoch(lastLightRiseMillis)
-          : null;
+    if (!kIsWeb) {
+      try {
+        final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
+        final lastOnMillis = await _platformChannel.invokeMethod<int>('getLastScreenOn');
+        final lastDarkMillis = await _platformChannel.invokeMethod<int>('getLastDarkTime');
+        final lastLightRiseMillis = await _platformChannel.invokeMethod<int>('getLastLightRiseTime');
 
-      _lastScreenOffTime = screenOff;
-      _lastScreenOnTime = screenOn;
-      _lastDarkTime = darkTime;
-      _lastLightRiseTime = lightRiseTime;
+        if (lastOffMillis != null && lastOffMillis > 0) {
+          screenOff = DateTime.fromMillisecondsSinceEpoch(lastOffMillis);
+        }
+        if (lastOnMillis != null && lastOnMillis > 0) {
+          screenOn = DateTime.fromMillisecondsSinceEpoch(lastOnMillis);
+        }
+        if (lastDarkMillis != null && lastDarkMillis > 0) {
+          darkTime = DateTime.fromMillisecondsSinceEpoch(lastDarkMillis);
+        }
+        if (lastLightRiseMillis != null && lastLightRiseMillis > 0) {
+          lightRiseTime = DateTime.fromMillisecondsSinceEpoch(lastLightRiseMillis);
+        }
 
-      final candidate = detectSleepFromSensors(
-        screenOff: screenOff,
-        screenOn: screenOn,
-        darkTime: darkTime,
-        lightRiseTime: lightRiseTime,
-        referenceNow: now,
-      );
+        _lastScreenOffTime = screenOff;
+        _lastScreenOnTime = screenOn;
+        _lastDarkTime = darkTime;
+        _lastLightRiseTime = lightRiseTime;
+      } catch (_) {}
+    }
 
-      if (candidate != null) {
-        _pendingAutoDetectedRecord = candidate;
-        _saveToLocal();
-        await _platformChannel.invokeMethod('clearScreenTimes');
-        notifyListeners();
+    final candidate = detectSleepFromSensors(
+      screenOff: screenOff,
+      screenOn: screenOn,
+      darkTime: darkTime,
+      lightRiseTime: lightRiseTime,
+      referenceNow: now,
+    );
+
+    if (candidate != null) {
+      // Pastikan kandidat otomatis tidak menimpa catatan manual yang valid
+      final existingRecord = getSavedRecordForDate(candidate.endTime);
+      if (existingRecord != null && existingRecord.isConfirmed && existingRecord.source == 'manual') {
+        if (_pendingAutoDetectedRecord != null) {
+          _pendingAutoDetectedRecord = null;
+          await _saveToLocal();
+          notifyListeners();
+        }
         return;
       }
-    } catch (_) {
-      // Platform channel tidak tersedia di environment test / non-Android
+
+      _pendingAutoDetectedRecord = candidate;
+      await _saveToLocal();
+      notifyListeners();
+      return;
+    } else {
+      // Jika tidak ada data sensor perangkat yang valid (misalnya belum ada siklus tidur semalam),
+      // pastikan tidak menampilkan kandidat palsu
+      if (_pendingAutoDetectedRecord != null && !_pendingAutoDetectedRecord!.isConfirmed) {
+        _pendingAutoDetectedRecord = null;
+        await _saveToLocal();
+        notifyListeners();
+      }
     }
   }
 
   /// Membuat calon (kandidat) perkiraan waktu tidur otomatis untuk ditinjau pengguna
   void _recordAutomaticSleepCandidate(DateTime start, DateTime end) {
     final dateKey = formatDateKey(end);
+    final duration = SleepRecord.calculateDurationMinutes(start, end);
     final autoRecord = SleepRecord(
-      id: 'auto_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'auto_${start.millisecondsSinceEpoch}',
       userId: currentUserId,
       date: dateKey,
       startTime: start,
       endTime: end,
+      durationMinutes: duration,
       source: 'automatic',
       isConfirmed: false,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
 
-    // Disimpan sebagai calon/kandidat pending untuk diverifikasi pengguna via "Catat waktu ini"
     _pendingAutoDetectedRecord = autoRecord;
     _saveToLocal();
     notifyListeners();
@@ -1000,24 +1026,48 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   Future<bool> acceptPendingAutoRecord({DateTime? targetDate}) async {
     if (_pendingAutoDetectedRecord != null) {
       final candidate = _pendingAutoDetectedRecord!;
-      final now = targetDate ?? DateTime.now();
+      final now = targetDate ?? candidate.endTime;
       final targetDateKey = formatDateKey(now);
+
+      // Validasi durasi tidur
+      final durationM = candidate.durationMinutes > 0
+          ? candidate.durationMinutes
+          : SleepRecord.calculateDurationMinutes(candidate.startTime, candidate.endTime);
+      if (durationM < _minimumNightSleepMinutes || durationM > 840) {
+        return false;
+      }
+
+      // Pastikan tidak menimpa catatan manual yang sudah valid
+      final existingForDate = getSavedRecordForDate(now);
+      if (existingForDate != null && existingForDate.isConfirmed && existingForDate.source == 'manual') {
+        _pendingAutoDetectedRecord = null;
+        await _saveToLocal();
+        notifyListeners();
+        return false;
+      }
 
       // Bentuk SleepRecord terkonfirmasi dengan field dan struktur yang persis sama
       final confirmedRecord = candidate.copyWith(
-        id: candidate.id.isNotEmpty ? candidate.id : 'auto_${DateTime.now().millisecondsSinceEpoch}',
+        id: candidate.id.isNotEmpty ? candidate.id : 'auto_${candidate.startTime.millisecondsSinceEpoch}',
         userId: currentUserId,
         date: targetDateKey,
-        durationMinutes: candidate.durationMinutes,
+        startTime: candidate.startTime,
+        endTime: candidate.endTime,
+        durationMinutes: durationM,
         source: 'automatic',
         isConfirmed: true,
         updatedAt: DateTime.now(),
       );
 
-      // Simpan menggunakan fungsi addRecord yang sama persis dengan fungsi simpan dari input manual
+      // Simpan menggunakan fungsi addRecord
       await addRecord(confirmedRecord);
       _pendingAutoDetectedRecord = null;
       await _saveToLocal();
+      if (!kIsWeb) {
+        try {
+          await _platformChannel.invokeMethod('clearScreenTimes');
+        } catch (_) {}
+      }
       notifyListeners();
       return true;
     }
@@ -1040,12 +1090,24 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   List<SleepRecord> getRecordsForDate(DateTime date, {String? userId}) {
     final uid = userId ?? currentUserId;
     final key = formatDateKey(date);
-    return _records
+    final matching = _records
         .where((r) =>
             isMatchingUser(r.userId, uid) &&
             (r.date == key || (r.date.isEmpty && formatDateKey(r.endTime) == key)))
         .toList()
       ..sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    if (matching.length > 1) {
+      // Prioritaskan yang confirmed, lalu updatedAt paling mutakhir untuk mencegah duplikasi
+      matching.sort((a, b) {
+        if (a.isConfirmed != b.isConfirmed) {
+          return b.isConfirmed ? 1 : -1;
+        }
+        return b.updatedAt.compareTo(a.updatedAt);
+      });
+      return [matching.first];
+    }
+    return matching;
   }
 
   /// Priority Check: Mengambil data tidur tersimpan untuk tanggal tertentu
@@ -1134,11 +1196,12 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   List<DailySleepSummary> getPast7DaysSummaries([DateTime? referenceDate]) {
     final ref = referenceDate ?? DateTime.now();
+    final baseDate = DateTime(ref.year, ref.month, ref.day);
     const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
     final summaries = <DailySleepSummary>[];
     for (int i = 6; i >= 0; i--) {
-      final date = ref.subtract(Duration(days: i));
+      final date = baseDate.subtract(Duration(days: i));
       final key = formatDateKey(date);
       final recs = getRecordsForDate(date);
       final totalM = recs.fold<int>(0, (acc, r) => acc + r.durationMinutes);
@@ -1545,6 +1608,10 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     final existingIndex = _records.indexWhere((r) => isMatchingUser(r.userId, record.userId) && r.date == record.date);
     if (existingIndex != -1) {
       final oldRecord = _records[existingIndex];
+      // Lindungi catatan manual yang sudah valid agar tidak tertimpa deteksi otomatis yang belum terverifikasi
+      if (oldRecord.source == 'manual' && oldRecord.isConfirmed && record.source == 'automatic' && !record.isConfirmed) {
+        return;
+      }
       if (oldRecord.id != record.id) {
         await _deleteFromFirestore(oldRecord.id);
       }
@@ -1557,6 +1624,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       _pendingAutoDetectedRecord = null;
     }
 
+    _records.sort((a, b) => a.startTime.compareTo(b.startTime));
     await _saveToLocal();
     _syncToRestReminder(record);
     await _syncToFirestore(record);

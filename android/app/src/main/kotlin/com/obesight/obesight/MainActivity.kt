@@ -29,11 +29,21 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             val prefs = getSharedPreferences("obesight_device_activity", Context.MODE_PRIVATE)
             when (call.method) {
+                "recordNightInactive" -> {
+                    // Hanya no-op atau kompatibilitas; jangan timpa waktu layar HP dengan waktu tutup aplikasi
+                    result.success(true)
+                }
+                "recordMorningActive" -> {
+                    // Hanya no-op atau kompatibilitas; jangan timpa waktu bangun HP dengan waktu buka aplikasi
+                    result.success(true)
+                }
                 "getLastScreenOff" -> {
+                    queryUsageStatsForSleep(applicationContext, prefs)
                     val lastOff = prefs.getLong("last_screen_off_millis", 0L)
                     result.success(lastOff)
                 }
                 "getLastScreenOn" -> {
+                    queryUsageStatsForSleep(applicationContext, prefs)
                     val lastOn = prefs.getLong("last_screen_on_millis", 0L)
                     result.success(lastOn)
                 }
@@ -90,6 +100,64 @@ class MainActivity : FlutterActivity() {
         registerLightSensor()
     }
 
+    private fun queryUsageStatsForSleep(context: Context, prefs: android.content.SharedPreferences) {
+        try {
+            val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as? android.app.usage.UsageStatsManager ?: return
+            val now = System.currentTimeMillis()
+            val cal = java.util.Calendar.getInstance().apply {
+                set(java.util.Calendar.HOUR_OF_DAY, 20)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }
+            val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+            if (currentHour < 20) {
+                cal.add(java.util.Calendar.DAY_OF_YEAR, -1)
+            }
+            val startTime = cal.timeInMillis
+
+            val events = usm.queryEvents(startTime, now)
+            var lastScreenOffTime = 0L
+            var firstScreenOnTime = 0L
+
+            val event = android.app.usage.UsageEvents.Event()
+            while (events.hasNextEvent()) {
+                events.getNextEvent(event)
+                val eventCal = java.util.Calendar.getInstance().apply { timeInMillis = event.timeStamp }
+                val h = eventCal.get(java.util.Calendar.HOUR_OF_DAY)
+
+                // Event 16: SCREEN_NON_INTERACTIVE (Layar HP mati)
+                // Event 17: KEYGUARD_SHOWN (HP terkunci)
+                if (event.eventType == 16 || event.eventType == 17) {
+                    if (h >= 20 || h < 5) {
+                        lastScreenOffTime = event.timeStamp
+                    }
+                }
+                // Event 15: SCREEN_INTERACTIVE (Layar HP nyala)
+                // Event 18: KEYGUARD_HIDDEN (Kunci HP dibuka)
+                if (event.eventType == 15 || event.eventType == 18) {
+                    if (h in 5..14 && lastScreenOffTime > 0L && event.timeStamp > lastScreenOffTime) {
+                        if (firstScreenOnTime == 0L) {
+                            firstScreenOnTime = event.timeStamp
+                        }
+                    }
+                }
+            }
+
+            val existingOff = prefs.getLong("last_screen_off_millis", 0L)
+            val existingOn = prefs.getLong("last_screen_on_millis", 0L)
+
+            val editor = prefs.edit()
+            if (existingOff == 0L && lastScreenOffTime > 0L) {
+                editor.putLong("last_screen_off_millis", lastScreenOffTime)
+            }
+            if (existingOn == 0L && firstScreenOnTime > 0L) {
+                editor.putLong("last_screen_on_millis", firstScreenOnTime)
+            }
+            editor.apply()
+        } catch (_: Exception) {}
+    }
+
     private fun registerScreenReceiver() {
         if (screenReceiver != null) return
         val filter = IntentFilter().apply {
@@ -116,8 +184,9 @@ class MainActivity : FlutterActivity() {
                         // Titik bangun pertama di pagi hari (>= 05.00 dan <= 14.00)
                         val lastOff = prefs.getLong("last_screen_off_millis", 0L)
                         val lastOn = prefs.getLong("last_screen_on_millis", 0L)
-                        if (lastOff > 0L && (hour in 5..14)) {
-                            if (lastOn <= lastOff) {
+                        if (hour in 5..14) {
+                            // Rekam hanya waktu bangun pertama setelah layar mati di malam hari
+                            if (lastOff > 0L && (lastOn == 0L || lastOn <= lastOff)) {
                                 prefs.edit().putLong("last_screen_on_millis", now).apply()
                             }
                         }
@@ -125,7 +194,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
-        registerReceiver(screenReceiver, filter)
+        applicationContext.registerReceiver(screenReceiver, filter)
     }
 
     private fun registerLightSensor() {
@@ -153,7 +222,7 @@ class MainActivity : FlutterActivity() {
                             val lastDark = prefs.getLong("last_dark_millis", 0L)
                             val nightStart = if (lastOff > 0L) lastOff else lastDark
                             val lastRise = prefs.getLong("last_light_rise_millis", 0L)
-                            if (nightStart > 0L && lastRise <= nightStart) {
+                            if (lastRise == 0L || lastRise < (now - 10 * 3600 * 1000L) || (nightStart > 0L && lastRise <= nightStart)) {
                                 prefs.edit().putLong("last_light_rise_millis", now).apply()
                             }
                         }

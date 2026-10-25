@@ -149,10 +149,31 @@ void main() {
       expect(find.text('Laporan'), findsWidgets);
       expect(find.text('Pengaturan'), findsWidgets);
 
-      // Existing test compatibility
+      // Existing test compatibility & Header cleanups verification
       expect(find.text('PANEL ADMINISTRATOR'), findsOneWidget);
-      expect(find.text('Dr. Hendra Wijaya, Sp.GK'), findsOneWidget);
+      expect(find.text('Dr. Hendra Wijaya, Sp.GK'), findsNothing);
+      expect(find.text('Sistem berjalan dengan baik'), findsNothing);
       expect(find.text('Total Pasien'), findsOneWidget);
+      expect(find.text('Total Konten'), findsOneWidget);
+
+      // Verify Statistik Pengguna Dropdown interaction
+      expect(find.text('7 hari terakhir'), findsOneWidget);
+      await tester.tap(find.text('7 hari terakhir'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 bulan terakhir'), findsOneWidget);
+      expect(find.text('1 tahun terakhir'), findsOneWidget);
+
+      // Select '1 bulan terakhir'
+      await tester.tap(find.text('1 bulan terakhir'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 bulan terakhir'), findsOneWidget);
+
+      // Select '1 tahun terakhir'
+      await tester.tap(find.text('1 bulan terakhir'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1 tahun terakhir'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 tahun terakhir'), findsOneWidget);
 
       // Test tapping Pengguna in bottom nav switches to Pengguna tab
       await tester.tap(find.byIcon(Icons.people_alt_outlined));

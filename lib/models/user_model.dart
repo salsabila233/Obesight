@@ -19,6 +19,7 @@ class UserModel {
   final String bmiCategory;
   final String obesityRisk;
   final DateTime? createdAt;
+  final DateTime? updatedAt;
   final String? joined;
 
   const UserModel({
@@ -38,6 +39,7 @@ class UserModel {
     this.bmiCategory = 'Normal',
     this.obesityRisk = 'Rendah',
     this.createdAt,
+    this.updatedAt,
     this.joined,
   });
 
@@ -147,6 +149,16 @@ class UserModel {
       parsedCreatedAt = DateTime.fromMillisecondsSinceEpoch(createdVal);
     }
 
+    DateTime? parsedUpdatedAt;
+    final updatedVal = map['updatedAt'] ?? map['updated_at'];
+    if (updatedVal is Timestamp) {
+      parsedUpdatedAt = updatedVal.toDate();
+    } else if (updatedVal is String) {
+      parsedUpdatedAt = DateTime.tryParse(updatedVal);
+    } else if (updatedVal is int) {
+      parsedUpdatedAt = DateTime.fromMillisecondsSinceEpoch(updatedVal);
+    }
+
     return UserModel(
       id: id,
       name: map['name'] as String? ?? 'Pengguna ObeSight',
@@ -169,6 +181,7 @@ class UserModel {
       bmiCategory: (map['bmiCategory'] as String?) ?? 'Normal',
       obesityRisk: (map['obesityRisk'] as String?) ?? 'Rendah',
       createdAt: parsedCreatedAt,
+      updatedAt: parsedUpdatedAt,
       joined: map['joined'] as String?,
     );
   }
@@ -191,6 +204,7 @@ class UserModel {
       'bmiCategory': bmiCategory,
       'obesityRisk': obesityRisk,
       if (createdAt != null) 'createdAt': Timestamp.fromDate(createdAt!),
+      if (updatedAt != null) 'updatedAt': Timestamp.fromDate(updatedAt!),
       if (joined != null) 'joined': joined,
     };
   }
@@ -212,6 +226,7 @@ class UserModel {
     String? bmiCategory,
     String? obesityRisk,
     DateTime? createdAt,
+    DateTime? updatedAt,
     String? joined,
   }) {
     return UserModel(
@@ -231,6 +246,7 @@ class UserModel {
       bmiCategory: bmiCategory ?? this.bmiCategory,
       obesityRisk: obesityRisk ?? this.obesityRisk,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       joined: joined ?? this.joined,
     );
   }
