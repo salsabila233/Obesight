@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/article_model.dart';
@@ -11,12 +12,17 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/curved_header_scaffold.dart';
 import '../admin/admin_add_article_screen.dart';
-import '../admin/admin_change_password_sheet.dart';
+import '../admin/admin_login_screen.dart';
 import '../admin/admin_profile_screen.dart';
 import '../admin/admin_user_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
-import '../auth/login_screen.dart';
 import '../../widgets/article_thumbnail_image.dart';
+
+enum _AdminSettingsSubView {
+  main,
+  changePassword,
+  aboutApp,
+}
 
 enum AdminUserStatsPeriod {
   last7Days('7 hari terakhir'),
@@ -102,12 +108,54 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   bool _isLaporanLoading = false;
   String? _laporanErrorMessage;
 
+  // Sub-view Pengaturan Admin
+  _AdminSettingsSubView _settingsSubView = _AdminSettingsSubView.main;
+
+  // Controllers & State untuk Form Ubah Kata Sandi Admin
+  final _oldPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _oldPasswordFocus = FocusNode();
+  final _newPasswordFocus = FocusNode();
+  final _confirmPasswordFocus = FocusNode();
+  bool _obscureOldPassword = true;
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _hasMinLength = false;
+  bool _hasDigit = false;
+  bool _hasUpperAndLower = false;
+  bool _isChangingPassword = false;
+  String? _passwordErrorMessage;
+
   @override
   void initState() {
     super.initState();
     _currentUser = widget.user;
+    _newPasswordController.addListener(_validatePasswordCriteria);
     _refreshProfile();
     _fetchLaporanData();
+  }
+
+  void _validatePasswordCriteria() {
+    final text = _newPasswordController.text;
+    setState(() {
+      _hasMinLength = text.length >= 8 && text.length <= 16;
+      _hasDigit = RegExp(r'[0-9]').hasMatch(text);
+      _hasUpperAndLower =
+          RegExp(r'[A-Z]').hasMatch(text) && RegExp(r'[a-z]').hasMatch(text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _newPasswordController.removeListener(_validatePasswordCriteria);
+    _oldPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    _oldPasswordFocus.dispose();
+    _newPasswordFocus.dispose();
+    _confirmPasswordFocus.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchLaporanData() async {
@@ -187,118 +235,92 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   void _handleLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Konfirmasi Keluar',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18),
-        ),
-        content: Text(
-          'Apakah Anda yakin ingin keluar dari sesi Administrator?',
-          style: GoogleFonts.poppins(fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.poppins(color: const Color(0xFF64748B)),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await _authService.logout();
-              if (!context.mounted) return;
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (route) => false,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: Text(
-              'Keluar',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
+    _showAdminLogoutDialog(context);
   }
 
   void _switchTab(int index) {
     setState(() {
       _currentIndex = index;
+      if (index == 4) {
+        _settingsSubView = _AdminSettingsSubView.main;
+        _passwordErrorMessage = null;
+      }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const primaryColor = AppColors.adminGreen;
 
-    return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF0F172A)
-          : const Color(0xFFF7FAF8),
-      extendBody: true,
-      appBar: _currentIndex == 1
-          ? AppBar(
-              backgroundColor: const Color(0xFF529471),
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                  size: 18,
+    return PopScope(
+      canPop: _currentIndex == 0 && _settingsSubView == _AdminSettingsSubView.main,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex == 4 && _settingsSubView != _AdminSettingsSubView.main) {
+          setState(() {
+            _settingsSubView = _AdminSettingsSubView.main;
+            _passwordErrorMessage = null;
+          });
+        } else if (_currentIndex != 0) {
+          _switchTab(0);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDark
+            ? const Color(0xFF0F172A)
+            : const Color(0xFFF7FAF8),
+        extendBody: true,
+        appBar: _currentIndex == 1
+            ? AppBar(
+                backgroundColor: const Color(0xFF529471),
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  onPressed: () => _switchTab(0),
                 ),
-                onPressed: () => _switchTab(0),
-              ),
-              title: Text(
-                'Pengguna',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                title: Text(
+                  'Pengguna',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            )
-          : _currentIndex == 2
-          ? AppBar(
-              backgroundColor: const Color(0xFF388E6B),
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                  size: 18,
+              )
+            : _currentIndex == 2
+            ? AppBar(
+                backgroundColor: const Color(0xFF388E6B),
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  onPressed: () => _switchTab(0),
                 ),
-                onPressed: () => _switchTab(0),
-              ),
-              title: Text(
-                'Artikel',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                title: Text(
+                  'Artikel',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            )
-          : _currentIndex == 3
-          ? null // Halaman Laporan menggunakan CurvedHeaderScaffold dengan header sticky pinned
-          : AppBar(
+              )
+            : (_currentIndex == 3 || _currentIndex == 4)
+            ? null // Halaman Laporan & Pengaturan menggunakan CurvedHeaderScaffold dengan header sticky pinned dan lembaran melengkung radius 28
+            : AppBar(
               backgroundColor: isDark
                   ? const Color(0xFF1E293B)
                   : const Color(0xFFF7FAF8),
@@ -480,6 +502,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             )
           : null,
       bottomNavigationBar: _buildCapsuleBottomNav(isDark),
+      ),
     );
   }
 
@@ -3509,359 +3532,117 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   // ===========================================================================
-  // TAB 4: PENGATURAN DAN PROFIL ADMIN (Read-Only Email & Verifikasi Sandi)
+  // TAB 4: PENGATURAN ADMIN (Berdasarkan Gambar Referensi ObeSight)
+  // Sub-view: Main Pengaturan, Ubah Kata Sandi, Tentang Aplikasi, Dialog Keluar
   // ===========================================================================
   Widget _buildPengaturanTab(bool isDark, Color primaryColor) {
+    String titleText = 'Pengaturan';
+    if (_settingsSubView == _AdminSettingsSubView.changePassword) {
+      titleText = 'Ubah Kata Sandi';
+    } else if (_settingsSubView == _AdminSettingsSubView.aboutApp) {
+      titleText = 'Tentang Aplikasi';
+    }
+
+    Widget contentBody;
+    switch (_settingsSubView) {
+      case _AdminSettingsSubView.changePassword:
+        contentBody = _buildUbahKataSandiView(isDark, primaryColor);
+        break;
+      case _AdminSettingsSubView.aboutApp:
+        contentBody = _buildTentangAplikasiView(isDark, primaryColor);
+        break;
+      case _AdminSettingsSubView.main:
+        contentBody = _buildPengaturanMainView(isDark, primaryColor);
+        break;
+    }
+
+    return CurvedHeaderScaffold(
+      title: titleText,
+      centerTitle: true,
+      headerColor: const Color(0xFF388E6B),
+      sheetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF7FAF8),
+      onBack: () {
+        if (_settingsSubView != _AdminSettingsSubView.main) {
+          setState(() {
+            _settingsSubView = _AdminSettingsSubView.main;
+            _passwordErrorMessage = null;
+          });
+        } else {
+          _switchTab(0);
+        }
+      },
+      body: contentBody,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // A. SUB-VIEW: PENGATURAN UTAMA (Keamanan, Tampilan / Mode Gelap, Informasi, Keluar)
+  // ---------------------------------------------------------------------------
+  Widget _buildPengaturanMainView(bool isDark, Color primaryColor) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
       physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Card
+          // 1. Seksi Keamanan
+          _buildSettingsSectionHeader('Keamanan', isDark),
+          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                    : [const Color(0xFF3E9674), const Color(0xFF2C6348)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: const Icon(
-                    Icons.admin_panel_settings_rounded,
-                    color: Colors.white,
-                    size: 34,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'ADMINISTRATOR SISTEM',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _currentUser.name,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        _currentUser.email,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Section 1: Informasi Akun (Email READ-ONLY)
-          Text(
-            'Informasi Akun',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Read-only Email Card
-          Container(
-            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: isDark
                     ? const Color(0xFF334155)
                     : const Color(0xFFE2E8F0),
+                width: 1,
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.lock_rounded,
-                      size: 16,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF64748B),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Email Administrator (Read-Only)',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF0F172A)
-                        : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFCBD5E1),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _currentUser.email,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? const Color(0xFFCBD5E1)
-                                : const Color(0xFF334155),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF64748B,
-                          ).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'TETAP',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Alamat email administrator bersifat tetap dan tidak dapat diubah demi keamanan dan integritas audit sistem.',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: isDark
-                        ? const Color(0xFF64748B)
-                        : const Color(0xFF94A3B8),
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Section 2: Keamanan Akun (Fitur Ubah Kata Sandi)
-          Text(
-            'Keamanan & Kata Sandi',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Ubah Kata Sandi Action Tile
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () async {
-                final success = await AdminChangePasswordSheet.show(
-                  context,
-                  adminEmail: _currentUser.email,
-                );
-                if (success == true && mounted) {
-                  AppAlert.showSuccess(
-                    context,
-                    'Kata sandi administrator berhasil diperbarui.',
-                  );
-                }
-              },
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFE2E8F0),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  setState(() {
+                    _settingsSubView = _AdminSettingsSubView.changePassword;
+                    _passwordErrorMessage = null;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.key_rounded,
-                        color: primaryColor,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Ubah Kata Sandi',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
-                            ),
-                          ),
-                          Text(
-                            'Wajib verifikasi kata sandi lama via Firebase Auth',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Section 3: Pengaturan Tampilan & Sistem
-          Text(
-            'Preferensi Sistem',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Dark Mode Toggle
-          ValueListenableBuilder<ThemeMode>(
-            valueListenable: AppTheme.themeModeNotifier,
-            builder: (context, currentMode, _) {
-              final isDarkModeActive = currentMode == ThemeMode.dark;
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFE2E8F0),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          isDarkModeActive
-                              ? Icons.dark_mode_rounded
-                              : Icons.light_mode_rounded,
-                          color: isDarkModeActive
-                              ? const Color(0xFFF59E0B)
-                              : primaryColor,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E3A2F)
+                              : const Color(0xFFE8F5EE),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Mode Gelap',
+                        child: const Icon(
+                          Icons.lock_outline_rounded,
+                          color: Color(0xFF388E6B),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'Ubah Kata Sandi',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -3870,16 +3651,90 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                 : const Color(0xFF0F172A),
                           ),
                         ),
-                      ],
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 22),
+
+          // 2. Seksi Tampilan (Mode Gelap)
+          _buildSettingsSectionHeader('Tampilan', isDark),
+          const SizedBox(height: 8),
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: AppTheme.themeModeNotifier,
+            builder: (context, currentMode, _) {
+              final isDarkModeActive = currentMode == ThemeMode.dark;
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.2 : 0.03,
+                      ),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF2E2A50)
+                            : const Color(0xFFEDE9FE),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.nightlight_round,
+                        color: Color(0xFF818CF8),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        'Mode Gelap',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
+                        ),
+                      ),
                     ),
                     Switch(
                       value: isDarkModeActive,
-                      activeThumbColor: primaryColor,
-                      activeTrackColor: primaryColor.withValues(alpha: 0.5),
+                      activeThumbColor: const Color(0xFF388E6B),
+                      activeTrackColor: const Color(
+                        0xFF388E6B,
+                      ).withValues(alpha: 0.5),
                       onChanged: (val) {
-                        AppTheme.setThemeMode(
-                          val ? ThemeMode.dark : ThemeMode.light,
-                        );
+                        AppTheme.toggleDarkMode(val);
                       },
                     ),
                   ],
@@ -3888,38 +3743,989 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             },
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
-          // Logout Button
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: () => _handleLogout(context),
-              icon: const Icon(
-                Icons.logout_rounded,
-                size: 18,
-                color: AppColors.error,
+          // 3. Seksi Informasi & Keluar
+          _buildSettingsSectionHeader('Informasi', isDark),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+                width: 1,
               ),
-              label: Text(
-                'Keluar dari Sesi Administrator',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.error,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Item 1: Tentang Aplikasi
+                Material(
+                  color: Colors.transparent,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
+                  child: InkWell(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(18),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _settingsSubView = _AdminSettingsSubView.aboutApp;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF113D38)
+                                  : const Color(0xFFE8F5EE),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.info_outline_rounded,
+                              color: Color(0xFF388E6B),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              'Tentang Aplikasi',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Pemisah antar item
+                Divider(
+                  height: 1,
+                  thickness: 0.8,
+                  indent: 68,
+                  endIndent: 16,
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFF1F5F9),
+                ),
+
+                // Item 2: Keluar
+                Material(
+                  color: Colors.transparent,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(18),
+                  ),
+                  child: InkWell(
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(18),
+                    ),
+                    onTap: () => _handleLogout(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF3F1D1D)
+                                  : const Color(0xFFFEE2E2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.logout_rounded,
+                              color: Color(0xFFDC2626),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              'Keluar',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFDC2626),
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsSectionHeader(String title, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title,
+        style: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: isDark ? Colors.white : const Color(0xFF0F172A),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // B. SUB-VIEW: UBAH KATA SANDI (Password lama, baru, konfirmasi, checklist, Simpan)
+  // ---------------------------------------------------------------------------
+  Widget _buildUbahKataSandiView(bool isDark, Color primaryColor) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 110),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Pesan Error jika validasi / verifikasi gagal
+          if (_passwordErrorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
               ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.error, width: 1.2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: Color(0xFFDC2626),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _passwordErrorMessage!,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFB91C1C),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
+
+          // Input 1: Password lama
+          _buildPillInputField(
+            controller: _oldPasswordController,
+            focusNode: _oldPasswordFocus,
+            hintText: 'Password lama',
+            obscureText: _obscureOldPassword,
+            onToggleObscure: () {
+              setState(() {
+                _obscureOldPassword = !_obscureOldPassword;
+              });
+            },
+            isDark: isDark,
+            textInputAction: TextInputAction.next,
+          ),
+
+          const SizedBox(height: 18),
+
+          // Input 2: Password baru
+          _buildPillInputField(
+            controller: _newPasswordController,
+            focusNode: _newPasswordFocus,
+            hintText: 'Password baru',
+            obscureText: _obscureNewPassword,
+            onToggleObscure: () {
+              setState(() {
+                _obscureNewPassword = !_obscureNewPassword;
+              });
+            },
+            isDark: isDark,
+            textInputAction: TextInputAction.next,
+          ),
+
+          const SizedBox(height: 14),
+
+          // Checklist kriteria validasi kata sandi baru (Live Feedback)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              children: [
+                _buildPasswordCheckItem(
+                  'Minimum 8 karakter (maksimal 16)',
+                  _hasMinLength,
+                  isDark,
                 ),
+                _buildPasswordCheckItem(
+                  'Terdapat minimum 1 angka',
+                  _hasDigit,
+                  isDark,
+                ),
+                _buildPasswordCheckItem(
+                  'Terdapat minimum 1 huruf besar dan 1 huruf kecil',
+                  _hasUpperAndLower,
+                  isDark,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Input 3: Konfirmasi password baru
+          _buildPillInputField(
+            controller: _confirmPasswordController,
+            focusNode: _confirmPasswordFocus,
+            hintText: 'Konfirmasi password baru',
+            obscureText: _obscureConfirmPassword,
+            onToggleObscure: () {
+              setState(() {
+                _obscureConfirmPassword = !_obscureConfirmPassword;
+              });
+            },
+            isDark: isDark,
+            textInputAction: TextInputAction.done,
+            onEditingComplete: _handleSaveNewPassword,
+          ),
+
+          const SizedBox(height: 32),
+
+          // Tombol Aksi Simpan (Hijau berbentuk kapsul / pill)
+          Center(
+            child: SizedBox(
+              width: 160,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: _isChangingPassword ? null : _handleSaveNewPassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF388E6B),
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                child: _isChangingPassword
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        'Simpan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ),
 
           const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPillInputField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hintText,
+    required bool obscureText,
+    required VoidCallback onToggleObscure,
+    required bool isDark,
+    TextInputAction textInputAction = TextInputAction.next,
+    VoidCallback? onEditingComplete,
+  }) {
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.only(left: 20, right: 8),
+      alignment: Alignment.center,
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        obscureText: obscureText,
+        textInputAction: textInputAction,
+        onEditingComplete: onEditingComplete,
+        onChanged: (_) {
+          if (_passwordErrorMessage != null) {
+            setState(() {
+              _passwordErrorMessage = null;
+            });
+          }
+        },
+        style: GoogleFonts.poppins(
+          fontSize: 14,
+          color: isDark ? Colors.white : const Color(0xFF0F172A),
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          hintText: hintText,
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 13.5,
+            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              obscureText
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: isDark
+                  ? const Color(0xFF64748B)
+                  : const Color(0xFF94A3B8),
+              size: 20,
+            ),
+            onPressed: onToggleObscure,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordCheckItem(String label, bool isSatisfied, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(
+            isSatisfied
+                ? Icons.check_circle_rounded
+                : Icons.radio_button_unchecked,
+            size: 16,
+            color: isSatisfied
+                ? const Color(0xFF388E6B)
+                : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: isSatisfied
+                    ? (isDark
+                        ? const Color(0xFFE2E8F0)
+                        : const Color(0xFF334155))
+                    : (isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8)),
+                fontWeight: isSatisfied ? FontWeight.w500 : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleSaveNewPassword() async {
+    setState(() {
+      _passwordErrorMessage = null;
+    });
+
+    FocusScope.of(context).unfocus();
+
+    final oldPass = _oldPasswordController.text.trim();
+    final newPass = _newPasswordController.text.trim();
+    final confirmPass = _confirmPasswordController.text.trim();
+
+    if (oldPass.isEmpty) {
+      setState(() {
+        _passwordErrorMessage =
+            'Password lama wajib diisi untuk verifikasi keamanan.';
+      });
+      return;
+    }
+
+    if (!_hasMinLength || !_hasDigit || !_hasUpperAndLower) {
+      setState(() {
+        _passwordErrorMessage =
+            'Password baru belum memenuhi semua kriteria keamanan.';
+      });
+      return;
+    }
+
+    if (newPass != confirmPass) {
+      setState(() {
+        _passwordErrorMessage = 'Konfirmasi password baru tidak cocok.';
+      });
+      return;
+    }
+
+    if (oldPass == newPass) {
+      setState(() {
+        _passwordErrorMessage =
+            'Password baru tidak boleh sama dengan password lama.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isChangingPassword = true;
+    });
+
+    try {
+      final auth = FirebaseAuth.instance;
+      final currentUser = auth.currentUser;
+
+      if (currentUser != null && currentUser.email != null) {
+        final credential = EmailAuthProvider.credential(
+          email: currentUser.email!,
+          password: oldPass,
+        );
+
+        // Verifikasi kata sandi lama via Firebase Authentication Reauthentication
+        await currentUser.reauthenticateWithCredential(credential);
+
+        // Update kata sandi baru di Firebase Auth
+        await currentUser.updatePassword(newPass);
+
+        // Catat timestamp perubahan kata sandi di Firestore TANPA menyimpan teks biasa
+        await _authService.changePassword(
+          currentPassword: oldPass,
+          newPassword: newPass,
+        );
+      } else {
+        // Fallback akun dummy / offline jika Firebase Auth belum login aktif
+        if (oldPass != 'admin123' && oldPass != 'Admin123') {
+          throw FirebaseAuthException(
+            code: 'wrong-password',
+            message: 'Password lama yang dimasukkan tidak cocok.',
+          );
+        }
+
+        await _authService.changePassword(
+          currentPassword: oldPass,
+          newPassword: newPass,
+        );
+      }
+
+      if (!mounted) return;
+
+      _oldPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+
+      setState(() {
+        _isChangingPassword = false;
+        _passwordErrorMessage = null;
+        _settingsSubView = _AdminSettingsSubView.main;
+      });
+
+      AppAlert.showSuccess(
+        context,
+        'Kata sandi administrator berhasil diperbarui.',
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isChangingPassword = false;
+        if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+          _passwordErrorMessage =
+              'Verifikasi gagal: Password lama Anda salah.';
+        } else if (e.code == 'weak-password') {
+          _passwordErrorMessage =
+              'Password baru dinilai terlalu lemah oleh sistem.';
+        } else if (e.code == 'requires-recent-login') {
+          _passwordErrorMessage =
+              'Sesi autentikasi telah kedaluwarsa. Silakan keluar dan login ulang.';
+        } else {
+          _passwordErrorMessage = e.message ?? 'Gagal memperbarui kata sandi.';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isChangingPassword = false;
+        _passwordErrorMessage = 'Terjadi kesalahan sistem: $e';
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // C. SUB-VIEW: TENTANG APLIKASI (Identitas, Fitur Utama, Catatan, Versi Footer)
+  // ---------------------------------------------------------------------------
+  Widget _buildTentangAplikasiView(bool isDark, Color primaryColor) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 110),
+      child: Column(
+        children: [
+          // Logo & Identitas ObeSight
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFF388E6B), width: 2),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Image.asset(
+              'assets/logo.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.health_and_safety_rounded,
+                color: Color(0xFF388E6B),
+                size: 38,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'OBESIGHT',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : const Color(0xFF1E3A2F),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Kenali Risiko, Jaga Masa Depanmu',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? const Color(0xFF6EE7B7)
+                  : const Color(0xFF388E6B),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              'Obesight adalah aplikasi kesehatan yang membantu kamu melakukan skrining risiko obesitas berdasarkan pola hidup, serta membantu memantau kebiasaan hidup secara berkala.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: isDark
+                    ? const Color(0xFFCBD5E1)
+                    : const Color(0xFF64748B),
+                height: 1.5,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Card Fitur Utama Obesight
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF388E6B).withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.stars_rounded,
+                        color: Color(0xFF388E6B),
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Fitur Utama Obesight',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Fitur 1: Skrining Risiko
+                _buildAboutFeatureTile(
+                  isDark: isDark,
+                  icon: Icons.qr_code_scanner_rounded,
+                  title: 'Skrining Risiko',
+                  desc:
+                      'Membantu kamu mengidentifikasi potensi risiko obesitas lebih awal berdasarkan gaya hidup.',
+                ),
+                const SizedBox(height: 10),
+
+                // Fitur 2: Monitoring Pola Hidup
+                _buildAboutFeatureTile(
+                  isDark: isDark,
+                  icon: Icons.assignment_outlined,
+                  title: 'Monitoring Pola Hidup',
+                  desc:
+                      'Membantu kamu memantau perkembangan pola makan, aktivitas fisik, pola makan, dan kebiasaan tidur.',
+                ),
+                const SizedBox(height: 10),
+
+                // Fitur 3: Rekomendasi GAYA-SEHAT
+                _buildAboutFeatureTile(
+                  isDark: isDark,
+                  icon: Icons.lightbulb_outline_rounded,
+                  title: 'Rekomendasi GAYA-SEHAT',
+                  desc:
+                      'Memberikan insight dan rekomendasi yang disesuaikan dengan kondisi kamu melalui teknologi AI.',
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Catatan Medis (Amber Box)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF2E1F0B)
+                  : const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF78350F)
+                    : const Color(0xFFFDE68A),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFD97706),
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Catatan:',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? const Color(0xFFFDE68A)
+                              : const Color(0xFF92400E),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Obesight merupakan alat edukasi untuk skrining awal dan pembentukan gaya hidup, bukan alat untuk mendiagnosis secara medis. Tetap konsultasikan hasil dengan tenaga kesehatan.',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: isDark
+                              ? const Color(0xFFFCD34D)
+                              : const Color(0xFFB45309),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Footer Versi Aplikasi
+          Text(
+            'Versi 1.0.0',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? const Color(0xFF94A3B8)
+                  : const Color(0xFF388E6B),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '© 2026 Obesight. Semua hak dilindungi.',
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: isDark
+                  ? const Color(0xFF64748B)
+                  : const Color(0xFF94A3B8),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAboutFeatureTile({
+    required bool isDark,
+    required IconData icon,
+    required String title,
+    required String desc,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F9F6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2EBE5),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF1E3A2F)
+                  : const Color(0xFFE8F5EE),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: const Color(0xFF388E6B),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  desc,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // D. DIALOG KELUAR DARI AKUN (Berdasarkan Gambar Referensi ObeSight)
+  // ---------------------------------------------------------------------------
+  void _showAdminLogoutDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Keluar dari akun?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Apakah kamu yakin ingin keluar dari akun Obesight?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: isDark
+                    ? const Color(0xFFCBD5E1)
+                    : const Color(0xFF64748B),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF475569)
+                            : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _authService.logout();
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const AdminLoginScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE53935),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Keluar',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -3971,3 +4777,4 @@ class _DonutChartPainter extends CustomPainter {
   bool shouldRepaint(covariant _DonutChartPainter oldDelegate) =>
       oldDelegate.slices != slices || oldDelegate.strokeWidth != strokeWidth;
 }
+
