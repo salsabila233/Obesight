@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -214,6 +215,16 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   static const String _keyReminderMinutesBefore = 'obesight_sleep_reminder_mins_v1';
   static const MethodChannel _platformChannel = MethodChannel('com.obesight.obesight/device_activity');
 
+  static bool get _isNativeSupported {
+    if (kIsWeb) return false;
+    try {
+      if (Platform.environment.containsKey('FLUTTER_TEST')) return false;
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
   SleepTrackingService._internal();
 
   bool _isInitialized = false;
@@ -266,7 +277,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Membaca intensitas cahaya lingkungan (ambient light lux) dari sensor perangkat
   Future<double?> getAmbientLux() async {
-    if (kIsWeb) return null;
+    if (!_isNativeSupported) return null;
     try {
       final lux = await _platformChannel.invokeMethod<num>('getAmbientLux');
       if (lux != null) {
@@ -900,6 +911,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Memeriksa aktivitas layar mati semalam dan nyala pagi hari didukung sensor cahaya ruangan
   Future<void> checkDeviceInactivityCandidate() async {
+    if (!_isNativeSupported) return;
     final now = DateTime.now();
     final savedToday = getSavedRecordForDate(now);
 
@@ -918,7 +930,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     DateTime? darkTime;
     DateTime? lightRiseTime;
 
-    if (!kIsWeb) {
+    if (_isNativeSupported) {
       try {
         final lastOffMillis = await _platformChannel.invokeMethod<int>('getLastScreenOff');
         final lastOnMillis = await _platformChannel.invokeMethod<int>('getLastScreenOn');
@@ -1063,7 +1075,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       await addRecord(confirmedRecord);
       _pendingAutoDetectedRecord = null;
       await _saveToLocal();
-      if (!kIsWeb) {
+      if (_isNativeSupported) {
         try {
           await _platformChannel.invokeMethod('clearScreenTimes');
         } catch (_) {}

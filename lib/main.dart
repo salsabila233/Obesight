@@ -54,7 +54,11 @@ Future<void> main() async {
   ]);
 
   // Initialize sleep tracking service observer for auto/manual detection & notification scheduling
-  await SleepTrackingService.instance.initialize();
+  try {
+    await SleepTrackingService.instance.initialize();
+  } catch (e) {
+    debugPrint('[main] SleepTrackingService init notice: $e');
+  }
 
   // Load saved theme preference
   await AppTheme.init();

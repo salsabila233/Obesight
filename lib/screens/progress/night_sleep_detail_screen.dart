@@ -20,10 +20,14 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   @override
   void initState() {
     super.initState();
-    SleepTrackingService.instance.checkDeviceInactivityCandidate();
-    SleepTrackingService.instance.startFirestoreRealtimeListener();
-    if (SleepTrackingService.instance.reminderEnabled) {
-      SleepTrackingService.instance.scheduleBedtimeNotification();
+    try {
+      SleepTrackingService.instance.checkDeviceInactivityCandidate();
+      SleepTrackingService.instance.startFirestoreRealtimeListener();
+      if (SleepTrackingService.instance.reminderEnabled) {
+        SleepTrackingService.instance.scheduleBedtimeNotification();
+      }
+    } catch (e) {
+      debugPrint('[NightSleepDetailScreen] initState error: $e');
     }
   }
 
@@ -427,6 +431,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                           }
                                         }
                                       } catch (e) {
+                                        debugPrint('[NightSleepDetailScreen] Error accepting pending auto record: $e');
                                         if (mounted) {
                                           setState(() {
                                             _isSaving = false;
