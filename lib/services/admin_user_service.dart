@@ -82,174 +82,94 @@ class AdminUserService {
 
   bool get isFirebaseAvailable => Firebase.apps.isNotEmpty;
 
-  /// Daftar pengguna default (Sesuai Desain Screenshot Obesight)
-  static final List<UserModel> defaultMockUsers = [
-    UserModel(
-      id: 'usr_001',
-      name: 'Zahra Fitriana',
-      email: 'zahraafitriana@gmail.com',
-      username: 'zahraafitriana',
-      role: UserRole.user,
-      phone: '0893-3421-2098',
-      dob: '12 Juli 2003',
-      gender: 'Perempuan',
-      joined: '12 Juni 2026',
-    ),
-    UserModel(
-      id: 'usr_002',
-      name: 'Zahra Fitrie',
-      email: 'zahrafitrie@gmail.com',
-      username: 'zahrafitrie',
-      role: UserRole.user,
-      phone: '0812-3456-7890',
-      dob: '15 Mei 2002',
-      gender: 'Perempuan',
-      joined: '10 Januari 2026',
-    ),
-  ];
-
-  /// Mendengarkan stream koleksi `users` di Cloud Firestore secara real-time
-  Stream<List<UserModel>> streamUsers() async* {
-    // 1. Emit data yang tersedia segera agar tidak loading berputar tanpa henti
-    if (_cachedUsers.isNotEmpty) {
-      yield _cachedUsers;
-    } else {
-      yield defaultMockUsers;
+  /// Mendengarkan stream koleksi `users` di Cloud Firestore secara real-time.
+  /// Menampilkan semua akun pengguna dan admin secara global tanpa filter
+  /// berdasarkan akun admin login atau perangkat tertentu.
+  Stream<List<UserModel>> streamUsers() {
+    if (!isFirebaseAvailable) {
+      return Stream.value(_cachedUsers);
     }
 
-    if (!isFirebaseAvailable) return;
+    return _firestore.collection('users').snapshots().map((snapshot) {
+      final users = snapshot.docs.map((doc) {
+        return UserModel.fromMap(doc.data(), doc.id);
+      }).toList();
 
-    try {
-      final stream = _firestore.collection('users').snapshots();
-      await for (final snapshot in stream) {
-        final users = snapshot.docs.map((doc) {
-          final data = doc.data();
-          return UserModel.fromMap(data, doc.id);
-        }).toList();
-
-        if (users.isNotEmpty) {
-          _cachedUsers = users;
-          yield users;
-        } else {
-          // Jika di Firestore belum ada akun yang dibuat, gunakan data referensi
-          yield defaultMockUsers;
+      // Urutkan akun secara konsisten (pendaftaran terbaru terlebih dahulu, atau nama)
+      // agar seluruh admin melihat urutan daftar yang seragam
+      users.sort((a, b) {
+        if (a.createdAt != null && b.createdAt != null) {
+          return b.createdAt!.compareTo(a.createdAt!);
         }
-      }
-    } catch (e) {
-      debugPrint(
-        '[AdminUserService] Notice streaming users from Firestore: $e',
-      );
-      yield _cachedUsers.isNotEmpty ? _cachedUsers : defaultMockUsers;
-    }
+        if (a.createdAt != null) return -1;
+        if (b.createdAt != null) return 1;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+
+      _cachedUsers = users;
+      return users;
+    });
   }
 
-  /// Mendengarkan stream satu dokumen pengguna berdasarkan UID
-  Stream<UserModel?> streamUserById(String userId) async* {
+  /// Mendengarkan stream satu dokumen pengguna berdasarkan UID langsung dari Firestore
+  Stream<UserModel?> streamUserById(String userId) {
     final cleanId = userId.trim();
     if (cleanId.isEmpty) {
-      yield null;
-      return;
+      return Stream.value(null);
     }
 
-    // 1. Emit data awal dari cache atau fallback jika cocok dengan ID
-    final initial = _cachedUsers.cast<UserModel?>().firstWhere(
-      (u) => u?.id == cleanId,
-      orElse: () => defaultMockUsers.cast<UserModel?>().firstWhere(
+    if (!isFirebaseAvailable) {
+      final cached = _cachedUsers.cast<UserModel?>().firstWhere(
         (u) => u?.id == cleanId,
         orElse: () => null,
-      ),
-    );
-    if (initial != null) {
-      yield initial;
+      );
+      return Stream.value(cached);
     }
 
-    if (!isFirebaseAvailable) return;
-
-    try {
-      final stream = _firestore.collection('users').doc(cleanId).snapshots();
-      await for (final doc in stream) {
-        if (doc.exists && doc.data() != null) {
-          yield UserModel.fromMap(doc.data()!, doc.id);
-        }
+    return _firestore.collection('users').doc(cleanId).snapshots().map((doc) {
+      if (doc.exists && doc.data() != null) {
+        return UserModel.fromMap(doc.data()!, doc.id);
       }
-    } catch (e) {
-      debugPrint('[AdminUserService] Notice streaming user $userId: $e');
-    }
+      return null;
+    });
   }
 
   /// Mendengarkan riwayat skrining pengguna tertentu (`users/{userId}/screenings`) secara realtime
-  Stream<List<ScreeningHistoryItem>> streamUserScreenings(
-    String userId,
-  ) async* {
+  Stream<List<ScreeningHistoryItem>> streamUserScreenings(String userId) {
     final cleanId = userId.trim();
-
-    // Data riwayat skrining referensi (Sesuai Screenshot Gambar 2)
-    final List<ScreeningHistoryItem> defaultScreenings = [
-      ScreeningHistoryItem(
-        id: 'scr_001',
-        userId: cleanId.isNotEmpty ? cleanId : 'usr_001',
-        date: DateTime(2026, 8, 11, 9, 15),
-        bmi: 26.8,
-        risk: 'Sedang',
-        category: 'Overweight (IMT 25–27)',
-        skriningData: SkriningData()
-          ..height = 165.0
-          ..weight = 72.0
-          ..aiCategoryTitle = 'Overweight'
-          ..aiCategoryBadge = 'Level I',
-      ),
-      ScreeningHistoryItem(
-        id: 'scr_002',
-        userId: cleanId.isNotEmpty ? cleanId : 'usr_001',
-        date: DateTime(2026, 7, 16, 8, 0),
-        bmi: 27.5,
-        risk: 'Tinggi',
-        category: 'Obesitas (IMT > 27)',
-        skriningData: SkriningData()
-          ..height = 168.0
-          ..weight = 77.0
-          ..aiCategoryTitle = 'Obesitas'
-          ..aiCategoryBadge = 'Tipe 2',
-      ),
-    ];
-
-    yield defaultScreenings;
-
-    if (!isFirebaseAvailable || cleanId.isEmpty) return;
-
-    try {
-      final stream = _firestore
-          .collection('users')
-          .doc(cleanId)
-          .collection('screenings')
-          .snapshots();
-
-      await for (final snapshot in stream) {
-        if (snapshot.docs.isNotEmpty) {
-          final items = snapshot.docs.map((doc) {
-            final data = doc.data();
-            return ScreeningHistoryItem.fromMap(data);
-          }).toList();
-
-          items.sort((a, b) => b.date.compareTo(a.date));
-
-          _summaryCache[cleanId] = UserScreeningSummary(
-            totalScreenings: items.length,
-            lastScreeningDate: items.first.date,
-            latestScreening: items.first,
-            hasLoaded: true,
-          );
-
-          yield items;
-        } else {
-          yield defaultScreenings;
-        }
-      }
-    } catch (e) {
-      debugPrint(
-        '[AdminUserService] Notice streaming screenings for $userId: $e',
-      );
+    if (!isFirebaseAvailable || cleanId.isEmpty) {
+      return Stream.value(const <ScreeningHistoryItem>[]);
     }
+
+    return _firestore
+        .collection('users')
+        .doc(cleanId)
+        .collection('screenings')
+        .snapshots()
+        .map((snapshot) {
+      final items = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return ScreeningHistoryItem.fromMap(data);
+      }).toList();
+
+      items.sort((a, b) => b.date.compareTo(a.date));
+
+      if (items.isNotEmpty) {
+        _summaryCache[cleanId] = UserScreeningSummary(
+          totalScreenings: items.length,
+          lastScreeningDate: items.first.date,
+          latestScreening: items.first,
+          hasLoaded: true,
+        );
+      } else {
+        _summaryCache[cleanId] = const UserScreeningSummary(
+          totalScreenings: 0,
+          hasLoaded: true,
+        );
+      }
+
+      return items;
+    });
   }
 
   /// Mengambil ringkasan skrining (total skrining, waktu skrining terakhir) untuk kartu pengguna
@@ -279,11 +199,9 @@ class AdminUserService {
           .timeout(const Duration(seconds: 10));
 
       if (snapshot.docs.isEmpty) {
-        final summary = UserScreeningSummary(
-          totalScreenings: cleanId == 'usr_001' ? 3 : 0,
-          lastScreeningDate: cleanId == 'usr_001'
-              ? DateTime(2026, 8, 11, 9, 15)
-              : null,
+        const summary = UserScreeningSummary(
+          totalScreenings: 0,
+          lastScreeningDate: null,
           hasLoaded: true,
         );
         _summaryCache[cleanId] = summary;
@@ -306,11 +224,9 @@ class AdminUserService {
       }
     } catch (e) {
       debugPrint('[AdminUserService] Notice fetching summary for $cleanId: $e');
-      final fallback = UserScreeningSummary(
-        totalScreenings: cleanId == 'usr_001' ? 3 : 0,
-        lastScreeningDate: cleanId == 'usr_001'
-            ? DateTime(2026, 8, 11, 9, 15)
-            : null,
+      const fallback = UserScreeningSummary(
+        totalScreenings: 0,
+        lastScreeningDate: null,
         hasLoaded: true,
       );
       _summaryCache[cleanId] = fallback;

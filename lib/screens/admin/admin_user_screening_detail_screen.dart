@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/screening_history_model.dart';
 import '../../models/user_model.dart';
 import '../../services/admin_user_service.dart';
+import '../../widgets/admin_capsule_bottom_nav.dart';
 import '../skrining/skrining_result_screen.dart';
 
 class AdminUserScreeningDetailScreen extends StatelessWidget {
@@ -131,7 +132,16 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: _buildCapsuleBottomNav(context),
+      bottomNavigationBar: AdminCapsuleBottomNav(
+        currentIndex: 1,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.of(context).pop();
+          } else {
+            Navigator.of(context).pop(index);
+          }
+        },
+      ),
     );
   }
 
@@ -214,7 +224,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 Text(
                   user.email.isNotEmpty
                       ? user.email
-                      : 'zahraafitriana@gmail.com',
+                      : 'Email belum diisi',
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
                     color: const Color(0xFF64748B),
@@ -227,7 +237,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 Text(
                   (user.phone != null && user.phone!.trim().isNotEmpty)
                       ? user.phone!.trim()
-                      : '0893-3421-2098',
+                      : '-',
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w500,
@@ -238,7 +248,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 Text(
                   user.genderAndAgeDotFormatted != '--'
                       ? user.genderAndAgeDotFormatted
-                      : 'Perempuan • 23 Tahun',
+                      : (user.isAdmin ? 'Administrator' : '-'),
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
                     color: const Color(0xFF334155),
@@ -1172,64 +1182,6 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     );
   }
 
-  // ===========================================================================
-  // 4. CAPSULE BOTTOM NAVIGATION (Persis Gambar 2)
-  // ===========================================================================
-  Widget _buildCapsuleBottomNav(BuildContext context) {
-    const capsuleBg = Color(0xFF529471); // Warna hijau kapsul sesuai Gambar 2
-
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: capsuleBg,
-          borderRadius: BorderRadius.circular(36),
-          boxShadow: [
-            BoxShadow(
-              color: capsuleBg.withValues(alpha: 0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Home (Selected with light background box)
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(
-                Icons.home_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-            // People / Pengguna
-            IconButton(
-              icon: const Icon(
-                Icons.people_alt_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            // Articles
-            const Icon(Icons.article_rounded, color: Colors.white, size: 22),
-            // Reports / Stats
-            const Icon(Icons.bar_chart_rounded, color: Colors.white, size: 22),
-            // Settings
-            const Icon(Icons.settings_rounded, color: Colors.white, size: 22),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAvatarImage(UserModel user) {
     final photo = user.avatarUrl ?? user.photoPath;
 
@@ -1240,12 +1192,8 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
         width: 58,
         height: 58,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Image.asset(
-          'assets/avatar_zahra.png',
-          width: 58,
-          height: 58,
-          fit: BoxFit.cover,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            _buildPlaceholderDetailAvatar(user),
       );
     } else if (photo != null && photo.startsWith('assets/')) {
       return Image.asset(
@@ -1253,24 +1201,24 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
         width: 58,
         height: 58,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Image.asset(
-          'assets/avatar_zahra.png',
-          width: 58,
-          height: 58,
-          fit: BoxFit.cover,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            _buildPlaceholderDetailAvatar(user),
       );
     }
 
-    return Image.asset(
-      'assets/avatar_zahra.png',
-      width: 58,
-      height: 58,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => Container(
-        color: const Color(0xFFE2F1E8),
-        alignment: Alignment.center,
-        child: const Icon(Icons.person, size: 36, color: Color(0xFF529471)),
+    return _buildPlaceholderDetailAvatar(user);
+  }
+
+  Widget _buildPlaceholderDetailAvatar(UserModel user) {
+    return Container(
+      color: user.isAdmin ? const Color(0xFFE8F5EE) : const Color(0xFFF1F5F9),
+      alignment: Alignment.center,
+      child: Icon(
+        user.isAdmin
+            ? Icons.admin_panel_settings_rounded
+            : Icons.person_rounded,
+        size: 32,
+        color: user.isAdmin ? const Color(0xFF267352) : const Color(0xFF64748B),
       ),
     );
   }

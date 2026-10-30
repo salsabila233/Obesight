@@ -17,6 +17,7 @@ import '../admin/admin_profile_screen.dart';
 import '../admin/admin_user_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
 import '../../widgets/article_thumbnail_image.dart';
+import '../../widgets/admin_capsule_bottom_nav.dart';
 
 enum _AdminSettingsSubView {
   main,
@@ -79,15 +80,20 @@ class _UserChartBarData {
 
 class AdminHomeScreen extends StatefulWidget {
   final UserModel user;
+  final int initialIndex;
 
-  const AdminHomeScreen({super.key, required this.user});
+  const AdminHomeScreen({
+    super.key,
+    required this.user,
+    this.initialIndex = 0,
+  });
 
   @override
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
 }
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
   final _authService = AuthService();
   final _articleService = ArticleService();
 
@@ -130,6 +136,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     _currentUser = widget.user;
     _newPasswordController.addListener(_validatePasswordCriteria);
     _refreshProfile();
@@ -571,11 +578,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       final patientCount =
                           users.where((u) => u.role != UserRole.admin).length;
                       return GestureDetector(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const AdminUserListScreen(),
-                          ),
-                        ),
+                        onTap: () async {
+                          final targetIndex = await Navigator.of(context).push<int>(
+                            MaterialPageRoute(
+                              builder: (context) => const AdminUserListScreen(),
+                            ),
+                          );
+                          if (targetIndex != null && mounted) {
+                            _switchTab(targetIndex);
+                          }
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -2194,105 +2206,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   // 7. Capsule Bottom Navigation (Navigasi Hijau Berbentuk Kapsul dengan 5 Menu)
   Widget _buildCapsuleBottomNav(bool isDark) {
-    const activeColor = Color(0xFF388E6B);
-    const capsuleBg = Color(0xFF246B4D);
-
-    final items = [
-      {
-        'icon': Icons.home_rounded,
-        'inactiveIcon': Icons.home_outlined,
-        'label': 'Beranda',
-      },
-      {
-        'icon': Icons.people_alt_rounded,
-        'inactiveIcon': Icons.people_alt_outlined,
-        'label': 'Pengguna',
-      },
-      {
-        'icon': Icons.article_rounded,
-        'inactiveIcon': Icons.article_outlined,
-        'label': 'Artikel',
-      },
-      {
-        'icon': Icons.bar_chart_rounded,
-        'inactiveIcon': Icons.bar_chart_outlined,
-        'label': 'Laporan',
-      },
-      {
-        'icon': Icons.settings_rounded,
-        'inactiveIcon': Icons.settings_outlined,
-        'label': 'Pengaturan',
-      },
-    ];
-
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        decoration: BoxDecoration(
-          color: capsuleBg,
-          borderRadius: BorderRadius.circular(36),
-          boxShadow: [
-            BoxShadow(
-              color: capsuleBg.withValues(alpha: 0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(items.length, (index) {
-            final isSelected = _currentIndex == index;
-            final item = items[index];
-            final icon =
-                (isSelected ? item['icon'] : item['inactiveIcon']) as IconData;
-            final label = item['label'] as String;
-
-            return Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _switchTab(index),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected ? activeColor : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Icon(icon, color: Colors.white, size: 20),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        label,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: isSelected
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.75),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
+    return AdminCapsuleBottomNav(
+      currentIndex: _currentIndex,
+      onTap: _switchTab,
     );
   }
 

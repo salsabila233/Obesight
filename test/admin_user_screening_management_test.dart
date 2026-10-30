@@ -178,5 +178,38 @@ void main() {
         expect(find.text('Selamat datang, Admin! 👋'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      '4. AdminUserListScreen renders AdminCapsuleBottomNav with identical design to Beranda Admin',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.75;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: const AdminUserListScreen(),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
+
+        // Verifikasi keberadaan kelima menu navbar
+        expect(find.text('Beranda'), findsOneWidget);
+        expect(find.text('Pengguna'), findsAtLeastNWidgets(1));
+        expect(find.text('Artikel'), findsOneWidget);
+        expect(find.text('Laporan'), findsOneWidget);
+        expect(find.text('Pengaturan'), findsOneWidget);
+
+        // Verifikasi ikon navbar
+        expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.people_alt_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.article_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.bar_chart_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+      },
+    );
   });
 }

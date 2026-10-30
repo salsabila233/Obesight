@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/admin_user_service.dart';
+import '../../services/auth_service.dart';
+import '../../widgets/admin_capsule_bottom_nav.dart';
+import '../home/admin_home_screen.dart';
 import 'admin_user_screening_detail_screen.dart';
 
 class AdminUserListScreen extends StatefulWidget {
@@ -34,6 +37,34 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
       widget.onBackToHome!();
     } else if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleNavTap(int index) {
+    if (index == 1) return; // Sudah di tab Pengguna
+    if (widget.onBackToHome != null) {
+      widget.onBackToHome!();
+      return;
+    }
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(index);
+    } else {
+      final currentUser = AuthService().currentUser ??
+          const UserModel(
+            id: 'admin',
+            name: 'Admin',
+            email: 'admin@obesight.com',
+            username: 'admin',
+            role: UserRole.admin,
+          );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => AdminHomeScreen(
+            user: currentUser,
+            initialIndex: index,
+          ),
+        ),
+      );
     }
   }
 
@@ -194,11 +225,11 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
 
                   return ListView.builder(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(
+                    padding: const EdgeInsets.fromLTRB(
                       16,
                       4,
                       16,
-                      widget.isEmbedded ? 110 : 32,
+                      110,
                     ),
                     itemCount: filteredUsers.length,
                     itemBuilder: (context, index) {
@@ -233,6 +264,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
 
     return Scaffold(
       backgroundColor: sageGreen,
+      extendBody: true,
       appBar: AppBar(
         backgroundColor: sageGreen,
         elevation: 0,
@@ -256,6 +288,10 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
         ),
       ),
       body: bodyContent,
+      bottomNavigationBar: AdminCapsuleBottomNav(
+        currentIndex: 1,
+        onTap: _handleNavTap,
+      ),
     );
   }
 }
@@ -315,17 +351,48 @@ class _AdminUserCardItem extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            user.name.isNotEmpty
-                                ? user.name
-                                : 'Pengguna ObeSight',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              if (user.isAdmin) ...[
+                                Container(
+                                  margin: const EdgeInsets.only(right: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5EE),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0xFF529471),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Admin',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF267352),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              Expanded(
+                                child: Text(
+                                  user.name.isNotEmpty
+                                      ? user.name
+                                      : 'Pengguna ObeSight',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 1),
                           Text(
@@ -345,7 +412,7 @@ class _AdminUserCardItem extends StatelessWidget {
                             (user.phone != null &&
                                     user.phone!.trim().isNotEmpty)
                                 ? user.phone!.trim()
-                                : '0893-3421-2098',
+                                : '-',
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w500,
@@ -358,7 +425,7 @@ class _AdminUserCardItem extends StatelessWidget {
                           Text(
                             user.genderAndAgeDotFormatted != '--'
                                 ? user.genderAndAgeDotFormatted
-                                : 'Perempuan • 23 Tahun',
+                                : (user.isAdmin ? 'Administrator' : '-'),
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
                               color: const Color(0xFF334155),
@@ -389,7 +456,7 @@ class _AdminUserCardItem extends StatelessWidget {
                             label: 'Bergabung',
                             value: user.joinedFormatted != 'Belum tersedia'
                                 ? user.joinedFormatted
-                                : '12 Juni 2026',
+                                : '-',
                           ),
                           const SizedBox(height: 5),
                           _buildRightMetricItem(
@@ -397,7 +464,7 @@ class _AdminUserCardItem extends StatelessWidget {
                             label: 'Total Skrining',
                             value: summary.totalScreenings > 0
                                 ? summary.formattedTotal
-                                : '3 kali',
+                                : '0 kali',
                           ),
                           const SizedBox(height: 5),
                           _buildRightMetricItem(
@@ -405,7 +472,7 @@ class _AdminUserCardItem extends StatelessWidget {
                             label: 'Skrining Terakhir',
                             value: summary.lastScreeningDate != null
                                 ? summary.formattedLastDateShort
-                                : '11 Agustus 2026',
+                                : '-',
                           ),
                         ],
                       ),
@@ -490,12 +557,8 @@ class _AdminUserCardItem extends StatelessWidget {
           width: 58,
           height: 68,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Image.asset(
-            'assets/avatar_zahra.png',
-            width: 58,
-            height: 68,
-            fit: BoxFit.cover,
-          ),
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPlaceholderAvatar(user),
         ),
       );
     } else if (photo != null && photo.startsWith('assets/')) {
@@ -506,35 +569,40 @@ class _AdminUserCardItem extends StatelessWidget {
           width: 58,
           height: 68,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Image.asset(
-            'assets/avatar_zahra.png',
-            width: 58,
-            height: 68,
-            fit: BoxFit.cover,
-          ),
+          errorBuilder: (context, error, stackTrace) =>
+              _buildPlaceholderAvatar(user),
         ),
       );
     }
 
-    // Default asset avatar sesuai screenshot mockup
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: Image.asset(
-        'assets/avatar_zahra.png',
-        width: 58,
-        height: 68,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          width: 58,
-          height: 68,
-          color: const Color(0xFFE2F1E8),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.person_rounded,
-            size: 36,
-            color: Color(0xFF529471),
-          ),
+    return _buildPlaceholderAvatar(user);
+  }
+
+  Widget _buildPlaceholderAvatar(UserModel user) {
+    return Container(
+      width: 58,
+      height: 68,
+      decoration: BoxDecoration(
+        color: user.isAdmin
+            ? const Color(0xFFE8F5EE)
+            : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: user.isAdmin
+              ? const Color(0xFF529471).withValues(alpha: 0.3)
+              : const Color(0xFFCBD5E1),
+          width: 1,
         ),
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        user.isAdmin
+            ? Icons.admin_panel_settings_rounded
+            : Icons.person_rounded,
+        size: 32,
+        color: user.isAdmin
+            ? const Color(0xFF267352)
+            : const Color(0xFF64748B),
       ),
     );
   }
