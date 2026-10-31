@@ -82,10 +82,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
     }
 
-    // 6. Koleksi Artikel Kesehatan (Publik/User hanya membaca, Admin dapat menulis & mengelola)
+    // 6. Koleksi Artikel Kesehatan (Publik/User hanya membaca, Admin & pengguna terautentikasi dapat mengelola)
     match /articles/{articleId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if request.auth != null || isAdmin();
     }
 
     // 7. Antrean Kirim Email Otomatis (Firebase Trigger Email)

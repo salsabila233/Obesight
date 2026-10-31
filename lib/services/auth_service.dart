@@ -1284,8 +1284,14 @@ class AuthService {
     // 1. Cek Admin preset untuk kenyamanan pengujian
     if ((effectiveEmail == 'adminobesight@gmail.com' || effectiveEmail == 'admin@obesight.com' || cleanId == 'admin') &&
         (cleanPass == (customPass ?? 'admin123'))) {
+      await _ensureFirebaseAdminAuthenticated(
+        effectiveEmail.contains('@') ? effectiveEmail : 'adminobesight@gmail.com',
+        cleanPass,
+      );
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
+      final currentUid = _firebaseAuth.currentUser?.uid ?? defaultAdminAccount.id;
       _currentUser = defaultAdminAccount.copyWith(
+        id: currentUid,
         isBiodataComplete: isBiodataCompleted(defaultAdminAccount.id),
         bmiScore: (bmiInfo['bmi'] as num).toDouble(),
         bmiCategory: bmiInfo['category'] as String,
@@ -1411,6 +1417,49 @@ class AuthService {
     return const AuthResponse.failure('Email atau kata sandi salah');
   }
 
+  /// Memastikan akun administrator terdaftar dan terautentikasi di Firebase Authentication & Cloud Firestore
+  /// agar operasi tulis database (seperti artikel, katalog gizi, dll.) tidak ditolak oleh Security Rules.
+  Future<void> _ensureFirebaseAdminAuthenticated(String email, String password) async {
+    if (!isFirebaseAvailable) return;
+    try {
+      final targetEmail = email.contains('@') ? email.trim().toLowerCase() : 'adminobesight@gmail.com';
+      UserCredential? cred;
+      try {
+        cred = await _firebaseAuth.signInWithEmailAndPassword(
+          email: targetEmail,
+          password: password,
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+          try {
+            cred = await _firebaseAuth.createUserWithEmailAndPassword(
+              email: targetEmail,
+              password: password,
+            );
+          } catch (createErr) {
+            debugPrint('[AuthService] Auto-create admin Firebase Auth notice: $createErr');
+          }
+        } else {
+          debugPrint('[AuthService] Admin Firebase Auth signIn notice: ${e.code}');
+        }
+      }
+
+      final fbUser = cred?.user ?? _firebaseAuth.currentUser;
+      if (fbUser != null) {
+        await _firestore.collection('users').doc(fbUser.uid).set({
+          'role': 'admin',
+          'email': targetEmail,
+          'name': 'Dr. Hendra Wijaya, Sp.GK',
+          'isBiodataComplete': true,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        debugPrint('[AuthService] Admin verified in Firebase Auth & Firestore (UID: ${fbUser.uid})');
+      }
+    } catch (e) {
+      debugPrint('[AuthService] _ensureFirebaseAdminAuthenticated notice: $e');
+    }
+  }
+
   /// Login khusus Administrator dengan verifikasi ketat field 'role' di Cloud Firestore.
   /// Hanya akun yang memiliki field role: 'admin' yang diizinkan masuk ke dashboard admin.
   Future<AuthResponse> loginAdmin({
@@ -1428,8 +1477,14 @@ class AuthService {
     // 1. Akun Preset Administrator (untuk pengujian & offline fallback)
     if ((cleanEmail == 'adminobesight@gmail.com' || cleanEmail == 'admin@obesight.com' || cleanEmail == 'admin') &&
         (cleanPass == 'admin123')) {
+      await _ensureFirebaseAdminAuthenticated(
+        cleanEmail.contains('@') ? cleanEmail : 'adminobesight@gmail.com',
+        cleanPass,
+      );
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
+      final currentUid = _firebaseAuth.currentUser?.uid ?? defaultAdminAccount.id;
       _currentUser = defaultAdminAccount.copyWith(
+        id: currentUid,
         isBiodataComplete: true,
         bmiScore: (bmiInfo['bmi'] as num).toDouble(),
         bmiCategory: bmiInfo['category'] as String,

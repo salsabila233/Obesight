@@ -273,9 +273,9 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
     try {
       final xFile = await _imagePicker.pickImage(
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 70,
       );
       if (xFile != null) {
         final bytes = await xFile.readAsBytes();

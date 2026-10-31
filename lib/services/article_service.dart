@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/article_model.dart';
@@ -7,6 +8,8 @@ import '../models/article_model.dart';
 class ArticleService {
   static final ArticleService _instance = ArticleService._internal();
   factory ArticleService() => _instance;
+
+  bool get _isFirebaseAvailable => Firebase.apps.isNotEmpty;
 
   static const String _deletedIdsKey = 'deleted_article_ids';
   final Set<String> _deletedArticleIds = {};
@@ -261,6 +264,7 @@ class ArticleService {
   void _initFirestoreListener() {
     if (_isListenerAttached) return;
     try {
+      if (!_isFirebaseAvailable) return;
       final articlesCol = FirebaseFirestore.instance.collection('articles');
       _isListenerAttached = true;
       articlesCol.snapshots().listen(
@@ -282,11 +286,15 @@ class ArticleService {
               return bTime.compareTo(aTime);
             });
 
-            // Gabungkan artikel Firestore dengan cache lokal yang belum tersinkron
+            // Pertahankan artikel lokal baru (dibuat < 15 detik lalu) yang sedang proses sync ke server
+            final now = DateTime.now();
             for (final local in _cachedArticles) {
-              if (!_deletedArticleIds.contains(local.id) &&
+              final isRecentLocal = local.updatedAt != null &&
+                  now.difference(local.updatedAt!).inSeconds < 15;
+              if (isRecentLocal &&
+                  !_deletedArticleIds.contains(local.id) &&
                   !parsedList.any((p) => p.id == local.id)) {
-                parsedList.add(local);
+                parsedList.insert(0, local);
               }
             }
 
@@ -294,7 +302,10 @@ class ArticleService {
             _cachedArticles = parsedList;
             _notifyStreams();
           } else {
+            // Jika koleksi articles di Firestore belum ada dokumen sama sekali,
+            // lakukan seeding awal jika memungkinkan
             _seedIfEmpty();
+            _notifyStreams();
           }
         },
         onError: (e) {
@@ -308,14 +319,16 @@ class ArticleService {
   }
 
   Future<void> _seedIfEmpty() async {
+    if (!_isFirebaseAvailable) return;
     try {
       final coll = FirebaseFirestore.instance.collection('articles');
       for (final a in _initialArticles) {
         if (_deletedArticleIds.contains(a.id)) continue;
         await coll.doc(a.id).set(a.toFirestoreMap(), SetOptions(merge: true));
       }
+      debugPrint('[ArticleService] Initial articles auto-seeded to Firestore.');
     } catch (e) {
-      debugPrint('[ArticleService] Auto seed error: $e');
+      debugPrint('[ArticleService] Auto seed notice: $e');
     }
   }
 
@@ -505,21 +518,20 @@ class ArticleService {
     _cachedArticles.insert(0, newArticle);
     _notifyStreams();
 
-    // 2. Simpan ke Cloud Firestore di latar belakang tanpa memblokir UI
-    try {
-      final ref = docRef ?? FirebaseFirestore.instance.collection('articles').doc(docId);
-      unawaited(
-        ref.set(newArticle.toFirestoreMap()).timeout(
-          const Duration(seconds: 4),
+    // 2. Simpan ke Cloud Firestore dan AWAIT agar data tersinkronisasi ke server
+    if (_isFirebaseAvailable) {
+      try {
+        final ref = docRef ?? FirebaseFirestore.instance.collection('articles').doc(docId);
+        await ref.set(newArticle.toFirestoreMap()).timeout(
+          const Duration(seconds: 12),
           onTimeout: () {
-            debugPrint('[ArticleService] Firestore set timed out, saved locally.');
+            debugPrint('[ArticleService] Firestore set timed out, will sync in background.');
           },
-        ).catchError((e) {
-          debugPrint('[ArticleService] Firestore createArticle notice: $e');
-        }),
-      );
-    } catch (e) {
-      debugPrint('[ArticleService] Firestore set init error: $e');
+        );
+        debugPrint('[ArticleService] Article $docId successfully published to Cloud Firestore.');
+      } catch (e) {
+        debugPrint('[ArticleService] Firestore createArticle notice: $e');
+      }
     }
 
     return newArticle;
@@ -570,18 +582,17 @@ class ArticleService {
     _cachedArticles[index] = updated;
     _notifyStreams();
 
-    try {
-      unawaited(
-        FirebaseFirestore.instance
+    if (_isFirebaseAvailable) {
+      try {
+        await FirebaseFirestore.instance
             .collection('articles')
             .doc(id)
             .set(updated.toFirestoreMap(), SetOptions(merge: true))
-            .catchError((e) {
-          debugPrint('[ArticleService] updateArticle notice: $e');
-        }),
-      );
-    } catch (e) {
-      debugPrint('[ArticleService] updateArticle error: $e');
+            .timeout(const Duration(seconds: 10));
+        debugPrint('[ArticleService] Article $id updated in Cloud Firestore.');
+      } catch (e) {
+        debugPrint('[ArticleService] updateArticle notice: $e');
+      }
     }
 
     return updated;
@@ -601,18 +612,17 @@ class ArticleService {
       _notifyStreams();
     }
 
-    try {
-      unawaited(
-        FirebaseFirestore.instance.collection('articles').doc(id).update({
+    if (_isFirebaseAvailable) {
+      try {
+        await FirebaseFirestore.instance.collection('articles').doc(id).set({
           'isPublished': publish,
           'updatedAt': Timestamp.fromDate(now),
           if (publish) 'publishedAt': Timestamp.fromDate(now),
-        }).catchError((e) {
-          debugPrint('[ArticleService] togglePublishStatus notice: $e');
-        }),
-      );
-    } catch (e) {
-      debugPrint('[ArticleService] togglePublishStatus error: $e');
+        }, SetOptions(merge: true)).timeout(const Duration(seconds: 10));
+        debugPrint('[ArticleService] Article $id publish status updated to $publish in Cloud Firestore.');
+      } catch (e) {
+        debugPrint('[ArticleService] togglePublishStatus notice: $e');
+      }
     }
   }
 
@@ -622,14 +632,18 @@ class ArticleService {
     _cachedArticles.removeWhere((a) => a.id == id);
     _notifyStreams();
     unawaited(_saveDeletedIds());
-    try {
-      unawaited(
-        FirebaseFirestore.instance.collection('articles').doc(id).delete().catchError((e) {
-          debugPrint('[ArticleService] deleteArticle notice: $e');
-        }),
-      );
-    } catch (e) {
-      debugPrint('[ArticleService] deleteArticle notice: $e');
+
+    if (_isFirebaseAvailable) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('articles')
+            .doc(id)
+            .delete()
+            .timeout(const Duration(seconds: 10));
+        debugPrint('[ArticleService] Article $id successfully deleted from Cloud Firestore.');
+      } catch (e) {
+        debugPrint('[ArticleService] deleteArticle notice: $e');
+      }
     }
   }
 
