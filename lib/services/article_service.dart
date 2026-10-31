@@ -1,13 +1,18 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/article_model.dart';
 
 class ArticleService {
   static final ArticleService _instance = ArticleService._internal();
   factory ArticleService() => _instance;
 
+  static const String _deletedIdsKey = 'deleted_article_ids';
+  final Set<String> _deletedArticleIds = {};
+
   ArticleService._internal() {
+    _loadDeletedIds();
     _initFirestoreListener();
   }
 
@@ -203,15 +208,42 @@ class ArticleService {
     return _publishedArticlesController!;
   }
 
+  Future<void> _loadDeletedIds() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList(_deletedIdsKey) ?? [];
+      if (list.isNotEmpty) {
+        _deletedArticleIds.addAll(list);
+        _cachedArticles.removeWhere((a) => _deletedArticleIds.contains(a.id));
+        _notifyStreams();
+      }
+    } catch (e) {
+      debugPrint('[ArticleService] _loadDeletedIds notice: $e');
+    }
+  }
+
+  Future<void> _saveDeletedIds() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_deletedIdsKey, _deletedArticleIds.toList());
+    } catch (e) {
+      debugPrint('[ArticleService] _saveDeletedIds notice: $e');
+    }
+  }
+
   void _notifyStreams() {
     try {
-      _safeAllArticlesController.add(List.unmodifiable(_cachedArticles));
+      _safeAllArticlesController.add(
+        List.unmodifiable(_cachedArticles.where((a) => !_deletedArticleIds.contains(a.id))),
+      );
     } catch (e) {
       debugPrint('[ArticleService] _notifyStreams all notice: $e');
     }
     try {
       _safePublishedArticlesController.add(
-        _cachedArticles.where((a) => a.isPublished).toList(),
+        _cachedArticles
+            .where((a) => a.isPublished && !_deletedArticleIds.contains(a.id))
+            .toList(),
       );
     } catch (e) {
       debugPrint('[ArticleService] _notifyStreams published notice: $e');
@@ -236,6 +268,7 @@ class ArticleService {
           if (snapshot.docs.isNotEmpty) {
             final parsedList = <ArticleModel>[];
             for (final doc in snapshot.docs) {
+              if (_deletedArticleIds.contains(doc.id)) continue;
               try {
                 parsedList.add(ArticleModel.fromFirestore(doc));
               } catch (err) {
@@ -251,11 +284,13 @@ class ArticleService {
 
             // Gabungkan artikel Firestore dengan cache lokal yang belum tersinkron
             for (final local in _cachedArticles) {
-              if (!parsedList.any((p) => p.id == local.id)) {
+              if (!_deletedArticleIds.contains(local.id) &&
+                  !parsedList.any((p) => p.id == local.id)) {
                 parsedList.add(local);
               }
             }
 
+            parsedList.removeWhere((a) => _deletedArticleIds.contains(a.id));
             _cachedArticles = parsedList;
             _notifyStreams();
           } else {
@@ -276,6 +311,7 @@ class ArticleService {
     try {
       final coll = FirebaseFirestore.instance.collection('articles');
       for (final a in _initialArticles) {
+        if (_deletedArticleIds.contains(a.id)) continue;
         await coll.doc(a.id).set(a.toFirestoreMap(), SetOptions(merge: true));
       }
     } catch (e) {
@@ -283,25 +319,41 @@ class ArticleService {
     }
   }
 
-  /// Getter untuk referensi fallback artikel awal
-  List<ArticleModel> get initialArticles => List.unmodifiable(_initialArticles);
+  /// Getter untuk referensi fallback artikel awal (tanpa artikel yang telah dihapus)
+  List<ArticleModel> get initialArticles =>
+      _initialArticles.where((a) => !_deletedArticleIds.contains(a.id)).toList();
 
   /// Mengambil daftar artikel aktif secara sinkron dari cache memori
-  List<ArticleModel> getArticles() => List.unmodifiable(_cachedArticles);
+  List<ArticleModel> getArticles() =>
+      _cachedArticles.where((a) => !_deletedArticleIds.contains(a.id)).toList();
 
   /// Mengambil artikel unggulan (maksimal 4 artikel pertama yang terbit)
   List<ArticleModel> getFeaturedArticles() =>
-      _cachedArticles.where((a) => a.isPublished).take(4).toList();
+      _cachedArticles
+          .where((a) => a.isPublished && !_deletedArticleIds.contains(a.id))
+          .take(4)
+          .toList();
 
   /// Mengambil artikel berdasarkan ID (mendukung id tipe String maupun int)
   ArticleModel? getArticleById(dynamic id) {
     if (id == null) return null;
     final idStr = id.toString();
+    if (_deletedArticleIds.contains(idStr) || _deletedArticleIds.contains('article_$idStr')) {
+      return null;
+    }
     try {
-      return _cachedArticles.firstWhere((art) => art.id == idStr || art.id == 'article_$idStr');
+      return _cachedArticles.firstWhere(
+        (art) =>
+            !_deletedArticleIds.contains(art.id) &&
+            (art.id == idStr || art.id == 'article_$idStr'),
+      );
     } catch (_) {
       try {
-        return _initialArticles.firstWhere((art) => art.id == idStr || art.id == 'article_$idStr');
+        return _initialArticles.firstWhere(
+          (art) =>
+              !_deletedArticleIds.contains(art.id) &&
+              (art.id == idStr || art.id == 'article_$idStr'),
+        );
       } catch (_) {
         return null;
       }
@@ -310,6 +362,9 @@ class ArticleService {
 
   /// Mengambil artikel langsung dari Firestore berdasarkan ID Dokumen (asinkron)
   Future<ArticleModel?> fetchArticleById(String docId) async {
+    if (_deletedArticleIds.contains(docId) || _deletedArticleIds.contains('article_$docId')) {
+      return null;
+    }
     final local = getArticleById(docId);
     if (local != null) return local;
 
@@ -327,16 +382,20 @@ class ArticleService {
   /// Memfilter artikel berdasarkan kategori
   List<ArticleModel> getArticlesByCategory(String category) {
     final cat = category.trim().toLowerCase();
-    if (cat.isEmpty) return List.unmodifiable(_cachedArticles);
-    return _cachedArticles.where((art) => art.category.toLowerCase() == cat).toList();
+    if (cat.isEmpty) {
+      return List.unmodifiable(_cachedArticles.where((a) => !_deletedArticleIds.contains(a.id)));
+    }
+    return _cachedArticles
+        .where((art) => !_deletedArticleIds.contains(art.id) && art.category.toLowerCase() == cat)
+        .toList();
   }
 
   /// Mencari artikel berdasarkan kata kunci judul atau isi
   List<ArticleModel> searchArticles(String query, {bool onlyPublished = false}) {
     final q = query.trim().toLowerCase();
     final source = onlyPublished
-        ? _cachedArticles.where((a) => a.isPublished).toList()
-        : _cachedArticles;
+        ? _cachedArticles.where((a) => a.isPublished && !_deletedArticleIds.contains(a.id)).toList()
+        : _cachedArticles.where((a) => !_deletedArticleIds.contains(a.id)).toList();
 
     if (q.isEmpty) return List.unmodifiable(source);
     return source.where((art) {
@@ -349,13 +408,13 @@ class ArticleService {
   /// STREAM UNTUK ADMIN: Mengambil semua artikel (Semua, Dipublikasikan, maupun Draf)
   /// Mengalirkan data seketika tanpa delay dan tanpa menunggu roundtrip server
   Stream<List<ArticleModel>> getAllArticlesStream() async* {
-    yield List.unmodifiable(_cachedArticles);
+    yield List.unmodifiable(_cachedArticles.where((a) => !_deletedArticleIds.contains(a.id)));
     yield* _safeAllArticlesController.stream;
   }
 
   /// STREAM UNTUK PENGGUNA: Hanya mengambil artikel yang sudah berstatus dipublikasikan (isPublished == true)
   Stream<List<ArticleModel>> getArticlesStream() async* {
-    yield _cachedArticles.where((a) => a.isPublished).toList();
+    yield _cachedArticles.where((a) => a.isPublished && !_deletedArticleIds.contains(a.id)).toList();
     yield* _safePublishedArticlesController.stream;
   }
 
@@ -370,6 +429,7 @@ class ArticleService {
       if (snapshot.docs.isNotEmpty) {
         final parsed = snapshot.docs
             .map((doc) => ArticleModel.fromFirestore(doc))
+            .where((a) => !_deletedArticleIds.contains(a.id))
             .toList();
 
         parsed.sort((a, b) {
@@ -384,7 +444,7 @@ class ArticleService {
     } catch (e) {
       debugPrint('[ArticleService] fetchArticles error, using cached fallback: $e');
     }
-    return _cachedArticles.where((a) => a.isPublished).toList();
+    return _cachedArticles.where((a) => a.isPublished && !_deletedArticleIds.contains(a.id)).toList();
   }
 
   /// Menambahkan artikel baru (oleh Admin)
@@ -558,8 +618,10 @@ class ArticleService {
 
   /// Menghapus artikel
   Future<void> deleteArticle(String id) async {
+    _deletedArticleIds.add(id);
     _cachedArticles.removeWhere((a) => a.id == id);
     _notifyStreams();
+    unawaited(_saveDeletedIds());
     try {
       unawaited(
         FirebaseFirestore.instance.collection('articles').doc(id).delete().catchError((e) {

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/article_model.dart';
 import '../../services/article_service.dart';
+import '../../widgets/app_alert.dart';
 import '../../widgets/article_thumbnail_image.dart';
 import '../../widgets/formatted_article_content.dart';
 
@@ -482,6 +483,146 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
     }
   }
 
+  Future<void> _confirmDeleteArticle() async {
+    if (widget.initialArticle == null) return;
+    final article = widget.initialArticle!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFFECACA),
+                  width: 1.5,
+                ),
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: Color(0xFFDC2626),
+                size: 30,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Hapus Artikel?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 17,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Apakah kamu yakin ingin menghapus artikel "${article.title}"? Artikel ini akan dihapus secara permanen.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: article.isPublished
+                    ? const Color(0xFF388E6B).withValues(alpha: 0.12)
+                    : const Color(0xFFEAB308).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                article.isPublished ? 'Status: Dipublikasikan' : 'Status: Draft',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: article.isPublished
+                      ? const Color(0xFF2E6B4F)
+                      : const Color(0xFF854D0E),
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: BorderSide(
+                        color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC2626),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Hapus',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed != true) return;
+    await _articleService.deleteArticle(article.id);
+    if (!mounted) return;
+    AppAlert.showSuccess(
+      context,
+      'Artikel "${article.title}" berhasil dihapus.',
+    );
+    Navigator.of(context).pop<Map<String, dynamic>>({
+      'deleted': true,
+      'articleId': article.id,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -508,6 +649,15 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
             color: Colors.white,
           ),
         ),
+        actions: isEdit
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 22),
+                  tooltip: 'Hapus Artikel',
+                  onPressed: _confirmDeleteArticle,
+                ),
+              ]
+            : null,
       ),
       body: Container(
         width: double.infinity,
