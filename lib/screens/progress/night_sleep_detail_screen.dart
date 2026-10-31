@@ -227,6 +227,13 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
         ? 'Hari ini, ${selectedDate.day} ${monthNames[selectedDate.month]} ${selectedDate.year}'
         : '${dayNames[selectedDate.weekday % 7]}, ${selectedDate.day} ${monthNames[selectedDate.month]} ${selectedDate.year}';
 
+    final totalMinutes = hasDataForSelectedDate
+        ? service.getTotalSleepMinutesForDate(selectedDate)
+        : (isSelectedToday && pendingAuto != null ? pendingAuto.durationMinutes : 0);
+    final hasAnyData = hasDataForSelectedDate || (isSelectedToday && pendingAuto != null);
+    final isIdeal = totalMinutes >= SleepTrackingService.standardIdealSleepMinutes;
+    final standardCategory = service.getSleepStandard8HoursCategory(totalMinutes);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -285,22 +292,26 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             ),
                           ),
                         ),
-                        if (hasDataForSelectedDate)
+                        if (hasAnyData)
                           Flexible(
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.6) : const Color(0xFFEDF7F2),
+                                color: isIdeal
+                                    ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.6) : const Color(0xFFEDF7F2))
+                                    : (isDark ? const Color(0xFF451A03).withValues(alpha: 0.6) : const Color(0xFFFEF3C7)),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
-                                statusText,
+                                standardCategory,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
-                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
+                                  color: isIdeal
+                                      ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                      : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309)),
                                 ),
                               ),
                             ),
@@ -489,7 +500,81 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             ],
           ),
 
-          const SizedBox(height: 12),
+          if (hasAnyData) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isIdeal
+                    ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.35) : const Color(0xFFEDF7F2))
+                    : (isDark ? const Color(0xFF451A03).withValues(alpha: 0.35) : const Color(0xFFFEF3C7).withValues(alpha: 0.7)),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isIdeal
+                      ? (isDark ? const Color(0xFF059669).withValues(alpha: 0.5) : const Color(0xFFA5D6C1))
+                      : (isDark ? const Color(0xFFD97706).withValues(alpha: 0.5) : const Color(0xFFFDE68A)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isIdeal ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                    size: 15,
+                    color: isIdeal
+                        ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                        : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309)),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          'Acuan Standar 8 Jam: ${isIdeal ? "Tidur Cukup" : "Tidur Kurang"}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isIdeal
+                                ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45))
+                                : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309)),
+                          ),
+                        ),
+                        if (isIdeal)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF065F46) : const Color(0xFF36785A),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Ideal',
+                              style: GoogleFonts.poppins(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        else
+                          Text(
+                            '(< 8 jam)',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10.5,
+                              color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 10),
           // Label Disclaimer
           Container(
             width: double.infinity,
@@ -770,7 +855,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Status: $status (Target: ${targetM ~/ 60} jam)',
+                      'Status: ${service.getSleepStandard8HoursCategory(totalMinutes)} (${totalMinutes >= 480 ? "Ideal" : "< 8 jam"}) • $status (Target: ${targetM ~/ 60} jam)',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(

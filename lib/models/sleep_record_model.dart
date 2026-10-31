@@ -93,6 +93,25 @@ class SleepRecord {
   String get sourceLabel =>
       isAutomatic ? 'Perkiraan berdasarkan aktivitas HP' : 'Dicatat oleh pengguna';
 
+  /// Standar ideal tidur malam menurut acuan kesehatan (8 jam = 480 menit)
+  static const int standardIdealMinutes = 8 * 60;
+
+  /// Penilaian status berdasarkan acuan standar ideal tidur 8 jam:
+  /// - < 8 jam (< 480 menit): "Tidur Kurang"
+  /// - >= 8 jam (>= 480 menit): "Tidur Cukup"
+  String get standard8HoursCategory =>
+      durationMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
+
+  /// Status ideal acuan 8 jam ("Tidur Kurang" atau "Ideal")
+  String get standard8HoursStatus =>
+      durationMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Ideal';
+
+  /// Apakah durasi tidur mencapai standar ideal (>= 8 jam)
+  bool get isIdeal8Hours => durationMinutes >= standardIdealMinutes;
+
+  /// Apakah durasi tidur kurang dari standar ideal (< 8 jam)
+  bool get isUnder8Hours => durationMinutes < standardIdealMinutes;
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

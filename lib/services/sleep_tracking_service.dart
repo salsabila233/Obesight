@@ -42,6 +42,20 @@ class DailySleepSummary {
     if (hours > 0) return '${hours}j';
     return '${remainingMinutes}m';
   }
+
+  /// Standar ideal tidur malam 8 jam (480 menit)
+  static const int standardIdealMinutes = 8 * 60;
+
+  /// Kategori penilaian acuan standar tidur 8 jam: "Tidur Kurang" (< 8 jam) atau "Tidur Cukup" (>= 8 jam)
+  String get standard8HoursCategory =>
+      totalMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
+
+  /// Status ideal acuan 8 jam: "Tidur Kurang" atau "Ideal"
+  String get standard8HoursStatus =>
+      totalMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Ideal';
+
+  /// Memeriksa apakah durasi tidur mencapai standar ideal 8 jam
+  bool get isIdeal8Hours => totalMinutes >= standardIdealMinutes;
 }
 
 class WeeklySleepSummary {
@@ -887,6 +901,79 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
+  /// 1. Logika Rekam Tidur Otomatis:
+  /// Fungsi pendeteksi waktu tidur otomatis yang menggunakan aktivitas layar perangkat
+  /// (screen off di malam hari: >= 20.00 atau < 05.00, dan screen on di pagi hari: >= 05.00 s.d. 14.00).
+  SleepRecord? detectSleepFromScreenActivity({
+    required DateTime? screenOff,
+    required DateTime? screenOn,
+    DateTime? referenceNow,
+  }) {
+    return detectSleepFromSensors(
+      screenOff: screenOff,
+      screenOn: screenOn,
+      referenceNow: referenceNow,
+    );
+  }
+
+  /// Alias fungsi deteksi tidur otomatis berbasis aktivitas layar perangkat
+  SleepRecord? detectAutomaticSleep({
+    DateTime? screenOff,
+    DateTime? screenOn,
+    DateTime? referenceNow,
+  }) {
+    return detectSleepFromSensors(
+      screenOff: screenOff,
+      screenOn: screenOn,
+      referenceNow: referenceNow,
+    );
+  }
+
+  /// Merekam waktu tidur otomatis dan menghubungkannya ke sistem tanpa mengganggu
+  /// fungsi maupun data input manual yang sudah ada.
+  /// - Menghubungkan kandidat deteksi otomatis ke sistem (pendingAutoDetectedRecord) agar dapat ditinjau
+  ///   dan dicatat pengguna melalui tombol "Catat waktu ini" (atau disimpan langsung jika autoConfirm = true).
+  /// - Perlindungan Data Manual: Jika pengguna telah memiliki catatan manual yang terkonfirmasi untuk tanggal sesi tidur ini,
+  ///   data manual tersebut TIDAK AKAN diganggu atau ditimpa oleh deteksi otomatis.
+  Future<SleepRecord?> recordAutomaticSleep({
+    DateTime? screenOff,
+    DateTime? screenOn,
+    DateTime? referenceNow,
+    bool autoConfirm = false,
+  }) async {
+    final candidate = detectSleepFromSensors(
+      screenOff: screenOff,
+      screenOn: screenOn,
+      referenceNow: referenceNow,
+    );
+
+    if (candidate == null) return null;
+
+    // Proteksi data manual: Jangan ganggu atau timpa data manual yang sudah dicatat oleh pengguna
+    final existingRecord = getSavedRecordForDate(candidate.endTime);
+    if (existingRecord != null && existingRecord.isConfirmed && existingRecord.source == 'manual') {
+      debugPrint('[SleepTrackingService] Data manual terkonfirmasi pada tanggal ${candidate.date} dilindungi. Deteksi otomatis tidak menimpa data manual pengguna.');
+      return null;
+    }
+
+    if (autoConfirm) {
+      final confirmed = candidate.copyWith(
+        isConfirmed: true,
+        updatedAt: DateTime.now(),
+      );
+      await addRecord(confirmed);
+      _pendingAutoDetectedRecord = null;
+      await _saveToLocal();
+      notifyListeners();
+      return confirmed;
+    } else {
+      _pendingAutoDetectedRecord = candidate;
+      await _saveToLocal();
+      notifyListeners();
+      return candidate;
+    }
+  }
+
   /// Simulasi deteksi sensor untuk keperluan testing dan demo
   void simulateSensorDetection({
     DateTime? screenOff,
@@ -1180,6 +1267,37 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     } else {
       return 'Tidur berlebih';
     }
+  }
+
+  /// 2. Validasi Acuan Standar Tidur 8 Jam:
+  /// Standar ideal durasi tidur malam adalah 8 jam (480 menit).
+  static const int standardIdealSleepHours = 8;
+  static const int standardIdealSleepMinutes = 8 * 60; // 480 menit
+
+  /// Aturan penilaian berdasarkan standar ideal 8 jam:
+  /// - JIKA total durasi tidur kurang dari 8 jam (< 8 jam), berikan status "Tidur Kurang".
+  /// - JIKA total durasi tidur mencapai atau melebihi 8 jam (>= 8 jam), berikan status "Tidur Cukup".
+  String getSleepStandard8HoursCategory(int totalMinutes) {
+    if (totalMinutes <= 0) return 'Belum ada data';
+    return totalMinutes < standardIdealSleepMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
+  }
+
+  /// Label alternatif status acuan standar 8 jam ("Tidur Kurang" / "Ideal"):
+  /// - < 8 jam: "Tidur Kurang"
+  /// - >= 8 jam: "Ideal"
+  String getSleepStandard8HoursStatus(int totalMinutes) {
+    if (totalMinutes <= 0) return 'Belum ada data';
+    return totalMinutes < standardIdealSleepMinutes ? 'Tidur Kurang' : 'Ideal';
+  }
+
+  /// Evaluasi validasi acuan standar tidur 8 jam (alias)
+  String getSleepValidationCategory(int totalMinutes) {
+    return getSleepStandard8HoursCategory(totalMinutes);
+  }
+
+  /// Memeriksa apakah total durasi tidur mencapai atau melampaui standar ideal 8 jam (>= 480 menit)
+  bool isSleepDurationIdeal8Hours(int totalMinutes) {
+    return totalMinutes >= standardIdealSleepMinutes;
   }
 
   /// Rekomendasi/insight pola tidur berdasarkan durasi
