@@ -10,11 +10,13 @@ import 'admin_user_screening_detail_screen.dart';
 class AdminUserListScreen extends StatefulWidget {
   final bool isEmbedded;
   final VoidCallback? onBackToHome;
+  final ValueChanged<int>? onTabSelected;
 
   const AdminUserListScreen({
     super.key,
     this.isEmbedded = false,
     this.onBackToHome,
+    this.onTabSelected,
   });
 
   @override
@@ -42,7 +44,11 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
 
   void _handleNavTap(int index) {
     if (index == 1) return; // Sudah di tab Pengguna
-    if (widget.onBackToHome != null) {
+    if (widget.onTabSelected != null) {
+      widget.onTabSelected!(index);
+      return;
+    }
+    if (index == 0 && widget.onBackToHome != null) {
       widget.onBackToHome!();
       return;
     }
@@ -172,12 +178,49 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
-                        child: Text(
-                          'Gagal memuat data pengguna dari Firestore.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            color: const Color(0xFF64748B),
-                          ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              size: 44,
+                              color: Color(0xFFEF4444),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Gagal memuat data pengguna dari Firestore.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Pastikan koneksi internet aktif dan hak akses admin valid.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11.5,
+                                color: const Color(0xFF64748B),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () => setState(() {}),
+                              icon: const Icon(Icons.refresh_rounded, size: 14),
+                              label: Text(
+                                'Muat Ulang',
+                                style: GoogleFonts.poppins(fontSize: 12),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: sageGreen,
+                                side: const BorderSide(color: sageGreen),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -192,7 +235,16 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                     final emailMatch = u.email.toLowerCase().contains(query);
                     final phoneMatch =
                         u.phone != null && u.phone!.contains(query);
-                    return nameMatch || emailMatch || phoneMatch;
+                    final usernameMatch =
+                        u.username.toLowerCase().contains(query);
+                    final roleMatch =
+                        u.roleDisplayName.toLowerCase().contains(query) ||
+                            (u.isAdmin ? 'admin' : 'pengguna').contains(query);
+                    return nameMatch ||
+                        emailMatch ||
+                        phoneMatch ||
+                        usernameMatch ||
+                        roleMatch;
                   }).toList();
 
                   if (filteredUsers.isEmpty) {
@@ -236,8 +288,9 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                       final user = filteredUsers[index];
                       return _AdminUserCardItem(
                         user: user,
-                        onTap: () {
-                          Navigator.of(context).push(
+                        onTap: () async {
+                          final targetTab =
+                              await Navigator.of(context).push<int>(
                             MaterialPageRoute(
                               builder: (context) =>
                                   AdminUserScreeningDetailScreen(
@@ -246,6 +299,9 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                   ),
                             ),
                           );
+                          if (targetTab != null && mounted) {
+                            _handleNavTap(targetTab);
+                          }
                         },
                       );
                     },
@@ -282,7 +338,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
           'Pengguna',
           style: GoogleFonts.poppins(
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
         ),

@@ -2219,6 +2219,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return AdminUserListScreen(
       isEmbedded: true,
       onBackToHome: () => _switchTab(0),
+      onTabSelected: _switchTab,
     );
   }
 

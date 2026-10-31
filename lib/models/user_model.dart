@@ -140,7 +140,10 @@ class UserModel {
 
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
     DateTime? parsedCreatedAt;
-    final createdVal = map['createdAt'] ?? map['created_at'];
+    final createdVal = map['createdAt'] ??
+        map['created_at'] ??
+        map['created'] ??
+        map['tanggalDaftar'];
     if (createdVal is Timestamp) {
       parsedCreatedAt = createdVal.toDate();
     } else if (createdVal is String) {
@@ -150,7 +153,8 @@ class UserModel {
     }
 
     DateTime? parsedUpdatedAt;
-    final updatedVal = map['updatedAt'] ?? map['updated_at'];
+    final updatedVal =
+        map['updatedAt'] ?? map['updated_at'] ?? map['updated'];
     if (updatedVal is Timestamp) {
       parsedUpdatedAt = updatedVal.toDate();
     } else if (updatedVal is String) {
@@ -159,30 +163,110 @@ class UserModel {
       parsedUpdatedAt = DateTime.fromMillisecondsSinceEpoch(updatedVal);
     }
 
+    final rawName = (map['name'] ??
+            map['displayName'] ??
+            map['nama'] ??
+            map['fullName'])
+        ?.toString()
+        .trim();
+    final rawEmail = (map['email'] ??
+            map['userEmail'] ??
+            map['surel'])
+        ?.toString()
+        .trim() ??
+        '';
+    final name = (rawName != null && rawName.isNotEmpty)
+        ? rawName
+        : (rawEmail.isNotEmpty
+            ? rawEmail.split('@').first
+            : 'Pengguna ObeSight');
+
+    final rawUsername = (map['username'] ?? map['userName'])
+        ?.toString()
+        .trim();
+    final username = (rawUsername != null && rawUsername.isNotEmpty)
+        ? rawUsername
+        : (rawEmail.isNotEmpty ? rawEmail.split('@').first : 'user');
+
+    final rawRole = (map['role'] ?? map['userRole'])
+        ?.toString()
+        .trim()
+        .toLowerCase();
+    final bool isAdminRole = rawRole == 'admin' ||
+        rawRole == 'administrator' ||
+        map['isAdmin'] == true ||
+        map['is_admin'] == true;
+    final userRole = isAdminRole ? UserRole.admin : UserRole.user;
+
+    final avatar = (map['photoUrl'] ??
+            map['avatarUrl'] ??
+            map['avatar'] ??
+            map['photoURL'] ??
+            map['profileImage'])
+        ?.toString()
+        .trim();
+    final photo = (map['photoPath'] ?? map['photo_path'])?.toString().trim();
+    final title = (map['title'] ?? map['gelar'])?.toString().trim();
+    final dob = (map['dob'] ??
+            map['birthDate'] ??
+            map['tanggalLahir'])
+        ?.toString()
+        .trim();
+    final gender = (map['gender'] ??
+            map['jenisKelamin'] ??
+            map['sex'])
+        ?.toString()
+        .trim();
+    final phone = (map['phone'] ??
+            map['phoneNumber'] ??
+            map['noTelepon'] ??
+            map['telepon'])
+        ?.toString()
+        .trim();
+
+    final bool isBioComplete = (map['isBiodataComplete'] == true) ||
+        (map['isBiodataComplete']?.toString().toLowerCase() == 'true') ||
+        (map['isBiodataComplete'] == 1);
+
+    double bmiVal = 22.8;
+    final rawBmi = map['bmiScore'] ?? map['bmi'] ?? map['scoreBmi'];
+    if (rawBmi is num) {
+      bmiVal = rawBmi.toDouble();
+    } else if (rawBmi is String) {
+      bmiVal = double.tryParse(rawBmi) ?? 22.8;
+    }
+
+    final bmiCat = (map['bmiCategory'] ?? map['kategoriBmi'])
+            ?.toString()
+            .trim() ??
+        'Normal';
+    final obsRisk = (map['obesityRisk'] ??
+            map['risikoObesitas'] ??
+            map['risk'])
+        ?.toString()
+        .trim() ??
+        'Rendah';
+    final joined = (map['joined'] ?? map['bergabung'])?.toString().trim();
+
     return UserModel(
       id: id,
-      name: map['name'] as String? ?? 'Pengguna ObeSight',
-      email: map['email'] as String? ?? '',
-      username:
-          map['username'] as String? ??
-          (map['email'] != null
-              ? (map['email'] as String).split('@').first
-              : 'user'),
-      role: (map['role'] == 'admin') ? UserRole.admin : UserRole.user,
-      avatarUrl:
-          (map['photoUrl'] ?? map['avatarUrl'] ?? map['avatar']) as String?,
-      photoPath: (map['photoPath'] ?? map['photo_path']) as String?,
-      title: map['title'] as String?,
-      dob: map['dob'] as String?,
-      gender: map['gender'] as String?,
-      phone: map['phone'] as String?,
-      isBiodataComplete: (map['isBiodataComplete'] as bool?) ?? false,
-      bmiScore: (map['bmiScore'] as num?)?.toDouble() ?? 22.8,
-      bmiCategory: (map['bmiCategory'] as String?) ?? 'Normal',
-      obesityRisk: (map['obesityRisk'] as String?) ?? 'Rendah',
+      name: name,
+      email: rawEmail,
+      username: username,
+      role: userRole,
+      avatarUrl: (avatar != null && avatar.isNotEmpty) ? avatar : null,
+      photoPath: (photo != null && photo.isNotEmpty) ? photo : null,
+      title: (title != null && title.isNotEmpty) ? title : null,
+      dob: (dob != null && dob.isNotEmpty) ? dob : null,
+      gender: (gender != null && gender.isNotEmpty) ? gender : null,
+      phone: (phone != null && phone.isNotEmpty) ? phone : null,
+      isBiodataComplete: isBioComplete,
+      bmiScore: bmiVal,
+      bmiCategory: bmiCat,
+      obesityRisk: obsRisk,
       createdAt: parsedCreatedAt,
       updatedAt: parsedUpdatedAt,
-      joined: map['joined'] as String?,
+      joined: (joined != null && joined.isNotEmpty) ? joined : null,
     );
   }
 

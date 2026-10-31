@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/screening_history_model.dart';
 import '../models/user_model.dart';
-import '../screens/skrining/skrining_models.dart';
 
 class UserScreeningSummary {
   final int totalScreenings;
@@ -91,24 +90,42 @@ class AdminUserService {
     }
 
     return _firestore.collection('users').snapshots().map((snapshot) {
-      final users = snapshot.docs.map((doc) {
-        return UserModel.fromMap(doc.data(), doc.id);
-      }).toList();
+      final users = <UserModel>[];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          users.add(UserModel.fromMap(data, doc.id));
+        } catch (e) {
+          debugPrint('[AdminUserService] Error parsing user doc ${doc.id}: $e');
+        }
+      }
 
       // Urutkan akun secara konsisten (pendaftaran terbaru terlebih dahulu, atau nama)
       // agar seluruh admin melihat urutan daftar yang seragam
       users.sort((a, b) {
         if (a.createdAt != null && b.createdAt != null) {
-          return b.createdAt!.compareTo(a.createdAt!);
+          final comp = b.createdAt!.compareTo(a.createdAt!);
+          if (comp != 0) return comp;
+        } else if (a.createdAt != null) {
+          return -1;
+        } else if (b.createdAt != null) {
+          return 1;
         }
-        if (a.createdAt != null) return -1;
-        if (b.createdAt != null) return 1;
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
 
       _cachedUsers = users;
       return users;
+    }).handleError((error, stackTrace) {
+      debugPrint('[AdminUserService] Notice streamUsers error: $error');
+      return _cachedUsers;
     });
+  }
+
+  /// Method bantuan untuk pengujian unit/widget saat Firebase belum diinisialisasi
+  @visibleForTesting
+  void setMockUsers(List<UserModel> users) {
+    _cachedUsers = List<UserModel>.from(users);
   }
 
   /// Mendengarkan stream satu dokumen pengguna berdasarkan UID langsung dari Firestore
@@ -128,9 +145,20 @@ class AdminUserService {
 
     return _firestore.collection('users').doc(cleanId).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
-        return UserModel.fromMap(doc.data()!, doc.id);
+        try {
+          return UserModel.fromMap(doc.data()!, doc.id);
+        } catch (e) {
+          debugPrint('[AdminUserService] Notice parsing user doc $cleanId: $e');
+        }
       }
       return null;
+    }).handleError((error, stackTrace) {
+      debugPrint('[AdminUserService] Notice streamUserById error for $cleanId: $error');
+      final cached = _cachedUsers.cast<UserModel?>().firstWhere(
+        (u) => u?.id == cleanId,
+        orElse: () => null,
+      );
+      return cached;
     });
   }
 
@@ -147,10 +175,14 @@ class AdminUserService {
         .collection('screenings')
         .snapshots()
         .map((snapshot) {
-      final items = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return ScreeningHistoryItem.fromMap(data);
-      }).toList();
+      final items = <ScreeningHistoryItem>[];
+      for (final doc in snapshot.docs) {
+        try {
+          items.add(ScreeningHistoryItem.fromMap(doc.data()));
+        } catch (e) {
+          debugPrint('[AdminUserService] Notice stream screening parse ${doc.id}: $e');
+        }
+      }
 
       items.sort((a, b) => b.date.compareTo(a.date));
 
@@ -169,6 +201,9 @@ class AdminUserService {
       }
 
       return items;
+    }).handleError((error, stackTrace) {
+      debugPrint('[AdminUserService] Notice streamUserScreenings error for $cleanId: $error');
+      return const <ScreeningHistoryItem>[];
     });
   }
 
@@ -207,16 +242,21 @@ class AdminUserService {
         _summaryCache[cleanId] = summary;
         completer.complete(summary);
       } else {
-        final items = snapshot.docs.map((doc) {
-          return ScreeningHistoryItem.fromMap(doc.data());
-        }).toList();
+        final items = <ScreeningHistoryItem>[];
+        for (final doc in snapshot.docs) {
+          try {
+            items.add(ScreeningHistoryItem.fromMap(doc.data()));
+          } catch (e) {
+            debugPrint('[AdminUserService] Notice parsing summary item ${doc.id}: $e');
+          }
+        }
 
         items.sort((a, b) => b.date.compareTo(a.date));
 
         final summary = UserScreeningSummary(
           totalScreenings: items.length,
-          lastScreeningDate: items.first.date,
-          latestScreening: items.first,
+          lastScreeningDate: items.isNotEmpty ? items.first.date : null,
+          latestScreening: items.isNotEmpty ? items.first : null,
           hasLoaded: true,
         );
         _summaryCache[cleanId] = summary;
