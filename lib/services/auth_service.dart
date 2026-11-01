@@ -81,6 +81,11 @@ class AuthService {
   User? get firebaseCurrentUser =>
       isFirebaseAvailable ? _firebaseAuth.currentUser : null;
 
+  static const String keyAdminProfileName = 'admin_profile_name';
+  static const String keyAdminProfilePhone = 'admin_profile_phone';
+  static const String defaultAdminName = 'Admin ObeSight';
+  static const String defaultAdminPhone = '089334213110';
+
   static const String _keyActiveUserId = 'obesight_active_user_id';
   static const String _keyActiveUserEmail = 'obesight_active_user_email';
   static const String _keyActiveUserName = 'obesight_active_user_name';
@@ -142,6 +147,57 @@ class AuthService {
     }).catchError((e) {
       debugPrint('Notice clearing session from SharedPreferences: $e');
     });
+  }
+
+  /// Mengambil nama profil admin dari SharedPreferences lokal perangkat.
+  /// Jika belum pernah diubah di perangkat ini, kembalikan default "Admin ObeSight".
+  Future<String> getAdminLocalName() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(keyAdminProfileName)?.trim();
+      if (saved != null && saved.isNotEmpty) {
+        return saved;
+      }
+    } catch (_) {}
+    return defaultAdminName;
+  }
+
+  /// Mengambil nomor telepon admin dari SharedPreferences lokal perangkat.
+  /// Jika belum pernah diubah di perangkat ini, kembalikan default "089334213110".
+  Future<String> getAdminLocalPhone() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(keyAdminProfilePhone)?.trim();
+      if (saved != null && saved.isNotEmpty) {
+        return saved;
+      }
+    } catch (_) {}
+    return defaultAdminPhone;
+  }
+
+  /// Menyimpan profil admin ke SharedPreferences lokal perangkat tanpa menulis ke Cloud Firestore atau Firebase Auth.
+  Future<void> saveAdminLocalProfile({
+    required String name,
+    required String phone,
+  }) async {
+    final cleanName = name.trim();
+    final cleanPhone = phone.trim();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(keyAdminProfileName, cleanName);
+      await prefs.setString(keyAdminProfilePhone, cleanPhone);
+    } catch (e) {
+      debugPrint('Notice saving admin local profile: $e');
+    }
+
+    if (_currentUser != null && _currentUser!.isAdmin) {
+      _currentUser = _currentUser!.copyWith(
+        name: cleanName,
+        phone: cleanPhone,
+      );
+      _saveSession(_currentUser!);
+    }
+    profileUpdateNotifier.value++;
   }
 
   /// Memulihkan sesi login pengguna secara persisten saat aplikasi dibuka kembali (Cold Start)
@@ -246,17 +302,25 @@ class AuthService {
                   (dob.isNotEmpty && rawGender.isNotEmpty && phone.isNotEmpty);
               final gender = rawGender.isNotEmpty ? rawGender : 'Perempuan';
 
+              // Khusus admin, ambil nama & telepon dari SharedPreferences lokal perangkat
+              final effectiveName = (roleStr == 'admin' || uid == 'adm_001')
+                  ? await getAdminLocalName()
+                  : name;
+              final effectivePhone = (roleStr == 'admin' || uid == 'adm_001')
+                  ? await getAdminLocalPhone()
+                  : phone;
+
               final bmiScore = (data['bmiScore'] as num?)?.toDouble() ?? localBmi ?? 22.8;
               final bmiCategory = (data['bmiCategory'] as String?) ?? localCategory ?? 'Normal';
               final obesityRisk = (data['obesityRisk'] as String?) ?? localRisk ?? 'Rendah';
 
               // Sinkronisasi memori lokal dengan data Firestore terbaru
               _userProfileCache[uid] = {
-                'name': name,
+                'name': effectiveName,
                 'dob': dob,
                 'gender': gender,
                 'email': email,
-                'phone': phone,
+                'phone': effectivePhone,
                 'joined': (data['joined'] as String?) ?? 'Bergabung sejak ${DateTime.now().year}',
                 'avatar': photoUrl.isNotEmpty ? photoUrl : 'assets/avatar_zahra.png',
                 'photo_path': photoUrl,
@@ -274,7 +338,7 @@ class AuthService {
 
               _currentUser = UserModel(
                 id: uid,
-                name: name,
+                name: effectiveName,
                 email: email,
                 username: email.contains('@') ? email.split('@').first : (email.isNotEmpty ? email : 'user'),
                 role: roleStr == 'admin' ? UserRole.admin : UserRole.user,
@@ -282,7 +346,7 @@ class AuthService {
                 photoPath: photoUrl.isNotEmpty ? photoUrl : null,
                 dob: dob,
                 gender: gender,
-                phone: phone,
+                phone: effectivePhone,
                 isBiodataComplete: isGated,
                 bmiScore: bmiScore,
                 bmiCategory: bmiCategory,
@@ -291,8 +355,8 @@ class AuthService {
 
               _saveSession(_currentUser!);
 
-              // Sinkronisasi displayName di Firebase Auth jika belum diperbarui
-              if (firebaseUser.displayName != name && name != 'Pengguna ObeSight') {
+              // Sinkronisasi displayName di Firebase Auth jika belum diperbarui (khusus pengguna biasa)
+              if (roleStr != 'admin' && uid != 'adm_001' && firebaseUser.displayName != name && name != 'Pengguna ObeSight') {
                 try {
                   await firebaseUser.updateDisplayName(name);
                 } catch (_) {}
@@ -313,19 +377,24 @@ class AuthService {
               isBiodataCompleted(uid);
           final bmiInfo = getUserBmi(uid);
 
-          final name = localName ?? (cached != null ? cached['name'] : null) ?? firebaseUser.displayName ?? 'Pengguna ObeSight';
+          final effectiveLocalRole = localRole == 'admin' ? UserRole.admin : UserRole.user;
+          final effectiveLocalName = (effectiveLocalRole == UserRole.admin || uid == 'adm_001')
+              ? await getAdminLocalName()
+              : (localName ?? (cached != null ? cached['name'] : null) ?? firebaseUser.displayName ?? 'Pengguna ObeSight');
+          final effectiveLocalPhone = (effectiveLocalRole == UserRole.admin || uid == 'adm_001')
+              ? await getAdminLocalPhone()
+              : (localPhone ?? (cached != null ? cached['phone'] : null) ?? '');
           final email = localEmail ?? (cached != null ? cached['email'] : null) ?? firebaseUser.email ?? '';
           final dob = localDob ?? (cached != null ? cached['dob'] : null) ?? '';
           final gender = localGender ?? (cached != null ? cached['gender'] : null) ?? 'Perempuan';
-          final phone = localPhone ?? (cached != null ? cached['phone'] : null) ?? '';
           final photoUrl = localAvatar ?? (cached != null ? cached['avatar'] : null) ?? firebaseUser.photoURL;
 
           _userProfileCache[uid] = {
-            'name': name,
+            'name': effectiveLocalName,
             'dob': dob,
             'gender': gender,
             'email': email,
-            'phone': phone,
+            'phone': effectiveLocalPhone,
             'joined': cached?['joined'] ?? 'Bergabung sejak ${DateTime.now().year}',
             'avatar': photoUrl ?? 'assets/avatar_zahra.png',
             'photo_path': photoUrl ?? '',
@@ -333,15 +402,15 @@ class AuthService {
 
           _currentUser = UserModel(
             id: uid,
-            name: name,
+            name: effectiveLocalName,
             email: email,
             username: (email.isNotEmpty ? email : 'user').split('@').first,
-            role: localRole == 'admin' ? UserRole.admin : UserRole.user,
+            role: effectiveLocalRole,
             avatarUrl: photoUrl,
             photoPath: photoUrl,
             dob: dob,
             gender: gender,
-            phone: phone,
+            phone: effectiveLocalPhone,
             isBiodataComplete: isGated,
             bmiScore: localBmi ?? (bmiInfo['bmi'] as num?)?.toDouble() ?? 22.8,
             bmiCategory: localCategory ?? (bmiInfo['category'] as String?) ?? 'Normal',
@@ -363,14 +432,18 @@ class AuthService {
           final cached = getUserProfile(savedUid);
           final isGated = prefs.getBool(_keyActiveUserIsBiodataComplete) ?? isBiodataCompleted(savedUid);
           final bmiInfo = getUserBmi(savedUid);
-          final savedName = prefs.getString(_keyActiveUserName) ?? cached['name'] ?? 'User';
-          final savedEmail = prefs.getString(_keyActiveUserEmail) ?? cached['email'] ?? '';
-          final savedDob = prefs.getString(_keyActiveUserDob) ?? cached['dob'] ?? '';
-          final savedGender = prefs.getString(_keyActiveUserGender) ?? cached['gender'] ?? 'Perempuan';
-          final savedPhone = prefs.getString(_keyActiveUserPhone) ?? cached['phone'] ?? '';
           final savedRole = prefs.getString(_keyActiveUserRole) == 'admin' || savedUid == 'adm_001'
               ? UserRole.admin
               : UserRole.user;
+          final savedName = (savedRole == UserRole.admin || savedUid == 'adm_001')
+              ? await getAdminLocalName()
+              : (prefs.getString(_keyActiveUserName) ?? cached['name'] ?? 'User');
+          final savedEmail = prefs.getString(_keyActiveUserEmail) ?? cached['email'] ?? '';
+          final savedDob = prefs.getString(_keyActiveUserDob) ?? cached['dob'] ?? '';
+          final savedGender = prefs.getString(_keyActiveUserGender) ?? cached['gender'] ?? 'Perempuan';
+          final savedPhone = (savedRole == UserRole.admin || savedUid == 'adm_001')
+              ? await getAdminLocalPhone()
+              : (prefs.getString(_keyActiveUserPhone) ?? cached['phone'] ?? '');
 
           _userProfileCache[savedUid] = {
             'name': savedName,
@@ -445,15 +518,15 @@ class AuthService {
 
   static const UserModel defaultAdminAccount = UserModel(
     id: 'adm_001',
-    name: 'Dr. Hendra Wijaya, Sp.GK',
+    name: 'Admin ObeSight',
     email: 'adminobesight@gmail.com',
     username: 'admin',
     role: UserRole.admin,
-    title: 'Kepala Medis & Administrator Sistem',
+    title: 'Administrator Sistem ObeSight',
     isBiodataComplete: true,
     dob: '20 November 1988',
     gender: 'Laki-laki',
-    phone: '081198765432',
+    phone: '089334213110',
   );
 
   static const UserModel zahraCantikAccount = UserModel(
@@ -512,11 +585,11 @@ class AuthService {
       'photo_path': '',
     },
     'adm_001': {
-      'name': 'Dr. Hendra Wijaya, Sp.GK',
+      'name': 'Admin ObeSight',
       'dob': '20 November 1988',
       'gender': 'Laki-laki',
       'email': 'adminobesight@gmail.com',
-      'phone': '081198765432',
+      'phone': '089334213110',
       'joined': 'Bergabung sejak Januari 2024',
       'avatar': 'assets/avatar_zahra.png',
       'photo_path': '',
@@ -600,15 +673,21 @@ class AuthService {
         final gender = rawGender.isNotEmpty ? rawGender : 'Perempuan';
 
         final existingProfile = getUserProfile(userId);
-        final name = (rawName != null && rawName.isNotEmpty) ? rawName : existingProfile['name']!;
+        final bool isAdminUser = (roleStr == 'admin') || (userId == 'adm_001') || (_currentUser?.isAdmin == true);
+        final effectiveName = isAdminUser
+            ? await getAdminLocalName()
+            : ((rawName != null && rawName.isNotEmpty) ? rawName : existingProfile['name']!);
+        final effectivePhone = isAdminUser
+            ? await getAdminLocalPhone()
+            : phone;
         final email = (rawEmail != null && rawEmail.isNotEmpty) ? rawEmail : existingProfile['email']!;
 
         final updatedProfile = {
-          'name': name,
+          'name': effectiveName,
           'dob': dob,
           'gender': gender,
           'email': email,
-          'phone': phone,
+          'phone': effectivePhone,
           'joined': (data['joined'] as String?) ?? existingProfile['joined'] ?? 'Bergabung sejak ${DateTime.now().year}',
           'avatar': (photoUrl != null && photoUrl.isNotEmpty) ? photoUrl : (existingProfile['avatar'] ?? 'assets/avatar_zahra.png'),
           'photo_path': photoUrl ?? existingProfile['photo_path'] ?? '',
@@ -619,11 +698,11 @@ class AuthService {
 
         if (_currentUser != null && _currentUser!.id == userId) {
           _currentUser = _currentUser!.copyWith(
-            name: name,
+            name: effectiveName,
             email: email,
             dob: dob,
             gender: gender,
-            phone: phone,
+            phone: effectivePhone,
             avatarUrl: photoUrl,
             photoPath: photoUrl,
             role: roleStr == 'admin' ? UserRole.admin : UserRole.user,
@@ -653,6 +732,38 @@ class AuthService {
     String? photoPath,
     String? joined,
   }) async {
+    // KHUSUS AKUN ADMINISTRATOR: Simpan per perangkat ke SharedPreferences, JANGAN tulis ke Firestore users/{uid}
+    final bool isAdminAccount = (_currentUser != null && _currentUser!.id == userId && _currentUser!.isAdmin) ||
+        userId == 'adm_001' ||
+        (_currentUser?.email.trim().toLowerCase() == 'adminobesight@gmail.com') ||
+        (email?.trim().toLowerCase() == 'adminobesight@gmail.com');
+
+    if (isAdminAccount) {
+      final currentName = await getAdminLocalName();
+      final currentPhone = await getAdminLocalPhone();
+      final effectiveName = (name != null && name.trim().isNotEmpty) ? name.trim() : currentName;
+      final effectivePhone = (phone != null && phone.trim().isNotEmpty) ? phone.trim() : currentPhone;
+
+      await saveAdminLocalProfile(name: effectiveName, phone: effectivePhone);
+
+      _userProfileCache[userId] = {
+        ...?_userProfileCache[userId],
+        'name': effectiveName,
+        'phone': effectivePhone,
+      };
+
+      if (_currentUser != null && _currentUser!.id == userId) {
+        _currentUser = _currentUser!.copyWith(
+          name: effectiveName,
+          phone: effectivePhone,
+        );
+        _saveSession(_currentUser!);
+      }
+
+      profileUpdateNotifier.value++;
+      return;
+    }
+
     final current = getUserProfile(userId);
     final updatedMap = {
       'name': name ?? current['name'] ?? 'User',
@@ -1290,8 +1401,12 @@ class AuthService {
       );
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
       final currentUid = _firebaseAuth.currentUser?.uid ?? defaultAdminAccount.id;
+      final localAdminName = await getAdminLocalName();
+      final localAdminPhone = await getAdminLocalPhone();
       _currentUser = defaultAdminAccount.copyWith(
         id: currentUid,
+        name: localAdminName,
+        phone: localAdminPhone,
         isBiodataComplete: isBiodataCompleted(defaultAdminAccount.id),
         bmiScore: (bmiInfo['bmi'] as num).toDouble(),
         bmiCategory: bmiInfo['category'] as String,
@@ -1483,8 +1598,12 @@ class AuthService {
       );
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
       final currentUid = _firebaseAuth.currentUser?.uid ?? defaultAdminAccount.id;
+      final localAdminName = await getAdminLocalName();
+      final localAdminPhone = await getAdminLocalPhone();
       _currentUser = defaultAdminAccount.copyWith(
         id: currentUid,
+        name: localAdminName,
+        phone: localAdminPhone,
         isBiodataComplete: true,
         bmiScore: (bmiInfo['bmi'] as num).toDouble(),
         bmiCategory: bmiInfo['category'] as String,
@@ -1530,22 +1649,22 @@ class AuthService {
           return const AuthResponse.failure('Akses ditolak: Akun Anda tidak memiliki hak akses Administrator.');
         }
 
-        final name = (data['name'] as String?)?.trim() ?? firebaseUser.displayName ?? 'Administrator';
+        final localAdminName = await getAdminLocalName();
+        final localAdminPhone = await getAdminLocalPhone();
         final userEmail = (data['email'] as String?)?.trim() ?? firebaseUser.email ?? cleanEmail;
         final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ?? '';
-        final phone = (data['phone'] as String?) ?? '';
         final dob = (data['dob'] as String?) ?? '';
         final gender = (data['gender'] as String?) ?? 'Laki-laki';
 
         _currentUser = UserModel(
           id: uid,
-          name: name,
+          name: localAdminName,
           email: userEmail,
           username: userEmail.split('@').first,
           role: UserRole.admin,
           avatarUrl: photoUrl.isNotEmpty ? photoUrl : null,
           photoPath: photoUrl.isNotEmpty ? photoUrl : null,
-          phone: phone,
+          phone: localAdminPhone,
           dob: dob,
           gender: gender,
           isBiodataComplete: true,

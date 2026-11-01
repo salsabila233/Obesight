@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/app_alert.dart';
+import '../../widgets/admin_capsule_bottom_nav.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   final UserModel user;
@@ -34,7 +35,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     _loadLatestProfile();
   }
 
-  /// Tentukan nilai awal profil jika data di Firestore belum ada
+  /// Tentukan nilai awal profil admin dari memori atau default
   void _resolveInitialValues() {
     final rawName = _currentUser.name.trim();
     if (rawName.isNotEmpty &&
@@ -43,35 +44,31 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         rawName != 'Pengguna ObeSight') {
       _currentName = rawName;
     } else {
-      _currentName = 'Admin ObeSight';
+      _currentName = AuthService.defaultAdminName;
     }
 
     final rawPhone = (_currentUser.phone ?? '').trim();
     if (rawPhone.isNotEmpty && rawPhone != '081198765432') {
       _currentPhone = rawPhone;
     } else {
-      _currentPhone = '089334213110';
+      _currentPhone = AuthService.defaultAdminPhone;
     }
   }
 
-  /// Muat data profil terbaru dari Firestore users/{uid} secara asinkron
+  /// Muat data profil admin terbaru dari penyimpanan lokal perangkat (SharedPreferences)
+  /// Mengabaikan dokumen Firestore bersama agar data tersimpan independen per perangkat.
   Future<void> _loadLatestProfile() async {
     try {
-      final updated = await _authService.fetchUserProfile(_currentUser.id);
-      if (updated != null && mounted) {
+      final localName = await _authService.getAdminLocalName();
+      final localPhone = await _authService.getAdminLocalPhone();
+      if (mounted) {
         setState(() {
-          _currentUser = updated;
-          final updatedName = updated.name.trim();
-          if (updatedName.isNotEmpty &&
-              updatedName != 'Administrator' &&
-              updatedName != 'Dr. Hendra Wijaya, Sp.GK' &&
-              updatedName != 'Pengguna ObeSight') {
-            _currentName = updatedName;
-          }
-          final updatedPhone = (updated.phone ?? '').trim();
-          if (updatedPhone.isNotEmpty && updatedPhone != '081198765432') {
-            _currentPhone = updatedPhone;
-          }
+          _currentName = localName;
+          _currentPhone = localPhone;
+          _currentUser = _currentUser.copyWith(
+            name: localName,
+            phone: localPhone,
+          );
         });
       }
     } catch (_) {}
@@ -131,66 +128,74 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
+        final viewInsetsBottom = MediaQuery.of(sheetContext).viewInsets.bottom;
+        final screenHeight = MediaQuery.of(sheetContext).size.height;
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return Container(
-              padding: EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Handle Bar
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
+            return Padding(
+              padding: EdgeInsets.only(bottom: viewInsetsBottom),
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: screenHeight * 0.88,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
                     ),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ],
+                ),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Ubah Informasi Profil',
-                          style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        // Handle Bar
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                            size: 20,
-                          ),
-                          onPressed: () => Navigator.of(sheetContext).pop(),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Ubah Informasi Profil',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.close_rounded,
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                size: 20,
+                              ),
+                              onPressed: () => Navigator.of(sheetContext).pop(),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                     const SizedBox(height: 6),
                     Text(
                       'Perbarui nama lengkap dan nomor kontak administrator.',
@@ -375,12 +380,15 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: Text(
-                              'Batal',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Batal',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                                ),
                               ),
                             ),
                           ),
@@ -458,11 +466,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : Text(
-                                    'Simpan Perubahan',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
+                                : FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Simpan Perubahan',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                           ),
@@ -472,12 +483,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   ],
                 ),
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
-  }
+  },
+);
+}
 
   @override
   Widget build(BuildContext context) {
@@ -539,7 +552,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 child: ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 110),
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
                     physics: const BouncingScrollPhysics(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,14 +631,18 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                                             color: Color(0xFF2E7D5B),
                                           ),
                                           const SizedBox(width: 4),
-                                          Text(
-                                            'Administrator',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: isDark
-                                                  ? const Color(0xFF6EE7B7)
-                                                  : const Color(0xFF2E7D5B),
+                                          Flexible(
+                                            child: Text(
+                                              'Administrator',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark
+                                                    ? const Color(0xFF6EE7B7)
+                                                    : const Color(0xFF2E7D5B),
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -856,53 +873,12 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         ),
       ),
 
-      // 4. BOTTOM NAVIGATION BAR (Pil Hijau Desain Baru Tanpa Label)
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF438466),
-            borderRadius: BorderRadius.circular(36),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF246B4D).withValues(alpha: 0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildBottomNavIcon(
-                icon: Icons.home_rounded,
-                tooltip: 'Beranda',
-                onTap: () => Navigator.of(context).pop(0),
-              ),
-              _buildBottomNavIcon(
-                icon: Icons.people_alt_rounded,
-                tooltip: 'Pengguna',
-                onTap: () => Navigator.of(context).pop(1),
-              ),
-              _buildBottomNavIcon(
-                icon: Icons.article_rounded,
-                tooltip: 'Artikel',
-                onTap: () => Navigator.of(context).pop(2),
-              ),
-              _buildBottomNavIcon(
-                icon: Icons.bar_chart_rounded,
-                tooltip: 'Laporan',
-                onTap: () => Navigator.of(context).pop(3),
-              ),
-              _buildBottomNavIcon(
-                icon: Icons.settings_rounded,
-                tooltip: 'Pengaturan',
-                onTap: () => Navigator.of(context).pop(4),
-              ),
-            ],
-          ),
-        ),
+      // 4. BOTTOM NAVIGATION BAR (Kapsul Hijau Standar Beranda Admin)
+      bottomNavigationBar: AdminCapsuleBottomNav(
+        currentIndex: -1,
+        onTap: (index) {
+          Navigator.of(context).pop(index);
+        },
       ),
     );
   }
@@ -943,58 +919,52 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               child: Center(child: iconWidget),
             ),
             const SizedBox(width: 12),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: textLabel,
-              ),
-            ),
-            const Spacer(),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 160),
+            Flexible(
+              flex: 4,
               child: Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.end,
+                label,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: textValue,
+                  color: textLabel,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (isEditable) ...[
-              const SizedBox(width: 6),
-              const Icon(
-                Icons.edit_outlined,
-                size: 14,
-                color: Color(0xFF438466),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 6,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: textValue,
+                      ),
+                    ),
+                  ),
+                  if (isEditable) ...[
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.edit_outlined,
+                      size: 14,
+                      color: Color(0xFF438466),
+                    ),
+                  ],
+                ],
               ),
-            ],
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildBottomNavIcon({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-  }) {
-    return IconButton(
-      tooltip: tooltip,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 44, minHeight: 40),
-      icon: Icon(
-        icon,
-        color: Colors.white,
-        size: 24,
-      ),
-      onPressed: onTap,
     );
   }
 }
