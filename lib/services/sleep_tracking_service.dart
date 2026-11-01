@@ -801,8 +801,17 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed) {
-      // Saat aplikasi dibuka / di-resume, periksa apakah ada data tidur dari aktivitas perangkat
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      final now = DateTime.now();
+      _lastInactiveTime = now;
+      // Deteksi titik terakhir layar HP dimatikan di malam hari (pukul 20.00 s.d. 04.30)
+      if (now.hour >= 20 || now.hour < 5) {
+        _lastNightInactiveTime = now;
+      }
+      _saveToLocal();
+      debugPrint('[SleepTracker] Inactive at $now (lastNightOff: $_lastNightInactiveTime)');
+    } else if (state == AppLifecycleState.resumed) {
+      // HP kembali aktif / dibuka di pagi hari
       checkDeviceInactivityCandidate();
     }
   }
@@ -998,13 +1007,13 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Memeriksa aktivitas layar mati semalam dan nyala pagi hari didukung sensor cahaya ruangan
   Future<void> checkDeviceInactivityCandidate() async {
-    if (!_isNativeSupported) return;
     final now = DateTime.now();
+    final todayKey = formatDateKey(now);
     final savedToday = getSavedRecordForDate(now);
 
     // Jika hari ini sudah ada catatan tidur resmi tersimpan, jangan tampilkan pending auto lagi.
     if (savedToday != null && savedToday.isConfirmed) {
-      if (_pendingAutoDetectedRecord != null) {
+      if (_pendingAutoDetectedRecord != null && _pendingAutoDetectedRecord!.date == todayKey) {
         _pendingAutoDetectedRecord = null;
         _saveToLocal();
         notifyListeners();
@@ -1066,15 +1075,27 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
 
       _pendingAutoDetectedRecord = candidate;
       await _saveToLocal();
+      if (_isNativeSupported) {
+        try {
+          await _platformChannel.invokeMethod('clearScreenTimes');
+        } catch (_) {}
+      }
       notifyListeners();
       return;
-    } else {
-      // Jika tidak ada data sensor perangkat yang valid (misalnya belum ada siklus tidur semalam),
-      // pastikan tidak menampilkan kandidat palsu
-      if (_pendingAutoDetectedRecord != null && !_pendingAutoDetectedRecord!.isConfirmed) {
-        _pendingAutoDetectedRecord = null;
-        await _saveToLocal();
-        notifyListeners();
+    }
+
+    // Fallback versi stabil (18 Oktober): Gunakan titik terakhir layar HP dimatikan semalam dari Flutter lifecycle
+    if (_lastNightInactiveTime != null) {
+      final diff = now.difference(_lastNightInactiveTime!);
+      final isMorningOrDay = now.hour >= 5 && now.hour <= 14;
+
+      // Sesi tidur malam yang valid:
+      // Mulai semalam, dibuka di pagi/siang hari, dengan durasi minimal 3 jam
+      if (diff.inMinutes >= _minimumNightSleepMinutes && diff.inMinutes <= 840 && isMorningOrDay) {
+        _recordAutomaticSleepCandidate(_lastNightInactiveTime!, now);
+        _lastNightInactiveTime = null;
+        _saveToLocal();
+        return;
       }
     }
   }
@@ -1120,36 +1141,24 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Menerima / mengonfirmasi rekaman perkiraan waktu tidur otomatis (Tombol "Catat waktu ini")
+  /// Logika stabil versi 18 Oktober: 1 Tanggal = Maksimal 1 Data Unik (Upsert langsung ke database & grafik harian)
   /// Struktur data & field disamakan persis dengan input manual ("Masukkan data"):
   /// userId, date, startTime, endTime, durationMinutes, source, isConfirmed = true
   Future<bool> acceptPendingAutoRecord({DateTime? targetDate}) async {
     if (_pendingAutoDetectedRecord != null) {
       final candidate = _pendingAutoDetectedRecord!;
-      final now = targetDate ?? candidate.endTime;
-      final targetDateKey = formatDateKey(now);
+      final dateKey = (targetDate != null)
+          ? formatDateKey(targetDate)
+          : (candidate.date.isNotEmpty ? candidate.date : formatDateKey(candidate.endTime));
 
-      // Validasi durasi tidur
       final durationM = candidate.durationMinutes > 0
           ? candidate.durationMinutes
           : SleepRecord.calculateDurationMinutes(candidate.startTime, candidate.endTime);
-      if (durationM < _minimumNightSleepMinutes || durationM > 840) {
-        return false;
-      }
 
-      // Pastikan tidak menimpa catatan manual yang sudah valid
-      final existingForDate = getSavedRecordForDate(now);
-      if (existingForDate != null && existingForDate.isConfirmed && existingForDate.source == 'manual') {
-        _pendingAutoDetectedRecord = null;
-        await _saveToLocal();
-        notifyListeners();
-        return false;
-      }
-
-      // Bentuk SleepRecord terkonfirmasi dengan field dan struktur yang persis sama
       final confirmedRecord = candidate.copyWith(
         id: candidate.id.isNotEmpty ? candidate.id : 'auto_${candidate.startTime.millisecondsSinceEpoch}',
         userId: currentUserId,
-        date: targetDateKey,
+        date: dateKey,
         startTime: candidate.startTime,
         endTime: candidate.endTime,
         durationMinutes: durationM,
@@ -1158,10 +1167,26 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         updatedAt: DateTime.now(),
       );
 
-      // Simpan menggunakan fungsi addRecord
-      await addRecord(confirmedRecord);
+      // 1 Tanggal = Maksimal 1 Data Unik (Sistem Upsert Terbukti Stabil per 18 Oktober):
+      // Jika sudah ada catatan pada tanggal yang sama, ganti (timpa) catatan tersebut
+      final existingIndex = _records.indexWhere(
+        (r) => isMatchingUser(r.userId, confirmedRecord.userId) && r.date == confirmedRecord.date,
+      );
+      if (existingIndex != -1) {
+        final oldRecord = _records[existingIndex];
+        if (oldRecord.id != confirmedRecord.id) {
+          await _deleteFromFirestore(oldRecord.id);
+        }
+        _records[existingIndex] = confirmedRecord;
+      } else {
+        _records.add(confirmedRecord);
+      }
+
       _pendingAutoDetectedRecord = null;
+      _records.sort((a, b) => a.startTime.compareTo(b.startTime));
       await _saveToLocal();
+      _syncToRestReminder(confirmedRecord);
+      await _syncToFirestore(confirmedRecord);
       if (_isNativeSupported) {
         try {
           await _platformChannel.invokeMethod('clearScreenTimes');
