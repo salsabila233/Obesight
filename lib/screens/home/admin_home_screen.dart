@@ -2707,6 +2707,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   // Sticky CurvedHeaderScaffold dengan Pinned Header & Donut Chart
   // ===========================================================================
   Widget _buildLaporanTab(bool isDark, Color primaryColor) {
+    final reportData = _adminReportData ?? AdminReportData.empty();
+
     return CurvedHeaderScaffold(
       title: 'Laporan',
       centerTitle: true,
@@ -2731,15 +2733,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             _buildDateFilterDropdown(isDark),
             const SizedBox(height: 16),
 
-            // 2. Tiga Kartu Ringkasan Atas (Statis Sesuai Screenshot Referensi)
+            // 2. Tiga Kartu Ringkasan Atas (Agregasi Data Aktual Firestore)
             Row(
               children: [
                 Expanded(
                   child: _buildStaticSummaryCard(
                     title: 'Total Skrining',
-                    value: '3.456',
-                    badgeText: '12,5%',
-                    hasArrow: false,
+                    value: AdminReportService.formatNumber(reportData.totalScreenings),
+                    badgeText: reportData.totalScreeningsBadgeText,
+                    hasArrow: reportData.totalScreeningsHasArrow,
+                    isUp: reportData.totalScreeningsIsUp,
                     isDark: isDark,
                   ),
                 ),
@@ -2747,9 +2750,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 Expanded(
                   child: _buildStaticSummaryCard(
                     title: 'Pengguna Baru',
-                    value: '234',
-                    badgeText: '12,5%',
-                    hasArrow: true,
+                    value: AdminReportService.formatNumber(reportData.newUsersCount),
+                    badgeText: reportData.newUsersBadgeText,
+                    hasArrow: reportData.newUsersHasArrow,
+                    isUp: reportData.newUsersIsUp,
                     isDark: isDark,
                   ),
                 ),
@@ -2757,9 +2761,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 Expanded(
                   child: _buildStaticSummaryCard(
                     title: 'Skrining\nRata-rata/Hari',
-                    value: '115',
-                    badgeText: '10,3%',
-                    hasArrow: true,
+                    value: AdminReportService.formatNumber(reportData.screeningsPerDay),
+                    badgeText: reportData.screeningsPerDayBadgeText,
+                    hasArrow: reportData.screeningsPerDayHasArrow,
+                    isUp: reportData.screeningsPerDayIsUp,
                     isDark: isDark,
                   ),
                 ),
@@ -2767,8 +2772,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             ),
             const SizedBox(height: 18),
 
-            // 3. Distribusi Hasil Skrining (Donut Chart Statis Sesuai Screenshot)
-            _buildStaticScreeningDistributionCard(isDark),
+            // 3. Distribusi Hasil Skrining (Donut Chart Berdasarkan Data Aktual Firestore)
+            _buildStaticScreeningDistributionCard(isDark, reportData),
             const SizedBox(height: 22),
 
             // 4. BAGIAN DATA BARU (Agregasi Live Firestore Berdasarkan Rentang Tanggal)
@@ -2776,7 +2781,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               _buildLaporanLoadingState(isDark)
             else if (_laporanErrorMessage != null)
               _buildLaporanErrorState(isDark)
-            else if (_adminReportData == null || _adminReportData!.isEmpty)
+            else if (reportData.isEmpty)
               _buildLaporanEmptyState(isDark)
             else ...[
               // a) Jumlah Pengguna (Pasien) Terdaftar
@@ -2896,6 +2901,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     required String badgeText,
     required bool hasArrow,
     required bool isDark,
+    bool isUp = true,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -2946,10 +2952,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (hasArrow) ...[
-                  const Icon(
-                    Icons.arrow_upward_rounded,
+                  Icon(
+                    isUp
+                        ? Icons.arrow_upward_rounded
+                        : Icons.arrow_downward_rounded,
                     size: 10,
-                    color: Color(0xFF267352),
+                    color: const Color(0xFF267352),
                   ),
                   const SizedBox(width: 2),
                 ],
@@ -2969,44 +2977,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  Widget _buildStaticScreeningDistributionCard(bool isDark) {
-    const staticSlices = [
-      _DonutSlice(
-        label: 'Insufficient Weight',
-        percentage: 4.2,
-        color: Color(0xFF2563EB), // Biru
-      ),
-      _DonutSlice(
-        label: 'Normal Weight',
-        percentage: 28.6,
-        color: Color(0xFF10B981), // Hijau
-      ),
-      _DonutSlice(
-        label: 'Overweight Level 1',
-        percentage: 23.1,
-        color: Color(0xFFFACC15), // Kuning
-      ),
-      _DonutSlice(
-        label: 'Overweight Level 2',
-        percentage: 16.3,
-        color: Color(0xFFFB923C), // Oranye
-      ),
-      _DonutSlice(
-        label: 'Obesity Type 1',
-        percentage: 15.2,
-        color: Color(0xFFEA580C), // Oranye Tua
-      ),
-      _DonutSlice(
-        label: 'Obesity Type 2',
-        percentage: 8.7,
-        color: Color(0xFFDC2626), // Merah
-      ),
-      _DonutSlice(
-        label: 'Obesity Type 3',
-        percentage: 3.9,
-        color: Color(0xFF9333EA), // Ungu
-      ),
-    ];
+  Widget _buildStaticScreeningDistributionCard(bool isDark, [AdminReportData? reportData]) {
+    final data = reportData ?? _adminReportData ?? AdminReportData.empty();
+    final slices = ObesityCategoryConfig.all7Categories.map((cfg) {
+      final percentage = data.screeningDistributionPercentages[cfg.category] ?? 0.0;
+      return _DonutSlice(
+        label: cfg.label,
+        percentage: percentage,
+        color: cfg.color,
+      );
+    }).toList();
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -3044,8 +3024,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 height: 120,
                 child: CustomPaint(
                   painter: _DonutChartPainter(
-                    slices: staticSlices,
+                    slices: slices,
                     strokeWidth: 20,
+                    isDark: isDark,
                   ),
                 ),
               ),
@@ -3054,7 +3035,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               // Daftar Legend di sisi kanan
               Expanded(
                 child: Column(
-                  children: staticSlices.map((slice) {
+                  children: slices.map((slice) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 3.5),
                       child: Row(
@@ -3081,7 +3062,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             ),
                           ),
                           Text(
-                            '${slice.percentage.toString().replaceAll('.', ',')}%',
+                            AdminReportService.formatPercentage(slice.percentage),
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -4826,10 +4807,12 @@ class _DonutSlice {
 class _DonutChartPainter extends CustomPainter {
   final List<_DonutSlice> slices;
   final double strokeWidth;
+  final bool isDark;
 
   const _DonutChartPainter({
     required this.slices,
     this.strokeWidth = 20.0,
+    this.isDark = false,
   });
 
   @override
@@ -4838,23 +4821,37 @@ class _DonutChartPainter extends CustomPainter {
     final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
+    final totalPercentage = slices.fold<double>(0.0, (sum, s) => sum + s.percentage);
+    if (totalPercentage <= 0.0) {
+      final emptyPaint = Paint()
+        ..color = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth;
+      canvas.drawArc(rect, 0, 2 * math.pi, false, emptyPaint);
+      return;
+    }
+
     double startAngle = -math.pi / 2;
 
     for (final slice in slices) {
       final sweepAngle = (slice.percentage / 100.0) * (2 * math.pi);
-      final paint = Paint()
-        ..color = slice.color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.butt;
+      if (sweepAngle > 0) {
+        final paint = Paint()
+          ..color = slice.color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.butt;
 
-      canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
-      startAngle += sweepAngle;
+        canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
+        startAngle += sweepAngle;
+      }
     }
   }
 
   @override
   bool shouldRepaint(covariant _DonutChartPainter oldDelegate) =>
-      oldDelegate.slices != slices || oldDelegate.strokeWidth != strokeWidth;
+      oldDelegate.slices != slices ||
+      oldDelegate.strokeWidth != strokeWidth ||
+      oldDelegate.isDark != isDark;
 }
 

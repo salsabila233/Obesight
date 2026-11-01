@@ -148,15 +148,20 @@ void main() {
       // a) Filter Tanggal
       expect(find.text('29/07/2026 - 29/08/2026'), findsOneWidget);
 
-      // b) 3 Kartu Ringkasan Skrining Statis
+      // b) 3 Kartu Ringkasan Skrining Dinamis Berdasarkan Data Aktual/Uji
       expect(find.text('Total Skrining'), findsOneWidget);
-      expect(find.text('3.456'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
       expect(find.text('Pengguna Baru'), findsOneWidget);
-      expect(find.text('234'), findsOneWidget);
+      expect(find.text('2'), findsWidgets);
       expect(find.textContaining('Rata-rata/Hari'), findsOneWidget);
-      expect(find.text('115'), findsOneWidget);
+      expect(find.text('0'), findsOneWidget);
 
-      // c) Card Donut "Distribusi Hasil Skrining"
+      // Verifikasi angka statis lama sudah tidak ditampilkan lagi
+      expect(find.text('3.456'), findsNothing);
+      expect(find.text('234'), findsNothing);
+      expect(find.text('115'), findsNothing);
+
+      // c) Card Donut "Distribusi Hasil Skrining" (Dihitung Dinamis dari Skrining Aktual)
       expect(find.text('Distribusi Hasil Skrining'), findsOneWidget);
       expect(find.text('Insufficient Weight'), findsWidgets);
       expect(find.text('Normal Weight'), findsWidgets);
@@ -165,6 +170,8 @@ void main() {
       expect(find.text('Obesity Type 1'), findsWidgets);
       expect(find.text('Obesity Type 2'), findsWidgets);
       expect(find.text('Obesity Type 3'), findsWidgets);
+      expect(find.text('66,7%'), findsWidgets);
+      expect(find.text('33,3%'), findsWidgets);
 
       // d) Bagian Baru: Jumlah Pengguna (Pasien)
       expect(find.text('Total Pengguna (Pasien)'), findsOneWidget);

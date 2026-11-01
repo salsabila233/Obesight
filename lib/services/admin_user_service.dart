@@ -317,6 +317,38 @@ class AdminUserService {
     return completer.future;
   }
 
+  /// Mengambil seluruh riwayat skrining pengguna tertentu (`users/{userId}/screenings`)
+  Future<List<ScreeningHistoryItem>> fetchAllScreeningsForUser(String userId) async {
+    final cleanId = userId.trim();
+    if (!isFirebaseAvailable || cleanId.isEmpty) {
+      return [];
+    }
+
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(cleanId)
+          .collection('screenings')
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      final items = <ScreeningHistoryItem>[];
+      for (final doc in snapshot.docs) {
+        try {
+          items.add(ScreeningHistoryItem.fromMap(doc.data()));
+        } catch (e) {
+          debugPrint('[AdminUserService] Error parsing screening ${doc.id}: $e');
+        }
+      }
+
+      items.sort((a, b) => b.date.compareTo(a.date));
+      return items;
+    } catch (e) {
+      debugPrint('[AdminUserService] Notice fetchAllScreeningsForUser error for $cleanId: $e');
+      return [];
+    }
+  }
+
   /// Mengosongkan cache jika data diperbarui
   void invalidateCache(String? userId) {
     if (userId != null) {

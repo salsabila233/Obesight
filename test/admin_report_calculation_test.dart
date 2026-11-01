@@ -358,4 +358,268 @@ void main() {
       expect(report.obesityCounts[ObesityCategory.normalWeight], 0);
     });
   });
+
+  group('AdminReportService - Perhitungan Laporan Aktual Dinamis', () {
+    final testUser1 = UserModel(
+      id: 'u_01',
+      name: 'User Satu',
+      email: 'u1@example.com',
+      username: 'u1',
+      role: UserRole.user,
+      joined: '01 Agustus 2026',
+    );
+
+    final testUser2 = UserModel(
+      id: 'u_02',
+      name: 'User Dua',
+      email: 'u2@example.com',
+      username: 'u2',
+      role: UserRole.user,
+      joined: '15 Agustus 2026',
+    );
+
+    test('1. Total Skrining pada rentang filter: Setiap dokumen dihitung tepat satu kali', () {
+      final s1 = ScreeningHistoryItem(
+        id: 'scr_1',
+        userId: 'u_01',
+        date: DateTime(2026, 8, 5, 10, 0),
+        bmi: 22.0,
+        risk: 'Rendah',
+        category: 'Normal Weight',
+        skriningData: SkriningData(),
+      );
+      final s2 = ScreeningHistoryItem(
+        id: 'scr_2',
+        userId: 'u_01',
+        date: DateTime(2026, 8, 10, 14, 0),
+        bmi: 23.0,
+        risk: 'Rendah',
+        category: 'Normal Weight',
+        skriningData: SkriningData(),
+      );
+      final s3Outside = ScreeningHistoryItem(
+        id: 'scr_3',
+        userId: 'u_02',
+        date: DateTime(2026, 7, 20, 9, 0), // Sebelum periode
+        bmi: 28.0,
+        risk: 'Tinggi',
+        category: 'Obesity Type 1',
+        skriningData: SkriningData(),
+      );
+
+      final report = AdminReportService.computeReportData(
+        users: [testUser1, testUser2],
+        allScreenings: [s1, s2, s3Outside],
+        startDate: DateTime(2026, 8, 1),
+        endDate: DateTime(2026, 8, 15),
+      );
+
+      expect(report.totalScreenings, 2);
+    });
+
+    test('2. Batas tanggal awal & akhir inklusif penuh hari (00:00:00 sampai 23:59:59.999)', () {
+      final start = DateTime(2026, 8, 1);
+      final end = DateTime(2026, 8, 7);
+
+      // Tepat di detik awal hari pertama
+      expect(
+        AdminReportService.isDateInRange(DateTime(2026, 8, 1, 0, 0, 0), start, end),
+        isTrue,
+        reason: 'Tanggal awal 00:00:00 harus inklusif',
+      );
+
+      // Tepat di detik akhir hari terakhir
+      expect(
+        AdminReportService.isDateInRange(DateTime(2026, 8, 7, 23, 59, 59), start, end),
+        isTrue,
+        reason: 'Tanggal akhir 23:59:59 harus inklusif',
+      );
+
+      // 1 detik sebelum awal
+      expect(
+        AdminReportService.isDateInRange(DateTime(2026, 7, 31, 23, 59, 59), start, end),
+        isFalse,
+        reason: 'Sebelum hari pertama harus excluded',
+      );
+
+      // 1 detik setelah akhir
+      expect(
+        AdminReportService.isDateInRange(DateTime(2026, 8, 8, 0, 0, 1), start, end),
+        isFalse,
+        reason: 'Setelah hari terakhir harus excluded',
+      );
+    });
+
+    test('3. Skrining Rata-rata/Hari = total skrining / jumlah hari rentang (inklusif, min 1)', () {
+      // 7 hari (1 s.d. 7 Agustus): 14 skrining -> rata-rata 2/hari
+      final screenings7Days = List.generate(14, (i) {
+        final day = 1 + (i % 7);
+        return ScreeningHistoryItem(
+          id: 'scr_$i',
+          userId: 'u_01',
+          date: DateTime(2026, 8, day, 10, 0),
+          bmi: 22.0,
+          risk: 'Rendah',
+          category: 'Normal Weight',
+          skriningData: SkriningData(),
+        );
+      });
+
+      final report7Days = AdminReportService.computeReportData(
+        users: [testUser1],
+        allScreenings: screenings7Days,
+        startDate: DateTime(2026, 8, 1),
+        endDate: DateTime(2026, 8, 7),
+      );
+
+      expect(report7Days.totalScreenings, 14);
+      expect(report7Days.screeningsPerDay, 2);
+      expect(report7Days.exactScreeningsPerDay, 2.0);
+
+      // 3 hari (1 s.d. 3 Agustus): 10 skrining -> 10/3 = 3.33 -> dibulatkan 3
+      final screenings3Days = List.generate(10, (i) {
+        return ScreeningHistoryItem(
+          id: 'scr_$i',
+          userId: 'u_01',
+          date: DateTime(2026, 8, 1 + (i % 3), 10, 0),
+          bmi: 22.0,
+          risk: 'Rendah',
+          category: 'Normal Weight',
+          skriningData: SkriningData(),
+        );
+      });
+
+      final report3Days = AdminReportService.computeReportData(
+        users: [testUser1],
+        allScreenings: screenings3Days,
+        startDate: DateTime(2026, 8, 1),
+        endDate: DateTime(2026, 8, 3),
+      );
+
+      expect(report3Days.totalScreenings, 10);
+      expect(report3Days.screeningsPerDay, 3);
+    });
+
+    test('4. Persentase perubahan badge ketika periode sebelumnya 0: Tanpa pembagian nol', () {
+      // Periode lalu 0, periode ini > 0 -> badgeText: "0%", hasArrow: true, isUp: true
+      final badgeFromZero = AdminReportService.calculateChangeBadge(10, 0);
+      expect(badgeFromZero.percentage, 0.0);
+      expect(badgeFromZero.badgeText, '0%');
+      expect(badgeFromZero.hasArrow, isTrue);
+      expect(badgeFromZero.isUp, isTrue);
+
+      // Periode lalu 0, periode ini 0 -> badgeText: "0%", hasArrow: false
+      final badgeZeroZero = AdminReportService.calculateChangeBadge(0, 0);
+      expect(badgeZeroZero.percentage, 0.0);
+      expect(badgeZeroZero.badgeText, '0%');
+      expect(badgeZeroZero.hasArrow, isFalse);
+
+      // Kenaikan normal: dari 100 ke 125 -> +25,0%
+      final badgeUp = AdminReportService.calculateChangeBadge(125, 100);
+      expect(badgeUp.percentage, 25.0);
+      expect(badgeUp.badgeText, '25,0%');
+      expect(badgeUp.hasArrow, isTrue);
+      expect(badgeUp.isUp, isTrue);
+
+      // Penurunan normal: dari 100 ke 80 -> -20,0%
+      final badgeDown = AdminReportService.calculateChangeBadge(80, 100);
+      expect(badgeDown.percentage, -20.0);
+      expect(badgeDown.badgeText, '20,0%');
+      expect(badgeDown.hasArrow, isTrue);
+      expect(badgeDown.isUp, isFalse);
+    });
+
+    test('5. Distribusi kategori hasil skrining: Persentase akurat untuk 7 kategori', () {
+      // 10 skrining: 5 Normal Weight, 3 Overweight Level 1, 2 Obesity Type 2
+      final screenings = <ScreeningHistoryItem>[
+        ...List.generate(5, (i) => ScreeningHistoryItem(
+          id: 's_norm_$i',
+          userId: 'u_01',
+          date: DateTime(2026, 8, 2),
+          bmi: 21.0,
+          risk: 'Rendah',
+          category: 'Normal Weight',
+          skriningData: SkriningData(),
+        )),
+        ...List.generate(3, (i) => ScreeningHistoryItem(
+          id: 's_ow_$i',
+          userId: 'u_01',
+          date: DateTime(2026, 8, 3),
+          bmi: 25.5,
+          risk: 'Sedang',
+          category: 'Overweight Level 1',
+          skriningData: SkriningData(),
+        )),
+        ...List.generate(2, (i) => ScreeningHistoryItem(
+          id: 's_ob2_$i',
+          userId: 'u_02',
+          date: DateTime(2026, 8, 4),
+          bmi: 32.0,
+          risk: 'Tinggi',
+          category: 'Obesity Type 2',
+          skriningData: SkriningData(),
+        )),
+      ];
+
+      final report = AdminReportService.computeReportData(
+        users: [testUser1, testUser2],
+        allScreenings: screenings,
+        startDate: DateTime(2026, 8, 1),
+        endDate: DateTime(2026, 8, 7),
+      );
+
+      expect(report.totalScreenings, 10);
+      expect(report.screeningDistributionCounts[ObesityCategory.normalWeight], 5);
+      expect(report.screeningDistributionPercentages[ObesityCategory.normalWeight], 50.0);
+      expect(report.screeningDistributionCounts[ObesityCategory.overweightLevel1], 3);
+      expect(report.screeningDistributionPercentages[ObesityCategory.overweightLevel1], 30.0);
+      expect(report.screeningDistributionCounts[ObesityCategory.obesityType2], 2);
+      expect(report.screeningDistributionPercentages[ObesityCategory.obesityType2], 20.0);
+      expect(report.screeningDistributionCounts[ObesityCategory.insufficientWeight], 0);
+      expect(report.screeningDistributionPercentages[ObesityCategory.insufficientWeight], 0.0);
+    });
+
+    test('6. Data Kosong: Mengembalikan nilai 0 dan persentase 0.0% tanpa pembagian nol atau error', () {
+      final report = AdminReportService.computeReportData(
+        users: [],
+        allScreenings: [],
+        startDate: DateTime(2026, 8, 1),
+        endDate: DateTime(2026, 8, 7),
+      );
+
+      expect(report.totalScreenings, 0);
+      expect(report.newUsersCount, 0);
+      expect(report.screeningsPerDay, 0);
+      expect(report.totalScreeningsBadgeText, '0%');
+      expect(report.newUsersBadgeText, '0%');
+      expect(report.screeningsPerDayBadgeText, '0%');
+      expect(report.isEmpty, isTrue);
+
+      for (final cfg in ObesityCategoryConfig.all7Categories) {
+        expect(report.screeningDistributionCounts[cfg.category], 0);
+        expect(report.screeningDistributionPercentages[cfg.category], 0.0);
+      }
+    });
+
+    test('7. Format angka Indonesia: Pemisah ribuan titik dan koma desimal', () {
+      expect(AdminReportService.formatNumber(3456), '3.456');
+      expect(AdminReportService.formatNumber(1250000), '1.250.000');
+      expect(AdminReportService.formatNumber(234), '234');
+      expect(AdminReportService.formatNumber(0), '0');
+      expect(AdminReportService.formatPercentage(12.5), '12,5%');
+      expect(AdminReportService.formatPercentage(0.0), '0,0%');
+    });
+
+    test('8. Perhitungan periode sebelumnya dengan panjang hari yang persis sama', () {
+      // 7 hari: 1 - 7 Agustus 2026 -> periode lalu 25 - 31 Juli 2026
+      final prev7 = AdminReportService.calculatePreviousPeriod(
+        DateTime(2026, 8, 1),
+        DateTime(2026, 8, 7),
+      );
+      expect(prev7, isNotNull);
+      expect(prev7!.start, DateTime(2026, 7, 25, 0, 0, 0));
+      expect(prev7.end, DateTime(2026, 7, 31, 23, 59, 59, 999));
+      expect(prev7.end.difference(prev7.start).inDays + 1, 7);
+    });
+  });
 }

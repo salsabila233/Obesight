@@ -97,6 +97,34 @@ class AdminReportData {
   final int totalScreenedPatients;
   final List<UserModel> filteredUsers;
 
+  // 1. Kartu Ringkasan: Total Skrining
+  final int totalScreenings;
+  final int previousPeriodTotalScreenings;
+  final double totalScreeningsChangePercentage;
+  final bool totalScreeningsHasArrow;
+  final bool totalScreeningsIsUp;
+  final String totalScreeningsBadgeText;
+
+  // 2. Kartu Ringkasan: Pengguna Baru
+  final int newUsersCount;
+  final int previousPeriodNewUsersCount;
+  final double newUsersChangePercentage;
+  final bool newUsersHasArrow;
+  final bool newUsersIsUp;
+  final String newUsersBadgeText;
+
+  // 3. Kartu Ringkasan: Skrining Rata-rata/Hari
+  final int screeningsPerDay;
+  final double exactScreeningsPerDay;
+  final double screeningsPerDayChangePercentage;
+  final bool screeningsPerDayHasArrow;
+  final bool screeningsPerDayIsUp;
+  final String screeningsPerDayBadgeText;
+
+  // 4. Donut Chart: Distribusi Hasil Skrining (7 Kategori)
+  final Map<ObesityCategory, int> screeningDistributionCounts;
+  final Map<ObesityCategory, double> screeningDistributionPercentages;
+
   const AdminReportData({
     required this.totalPatients,
     required this.genderCounts,
@@ -105,9 +133,29 @@ class AdminReportData {
     required this.obesityPercentages,
     required this.totalScreenedPatients,
     required this.filteredUsers,
+    this.totalScreenings = 0,
+    this.previousPeriodTotalScreenings = 0,
+    this.totalScreeningsChangePercentage = 0.0,
+    this.totalScreeningsHasArrow = false,
+    this.totalScreeningsIsUp = true,
+    this.totalScreeningsBadgeText = '0%',
+    this.newUsersCount = 0,
+    this.previousPeriodNewUsersCount = 0,
+    this.newUsersChangePercentage = 0.0,
+    this.newUsersHasArrow = false,
+    this.newUsersIsUp = true,
+    this.newUsersBadgeText = '0%',
+    this.screeningsPerDay = 0,
+    this.exactScreeningsPerDay = 0.0,
+    this.screeningsPerDayChangePercentage = 0.0,
+    this.screeningsPerDayHasArrow = false,
+    this.screeningsPerDayIsUp = true,
+    this.screeningsPerDayBadgeText = '0%',
+    this.screeningDistributionCounts = const {},
+    this.screeningDistributionPercentages = const {},
   });
 
-  bool get isEmpty => totalPatients == 0;
+  bool get isEmpty => totalPatients == 0 && totalScreenings == 0;
 
   factory AdminReportData.empty() {
     return const AdminReportData(
@@ -144,6 +192,42 @@ class AdminReportData {
       },
       totalScreenedPatients: 0,
       filteredUsers: [],
+      totalScreenings: 0,
+      previousPeriodTotalScreenings: 0,
+      totalScreeningsChangePercentage: 0.0,
+      totalScreeningsHasArrow: false,
+      totalScreeningsIsUp: true,
+      totalScreeningsBadgeText: '0%',
+      newUsersCount: 0,
+      previousPeriodNewUsersCount: 0,
+      newUsersChangePercentage: 0.0,
+      newUsersHasArrow: false,
+      newUsersIsUp: true,
+      newUsersBadgeText: '0%',
+      screeningsPerDay: 0,
+      exactScreeningsPerDay: 0.0,
+      screeningsPerDayChangePercentage: 0.0,
+      screeningsPerDayHasArrow: false,
+      screeningsPerDayIsUp: true,
+      screeningsPerDayBadgeText: '0%',
+      screeningDistributionCounts: {
+        ObesityCategory.insufficientWeight: 0,
+        ObesityCategory.normalWeight: 0,
+        ObesityCategory.overweightLevel1: 0,
+        ObesityCategory.overweightLevel2: 0,
+        ObesityCategory.obesityType1: 0,
+        ObesityCategory.obesityType2: 0,
+        ObesityCategory.obesityType3: 0,
+      },
+      screeningDistributionPercentages: {
+        ObesityCategory.insufficientWeight: 0.0,
+        ObesityCategory.normalWeight: 0.0,
+        ObesityCategory.overweightLevel1: 0.0,
+        ObesityCategory.overweightLevel2: 0.0,
+        ObesityCategory.obesityType1: 0.0,
+        ObesityCategory.obesityType2: 0.0,
+        ObesityCategory.obesityType3: 0.0,
+      },
     );
   }
 }
@@ -281,6 +365,87 @@ class AdminReportService {
     return '${pct.toStringAsFixed(1).replaceAll('.', ',')}%';
   }
 
+  /// Format angka bilangan bulat standar Indonesia dengan titik sebagai pemisah ribuan
+  static String formatNumber(num number) {
+    final intVal = number.round();
+    final str = intVal.toString();
+    return str.replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    );
+  }
+
+  /// Menghitung rentang tanggal periode sebelumnya dengan durasi hari yang persis sama
+  static ({DateTime start, DateTime end})? calculatePreviousPeriod(
+    DateTime? start,
+    DateTime? end,
+  ) {
+    if (start == null || end == null) return null;
+    final startDay = DateTime(start.year, start.month, start.day);
+    final endDay = DateTime(end.year, end.month, end.day);
+    final int daysCount = endDay.difference(startDay).inDays + 1;
+    if (daysCount <= 0) return null;
+
+    final prevEndDay = startDay.subtract(const Duration(days: 1));
+    final prevStartDay = prevEndDay.subtract(Duration(days: daysCount - 1));
+    return (
+      start: DateTime(prevStartDay.year, prevStartDay.month, prevStartDay.day, 0, 0, 0),
+      end: DateTime(prevEndDay.year, prevEndDay.month, prevEndDay.day, 23, 59, 59, 999),
+    );
+  }
+
+  /// Menghitung persentase perubahan periode ini dibanding periode lalu secara aman (anti divide-by-zero)
+  static ({
+    double percentage,
+    bool hasArrow,
+    bool isUp,
+    String badgeText,
+  }) calculateChangeBadge(num current, num previous) {
+    if (previous <= 0) {
+      if (current > 0) {
+        return (
+          percentage: 0.0,
+          hasArrow: true,
+          isUp: true,
+          badgeText: '0%',
+        );
+      }
+      return (
+        percentage: 0.0,
+        hasArrow: false,
+        isUp: true,
+        badgeText: '0%',
+      );
+    }
+
+    final diff = current - previous;
+    final pct = (diff / previous) * 100.0;
+    final roundedPct = double.parse(pct.toStringAsFixed(1));
+
+    if (roundedPct > 0) {
+      return (
+        percentage: roundedPct,
+        hasArrow: true,
+        isUp: true,
+        badgeText: formatPercentage(roundedPct),
+      );
+    } else if (roundedPct < 0) {
+      return (
+        percentage: roundedPct,
+        hasArrow: true,
+        isUp: false,
+        badgeText: formatPercentage(roundedPct.abs()),
+      );
+    } else {
+      return (
+        percentage: 0.0,
+        hasArrow: false,
+        isUp: true,
+        badgeText: '0%',
+      );
+    }
+  }
+
   /// Mengekstrak tanggal pendaftaran / bergabung dari model pengguna
   static DateTime? extractUserDate(UserModel user) {
     if (user.createdAt != null) return user.createdAt;
@@ -318,20 +483,26 @@ class AdminReportService {
     return null;
   }
 
-  /// Memeriksa apakah tanggal pengguna berada di dalam rentang tanggal filter
+  /// Memeriksa apakah tanggal berada di dalam rentang tanggal filter (inklusif penuh hari awal dan akhir)
   static bool isDateInRange(DateTime? date, DateTime? start, DateTime? end) {
-    if (start == null || end == null) return true;
     if (date == null) return false;
-    final startDay = DateTime(start.year, start.month, start.day, 0, 0, 0);
-    final endDay = DateTime(end.year, end.month, end.day, 23, 59, 59);
-    return !date.isBefore(startDay) && !date.isAfter(endDay);
+    if (start == null && end == null) return true;
+    if (start != null) {
+      final startDay = DateTime(start.year, start.month, start.day, 0, 0, 0);
+      if (date.isBefore(startDay)) return false;
+    }
+    if (end != null) {
+      final endDay = DateTime(end.year, end.month, end.day, 23, 59, 59, 999);
+      if (date.isAfter(endDay)) return false;
+    }
+    return true;
   }
 
   /// Ekstraksi kategori hasil skrining dari sesi skrining atau pengguna
   static String? extractCategoryRaw(
-    ScreeningHistoryItem? screening,
-    UserModel user,
-  ) {
+    ScreeningHistoryItem? screening, [
+    UserModel? user,
+  ]) {
     if (screening != null) {
       final d = screening.skriningData;
       if (d.aiCategoryTitle != null && d.aiCategoryTitle!.isNotEmpty) {
@@ -352,29 +523,33 @@ class AdminReportService {
       }
     }
 
-    if (user.bmiCategory.isNotEmpty && user.bmiCategory != 'Normal') {
-      return user.bmiCategory;
-    } else if (user.bmiCategory.isNotEmpty) {
-      return user.bmiCategory;
+    if (user != null) {
+      if (user.bmiCategory.isNotEmpty && user.bmiCategory != 'Normal') {
+        return user.bmiCategory;
+      } else if (user.bmiCategory.isNotEmpty) {
+        return user.bmiCategory;
+      }
     }
     return null;
   }
 
-  /// Menghitung agregasi data laporan berdasarkan daftar pengguna dan skrining terbarunya
-  /// Aturan penting:
-  /// - Hanya menghitung akun pasien (role != admin)
-  /// - Filter rentang tanggal diterapkan
-  /// - Satu pengguna dihitung satu kali untuk jenis kelamin dan hasil skrining terbarunya
+  /// Menghitung seluruh data laporan admin secara bersama di sisi client (pure & testable):
+  /// 1. Total Skrining: jumlah skrining pada rentang + persentase perbandingan periode lalu
+  /// 2. Pengguna Baru: jumlah pasien baru pada rentang + persentase perbandingan periode lalu
+  /// 3. Skrining Rata-rata/Hari: total skrining / jumlah hari rentang (inklusif, min 1)
+  /// 4. Distribusi Hasil Skrining: donat 7 kategori perbandingan total skrining
+  /// 5. Statistik Pasien: jumlah pasien, breakdown jenis kelamin, kategori obesitas terbaru
   static AdminReportData computeReportData({
     required List<UserModel> users,
-    required Map<String, ScreeningHistoryItem?> latestScreenings,
+    Map<String, ScreeningHistoryItem?>? latestScreenings,
+    List<ScreeningHistoryItem>? allScreenings,
     DateTime? startDate,
     DateTime? endDate,
   }) {
     // 1. Filter hanya pasien (non-admin)
     final patients = users.where((u) => !u.isAdmin).toList();
 
-    // 2. Filter rentang tanggal
+    // 2. Filter rentang tanggal untuk pendaftaran pengguna
     final filteredPatients = patients.where((u) {
       if (startDate == null || endDate == null) return true;
       final uDate = extractUserDate(u);
@@ -383,7 +558,7 @@ class AdminReportService {
 
     final totalPatients = filteredPatients.length;
 
-    // 3. Hitung breakdown jenis kelamin
+    // 3. Breakdown jenis kelamin pasien
     final genderCounts = <AdminReportGender, int>{
       AdminReportGender.perempuan: 0,
       AdminReportGender.lakiLaki: 0,
@@ -410,7 +585,112 @@ class AdminReportService {
       ),
     };
 
-    // 4. Hitung kategori obesitas dari hasil skrining terbaru per pengguna
+    // 4. Kumpulkan seluruh dokumen skrining
+    List<ScreeningHistoryItem> allScreeningsList = allScreenings != null
+        ? List<ScreeningHistoryItem>.from(allScreenings)
+        : (latestScreenings != null
+            ? latestScreenings.values.whereType<ScreeningHistoryItem>().toList()
+            : <ScreeningHistoryItem>[]);
+
+    // 5. Hitung rentang periode sebelumnya yang panjangnya sama
+    final prevPeriod = calculatePreviousPeriod(startDate, endDate);
+
+    // 6. Filter dokumen skrining periode ini dan periode sebelumnya
+    final screeningsInPeriod = allScreeningsList
+        .where((s) => isDateInRange(s.date, startDate, endDate))
+        .toList();
+
+    final prevScreenings = prevPeriod != null
+        ? allScreeningsList
+            .where((s) => isDateInRange(s.date, prevPeriod.start, prevPeriod.end))
+            .toList()
+        : <ScreeningHistoryItem>[];
+
+    // a) Total Skrining
+    final totalScreenings = screeningsInPeriod.length;
+    final prevTotalScreenings = prevScreenings.length;
+    final totalScreeningsBadge = calculateChangeBadge(
+      totalScreenings,
+      prevTotalScreenings,
+    );
+
+    // b) Pengguna Baru
+    final newUsersCount = filteredPatients.length;
+    final prevNewUsers = prevPeriod != null
+        ? patients
+            .where((u) => isDateInRange(extractUserDate(u), prevPeriod.start, prevPeriod.end))
+            .toList()
+        : <UserModel>[];
+    final prevNewUsersCount = prevNewUsers.length;
+    final newUsersBadge = calculateChangeBadge(
+      newUsersCount,
+      prevNewUsersCount,
+    );
+
+    // c) Skrining Rata-rata/Hari (inklusif, minimal 1 hari)
+    int daysInRange = 1;
+    if (startDate != null && endDate != null) {
+      final startDay = DateTime(startDate.year, startDate.month, startDate.day);
+      final endDay = DateTime(endDate.year, endDate.month, endDate.day);
+      daysInRange = endDay.difference(startDay).inDays + 1;
+      if (daysInRange < 1) daysInRange = 1;
+    } else {
+      // "Semua waktu"
+      if (screeningsInPeriod.isNotEmpty) {
+        DateTime earliest = screeningsInPeriod.first.date;
+        for (final s in screeningsInPeriod) {
+          if (s.date.isBefore(earliest)) earliest = s.date;
+        }
+        daysInRange = DateTime.now().difference(earliest).inDays + 1;
+        if (daysInRange < 1) daysInRange = 1;
+      }
+    }
+
+    final double exactAvg = totalScreenings / daysInRange;
+    final int avgPerDay = exactAvg.round();
+    final double prevExactAvg = (prevPeriod != null && daysInRange > 0)
+        ? (prevTotalScreenings / daysInRange)
+        : 0.0;
+    final avgBadge = calculateChangeBadge(exactAvg, prevExactAvg);
+
+    // d) Distribusi Hasil Skrining (Donut Chart 7 Kategori)
+    final screeningDistributionCounts = <ObesityCategory, int>{
+      for (final cfg in ObesityCategoryConfig.all7Categories)
+        cfg.category: 0,
+    };
+
+    for (final s in screeningsInPeriod) {
+      final cat = normalizeObesityCategory(extractCategoryRaw(s));
+      if (screeningDistributionCounts.containsKey(cat)) {
+        screeningDistributionCounts[cat] =
+            (screeningDistributionCounts[cat] ?? 0) + 1;
+      }
+    }
+
+    final screeningDistributionPercentages = <ObesityCategory, double>{};
+    for (final cfg in ObesityCategoryConfig.all7Categories) {
+      screeningDistributionPercentages[cfg.category] = calculatePercentage(
+        screeningDistributionCounts[cfg.category] ?? 0,
+        totalScreenings,
+      );
+    }
+
+    // e) Kategori Obesitas Terbaru per Pengguna (Bottom Section)
+    final latestScreeningsMap = Map<String, ScreeningHistoryItem?>.from(
+      latestScreenings ?? {},
+    );
+    if (latestScreenings == null && allScreenings != null) {
+      for (final u in filteredPatients) {
+        final userScreenings = allScreeningsList
+            .where((s) => s.userId == u.id)
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
+        if (userScreenings.isNotEmpty) {
+          latestScreeningsMap[u.id] = userScreenings.first;
+        }
+      }
+    }
+
     final obesityCounts = <ObesityCategory, int>{
       ObesityCategory.insufficientWeight: 0,
       ObesityCategory.normalWeight: 0,
@@ -423,9 +703,8 @@ class AdminReportService {
     };
 
     int screenedCount = 0;
-
     for (final u in filteredPatients) {
-      final screening = latestScreenings[u.id];
+      final screening = latestScreeningsMap[u.id];
       final rawCat = extractCategoryRaw(screening, u);
 
       if (rawCat != null && rawCat.trim().isNotEmpty) {
@@ -433,13 +712,11 @@ class AdminReportService {
         obesityCounts[cat] = (obesityCounts[cat] ?? 0) + 1;
         screenedCount++;
       } else {
-        // Jika pengguna belum melakukan skrining sama sekali
         obesityCounts[ObesityCategory.tidakDiketahui] =
             (obesityCounts[ObesityCategory.tidakDiketahui] ?? 0) + 1;
       }
     }
 
-    // Persentase kategori dihitung dari pengguna yang memiliki data skrining
     final denominator = screenedCount > 0 ? screenedCount : totalPatients;
     final obesityPercentages = <ObesityCategory, double>{};
     for (final entry in obesityCounts.entries) {
@@ -457,70 +734,156 @@ class AdminReportService {
       obesityPercentages: obesityPercentages,
       totalScreenedPatients: screenedCount,
       filteredUsers: filteredPatients,
+      totalScreenings: totalScreenings,
+      previousPeriodTotalScreenings: prevTotalScreenings,
+      totalScreeningsChangePercentage: totalScreeningsBadge.percentage,
+      totalScreeningsHasArrow: totalScreeningsBadge.hasArrow,
+      totalScreeningsIsUp: totalScreeningsBadge.isUp,
+      totalScreeningsBadgeText: totalScreeningsBadge.badgeText,
+      newUsersCount: newUsersCount,
+      previousPeriodNewUsersCount: prevNewUsersCount,
+      newUsersChangePercentage: newUsersBadge.percentage,
+      newUsersHasArrow: newUsersBadge.hasArrow,
+      newUsersIsUp: newUsersBadge.isUp,
+      newUsersBadgeText: newUsersBadge.badgeText,
+      screeningsPerDay: avgPerDay,
+      exactScreeningsPerDay: exactAvg,
+      screeningsPerDayChangePercentage: avgBadge.percentage,
+      screeningsPerDayHasArrow: avgBadge.hasArrow,
+      screeningsPerDayIsUp: avgBadge.isUp,
+      screeningsPerDayBadgeText: avgBadge.badgeText,
+      screeningDistributionCounts: screeningDistributionCounts,
+      screeningDistributionPercentages: screeningDistributionPercentages,
     );
   }
 
-  /// Mengambil data laporan admin secara efisien dari Cloud Firestore
-  /// Query pengguna diambil sekali, lalu riwayat skrining terbaru per pengguna diambil secara paralel
+  // In-memory cache untuk dokumen mentah Firestore
+  List<UserModel>? _cachedUsers;
+  List<ScreeningHistoryItem>? _cachedScreenings;
+
+  // Mock data untuk pengujian unit & widget
+  List<UserModel>? _mockUsers;
+  List<ScreeningHistoryItem>? _mockScreenings;
+
+  @visibleForTesting
+  void setMockData({
+    List<UserModel>? users,
+    List<ScreeningHistoryItem>? screenings,
+  }) {
+    _mockUsers = users != null ? List<UserModel>.from(users) : null;
+    _mockScreenings = screenings != null ? List<ScreeningHistoryItem>.from(screenings) : null;
+  }
+
+  @visibleForTesting
+  void resetMockData() {
+    _mockUsers = null;
+    _mockScreenings = null;
+    _cachedUsers = null;
+    _cachedScreenings = null;
+  }
+
+  /// Mengambil data laporan admin secara efisien dari Cloud Firestore:
+  /// - Dokumen diambil sekali dan di-cache dalam memori
+  /// - Riwayat skrining pengguna diambil secara paralel
   Future<AdminReportData> fetchAdminReportData({
     DateTime? startDate,
     DateTime? endDate,
+    bool forceRefresh = false,
   }) async {
     final adminService = AdminUserService.instance;
     List<UserModel> users = [];
+    List<ScreeningHistoryItem> allScreenings = [];
 
-    if (adminService.isFirebaseAvailable) {
-      try {
-        final snap = await FirebaseFirestore.instance
-            .collection('users')
-            .get()
-            .timeout(const Duration(seconds: 10));
+    if (_mockUsers != null) {
+      users = List<UserModel>.from(_mockUsers!);
+      allScreenings = _mockScreenings != null
+          ? List<ScreeningHistoryItem>.from(_mockScreenings!)
+          : getDefaultMockScreenings();
+    } else if (adminService.isFirebaseAvailable) {
+      if (_cachedUsers != null && _cachedScreenings != null && !forceRefresh) {
+        users = _cachedUsers!;
+        allScreenings = _cachedScreenings!;
+      } else {
+        try {
+          final snap = await FirebaseFirestore.instance
+              .collection('users')
+              .get()
+              .timeout(const Duration(seconds: 10));
 
-        users = snap.docs.map((d) => UserModel.fromMap(d.data(), d.id)).toList();
-      } catch (e) {
-        debugPrint('[AdminReportService] Notice loading users from Firestore: $e');
-        users = getDefaultMockUsers();
+          users = snap.docs.map((d) => UserModel.fromMap(d.data(), d.id)).toList();
+
+          final patients = users.where((u) => !u.isAdmin).toList();
+          final screeningFutures = patients.map((u) => adminService.fetchAllScreeningsForUser(u.id));
+          final screeningResults = await Future.wait(screeningFutures);
+          allScreenings = screeningResults.expand((list) => list).toList();
+
+          _cachedUsers = users;
+          _cachedScreenings = allScreenings;
+        } catch (e) {
+          debugPrint('[AdminReportService] Notice loading data from Firestore: $e');
+          users = getDefaultMockUsers();
+          allScreenings = getDefaultMockScreenings();
+        }
       }
     } else {
       users = getDefaultMockUsers();
-    }
-
-    final latestScreenings = <String, ScreeningHistoryItem?>{};
-    for (final u in users) {
-      if (u.isAdmin) continue;
-      try {
-        final summary = await adminService.getUserScreeningSummary(u.id);
-        if (summary.latestScreening != null) {
-          latestScreenings[u.id] = summary.latestScreening;
-        } else if (u.id == 'usr_003') {
-          latestScreenings[u.id] = ScreeningHistoryItem(
-            id: 'scr_003',
-            userId: 'usr_003',
-            date: DateTime(2026, 8, 16, 10, 0),
-            bmi: 22.4,
-            risk: 'Rendah',
-            category: 'Normal Weight',
-            skriningData: SkriningData()
-              ..height = 172.0
-              ..weight = 66.0
-              ..aiCategoryTitle = 'Normal Weight'
-              ..aiCategoryBadge = 'Normal',
-          );
-        }
-      } catch (e) {
-        debugPrint('[AdminReportService] Notice getting summary for ${u.id}: $e');
-      }
+      allScreenings = getDefaultMockScreenings();
     }
 
     return computeReportData(
       users: users,
-      latestScreenings: latestScreenings,
+      allScreenings: allScreenings,
       startDate: startDate,
       endDate: endDate,
     );
   }
 
-  /// Data mock default untuk offline fallback dan testing lingkungan widget
+  /// Data mock skrining default untuk offline fallback dan testing lingkungan widget
+  static List<ScreeningHistoryItem> getDefaultMockScreenings() {
+    return [
+      ScreeningHistoryItem(
+        id: 'scr_001',
+        userId: 'usr_001',
+        date: DateTime(2026, 8, 10, 10, 0),
+        bmi: 21.8,
+        risk: 'Rendah',
+        category: 'Normal Weight',
+        skriningData: SkriningData()
+          ..height = 160.0
+          ..weight = 56.0
+          ..aiCategoryTitle = 'Normal Weight'
+          ..aiCategoryBadge = 'Normal',
+      ),
+      ScreeningHistoryItem(
+        id: 'scr_002',
+        userId: 'usr_002',
+        date: DateTime(2026, 8, 12, 14, 30),
+        bmi: 26.1,
+        risk: 'Sedang',
+        category: 'Overweight Level 1',
+        skriningData: SkriningData()
+          ..height = 165.0
+          ..weight = 71.0
+          ..aiCategoryTitle = 'Overweight Level 1'
+          ..aiCategoryBadge = 'Tingkat 1',
+      ),
+      ScreeningHistoryItem(
+        id: 'scr_003',
+        userId: 'usr_003',
+        date: DateTime(2026, 8, 16, 10, 0),
+        bmi: 22.4,
+        risk: 'Rendah',
+        category: 'Normal Weight',
+        skriningData: SkriningData()
+          ..height = 172.0
+          ..weight = 66.0
+          ..aiCategoryTitle = 'Normal Weight'
+          ..aiCategoryBadge = 'Normal',
+      ),
+    ];
+  }
+
+  /// Data mock default pengguna untuk offline fallback dan testing lingkungan widget
   static List<UserModel> getDefaultMockUsers() {
     return [
       UserModel(
