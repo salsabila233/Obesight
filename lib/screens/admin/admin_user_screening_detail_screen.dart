@@ -22,6 +22,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: sageGreen,
+      extendBody: true,
       appBar: AppBar(
         backgroundColor: sageGreen,
         elevation: 0,
@@ -39,7 +40,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           'Detail Profil Skrining',
           style: GoogleFonts.poppins(
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
         ),
@@ -61,14 +62,10 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   initialUser ??
                   UserModel(
                     id: userId,
-                    name: 'Zahra Fitriana',
-                    email: 'zahraafitriana@gmail.com',
-                    username: 'zahraafitriana',
+                    name: 'Pengguna ObeSight',
+                    email: '',
+                    username: 'user',
                     role: UserRole.user,
-                    phone: '0893-3421-2098',
-                    dob: '12 Juli 2003',
-                    gender: 'Perempuan',
-                    joined: '12 Juni 2026',
                   );
 
               return StreamBuilder<List<ScreeningHistoryItem>>(
@@ -82,7 +79,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
 
                   return SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -153,7 +150,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     required int totalScreenings,
     required DateTime? lastScreeningDate,
   }) {
-    String formattedLastDate = '11 Agustus 2026';
+    String formattedLastDate = '-';
     if (lastScreeningDate != null) {
       const months = [
         'Januari',
@@ -211,7 +208,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.name.isNotEmpty ? user.name : 'Zahra Fitriana',
+                  user.name.isNotEmpty ? user.name : 'Pengguna ObeSight',
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -277,15 +274,13 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   label: 'Bergabung',
                   value: user.joinedFormatted != 'Belum tersedia'
                       ? user.joinedFormatted
-                      : '12 Juni 2026',
+                      : '-',
                 ),
                 const SizedBox(height: 5),
                 _buildRightMetricItem(
                   icon: Icons.stacked_line_chart_rounded,
                   label: 'Total Skrining',
-                  value: totalScreenings > 0
-                      ? '$totalScreenings kali'
-                      : '3 kali',
+                  value: '$totalScreenings kali',
                 ),
                 const SizedBox(height: 5),
                 _buildRightMetricItem(
@@ -354,20 +349,92 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   // 2A. CARD KIRI: HASIL SKRINING TERAKHIR (Persis Gambar 2)
   // ===========================================================================
   Widget _buildLatestScreeningColumn(ScreeningHistoryItem? screening) {
-    // Ambil data riil atau fallback default sesuai mockup Zahra di Gambar 2
-    final heightVal = screening?.skriningData.height?.toInt() ?? 165;
-    final weightVal = screening?.skriningData.weight?.toInt() ?? 72;
-    final bmiVal = screening?.bmi != null && screening!.bmi > 0
-        ? screening.bmi
-        : 26.8;
+    if (screening == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hasil Skrining Terakhir',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 28),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF1F5F9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.assignment_late_outlined,
+                    size: 30,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Belum Ada Skrining',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF334155),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Pengguna belum pernah melakukan skrining obesitas.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    color: const Color(0xFF64748B),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    final heightVal = screening.skriningData.height?.toInt() ?? 0;
+    final weightVal = screening.skriningData.weight?.toInt() ?? 0;
+    final bmiVal = screening.bmi;
     final bmiFormatted = bmiVal.toStringAsFixed(1).replaceAll('.', ',');
 
-    final categoryTitle = screening?.category.contains('Obesitas') == true
-        ? 'Obesitas'
-        : 'Overweight';
-    final subCategory = screening?.category.contains('Obesitas') == true
-        ? 'Level II'
-        : 'Level I';
+    final categoryTitle = screening.skriningData.categoryTitle.isNotEmpty
+        ? screening.skriningData.categoryTitle
+        : (screening.category.contains('Obesitas') ? 'Obesitas' : 'Overweight');
+    final subCategory = screening.skriningData.classificationCategory.isNotEmpty
+        ? screening.skriningData.classificationCategory
+        : (screening.category.contains('Level') || screening.category.contains('Tipe')
+            ? screening.category
+            : (screening.category.contains('Obesitas') ? 'Level II' : 'Level I'));
+    final descriptionNote = screening.skriningData.riskDescription.isNotEmpty
+        ? screening.skriningData.riskDescription
+        : (screening.category.contains('Obesitas')
+            ? 'Perlu evaluasi klinis dan pemantauan dokter'
+            : 'Berat badan sedikit diatas rentang ideal');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,7 +517,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            'Berat badan sedikit diatas rentang ideal',
+                            descriptionNote,
                             style: GoogleFonts.poppins(
                               fontSize: 7.5,
                               fontWeight: FontWeight.w600,
@@ -736,7 +803,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               _buildPersonalDetailRow(
                 icon: Icons.person_outline_rounded,
                 label: 'Nama Lengkap',
-                value: user.name.isNotEmpty ? user.name : 'Zahra Fitria',
+                value: user.name.isNotEmpty ? user.name : 'Pengguna ObeSight',
               ),
               const SizedBox(height: 8),
               _buildPersonalDetailRow(
@@ -744,7 +811,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 label: 'Tanggal Lahir',
                 value: (user.dob != null && user.dob!.trim().isNotEmpty)
                     ? user.dob!.trim()
-                    : '12 Juli 2003',
+                    : '-',
               ),
               const SizedBox(height: 8),
               _buildPersonalDetailRow(
@@ -752,15 +819,13 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 label: 'Jenis Kelamin',
                 value: (user.gender != null && user.gender!.trim().isNotEmpty)
                     ? user.gender!.trim()
-                    : 'Perempuan',
+                    : '-',
               ),
               const SizedBox(height: 8),
               _buildPersonalDetailRow(
                 icon: Icons.mail_outline_rounded,
                 label: 'Email',
-                value: user.email.isNotEmpty
-                    ? user.email
-                    : 'zahraafitriana@gmail.com',
+                value: user.email.isNotEmpty ? user.email : '-',
                 isEmail: true,
               ),
               const SizedBox(height: 8),
@@ -769,7 +834,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 label: 'Telepon',
                 value: (user.phone != null && user.phone!.trim().isNotEmpty)
                     ? user.phone!.trim()
-                    : '089334212098',
+                    : '-',
               ),
             ],
           ),
@@ -897,35 +962,43 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               );
             },
           )
-        else ...[
-          // Default Card 1 (Overweight - Orange) sesuai Mockup Gambar 2
-          _buildRiwayatCard(
-            context: context,
-            themeColor: const Color(0xFFF97316),
-            dateStr: '11/08/2026',
-            timeStr: '09:15 WIB',
-            categoryName: 'Overweight',
-            badgeLabel: 'Level 1',
-            bmiVal: '26,8 kg',
-            heightVal: '168 cm',
-            weightVal: '72 kg',
-            onDetailTap: () {},
+        else
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.history_toggle_off_rounded,
+                  size: 32,
+                  color: Color(0xFF94A3B8),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Belum ada riwayat skrining',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF475569),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Pengguna ini belum memiliki riwayat sesi skrining di database.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    color: const Color(0xFF94A3B8),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          // Default Card 2 (Obesitas - Red) sesuai Mockup Gambar 2
-          _buildRiwayatCard(
-            context: context,
-            themeColor: const Color(0xFFEF4444),
-            dateStr: '16/07/2026',
-            timeStr: '08:00 WIB',
-            categoryName: 'Obesitas',
-            badgeLabel: 'Tipe 2',
-            bmiVal: '27,5 kg',
-            heightVal: '168 cm',
-            weightVal: '77 kg',
-            onDetailTap: () {},
-          ),
-        ],
       ],
     );
   }

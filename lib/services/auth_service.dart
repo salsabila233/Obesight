@@ -1569,6 +1569,10 @@ class AuthService {
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
         debugPrint('[AuthService] Admin verified in Firebase Auth & Firestore (UID: ${fbUser.uid})');
+      } else if (_firebaseAuth.currentUser == null) {
+        try {
+          await _firebaseAuth.signInAnonymously();
+        } catch (_) {}
       }
     } catch (e) {
       debugPrint('[AuthService] _ensureFirebaseAdminAuthenticated notice: $e');
@@ -1641,16 +1645,30 @@ class AuthService {
         }
 
         final data = userDoc.data()!;
-        final role = data['role'] as String?;
+        final role = data['role']?.toString().toLowerCase().trim();
+        final isAdminDoc = role == 'admin' ||
+            role == 'administrator' ||
+            data['isAdmin'] == true ||
+            data['is_admin'] == true;
 
         // VALIDASI ROLE: Hanya 'admin' yang diperbolehkan!
-        if (role != 'admin') {
+        if (!isAdminDoc) {
           await _firebaseAuth.signOut();
           return const AuthResponse.failure('Akses ditolak: Akun Anda tidak memiliki hak akses Administrator.');
         }
 
+        final firestoreName = (data['name'] as String?)?.trim() ?? firebaseUser.displayName ?? 'Administrator';
         final localAdminName = await getAdminLocalName();
+        final name = (localAdminName != defaultAdminName && localAdminName.isNotEmpty)
+            ? localAdminName
+            : firestoreName;
+
+        final firestorePhone = (data['phone'] as String?) ?? '';
         final localAdminPhone = await getAdminLocalPhone();
+        final phone = (localAdminPhone != defaultAdminPhone && localAdminPhone.isNotEmpty)
+            ? localAdminPhone
+            : firestorePhone;
+
         final userEmail = (data['email'] as String?)?.trim() ?? firebaseUser.email ?? cleanEmail;
         final photoUrl = (data['photoUrl'] ?? data['photoPath']) as String? ?? '';
         final dob = (data['dob'] as String?) ?? '';
@@ -1658,13 +1676,13 @@ class AuthService {
 
         _currentUser = UserModel(
           id: uid,
-          name: localAdminName,
+          name: name,
           email: userEmail,
           username: userEmail.split('@').first,
           role: UserRole.admin,
           avatarUrl: photoUrl.isNotEmpty ? photoUrl : null,
           photoPath: photoUrl.isNotEmpty ? photoUrl : null,
-          phone: localAdminPhone,
+          phone: phone,
           dob: dob,
           gender: gender,
           isBiodataComplete: true,
@@ -1715,39 +1733,28 @@ class AuthService {
 
     try {
       return _firestore.collection('users').snapshots().map((snapshot) {
-        if (snapshot.docs.isEmpty) {
-          final now = DateTime.now();
-          return [
-            defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
-            defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
-            alternativeUserAccount.copyWith(
-              createdAt: now.subtract(const Duration(days: 2)),
-              updatedAt: now.subtract(const Duration(hours: 4)),
-            ),
-          ];
-        }
-        return snapshot.docs.map((doc) {
+        final users = snapshot.docs.map((doc) {
           return UserModel.fromMap(doc.data(), doc.id);
         }).toList();
+        users.sort((a, b) {
+          if (a.createdAt != null && b.createdAt != null) {
+            final comp = b.createdAt!.compareTo(a.createdAt!);
+            if (comp != 0) return comp;
+          } else if (a.createdAt != null) {
+            return -1;
+          } else if (b.createdAt != null) {
+            return 1;
+          }
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        });
+        return users;
       }).handleError((e) {
         debugPrint('Notice getAllUsersStream: $e');
-        final now = DateTime.now();
-        return [
-          defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
-          defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
-          alternativeUserAccount.copyWith(
-            createdAt: now.subtract(const Duration(days: 2)),
-            updatedAt: now.subtract(const Duration(hours: 4)),
-          ),
-        ];
+        return <UserModel>[];
       });
     } catch (e) {
       debugPrint('getAllUsersStream exception: $e');
-      final now = DateTime.now();
-      return Stream.value([
-        defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
-        defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
-      ]);
+      return Stream.value(<UserModel>[]);
     }
   }
 

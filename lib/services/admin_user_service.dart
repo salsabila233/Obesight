@@ -122,6 +122,45 @@ class AdminUserService {
     });
   }
 
+  /// Mengambil data seluruh pengguna secara langsung dari Firestore (server/cache)
+  Future<List<UserModel>> fetchUsers({Source source = Source.serverAndCache}) async {
+    if (!isFirebaseAvailable) {
+      return _cachedUsers;
+    }
+
+    try {
+      final snapshot =
+          await _firestore.collection('users').get(GetOptions(source: source));
+      final users = <UserModel>[];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          users.add(UserModel.fromMap(data, doc.id));
+        } catch (e) {
+          debugPrint('[AdminUserService] Error parsing user doc ${doc.id}: $e');
+        }
+      }
+
+      users.sort((a, b) {
+        if (a.createdAt != null && b.createdAt != null) {
+          final comp = b.createdAt!.compareTo(a.createdAt!);
+          if (comp != 0) return comp;
+        } else if (a.createdAt != null) {
+          return -1;
+        } else if (b.createdAt != null) {
+          return 1;
+        }
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+
+      _cachedUsers = users;
+      return users;
+    } catch (e) {
+      debugPrint('[AdminUserService] Notice fetchUsers error: $e');
+      return _cachedUsers;
+    }
+  }
+
   /// Method bantuan untuk pengujian unit/widget saat Firebase belum diinisialisasi
   @visibleForTesting
   void setMockUsers(List<UserModel> users) {

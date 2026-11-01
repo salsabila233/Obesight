@@ -206,7 +206,11 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                             ),
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
-                              onPressed: () => setState(() {}),
+                              onPressed: () async {
+                                _adminUserService.invalidateCache(null);
+                                await _adminUserService.fetchUsers();
+                                if (mounted) setState(() {});
+                              },
                               icon: const Icon(Icons.refresh_rounded, size: 14),
                               label: Text(
                                 'Muat Ulang',
@@ -275,36 +279,49 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                     );
                   }
 
-                  return ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(
-                      16,
-                      4,
-                      16,
-                      110,
-                    ),
-                    itemCount: filteredUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = filteredUsers[index];
-                      return _AdminUserCardItem(
-                        user: user,
-                        onTap: () async {
-                          final targetTab =
-                              await Navigator.of(context).push<int>(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  AdminUserScreeningDetailScreen(
-                                    userId: user.id,
-                                    initialUser: user,
-                                  ),
-                            ),
-                          );
-                          if (targetTab != null && mounted) {
-                            _handleNavTap(targetTab);
-                          }
-                        },
-                      );
+                  return RefreshIndicator(
+                    color: sageGreen,
+                    onRefresh: () async {
+                      _adminUserService.invalidateCache(null);
+                      await _adminUserService.fetchUsers();
+                      if (mounted) setState(() {});
                     },
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(
+                        16,
+                        4,
+                        16,
+                        110,
+                      ),
+                      itemCount: filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = filteredUsers[index];
+                        return _AdminUserCardItem(
+                          user: user,
+                          onTap: () async {
+                            final targetTab =
+                                await Navigator.of(context).push<int>(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    AdminUserScreeningDetailScreen(
+                                      userId: user.id,
+                                      initialUser: user,
+                                    ),
+                              ),
+                            );
+                            if (mounted) {
+                              setState(() {});
+                            }
+                            if (targetTab != null && mounted) {
+                              _handleNavTap(targetTab);
+                            }
+                          },
+                        );
+                      },
+                    ),
                   );
                 },
               ),

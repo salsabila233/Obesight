@@ -7,14 +7,17 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && (
         request.auth.token.role == 'admin' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true))
       );
     }
 
     // 1. Profil Pengguna & Data Pribadi (Sub-Koleksinya)
     match /users/{userId} {
-      // Pemilik akun atau Admin dapat membaca profil pengguna
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Seluruh pengguna dan administrator terautentikasi dapat membaca data pengguna
+      allow read: if request.auth != null;
 
       // Pendaftaran akun baru
       allow create: if request.auth != null && request.auth.uid == userId;
@@ -42,7 +45,9 @@ service cloud.firestore {
 
       // Sub-koleksi Hasil & Riwayat Skrining Obesitas (Screening Sessions)
       match /screenings/{screeningId} {
-        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        // Administrator dan pengguna terautentikasi dapat membaca riwayat skrining
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       }
     }
 
