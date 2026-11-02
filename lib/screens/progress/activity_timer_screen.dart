@@ -225,10 +225,12 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
 
   void _showCustomDurationPicker() {
     final service = ActivityTimerService.instance;
-    final minMin = ActivityRestHelper.getMinActivityDuration(widget.activity);
-    final maxMin = ActivityRestHelper.getMaxActivityDuration(widget.activity);
-    int tempMinutes = (service.targetDuration > 0 ? (service.targetDuration ~/ 60) : minMin)
-        .clamp(minMin, maxMin);
+    final currentSec = service.targetDuration > 0
+        ? service.targetDuration
+        : (service.selectedPreset ?? 0);
+    int tempHours = currentSec ~/ 3600;
+    int tempMinutes = (currentSec % 3600) ~/ 60;
+    int tempSeconds = currentSec % 60;
 
     showModalBottomSheet(
       context: context,
@@ -265,58 +267,177 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Pilih durasi antara $minMin hingga $maxMin menit',
+                    'Pilih durasi Jam, Menit, dan Detik',
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    height: 160,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: 90,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFF489874), width: 1.5),
+                  // Column Headers
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Jam',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            ),
                           ),
                         ),
-                        ListWheelScrollView.useDelegate(
-                          controller: FixedExtentScrollController(
-                            initialItem: tempMinutes - minMin,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Menit',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            ),
                           ),
-                          itemExtent: 48,
-                          perspective: 0.003,
-                          diameterRatio: 1.3,
-                          physics: const FixedExtentScrollPhysics(),
-                          onSelectedItemChanged: (idx) {
-                            setModalState(() {
-                              tempMinutes = minMin + idx;
-                            });
-                          },
-                          childDelegate: ListWheelChildBuilderDelegate(
-                            childCount: (maxMin - minMin) + 1,
-                            builder: (context, idx) {
-                              final val = minMin + idx;
-                              final isCur = val == tempMinutes;
-                              return Center(
-                                child: Text(
-                                  '$val menit',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: isCur ? 19 : 15,
-                                    fontWeight: isCur ? FontWeight.w700 : FontWeight.w500,
-                                    color: isCur
-                                        ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874))
-                                        : (isDark ? Colors.white54 : const Color(0xFF94A3B8)),
-                                  ),
-                                ),
-                              );
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Detik',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 150,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Hours
+                        Expanded(
+                          child: ListWheelScrollView.useDelegate(
+                            controller: FixedExtentScrollController(initialItem: tempHours),
+                            itemExtent: 44,
+                            perspective: 0.003,
+                            diameterRatio: 1.3,
+                            physics: const FixedExtentScrollPhysics(),
+                            onSelectedItemChanged: (idx) {
+                              setModalState(() => tempHours = idx);
                             },
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              childCount: 24,
+                              builder: (context, idx) {
+                                final isCur = idx == tempHours;
+                                return Center(
+                                  child: Text(
+                                    idx.toString().padLeft(2, '0'),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: isCur ? 26 : 20,
+                                      fontWeight: isCur ? FontWeight.w800 : FontWeight.w600,
+                                      color: isCur
+                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874))
+                                          : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        // Colon
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            ':',
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        // Minutes
+                        Expanded(
+                          child: ListWheelScrollView.useDelegate(
+                            controller: FixedExtentScrollController(initialItem: tempMinutes),
+                            itemExtent: 44,
+                            perspective: 0.003,
+                            diameterRatio: 1.3,
+                            physics: const FixedExtentScrollPhysics(),
+                            onSelectedItemChanged: (idx) {
+                              setModalState(() => tempMinutes = idx);
+                            },
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              childCount: 60,
+                              builder: (context, idx) {
+                                final isCur = idx == tempMinutes;
+                                return Center(
+                                  child: Text(
+                                    idx.toString().padLeft(2, '0'),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: isCur ? 26 : 20,
+                                      fontWeight: isCur ? FontWeight.w800 : FontWeight.w600,
+                                      color: isCur
+                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874))
+                                          : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        // Colon
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            ':',
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ),
+                        // Seconds
+                        Expanded(
+                          child: ListWheelScrollView.useDelegate(
+                            controller: FixedExtentScrollController(initialItem: tempSeconds),
+                            itemExtent: 44,
+                            perspective: 0.003,
+                            diameterRatio: 1.3,
+                            physics: const FixedExtentScrollPhysics(),
+                            onSelectedItemChanged: (idx) {
+                              setModalState(() => tempSeconds = idx);
+                            },
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              childCount: 60,
+                              builder: (context, idx) {
+                                final isCur = idx == tempSeconds;
+                                return Center(
+                                  child: Text(
+                                    idx.toString().padLeft(2, '0'),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: isCur ? 26 : 20,
+                                      fontWeight: isCur ? FontWeight.w800 : FontWeight.w600,
+                                      color: isCur
+                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874))
+                                          : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ],
@@ -334,7 +455,8 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
-                        _selectPreset(tempMinutes * 60);
+                        final total = (tempHours * 3600) + (tempMinutes * 60) + tempSeconds;
+                        _selectPreset(total > 0 ? total : 60);
                       },
                       child: Text(
                         'Simpan Durasi',
@@ -571,13 +693,13 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // "00:00"
+              // "00 : 00 : 00"
               Text(
-                '00:00',
+                '00 : 00 : 00',
                 style: GoogleFonts.poppins(
-                  fontSize: 40,
+                  fontSize: 34,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -1,
+                  letterSpacing: -0.5,
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
@@ -692,10 +814,11 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              '00:00',
+              '00 : 00 : 00',
               style: GoogleFonts.poppins(
-                fontSize: 38,
+                fontSize: 34,
                 fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
                 color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
@@ -734,10 +857,12 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     });
   }
 
-  String _formatTime(int seconds) {
-    final m = seconds ~/ 60;
+  String _formatTime(int seconds, {bool spaced = true}) {
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
     final s = seconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    final sep = spaced ? ' : ' : ':';
+    return '${h.toString().padLeft(2, '0')}$sep${m.toString().padLeft(2, '0')}$sep${s.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -1017,17 +1142,23 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                     ),
                                   ),
 
-                                  // Inner Time Display
+                                  // Inner Time Display (Jam : Menit : Detik)
                                   Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        _formatTime(secondsRemaining),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 50,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: -1,
-                                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                                          child: Text(
+                                            _formatTime(secondsRemaining, spaced: true),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.5,
+                                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -1073,7 +1204,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
-                                          _formatTime(duration),
+                                          '${(duration ~/ 60).toString().padLeft(2, '0')}:00',
                                           style: GoogleFonts.poppins(
                                             fontSize: 13,
                                             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,

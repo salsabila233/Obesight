@@ -170,9 +170,10 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
     try {
       final title = _activeActivity?['title'] as String? ?? 'Aktivitas Fisik';
       final isRest = _activeActivity?['isRest'] == true;
-      final m = secondsRemaining ~/ 60;
+      final h = secondsRemaining ~/ 3600;
+      final m = (secondsRemaining % 3600) ~/ 60;
       final s = secondsRemaining % 60;
-      final timeStr = '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+      final timeStr = '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
       final durationMins = _targetDuration ~/ 60;
 
       final androidDetails = AndroidNotificationDetails(
@@ -464,6 +465,12 @@ class ActivityTimerService extends ChangeNotifier with WidgetsBindingObserver {
   void setDurationMinutes(int minutes) {
     final clamped = ActivityRestHelper.clampActivityDuration(minutes);
     setPreset(clamped * 60);
+  }
+
+  /// Mengatur durasi timer aktivitas fisik dengan jam, menit, dan detik
+  void setDurationTime({int hours = 0, int minutes = 0, int seconds = 0}) {
+    final total = (hours * 3600) + (minutes * 60) + seconds;
+    setPreset(total > 0 ? total : 60);
   }
 
   /// Mengubah pilihan preset durasi (misal 15m, 20m, 30m, 45m, 60m)

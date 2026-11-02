@@ -78,9 +78,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   String _formatTime(int seconds) {
-    final m = seconds ~/ 60;
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
     final s = seconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   void _showCompletionDialog() {
@@ -117,13 +118,13 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // "00:00"
+              // "00:00:00"
               Text(
-                '00:00',
+                '00:00:00',
                 style: GoogleFonts.poppins(
-                  fontSize: 40,
+                  fontSize: 34,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -1,
+                  letterSpacing: -0.5,
                   color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
@@ -757,17 +758,20 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
                               color: const Color(0xFF5A9E80),
                               borderRadius: BorderRadius.circular(18),
                             ),
-                            child: Text(
-                              _formatTime(service.secondsRemaining),
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF0F172A),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _formatTime(service.secondsRemaining),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF0F172A),
+                                ),
                               ),
                             ),
                           ),
@@ -840,13 +844,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                               ),
                             ],
                           ),
-                          Text(
-                            _formatTime(service.secondsRemaining),
-                            style: GoogleFonts.poppins(
-                              fontSize: 27,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
-                              color: const Color(0xFF0F172A),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _formatTime(service.secondsRemaining),
+                              style: GoogleFonts.poppins(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                                color: const Color(0xFF0F172A),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),

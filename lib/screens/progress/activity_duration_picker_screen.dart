@@ -23,10 +23,12 @@ class ActivityDurationPickerScreen extends StatefulWidget {
 class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScreen> {
   late int _minMinutes;
   late int _maxMinutes;
+  late int _selectedHours;
   late int _selectedMinutes;
   late int _selectedSeconds;
   bool _isStarting = false;
 
+  late FixedExtentScrollController _hoursController;
   late FixedExtentScrollController _minutesController;
   late FixedExtentScrollController _secondsController;
 
@@ -45,16 +47,19 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
     final recommended = options.isNotEmpty
         ? options.first
         : ActivityRestHelper.getRecommendedActivityDuration(widget.activity);
-    _selectedMinutes = recommended.clamp(_minMinutes, _maxMinutes);
+    final clampedRecommended = recommended.clamp(_minMinutes, _maxMinutes);
+    _selectedHours = clampedRecommended ~/ 60;
+    _selectedMinutes = clampedRecommended % 60;
     _selectedSeconds = 0;
 
-    final initialMinuteIndex = _selectedMinutes - _minMinutes;
-    _minutesController = FixedExtentScrollController(initialItem: initialMinuteIndex);
+    _hoursController = FixedExtentScrollController(initialItem: _selectedHours);
+    _minutesController = FixedExtentScrollController(initialItem: _selectedMinutes);
     _secondsController = FixedExtentScrollController(initialItem: _selectedSeconds);
   }
 
   @override
   void dispose() {
+    _hoursController.dispose();
     _minutesController.dispose();
     _secondsController.dispose();
     super.dispose();
@@ -74,22 +79,33 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
   }
 
   void _onPresetTapped(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    const s = 0;
+
     setState(() {
-      _selectedMinutes = minutes.clamp(_minMinutes, _maxMinutes);
-      _selectedSeconds = 0;
+      _selectedHours = h;
+      _selectedMinutes = m;
+      _selectedSeconds = s;
     });
 
-    final targetMinuteIndex = _selectedMinutes - _minMinutes;
+    if (_hoursController.hasClients) {
+      _hoursController.animateToItem(
+        h,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
+    }
     if (_minutesController.hasClients) {
       _minutesController.animateToItem(
-        targetMinuteIndex,
+        m,
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
       );
     }
     if (_secondsController.hasClients) {
       _secondsController.animateToItem(
-        0,
+        s,
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
       );
@@ -101,10 +117,9 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
     _isStarting = true;
 
     try {
-      final validatedMinutes = _selectedMinutes.clamp(_minMinutes, _maxMinutes);
-      final totalSeconds = (validatedMinutes * 60) + _selectedSeconds;
+      final totalSeconds = (_selectedHours * 3600) + (_selectedMinutes * 60) + _selectedSeconds;
       final minSeconds = _minMinutes * 60;
-      final finalSeconds = totalSeconds < minSeconds ? minSeconds : totalSeconds;
+      final finalSeconds = totalSeconds <= 0 ? minSeconds : totalSeconds;
 
       final service = ActivityTimerService.instance;
       service.setupSession(
@@ -364,7 +379,7 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
 
                     const SizedBox(height: 20),
 
-                    // Column Headers: "Jam" and "Menit"
+                    // Column Headers: "Jam", "Menit", "Detik"
                     Row(
                       children: [
                         Expanded(
@@ -379,11 +394,24 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
                             ),
                           ),
                         ),
-                        const SizedBox(width: 28),
+                        const SizedBox(width: 20),
                         Expanded(
                           child: Center(
                             child: Text(
                               'Menit',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              'Detik',
                               style: GoogleFonts.poppins(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
@@ -397,37 +425,36 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
 
                     const SizedBox(height: 8),
 
-                    // 2-Column Wheel Picker (Menit : Detik)
+                    // 3-Column Wheel Picker (Jam : Menit : Detik)
                     SizedBox(
                       height: 180,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Left Wheel: Minutes
+                          // 1. Kolom Jam (00 - 23)
                           Expanded(
                             child: ListWheelScrollView.useDelegate(
-                              controller: _minutesController,
+                              controller: _hoursController,
                               itemExtent: 54,
                               perspective: 0.003,
                               diameterRatio: 1.3,
                               physics: const FixedExtentScrollPhysics(),
                               onSelectedItemChanged: (index) {
                                 setState(() {
-                                  _selectedMinutes = _minMinutes + index;
+                                  _selectedHours = index;
                                 });
                               },
                               childDelegate: ListWheelChildBuilderDelegate(
-                                childCount: (_maxMinutes - _minMinutes) + 1,
+                                childCount: 24,
                                 builder: (context, index) {
-                                  final minute = _minMinutes + index;
-                                  final isSelected = minute == _selectedMinutes;
-                                  final formatted = minute.toString().padLeft(2, '0');
+                                  final isSelected = index == _selectedHours;
+                                  final formatted = index.toString().padLeft(2, '0');
 
                                   return Center(
                                     child: Text(
                                       formatted,
                                       style: GoogleFonts.poppins(
-                                        fontSize: isSelected ? 42 : 32,
+                                        fontSize: isSelected ? 38 : 28,
                                         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                                         color: isSelected
                                             ? textPrimary
@@ -442,18 +469,67 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
 
                           // Separator colon ":"
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: Text(
                               ':',
                               style: GoogleFonts.poppins(
-                                fontSize: 36,
+                                fontSize: 32,
                                 fontWeight: FontWeight.w800,
                                 color: textPrimary,
                               ),
                             ),
                           ),
 
-                          // Right Wheel: Seconds (00 - 59)
+                          // 2. Kolom Menit (00 - 59)
+                          Expanded(
+                            child: ListWheelScrollView.useDelegate(
+                              controller: _minutesController,
+                              itemExtent: 54,
+                              perspective: 0.003,
+                              diameterRatio: 1.3,
+                              physics: const FixedExtentScrollPhysics(),
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  _selectedMinutes = index;
+                                });
+                              },
+                              childDelegate: ListWheelChildBuilderDelegate(
+                                childCount: 60,
+                                builder: (context, index) {
+                                  final isSelected = index == _selectedMinutes;
+                                  final formatted = index.toString().padLeft(2, '0');
+
+                                  return Center(
+                                    child: Text(
+                                      formatted,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: isSelected ? 38 : 28,
+                                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                        color: isSelected
+                                            ? textPrimary
+                                            : (isDark ? Colors.white24 : const Color(0xFFCBD5E1)),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+
+                          // Separator colon ":"
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Text(
+                              ':',
+                              style: GoogleFonts.poppins(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: textPrimary,
+                              ),
+                            ),
+                          ),
+
+                          // 3. Kolom Detik (00 - 59)
                           Expanded(
                             child: ListWheelScrollView.useDelegate(
                               controller: _secondsController,
@@ -469,15 +545,14 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
                               childDelegate: ListWheelChildBuilderDelegate(
                                 childCount: 60,
                                 builder: (context, index) {
-                                  final second = index;
-                                  final isSelected = second == _selectedSeconds;
-                                  final formatted = second.toString().padLeft(2, '0');
+                                  final isSelected = index == _selectedSeconds;
+                                  final formatted = index.toString().padLeft(2, '0');
 
                                   return Center(
                                     child: Text(
                                       formatted,
                                       style: GoogleFonts.poppins(
-                                        fontSize: isSelected ? 42 : 32,
+                                        fontSize: isSelected ? 38 : 28,
                                         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                                         color: isSelected
                                             ? textPrimary
@@ -503,7 +578,8 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: presetMinutes.map((minutes) {
                           final isSelected =
-                              _selectedMinutes == minutes && _selectedSeconds == 0;
+                              (_selectedHours * 60 + _selectedMinutes == minutes) &&
+                                  _selectedSeconds == 0;
                           final formattedPreset = '${minutes.toString().padLeft(2, '0')}:00';
                           final btnSize = presetMinutes.length > 3 ? 60.0 : 66.0;
                           final btnPadding = presetMinutes.length > 3 ? 5.0 : 8.0;

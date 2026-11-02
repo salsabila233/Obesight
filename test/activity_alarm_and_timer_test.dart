@@ -188,7 +188,8 @@ void main() {
       // Test preset selection
       await tester.tap(find.text('30:00'));
       await tester.pump();
-      expect(find.text('30:00'), findsNWidgets(2)); // Preset button and large circle
+      expect(find.text('30:00'), findsOneWidget); // Preset button
+      expect(find.text('00 : 30 : 00'), findsOneWidget); // Large circle 3-column display
 
       // Test Batal stops session and alarm
       await tester.tap(find.text('Batal'));
@@ -225,7 +226,8 @@ void main() {
 
       // Rest presets: 10:00, 15:00, 20:00
       expect(find.text('10:00'), findsOneWidget);
-      expect(find.text('15:00'), findsNWidgets(2)); // preset & default display
+      expect(find.text('15:00'), findsOneWidget); // preset button
+      expect(find.text('00 : 15 : 00'), findsOneWidget); // large circle default 3-column display
       expect(find.text('20:00'), findsOneWidget);
       expect(find.text('Selesaikan Istirahat'), findsOneWidget);
     });

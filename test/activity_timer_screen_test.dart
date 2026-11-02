@@ -31,8 +31,8 @@ void main() {
     expect(find.text('Target'), findsOneWidget);
     expect(find.text('30-60 menit'), findsOneWidget);
 
-    // Verify initial single centered timer text is '00:00'
-    expect(find.text('00:00'), findsOneWidget);
+    // Verify initial single centered timer text is '00 : 00 : 00'
+    expect(find.text('00 : 00 : 00'), findsOneWidget);
 
     // Verify no stacked '59:59' exists
     expect(find.text('59:59'), findsNothing);
@@ -50,14 +50,16 @@ void main() {
     await tester.tap(find.text('30:00'));
     await tester.pump();
 
-    // Now '30:00' should be displayed both in preset button and main timer circle
-    expect(find.text('30:00'), findsNWidgets(2));
+    // Now '00 : 30 : 00' should be displayed in the main timer circle
+    expect(find.text('00 : 30 : 00'), findsOneWidget);
+    expect(find.text('30:00'), findsOneWidget);
 
     // Tap on preset '45:00'
     await tester.tap(find.text('45:00'));
     await tester.pump();
 
-    // Now '45:00' should be in the main circle as well
-    expect(find.text('45:00'), findsNWidgets(2));
+    // Now '00 : 45 : 00' should be in the main circle as well
+    expect(find.text('00 : 45 : 00'), findsOneWidget);
+    expect(find.text('45:00'), findsOneWidget);
   });
 }
