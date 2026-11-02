@@ -1021,10 +1021,10 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
-    DateTime? screenOff;
-    DateTime? screenOn;
-    DateTime? darkTime;
-    DateTime? lightRiseTime;
+    DateTime? screenOff = _lastScreenOffTime;
+    DateTime? screenOn = _lastScreenOnTime;
+    DateTime? darkTime = _lastDarkTime;
+    DateTime? lightRiseTime = _lastLightRiseTime;
 
     if (_isNativeSupported) {
       try {
@@ -1053,12 +1053,16 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       } catch (_) {}
     }
 
+    // Jam bangun tidur HARUS diambil dari aktivitas unlock/layar menyala pertama di pagi hari (screenOn)
+    // atau sensor cahaya pagi (lightRiseTime), dan BUKAN dari jam saat pengguna membuka aplikasi.
+    // Jam mulai tidur diambil dari saat terakhir layar HP dimatikan (screenOff) di malam hari.
     final candidate = detectSleepFromSensors(
       screenOff: screenOff,
       screenOn: screenOn,
       darkTime: darkTime,
       lightRiseTime: lightRiseTime,
       referenceNow: now,
+      lastInactivityTime: _lastNightInactiveTime,
     );
 
     if (candidate != null) {
@@ -1082,21 +1086,6 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       }
       notifyListeners();
       return;
-    }
-
-    // Fallback versi stabil (18 Oktober): Gunakan titik terakhir layar HP dimatikan semalam dari Flutter lifecycle
-    if (_lastNightInactiveTime != null) {
-      final diff = now.difference(_lastNightInactiveTime!);
-      final isMorningOrDay = now.hour >= 5 && now.hour <= 14;
-
-      // Sesi tidur malam yang valid:
-      // Mulai semalam, dibuka di pagi/siang hari, dengan durasi minimal 3 jam
-      if (diff.inMinutes >= _minimumNightSleepMinutes && diff.inMinutes <= 840 && isMorningOrDay) {
-        _recordAutomaticSleepCandidate(_lastNightInactiveTime!, now);
-        _lastNightInactiveTime = null;
-        _saveToLocal();
-        return;
-      }
     }
   }
 

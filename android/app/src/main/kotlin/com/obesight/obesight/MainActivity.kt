@@ -148,11 +148,17 @@ class MainActivity : FlutterActivity() {
             val existingOn = prefs.getLong("last_screen_on_millis", 0L)
 
             val editor = prefs.edit()
-            if (existingOff == 0L && lastScreenOffTime > 0L) {
-                editor.putLong("last_screen_off_millis", lastScreenOffTime)
+            // Perbarui waktu layar mati terakhir di malam hari (last screen off) jika terdeteksi dari UsageStats
+            if (lastScreenOffTime > 0L) {
+                if (existingOff == 0L || lastScreenOffTime >= existingOff || existingOff < startTime) {
+                    editor.putLong("last_screen_off_millis", lastScreenOffTime)
+                }
             }
-            if (existingOn == 0L && firstScreenOnTime > 0L) {
-                editor.putLong("last_screen_on_millis", firstScreenOnTime)
+            // Perbarui waktu pertama kali layar menyala / unlock di pagi hari (first wake-up) dari UsageStats
+            if (firstScreenOnTime > 0L) {
+                if (existingOn == 0L || existingOn <= lastScreenOffTime || existingOn < startTime || firstScreenOnTime < existingOn) {
+                    editor.putLong("last_screen_on_millis", firstScreenOnTime)
+                }
             }
             editor.apply()
         } catch (_: Exception) {}
@@ -185,8 +191,17 @@ class MainActivity : FlutterActivity() {
                         val lastOff = prefs.getLong("last_screen_off_millis", 0L)
                         val lastOn = prefs.getLong("last_screen_on_millis", 0L)
                         if (hour in 5..14) {
-                            // Rekam hanya waktu bangun pertama setelah layar mati di malam hari
-                            if (lastOff > 0L && (lastOn == 0L || lastOn <= lastOff)) {
+                            val todayMorning = java.util.Calendar.getInstance().apply {
+                                set(java.util.Calendar.HOUR_OF_DAY, 5)
+                                set(java.util.Calendar.MINUTE, 0)
+                                set(java.util.Calendar.SECOND, 0)
+                                set(java.util.Calendar.MILLISECOND, 0)
+                            }.timeInMillis
+
+                            val isFirstUnlockToday = lastOn < todayMorning
+                            val isAfterNightOff = lastOff > 0L && lastOn <= lastOff
+
+                            if (isFirstUnlockToday || isAfterNightOff) {
                                 prefs.edit().putLong("last_screen_on_millis", now).apply()
                             }
                         }

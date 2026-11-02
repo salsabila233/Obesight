@@ -258,5 +258,84 @@ void main() {
       expect(find.byKey(const ValueKey('daily_bars')), findsOneWidget);
       expect(find.byKey(const ValueKey('daily_empty')), findsNothing);
     });
+
+    // =========================================================================
+    // BAGIAN 4: Verifikasi Patokan Waktu Bangun (First Screen Unlock) & Waktu Tidur (Last Screen Off)
+    // =========================================================================
+
+    test('4.1. Jam bangun tidur diambil dari screen on/unlock pertama (05.05), BUKAN dari jam buka aplikasi (05.25)', () {
+      final service = SleepTrackingService.instance;
+      // Pengguna mematikan layar HP pukul 23:30 malam
+      final screenOffNight = DateTime(2026, 10, 24, 23, 30);
+      // Pengguna bangun tidur dan menyalakan/unlock HP pertama kali pukul 05:05 pagi
+      final firstScreenUnlockMorning = DateTime(2026, 10, 25, 5, 5);
+      // Pengguna baru membuka aplikasi ObeSight pukul 05:25 pagi
+      final appOpenTime = DateTime(2026, 10, 25, 5, 25);
+
+      final candidate = service.detectSleepFromSensors(
+        screenOff: screenOffNight,
+        screenOn: firstScreenUnlockMorning,
+        referenceNow: appOpenTime,
+      );
+
+      expect(candidate, isNotNull);
+      // Jam bangun tidur HARUS 05:05 (pertama kali buka kunci layar), BUKAN 05:25 (jam buka aplikasi)
+      expect(candidate!.endTime, firstScreenUnlockMorning);
+      expect(candidate.endTime.hour, 5);
+      expect(candidate.endTime.minute, 5);
+      expect(candidate.endTime != appOpenTime, isTrue);
+
+      // Jam mulai tidur 23:30
+      expect(candidate.startTime, screenOffNight);
+      // Durasi dihitung tepat: 23:30 s.d. 05:05 = 5 jam 35 menit = 335 menit (BUKAN 355 menit)
+      expect(candidate.durationMinutes, 335);
+      expect(candidate.durationHours, 5);
+      expect(candidate.durationRemainingMinutes, 35);
+      expect(candidate.shortDurationFormatted, '5j 35m');
+    });
+
+    test('4.2. Jam mulai tidur diambil dari terakhir layar HP dimatikan (23.45), BUKAN dari jam aplikasi diminimalkan (21.00)', () {
+      final service = SleepTrackingService.instance;
+      // Aplikasi diminimalkan pada pukul 21:00
+      final appMinimizedTime = DateTime(2026, 10, 24, 21, 0);
+      // Layar HP baru dimatikan pengguna sebelum tidur pada pukul 23:45
+      final lastScreenOffTime = DateTime(2026, 10, 24, 23, 45);
+      // Bangun pertama di pagi hari pukul 06:15
+      final morningWakeTime = DateTime(2026, 10, 25, 6, 15);
+
+      final candidate = service.detectSleepFromSensors(
+        screenOff: lastScreenOffTime,
+        screenOn: morningWakeTime,
+        lastInactivityTime: appMinimizedTime,
+        referenceNow: morningWakeTime,
+      );
+
+      expect(candidate, isNotNull);
+      // Jam mulai tidur HARUS 23:45 (last screen off), BUKAN 21:00 (saat tutup aplikasi)
+      expect(candidate!.startTime, lastScreenOffTime);
+      expect(candidate.startTime.hour, 23);
+      expect(candidate.startTime.minute, 45);
+
+      // Durasi dihitung tepat dari 23:45 s.d. 06:15 = 6 jam 30 menit = 390 menit
+      expect(candidate.durationMinutes, 390);
+      expect(candidate.durationHours, 6);
+      expect(candidate.durationRemainingMinutes, 30);
+    });
+
+    test('4.3. Aplikasi dibuka pagi hari tanpa ada rekaman screen on/unlock pagi TIDAK boleh membuat kandidat tidur palsu', () async {
+      final service = SleepTrackingService.instance;
+      final nightOff = DateTime(2026, 10, 24, 23, 0);
+      final morningAppOpen = DateTime(2026, 10, 25, 5, 25);
+
+      // Simulasikan screen off semalam tapi screenOn belum terekam dari perangkat saat aplikasi dibuka pukul 05:25
+      service.simulateSensorDetection(
+        screenOff: nightOff,
+        screenOn: null,
+        referenceNow: morningAppOpen,
+      );
+
+      // Kandidat harus null karena tidak boleh menggunakan jam buka aplikasi (05.25) sebagai jam bangun
+      expect(service.pendingAutoDetectedRecord, isNull);
+    });
   });
 }
