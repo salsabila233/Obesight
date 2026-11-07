@@ -652,7 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
       adminDash.classList.remove('hidden');
       userDash.classList.add('hidden');
       const adminGreeting = document.getElementById('admin-greeting-name');
-      if (adminGreeting) adminGreeting.textContent = name || 'Dr. Hendra Wijaya, Sp.GK';
+      if (adminGreeting) adminGreeting.textContent = name || 'Admin ObeSight';
     } else {
       loadUserProfile(email || 'zahraafitriana@gmail.com', name);
       showScreen('home');
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Admin account check
       if ((cleanId === 'adminobesight@gmail.com' || cleanId === 'admin@obesight.com' || cleanId === 'admin') && password === 'admin123') {
-        navigateToDashboard('admin', 'Dr. Hendra Wijaya, Sp.GK', 'adminobesight@gmail.com');
+        navigateToDashboard('admin', 'Admin ObeSight', 'adminobesight@gmail.com');
         return;
       }
 
@@ -3475,7 +3475,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title: '5 Pola Makan Penyebab Obesitas',
       category: 'Pola Makan & Nutrisi',
       snippet: 'Kenali Kebiasaan makan yang tanpa disadari meningkatkan resiko berat badan berlebih',
-      author: 'Dr. Hendra Wijaya, Sp.GK',
+      author: 'Tim Medis ObeSight',
       date: '21 September 2026',
       readTime: '4 Menit Baca',
       thumbSvg: `
@@ -3791,7 +3791,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title: 'Obesitas Sebagai Pemicu Komplikasi',
       category: 'Klinis & Medis',
       snippet: 'Memahami bagaimana resistensi insulin dan peradangan kronis memicu berbagai komplikasi kesehatan.',
-      author: 'Dr. Hendra Wijaya, Sp.GK',
+      author: 'Tim Medis ObeSight',
       date: '17 September 2026',
       readTime: '5 Menit Baca',
       thumbSvg: `

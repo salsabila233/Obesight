@@ -34,12 +34,14 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
         final summaries = service.getPast7DaysSummaries(_currentWeekEnd);
 
         final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+        final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
 
         return Scaffold(
-          backgroundColor: headerColor,
+          backgroundColor: backgroundColor,
           appBar: AppBar(
             backgroundColor: headerColor,
             elevation: 0,
+            scrolledUnderElevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
               onPressed: () => Navigator.of(context).pop(),
@@ -56,15 +58,11 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           ),
           body: Container(
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 36),
+            height: double.infinity,
+            color: backgroundColor,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -82,7 +80,6 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                 ),
               ),
             ),
-          ),
         );
       },
     );
@@ -177,8 +174,8 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
@@ -305,7 +302,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                           decoration: BoxDecoration(
                             color: h.isAsleep
                                 ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
-                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
@@ -343,7 +340,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               border: Border.all(
                 color: hasData
                     ? (isDark ? const Color(0xFF059669) : const Color(0xFFA5D6C1))
-                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
               ),
             ),
             child: Row(
@@ -422,8 +419,8 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
@@ -512,7 +509,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               border: Border.all(
                 color: selectedSummary.hasData
                     ? (isDark ? const Color(0xFF059669) : const Color(0xFFA5D6C1))
-                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
               ),
             ),
             child: Row(
@@ -616,8 +613,8 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
@@ -751,7 +748,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                 ? (isSelected
                                     ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45))
                                     : (isDark ? const Color(0xFF134E4A) : const Color(0xFF86C5A9)))
-                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                : (isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
@@ -871,8 +868,8 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
@@ -1008,7 +1005,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                               ? (w.isCurrentWeek
                                   ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45))
                                   : (isDark ? const Color(0xFF134E4A) : const Color(0xFF86C5A9)))
-                              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                              : (isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
@@ -1177,7 +1174,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                             : (isDark ? const Color(0xFF134E4A) : const Color(0xFF6EBE9B))))
                                     : (isSelected
                                         ? (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1))
-                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED))),
                                 borderRadius: BorderRadius.circular(6),
                                 border: isSelected
                                     ? Border.all(color: isDark ? Colors.white : const Color(0xFF1E293B), width: 1.5)
@@ -1240,8 +1237,8 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),

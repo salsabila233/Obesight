@@ -1400,7 +1400,7 @@ class AuthService {
         cleanPass,
       );
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
-      final currentUid = _firebaseAuth.currentUser?.uid ?? defaultAdminAccount.id;
+      final currentUid = (isFirebaseAvailable ? _firebaseAuth.currentUser?.uid : null) ?? defaultAdminAccount.id;
       final localAdminName = await getAdminLocalName();
       final localAdminPhone = await getAdminLocalPhone();
       _currentUser = defaultAdminAccount.copyWith(
@@ -1564,7 +1564,7 @@ class AuthService {
         await _firestore.collection('users').doc(fbUser.uid).set({
           'role': 'admin',
           'email': targetEmail,
-          'name': 'Dr. Hendra Wijaya, Sp.GK',
+          'name': defaultAdminName,
           'isBiodataComplete': true,
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
@@ -1601,7 +1601,7 @@ class AuthService {
         cleanPass,
       );
       final bmiInfo = getUserBmi(defaultAdminAccount.id);
-      final currentUid = _firebaseAuth.currentUser?.uid ?? defaultAdminAccount.id;
+      final currentUid = (isFirebaseAvailable ? _firebaseAuth.currentUser?.uid : null) ?? defaultAdminAccount.id;
       final localAdminName = await getAdminLocalName();
       final localAdminPhone = await getAdminLocalPhone();
       _currentUser = defaultAdminAccount.copyWith(

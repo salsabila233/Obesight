@@ -111,7 +111,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Verified on Admin Dashboard
-      expect(find.text('Beranda'), findsWidgets);
+      expect(find.text('PANEL ADMINISTRATOR'), findsOneWidget);
       expect(find.textContaining('Selamat datang'), findsOneWidget);
       expect(find.text('Total Pengguna'), findsOneWidget);
       expect(find.text('Total Artikel'), findsOneWidget);
@@ -136,7 +136,7 @@ void main() {
 
       // Reference Elements
       expect(find.text('ObeSight'), findsOneWidget);
-      expect(find.text('Beranda'), findsWidgets);
+      expect(find.text('PANEL ADMINISTRATOR'), findsOneWidget);
       expect(find.textContaining('Selamat datang'), findsOneWidget);
       expect(find.text('Total Pengguna'), findsOneWidget);
       expect(find.text('Total Artikel'), findsOneWidget);
@@ -197,10 +197,10 @@ void main() {
       await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text('ADMINISTRATOR SISTEM'), findsOneWidget);
-      expect(find.text('Email Administrator (Read-Only)'), findsOneWidget);
-      expect(find.text('adminobesight@gmail.com'), findsWidgets);
-      expect(find.text('TETAP'), findsOneWidget);
+      expect(find.text('Keamanan'), findsOneWidget);
+      expect(find.text('Tampilan'), findsOneWidget);
+      expect(find.text('Informasi'), findsOneWidget);
+      expect(find.text('Keluar'), findsOneWidget);
       expect(find.text('Ubah Kata Sandi'), findsOneWidget);
     });
 

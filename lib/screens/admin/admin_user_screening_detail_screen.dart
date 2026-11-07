@@ -44,6 +44,18 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             color: Colors.white,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.delete_outline_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+            tooltip: 'Hapus Akun Pengguna',
+            onPressed: () => _confirmDeleteUser(context),
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
       body: Container(
         width: double.infinity,
@@ -1294,5 +1306,92 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
         color: user.isAdmin ? const Color(0xFF267352) : const Color(0xFF64748B),
       ),
     );
+  }
+
+  void _confirmDeleteUser(BuildContext context) {
+    final displayName = initialUser?.name.trim().isNotEmpty == true
+        ? initialUser!.name
+        : 'pengguna ini';
+
+    showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFE53935), size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Hapus Akun Pengguna?',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1E293B),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus akun "$displayName" beserta seluruh data riwayat skrining dan catatan kesehatannya? Tindakan ini bersifat permanen dan terisolasi.',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: const Color(0xFF64748B),
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53935),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(
+              'Hapus Akun',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed == true && context.mounted) {
+        final messenger = ScaffoldMessenger.of(context);
+        final navigator = Navigator.of(context);
+
+        final success = await AdminUserService.instance.deleteUserAccount(userId);
+        if (context.mounted) {
+          navigator.pop(true);
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                success
+                    ? 'Akun $displayName berhasil dihapus.'
+                    : 'Gagal menghapus akun pengguna.',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: success ? const Color(0xFF529471) : Colors.red,
+            ),
+          );
+        }
+      }
+    });
   }
 }
