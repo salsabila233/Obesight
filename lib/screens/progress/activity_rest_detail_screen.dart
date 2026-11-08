@@ -58,6 +58,8 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
       'heroImg': 'assets/progress/rest/hero_aktivitas_clean.png',
       'isRest': true,
       'targetText': '$_selectedMinutes menit',
+      if (widget.previousActivity != null) 'previousActivity': widget.previousActivity,
+      if (widget.completedDurationMinutes != null) 'completedDurationMinutes': widget.completedDurationMinutes,
     };
 
     service.setupSession(
@@ -70,6 +72,7 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
       MaterialPageRoute(
         builder: (_) => ActivityTimerScreen(
           activity: restActivity,
+          previousActivity: widget.previousActivity,
         ),
       ),
     );
@@ -83,11 +86,12 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
     final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final mainBackground = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     final availableOptions = ActivityRestHelper.getAvailableRestOptions(widget.previousActivity);
 
     return Scaffold(
-      backgroundColor: headerColor,
+      backgroundColor: mainBackground,
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -200,8 +204,11 @@ class _ActivityRestDetailScreenState extends State<ActivityRestDetailScreen> {
           SliverToBoxAdapter(
             child: Container(
               width: double.infinity,
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height,
+              ),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                color: mainBackground,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                 boxShadow: const [
                   BoxShadow(

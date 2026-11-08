@@ -74,7 +74,7 @@ class ActivityAlarmService {
     }
   }
 
-  /// Memutar alarm istirahat (tuntas 00:00)
+  /// Memutar alarm istirahat (tuntas 00:00) menggunakan audio yang sama dengan alarm aktivitas fisik
   Future<void> playRestAlarm() async {
     try {
       _autoStopTimer?.cancel();
@@ -91,7 +91,7 @@ class ActivityAlarmService {
         final player = _getPlayer();
         if (player != null) {
           await player.setReleaseMode(ReleaseMode.loop);
-          await player.play(AssetSource('audio/rest_alarm.wav'));
+          await player.play(AssetSource('audio/activity_alarm.wav'));
         }
       }
 

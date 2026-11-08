@@ -6,12 +6,20 @@ import '../../services/activity_alarm_service.dart';
 import '../../services/physical_activity_service.dart';
 import '../../services/activity_rest_helper.dart';
 import 'activity_rest_detail_screen.dart';
+import 'activity_detail_screen.dart';
+import 'physical_activity_screen.dart';
 
 class ActivityTimerScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
   final String? dateKey;
+  final Map<String, dynamic>? previousActivity;
 
-  const ActivityTimerScreen({super.key, required this.activity, this.dateKey});
+  const ActivityTimerScreen({
+    super.key,
+    required this.activity,
+    this.dateKey,
+    this.previousActivity,
+  });
 
   @override
   State<ActivityTimerScreen> createState() => _ActivityTimerScreenState();
@@ -763,97 +771,156 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
     });
   }
 
-  // Popup Penyelesaian Sesi Istirahat
+  // Popup Penyelesaian Sesi Istirahat dengan pilihan Selesai dan Lanjutkan Aktivitas
   void _showRestCompletionDialog() {
     _hasShownDialog = true;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final service = ActivityTimerService.instance;
+    final prevActivity = widget.previousActivity ??
+        (widget.activity['previousActivity'] as Map<String, dynamic>?);
 
     showDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (ctx) => AlertDialog(
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2),
-                shape: BoxShape.circle,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.spa_rounded,
+                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874),
+                  size: 40,
+                ),
               ),
-              child: Icon(
-                Icons.spa_rounded,
-                color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874),
-                size: 40,
+              const SizedBox(height: 16),
+              Text(
+                'Istirahat Selesai! 🌿',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Istirahat Selesai! 🌿',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              const SizedBox(height: 10),
+              Text(
+                'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar, rileks, dan siap beraktivitas kembali.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                  height: 1.45,
+                ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar, rileks, dan siap beraktivitas kembali.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+              const SizedBox(height: 16),
+              Text(
+                '00 : 00 : 00',
+                style: GoogleFonts.poppins(
+                  fontSize: 34,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '00 : 00 : 00',
-              style: GoogleFonts.poppins(
-                fontSize: 34,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              const SizedBox(height: 24),
+              // Pilihan A: Selesai
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    ActivityAlarmService.instance.stopAlarm();
+                    Navigator.pop(ctx);
+                    service.cancelSession();
+                    if (mounted && Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop(true);
+                    } else {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const PhysicalActivityScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    'Selesai',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+              const SizedBox(height: 10),
+              // Pilihan B: Lanjutkan Aktivitas
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    ActivityAlarmService.instance.stopAlarm();
+                    Navigator.pop(ctx);
+                    service.cancelSession();
+                    if (prevActivity != null) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => ActivityDetailScreen(
+                            activity: prevActivity,
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const PhysicalActivityScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    'Lanjutkan Aktivitas',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874),
+                    ),
+                  ),
+                ),
               ),
-              onPressed: () {
-                ActivityAlarmService.instance.stopAlarm();
-                Navigator.pop(ctx);
-                service.cancelSession();
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Selesai',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13.5),
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     ).then((_) {
       ActivityAlarmService.instance.stopAlarm();
-      if (mounted && Navigator.of(context).canPop()) {
-        service.cancelSession();
-        Navigator.of(context).pop();
-      }
     });
   }
 
@@ -899,7 +966,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
             ActivityAlarmService.instance.stopAlarm();
           },
           child: Scaffold(
-            backgroundColor: headerColor,
+            backgroundColor: isRest ? (isDark ? const Color(0xFF0F172A) : Colors.white) : headerColor,
             body: CustomScrollView(
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),

@@ -52,9 +52,10 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
         final reminder = RestReminderService.instance.dayRestReminder;
 
         final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
+        final mainBackground = isDark ? const Color(0xFF0F172A) : Colors.white;
 
         return Scaffold(
-          backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF36785A),
+          backgroundColor: mainBackground,
           body: CustomScrollView(
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
