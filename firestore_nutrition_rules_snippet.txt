@@ -12,14 +12,17 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && (
         request.auth.token.role == 'admin' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin' ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true))
       );
     }
 
     // 1. Profil Pengguna & Data Pribadi (Sub-Koleksinya)
     match /users/{userId} {
-      // Pemilik akun atau Admin dapat membaca profil pengguna
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Seluruh pengguna dan administrator terautentikasi dapat membaca data pengguna
+      allow read: if request.auth != null;
 
       // Pendaftaran akun baru
       allow create: if request.auth != null && request.auth.uid == userId;
@@ -47,7 +50,9 @@ service cloud.firestore {
 
       // Sub-koleksi Hasil & Riwayat Skrining Obesitas (Screening Sessions)
       match /screenings/{screeningId} {
-        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        // Administrator dan pengguna terautentikasi dapat membaca riwayat skrining
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       }
     }
 
@@ -65,6 +70,7 @@ service cloud.firestore {
     // 4. Koleksi Utama: Progress Aktivitas Fisik & Riwayat Sesi
     // Dokumen utama per pengguna diidentifikasi menggunakan namaPengguna (dengan validasi idPengguna)
     match /progress_aktivitas_fisik/{namaPengguna} {
+      // Pengguna membaca miliknya sendiri, Admin dapat memonitor
       allow read: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
       allow create: if request.auth != null && request.resource.data.idPengguna == request.auth.uid;
       allow update: if request.auth != null 
@@ -86,10 +92,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null && (resource == null || resource.data.idPengguna == request.auth.uid || isAdmin());
     }
 
-    // 6. Koleksi Artikel Kesehatan (Publik/User hanya membaca, Admin & pengguna terautentikasi dapat mengelola)
+    // 6. Koleksi Artikel Kesehatan
+    // - allow read: if true; (Semua pengguna & anggota kelompok yang flutter run bisa langsung melihat artikel secara real-time)
+    // - allow write: if true; (Admin mempublikasikan, mengubah, dan menghapus artikel langsung tersimpan ke Cloud Firestore)
     match /articles/{articleId} {
       allow read: if true;
-      allow write: if request.auth != null || isAdmin();
+      allow write: if true;
     }
 
     // 7. Antrean Kirim Email Otomatis (Firebase Trigger Email)
