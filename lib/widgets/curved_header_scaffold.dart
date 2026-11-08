@@ -15,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 /// - Responds to Dark Mode and notch / safe area.
 class CurvedHeaderScaffold extends StatefulWidget {
   final String title;
+  final Widget? titleWidget;
   final Widget body;
   final Color? headerColor;
   final Color? sheetColor;
@@ -26,6 +27,7 @@ class CurvedHeaderScaffold extends StatefulWidget {
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
   final EdgeInsetsGeometry? contentPadding;
+  final double? toolbarHeight;
 
   // Image Header Options (for detail screens)
   final String? imageUrl;
@@ -42,6 +44,7 @@ class CurvedHeaderScaffold extends StatefulWidget {
   const CurvedHeaderScaffold({
     super.key,
     required this.title,
+    this.titleWidget,
     required this.body,
     this.headerColor,
     this.sheetColor,
@@ -53,6 +56,7 @@ class CurvedHeaderScaffold extends StatefulWidget {
     this.bottomNavigationBar,
     this.floatingActionButton,
     this.contentPadding,
+    this.toolbarHeight,
     this.imageUrl,
     this.imageAsset,
     this.expandedHeight,
@@ -152,9 +156,11 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveHeaderColor = widget.headerColor ??
+    final effectiveHeaderColor =
+        widget.headerColor ??
         (isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A));
-    final effectiveSheetColor = widget.sheetColor ??
+    final effectiveSheetColor =
+        widget.sheetColor ??
         (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9));
 
     if (_hasImageHeader) {
@@ -183,11 +189,10 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
   }) {
     final rawUrl = widget.imageUrl?.trim() ?? '';
     final hasDataImage = rawUrl.startsWith('data:image');
-    final hasRemoteImage = rawUrl.startsWith('http') || rawUrl.startsWith('blob:');
-    final hasLocalImage = !kIsWeb &&
-        !hasDataImage &&
-        !hasRemoteImage &&
-        rawUrl.isNotEmpty;
+    final hasRemoteImage =
+        rawUrl.startsWith('http') || rawUrl.startsWith('blob:');
+    final hasLocalImage =
+        !kIsWeb && !hasDataImage && !hasRemoteImage && rawUrl.isNotEmpty;
     final hasAssetImage =
         widget.imageAsset != null && widget.imageAsset!.trim().isNotEmpty;
 
@@ -203,7 +208,8 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
             stretch: true,
             elevation: _isCollapsed ? 2 : 0,
             backgroundColor: effectiveHeaderColor,
-            leading: widget.leading ??
+            leading:
+                widget.leading ??
                 IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(7),
@@ -224,17 +230,20 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
             title: AnimatedOpacity(
               opacity: _isCollapsed ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
-              child: Text(
-                widget.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: widget.titleStyle ??
-                    GoogleFonts.poppins(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-              ),
+              child:
+                  widget.titleWidget ??
+                  Text(
+                    widget.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        widget.titleStyle ??
+                        GoogleFonts.poppins(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                  ),
             ),
             centerTitle: widget.centerTitle ?? false,
             actions: widget.actions,
@@ -244,20 +253,24 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
                 fit: StackFit.expand,
                 children: [
                   if (hasDataImage)
-                    Builder(builder: (ctx) {
-                      try {
-                        final comma = rawUrl.indexOf(',');
-                        final b64 = comma != -1 ? rawUrl.substring(comma + 1) : rawUrl;
-                        return Image.memory(
-                          base64Decode(b64),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildPlaceholder(effectiveHeaderColor),
-                        );
-                      } catch (_) {
-                        return _buildPlaceholder(effectiveHeaderColor);
-                      }
-                    })
+                    Builder(
+                      builder: (ctx) {
+                        try {
+                          final comma = rawUrl.indexOf(',');
+                          final b64 = comma != -1
+                              ? rawUrl.substring(comma + 1)
+                              : rawUrl;
+                          return Image.memory(
+                            base64Decode(b64),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildPlaceholder(effectiveHeaderColor),
+                          );
+                        } catch (_) {
+                          return _buildPlaceholder(effectiveHeaderColor);
+                        }
+                      },
+                    )
                   else if (hasRemoteImage)
                     Image.network(
                       rawUrl,
@@ -368,7 +381,8 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
     required Color effectiveSheetColor,
   }) {
     final topPadding = MediaQuery.paddingOf(context).top;
-    final headerHeight = topPadding + kToolbarHeight;
+    final effectiveToolbarHeight = widget.toolbarHeight ?? kToolbarHeight;
+    final headerHeight = topPadding + effectiveToolbarHeight;
     final overlap = widget.overlap;
 
     return Scaffold(
@@ -386,7 +400,7 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
               child: SafeArea(
                 bottom: false,
                 child: SizedBox(
-                  height: kToolbarHeight,
+                  height: effectiveToolbarHeight,
                   child: Row(
                     children: [
                       widget.leading ??
@@ -397,28 +411,34 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
                               size: 19,
                             ),
                             onPressed:
-                                widget.onBack ?? () => Navigator.of(context).pop(),
+                                widget.onBack ??
+                                () => Navigator.of(context).pop(),
                           ),
                       if (widget.centerTitle == true) const Spacer(),
                       if (widget.centerTitle != true) const SizedBox(width: 4),
                       Expanded(
                         flex: widget.centerTitle == true ? 0 : 1,
-                        child: Text(
-                          widget.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: widget.titleStyle ??
-                              GoogleFonts.poppins(
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                        ),
+                        child:
+                            widget.titleWidget ??
+                            Text(
+                              widget.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  widget.titleStyle ??
+                                  GoogleFonts.poppins(
+                                    fontSize: 16.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                            ),
                       ),
                       if (widget.centerTitle == true) const Spacer(),
                       if (widget.actions != null) ...widget.actions!,
                       if (widget.centerTitle == true && widget.actions == null)
-                        const SizedBox(width: 48), // Menyeimbangkan tombol leading
+                        const SizedBox(
+                          width: 48,
+                        ), // Menyeimbangkan tombol leading
                     ],
                   ),
                 ),

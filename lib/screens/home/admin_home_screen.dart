@@ -19,11 +19,7 @@ import '../article/health_article_detail_screen.dart';
 import '../../widgets/article_thumbnail_image.dart';
 import '../../widgets/admin_capsule_bottom_nav.dart';
 
-enum _AdminSettingsSubView {
-  main,
-  changePassword,
-  aboutApp,
-}
+enum _AdminSettingsSubView { main, changePassword, aboutApp }
 
 enum AdminUserStatsPeriod {
   last7Days('7 hari terakhir'),
@@ -82,11 +78,7 @@ class AdminHomeScreen extends StatefulWidget {
   final UserModel user;
   final int initialIndex;
 
-  const AdminHomeScreen({
-    super.key,
-    required this.user,
-    this.initialIndex = 0,
-  });
+  const AdminHomeScreen({super.key, required this.user, this.initialIndex = 0});
 
   @override
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
@@ -255,17 +247,21 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const primaryColor = AppColors.adminGreen;
 
     return PopScope(
-      canPop: _currentIndex == 0 && _settingsSubView == _AdminSettingsSubView.main,
+      canPop:
+          _currentIndex == 0 && _settingsSubView == _AdminSettingsSubView.main,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_currentIndex == 4 && _settingsSubView != _AdminSettingsSubView.main) {
+        if (_currentIndex == 4 &&
+            _settingsSubView == _AdminSettingsSubView.changePassword) {
+          _handleBackFromChangePassword();
+        } else if (_currentIndex == 4 &&
+            _settingsSubView != _AdminSettingsSubView.main) {
           setState(() {
             _settingsSubView = _AdminSettingsSubView.main;
             _passwordErrorMessage = null;
@@ -328,187 +324,187 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             : (_currentIndex == 3 || _currentIndex == 4)
             ? null // Halaman Laporan & Pengaturan menggunakan CurvedHeaderScaffold dengan header sticky pinned dan lembaran melengkung radius 28
             : AppBar(
-              backgroundColor: isDark
-                  ? const Color(0xFF1E293B)
-                  : const Color(0xFFF7FAF8),
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              automaticallyImplyLeading: false,
-              titleSpacing: 16,
-              title: Row(
-                children: [
-                  Image.asset(
-                    'assets/logo.png',
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                backgroundColor: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFF7FAF8),
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                automaticallyImplyLeading: false,
+                titleSpacing: 16,
+                title: Row(
+                  children: [
+                    Image.asset(
+                      'assets/logo.png',
                       width: 36,
                       height: 36,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE8F5EE),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.eco_rounded,
-                        color: Color(0xFF267352),
-                        size: 20,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE8F5EE),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.eco_rounded,
+                          color: Color(0xFF267352),
+                          size: 20,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'ObeSight',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF132F23),
-                            letterSpacing: -0.3,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'ObeSight',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF132F23),
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'ADMIN CONSOLE',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF64748B),
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF267352,
+                                    ).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'PANEL ADMINISTRATOR',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 7,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF267352),
+                                      letterSpacing: 0.3,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  // Circular Profile Icon Button (Navigasi ke Halaman Profil Saya)
+                  GestureDetector(
+                    onTap: () async {
+                      final selectedTab = await Navigator.of(context).push<int>(
+                        MaterialPageRoute(
+                          builder: (context) => AdminProfileScreen(
+                            user: _currentUser,
+                            onProfileUpdated: (updatedUser) {
+                              if (mounted) {
+                                setState(() {
+                                  _currentUser = updatedUser;
+                                });
+                              }
+                            },
                           ),
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'ADMIN CONSOLE',
-                              style: GoogleFonts.poppins(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF64748B),
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 1,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF267352,
-                                  ).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'PANEL ADMINISTRATOR',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 7,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF267352),
-                                    letterSpacing: 0.3,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                          ],
+                      );
+                      if (selectedTab != null && mounted) {
+                        _switchTab(selectedTab);
+                      }
+                      if (mounted) {
+                        _refreshProfile();
+                      }
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 20),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5EE),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFC7E2D5),
+                          width: 1.5,
                         ),
-                      ],
+                      ),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: Color(0xFF267352),
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
               ),
-              actions: [
-                // Circular Profile Icon Button (Navigasi ke Halaman Profil Saya)
-                GestureDetector(
-                  onTap: () async {
-                    final selectedTab = await Navigator.of(context).push<int>(
-                      MaterialPageRoute(
-                        builder: (context) => AdminProfileScreen(
-                          user: _currentUser,
-                          onProfileUpdated: (updatedUser) {
-                            if (mounted) {
-                              setState(() {
-                                _currentUser = updatedUser;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                    );
-                    if (selectedTab != null && mounted) {
-                      _switchTab(selectedTab);
-                    }
-                    if (mounted) {
-                      _refreshProfile();
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            _buildBerandaTab(isDark, primaryColor),
+            _buildPenggunaTab(isDark, primaryColor),
+            _buildArtikelTab(isDark, primaryColor),
+            _buildLaporanTab(isDark, primaryColor),
+            _buildPengaturanTab(isDark, primaryColor),
+          ],
+        ),
+        floatingActionButton: _currentIndex == 2
+            ? Padding(
+                padding: const EdgeInsets.only(bottom: 72),
+                child: FloatingActionButton(
+                  onPressed: () async {
+                    final result = await Navigator.of(context)
+                        .push<Map<String, dynamic>>(
+                          MaterialPageRoute(
+                            builder: (context) => const AdminAddArticleScreen(),
+                          ),
+                        );
+                    if (result != null && mounted) {
+                      setState(() {
+                        _articleSearchQuery = '';
+                        if (result['isPublished'] == false) {
+                          _selectedArticleTab = 2; // Otomatis ke tab Draft
+                        } else {
+                          _selectedArticleTab =
+                              1; // Otomatis ke tab Dipublikasikan
+                        }
+                      });
                     }
                   },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 20),
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5EE),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFC7E2D5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      color: Color(0xFF267352),
-                      size: 22,
-                    ),
+                  backgroundColor: const Color(0xFF388E6B),
+                  elevation: 4,
+                  shape: const CircleBorder(),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: 32,
                   ),
                 ),
-              ],
-            ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          _buildBerandaTab(isDark, primaryColor),
-          _buildPenggunaTab(isDark, primaryColor),
-          _buildArtikelTab(isDark, primaryColor),
-          _buildLaporanTab(isDark, primaryColor),
-          _buildPengaturanTab(isDark, primaryColor),
-        ],
-      ),
-      floatingActionButton: _currentIndex == 2
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 72),
-              child: FloatingActionButton(
-                onPressed: () async {
-                  final result = await Navigator.of(context)
-                      .push<Map<String, dynamic>>(
-                        MaterialPageRoute(
-                          builder: (context) => const AdminAddArticleScreen(),
-                        ),
-                      );
-                  if (result != null && mounted) {
-                    setState(() {
-                      _articleSearchQuery = '';
-                      if (result['isPublished'] == false) {
-                        _selectedArticleTab = 2; // Otomatis ke tab Draft
-                      } else {
-                        _selectedArticleTab =
-                            1; // Otomatis ke tab Dipublikasikan
-                      }
-                    });
-                  }
-                },
-                backgroundColor: const Color(0xFF388E6B),
-                elevation: 4,
-                shape: const CircleBorder(),
-                child: const Icon(
-                  Icons.add_rounded,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
-            )
-          : null,
-      bottomNavigationBar: _buildCapsuleBottomNav(isDark),
+              )
+            : null,
+        bottomNavigationBar: _buildCapsuleBottomNav(isDark),
       ),
     );
   }
@@ -575,15 +571,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     builder: (context, snapshot) {
                       final users = snapshot.data ?? [];
                       final totalUsers = users.length;
-                      final patientCount =
-                          users.where((u) => u.role != UserRole.admin).length;
+                      final patientCount = users
+                          .where((u) => u.role != UserRole.admin)
+                          .length;
                       return GestureDetector(
                         onTap: () async {
-                          final targetIndex = await Navigator.of(context).push<int>(
-                            MaterialPageRoute(
-                              builder: (context) => const AdminUserListScreen(),
-                            ),
-                          );
+                          final targetIndex = await Navigator.of(context)
+                              .push<int>(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AdminUserListScreen(),
+                                ),
+                              );
                           if (targetIndex != null && mounted) {
                             _switchTab(targetIndex);
                           }
@@ -747,8 +746,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       final articles =
                           snapshot.data ?? _articleService.getArticles();
                       final totalCount = articles.length;
-                      final publishedCount =
-                          articles.where((a) => a.isPublished).length;
+                      final publishedCount = articles
+                          .where((a) => a.isPublished)
+                          .length;
                       return GestureDetector(
                         onTap: () => _switchTab(2),
                         child: Container(
@@ -1137,378 +1137,384 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             ],
           ),
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5EE),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.bar_chart_rounded,
-                        color: Color(0xFF267352),
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Flexible(
-                      child: Text(
-                        'Statistik Pengguna',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF0F1E36),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Interactive Dropdown Menu
-              Theme(
-                data: Theme.of(context).copyWith(
-                  cardColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                ),
-                child: PopupMenuButton<AdminUserStatsPeriod>(
-                  initialValue: _selectedStatsPeriod,
-                  tooltip: 'Pilih periode statistik',
-                  offset: const Offset(0, 36),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE2E8F0),
-                    ),
-                  ),
-                  onSelected: (period) {
-                    setState(() {
-                      _selectedStatsPeriod = period;
-                    });
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: AdminUserStatsPeriod.last7Days,
-                      child: Row(
-                        children: [
-                          Icon(
-                            _selectedStatsPeriod ==
-                                    AdminUserStatsPeriod.last7Days
-                                ? Icons.radio_button_checked_rounded
-                                : Icons.radio_button_off_rounded,
-                            size: 16,
-                            color: const Color(0xFF267352),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '7 hari terakhir',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: _selectedStatsPeriod ==
-                                      AdminUserStatsPeriod.last7Days
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F1E36),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: AdminUserStatsPeriod.last1Month,
-                      child: Row(
-                        children: [
-                          Icon(
-                            _selectedStatsPeriod ==
-                                    AdminUserStatsPeriod.last1Month
-                                ? Icons.radio_button_checked_rounded
-                                : Icons.radio_button_off_rounded,
-                            size: 16,
-                            color: const Color(0xFF267352),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '1 bulan terakhir',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: _selectedStatsPeriod ==
-                                      AdminUserStatsPeriod.last1Month
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F1E36),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: AdminUserStatsPeriod.last1Year,
-                      child: Row(
-                        children: [
-                          Icon(
-                            _selectedStatsPeriod ==
-                                    AdminUserStatsPeriod.last1Year
-                                ? Icons.radio_button_checked_rounded
-                                : Icons.radio_button_off_rounded,
-                            size: 16,
-                            color: const Color(0xFF267352),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '1 tahun terakhir',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: _selectedStatsPeriod ==
-                                      AdminUserStatsPeriod.last1Year
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F1E36),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF0F172A)
-                          : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isDark
-                            ? const Color(0xFF334155)
-                            : const Color(0xFFE2E8F0),
-                      ),
-                    ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          periodLabel,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF475569),
-                            fontWeight: FontWeight.w500,
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5EE),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.bar_chart_rounded,
+                            color: Color(0xFF267352),
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          size: 16,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            'Statistik Pengguna',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F1E36),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 18),
-
-          // Dynamic Chart & Summary Streamed from Firestore
-          StreamBuilder<List<UserModel>>(
-            stream: _authService.getAllUsersStream(),
-            builder: (context, snapshot) {
-              final users = snapshot.data ?? [];
-              final chartData = _computeUserChartData(
-                users,
-                _selectedStatsPeriod,
-              );
-              final bars = chartData.bars;
-              final yMax = chartData.yMax;
-              final currentTotal = chartData.currentPeriodTotal;
-              final prevTotal = chartData.prevPeriodTotal;
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  // Left: Bar Chart with Dynamic Y-axis markers
-                  Expanded(
-                    flex: 66,
-                    child: SizedBox(
-                      height: 110,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 2),
-                            child: Column(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '${yMax.toInt()}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 8.5,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                Text(
-                                  '${(yMax * 0.75).round()}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 8.5,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                Text(
-                                  '${(yMax * 0.5).round()}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 8.5,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                Text(
-                                  '${(yMax * 0.25).round()}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 8.5,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                Text(
-                                  '0',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 8.5,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                for (final bar in bars)
-                                  _buildChartBar(
-                                    bar.label,
-                                    bar.count.toDouble(),
-                                    yMax,
-                                    bar.isHighlight,
-                                    _selectedStatsPeriod ==
-                                            AdminUserStatsPeriod.last1Year
-                                        ? 6.5
-                                        : _selectedStatsPeriod ==
-                                                AdminUserStatsPeriod.last1Month
-                                            ? 14.0
-                                            : 10.0,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
                   const SizedBox(width: 8),
 
-                  // Right: New User Summary Box based on real period data
-                  Expanded(
-                    flex: 34,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF0F231B)
-                            : const Color(0xFFF0FDF4),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
+                  // Interactive Dropdown Menu
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      cardColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : Colors.white,
+                    ),
+                    child: PopupMenuButton<AdminUserStatsPeriod>(
+                      initialValue: _selectedStatsPeriod,
+                      tooltip: 'Pilih periode statistik',
+                      offset: const Offset(0, 36),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
                           color: isDark
-                              ? const Color(0xFF1E3A2B)
-                              : const Color(0xFFDCFCE7),
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
                         ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E4634)
-                                  : const Color(0xFFDCFCE7),
-                              shape: BoxShape.circle,
+                      onSelected: (period) {
+                        setState(() {
+                          _selectedStatsPeriod = period;
+                        });
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: AdminUserStatsPeriod.last7Days,
+                          child: Row(
+                            children: [
+                              Icon(
+                                _selectedStatsPeriod ==
+                                        AdminUserStatsPeriod.last7Days
+                                    ? Icons.radio_button_checked_rounded
+                                    : Icons.radio_button_off_rounded,
+                                size: 16,
+                                color: const Color(0xFF267352),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '7 hari terakhir',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight:
+                                      _selectedStatsPeriod ==
+                                          AdminUserStatsPeriod.last7Days
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F1E36),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: AdminUserStatsPeriod.last1Month,
+                          child: Row(
+                            children: [
+                              Icon(
+                                _selectedStatsPeriod ==
+                                        AdminUserStatsPeriod.last1Month
+                                    ? Icons.radio_button_checked_rounded
+                                    : Icons.radio_button_off_rounded,
+                                size: 16,
+                                color: const Color(0xFF267352),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '1 bulan terakhir',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight:
+                                      _selectedStatsPeriod ==
+                                          AdminUserStatsPeriod.last1Month
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F1E36),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: AdminUserStatsPeriod.last1Year,
+                          child: Row(
+                            children: [
+                              Icon(
+                                _selectedStatsPeriod ==
+                                        AdminUserStatsPeriod.last1Year
+                                    ? Icons.radio_button_checked_rounded
+                                    : Icons.radio_button_off_rounded,
+                                size: 16,
+                                color: const Color(0xFF267352),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '1 tahun terakhir',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight:
+                                      _selectedStatsPeriod ==
+                                          AdminUserStatsPeriod.last1Year
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F1E36),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              periodLabel,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF475569),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.person_add_alt_1_rounded,
-                              color: Color(0xFF16A34A),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.keyboard_arrow_down_rounded,
                               size: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$currentTotal',
-                            style: GoogleFonts.poppins(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F1E36),
-                              height: 1.1,
-                            ),
-                          ),
-                          Text(
-                            'Pengguna baru',
-                            style: GoogleFonts.poppins(
-                              fontSize: 10.5,
                               color: isDark
                                   ? const Color(0xFF94A3B8)
                                   : const Color(0xFF64748B),
-                              fontWeight: FontWeight.w500,
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          _buildSummaryComparison(
-                            currentTotal,
-                            prevTotal,
-                            _selectedStatsPeriod,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ],
-              );
-            },
+              ),
+
+              const SizedBox(height: 18),
+
+              // Dynamic Chart & Summary Streamed from Firestore
+              StreamBuilder<List<UserModel>>(
+                stream: _authService.getAllUsersStream(),
+                builder: (context, snapshot) {
+                  final users = snapshot.data ?? [];
+                  final chartData = _computeUserChartData(
+                    users,
+                    _selectedStatsPeriod,
+                  );
+                  final bars = chartData.bars;
+                  final yMax = chartData.yMax;
+                  final currentTotal = chartData.currentPeriodTotal;
+                  final prevTotal = chartData.prevPeriodTotal;
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Left: Bar Chart with Dynamic Y-axis markers
+                      Expanded(
+                        flex: 66,
+                        child: SizedBox(
+                          height: 110,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '${yMax.toInt()}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 8.5,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${(yMax * 0.75).round()}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 8.5,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${(yMax * 0.5).round()}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 8.5,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${(yMax * 0.25).round()}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 8.5,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    Text(
+                                      '0',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 8.5,
+                                        color: const Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    for (final bar in bars)
+                                      _buildChartBar(
+                                        bar.label,
+                                        bar.count.toDouble(),
+                                        yMax,
+                                        bar.isHighlight,
+                                        _selectedStatsPeriod ==
+                                                AdminUserStatsPeriod.last1Year
+                                            ? 6.5
+                                            : _selectedStatsPeriod ==
+                                                  AdminUserStatsPeriod
+                                                      .last1Month
+                                            ? 14.0
+                                            : 10.0,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      // Right: New User Summary Box based on real period data
+                      Expanded(
+                        flex: 34,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF0F231B)
+                                : const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF1E3A2B)
+                                  : const Color(0xFFDCFCE7),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF1E4634)
+                                      : const Color(0xFFDCFCE7),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.person_add_alt_1_rounded,
+                                  color: Color(0xFF16A34A),
+                                  size: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '$currentTotal',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F1E36),
+                                  height: 1.1,
+                                ),
+                              ),
+                              Text(
+                                'Pengguna baru',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              _buildSummaryComparison(
+                                currentTotal,
+                                prevTotal,
+                                _selectedStatsPeriod,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-  ),
-);
+    );
   }
 
   // Summary comparison helper: calculates valid percentage without dummy data
@@ -1570,10 +1576,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     double yMax,
     int currentPeriodTotal,
     int prevPeriodTotal,
-  }) _computeUserChartData(
-    List<UserModel> users,
-    AdminUserStatsPeriod period,
-  ) {
+  })
+  _computeUserChartData(List<UserModel> users, AdminUserStatsPeriod period) {
     final now = DateTime.now();
 
     if (period == AdminUserStatsPeriod.last7Days) {
@@ -2388,7 +2392,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+                color: isSelected
+                    ? const Color(0xFF2563EB)
+                    : Colors.transparent,
                 width: 2.2,
               ),
             ),
@@ -2401,7 +2407,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color: isSelected
                   ? const Color(0xFF2563EB)
-                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  : (isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B)),
             ),
           ),
         ),
@@ -2538,10 +2546,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(5),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.2 : 0.1),
+                                  color: const Color(
+                                    0xFFEF4444,
+                                  ).withValues(alpha: isDark ? 0.2 : 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: const Color(0xFFEF4444).withValues(alpha: isDark ? 0.4 : 0.25),
+                                    color: const Color(
+                                      0xFFEF4444,
+                                    ).withValues(alpha: isDark ? 0.4 : 0.25),
                                     width: 1,
                                   ),
                                 ),
@@ -2573,9 +2585,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2585,10 +2595,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFFFEE2E2),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFFFECACA),
-                  width: 1.5,
-                ),
+                border: Border.all(color: const Color(0xFFFECACA), width: 1.5),
               ),
               child: const Icon(
                 Icons.delete_forever_rounded,
@@ -2612,7 +2619,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12.5,
-                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                color: isDark
+                    ? const Color(0xFFCBD5E1)
+                    : const Color(0xFF64748B),
                 height: 1.45,
               ),
             ),
@@ -2626,7 +2635,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                article.isPublished ? 'Status: Dipublikasikan' : 'Status: Draft',
+                article.isPublished
+                    ? 'Status: Dipublikasikan'
+                    : 'Status: Draft',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -2648,7 +2659,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       side: BorderSide(
-                        color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                        color: isDark
+                            ? const Color(0xFF475569)
+                            : const Color(0xFFCBD5E1),
                       ),
                     ),
                     child: Text(
@@ -2656,7 +2669,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),
@@ -2723,10 +2738,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             const SizedBox(
               height: 0,
               width: 0,
-              child: Text(
-                'Laporan & Analitik',
-                style: TextStyle(fontSize: 0),
-              ),
+              child: Text('Laporan & Analitik', style: TextStyle(fontSize: 0)),
             ),
 
             // 1. Filter Rentang Tanggal
@@ -2739,7 +2751,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 Expanded(
                   child: _buildStaticSummaryCard(
                     title: 'Total Skrining',
-                    value: AdminReportService.formatNumber(reportData.totalScreenings),
+                    value: AdminReportService.formatNumber(
+                      reportData.totalScreenings,
+                    ),
                     badgeText: reportData.totalScreeningsBadgeText,
                     hasArrow: reportData.totalScreeningsHasArrow,
                     isUp: reportData.totalScreeningsIsUp,
@@ -2750,7 +2764,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 Expanded(
                   child: _buildStaticSummaryCard(
                     title: 'Pengguna Baru',
-                    value: AdminReportService.formatNumber(reportData.newUsersCount),
+                    value: AdminReportService.formatNumber(
+                      reportData.newUsersCount,
+                    ),
                     badgeText: reportData.newUsersBadgeText,
                     hasArrow: reportData.newUsersHasArrow,
                     isUp: reportData.newUsersIsUp,
@@ -2761,7 +2777,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 Expanded(
                   child: _buildStaticSummaryCard(
                     title: 'Skrining\nRata-rata/Hari',
-                    value: AdminReportService.formatNumber(reportData.screeningsPerDay),
+                    value: AdminReportService.formatNumber(
+                      reportData.screeningsPerDay,
+                    ),
                     badgeText: reportData.screeningsPerDayBadgeText,
                     hasArrow: reportData.screeningsPerDayHasArrow,
                     isUp: reportData.screeningsPerDayIsUp,
@@ -2803,9 +2821,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   Widget _buildDateFilterDropdown(bool isDark) {
     return Theme(
-      data: Theme.of(context).copyWith(
-        cardColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-      ),
+      data: Theme.of(
+        context,
+      ).copyWith(cardColor: isDark ? const Color(0xFF1E293B) : Colors.white),
       child: PopupMenuButton<String>(
         tooltip: 'Pilih rentang tanggal laporan',
         initialValue: _selectedLaporanPeriod,
@@ -2854,7 +2872,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               const SizedBox(width: 8),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
                 size: 20,
               ),
             ],
@@ -2977,10 +2997,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  Widget _buildStaticScreeningDistributionCard(bool isDark, [AdminReportData? reportData]) {
+  Widget _buildStaticScreeningDistributionCard(
+    bool isDark, [
+    AdminReportData? reportData,
+  ]) {
     final data = reportData ?? _adminReportData ?? AdminReportData.empty();
     final slices = ObesityCategoryConfig.all7Categories.map((cfg) {
-      final percentage = data.screeningDistributionPercentages[cfg.category] ?? 0.0;
+      final percentage =
+          data.screeningDistributionPercentages[cfg.category] ?? 0.0;
       return _DonutSlice(
         label: cfg.label,
         percentage: percentage,
@@ -3062,7 +3086,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             ),
                           ),
                           Text(
-                            AdminReportService.formatPercentage(slice.percentage),
+                            AdminReportService.formatPercentage(
+                              slice.percentage,
+                            ),
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -3125,7 +3151,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -3141,7 +3169,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   'Terdaftar pada rentang $_selectedLaporanPeriod',
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF94A3B8),
                   ),
                 ),
               ],
@@ -3174,7 +3204,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
     final pPct = data.genderPercentages[AdminReportGender.perempuan] ?? 0.0;
     final lPct = data.genderPercentages[AdminReportGender.lakiLaki] ?? 0.0;
-    final uPct = data.genderPercentages[AdminReportGender.tidakDiketahui] ?? 0.0;
+    final uPct =
+        data.genderPercentages[AdminReportGender.tidakDiketahui] ?? 0.0;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -3598,8 +3629,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   // ===========================================================================
   Widget _buildPengaturanTab(bool isDark, Color primaryColor) {
     String titleText = 'Pengaturan';
+    double? toolbarHeight;
     if (_settingsSubView == _AdminSettingsSubView.changePassword) {
       titleText = 'Ubah Kata Sandi';
+      toolbarHeight = 68.0;
     } else if (_settingsSubView == _AdminSettingsSubView.aboutApp) {
       titleText = 'Tentang Aplikasi';
     }
@@ -3619,11 +3652,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
     return CurvedHeaderScaffold(
       title: titleText,
+      toolbarHeight: toolbarHeight,
       centerTitle: true,
       headerColor: const Color(0xFF388E6B),
       sheetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF7FAF8),
       onBack: () {
-        if (_settingsSubView != _AdminSettingsSubView.main) {
+        if (_settingsSubView == _AdminSettingsSubView.changePassword) {
+          _handleBackFromChangePassword();
+        } else if (_settingsSubView != _AdminSettingsSubView.main) {
           setState(() {
             _settingsSubView = _AdminSettingsSubView.main;
             _passwordErrorMessage = null;
@@ -3985,7 +4021,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   Widget _buildUbahKataSandiView(bool isDark, Color primaryColor) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 110),
+      padding: const EdgeInsets.fromLTRB(20, 68, 20, 110),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4207,9 +4243,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               obscureText
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
-              color: isDark
-                  ? const Color(0xFF64748B)
-                  : const Color(0xFF94A3B8),
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
               size: 20,
             ),
             onPressed: onToggleObscure,
@@ -4241,16 +4275,126 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 fontSize: 12,
                 color: isSatisfied
                     ? (isDark
-                        ? const Color(0xFFE2E8F0)
-                        : const Color(0xFF334155))
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFF334155))
                     : (isDark
-                        ? const Color(0xFF64748B)
-                        : const Color(0xFF94A3B8)),
+                          ? const Color(0xFF64748B)
+                          : const Color(0xFF94A3B8)),
                 fontWeight: isSatisfied ? FontWeight.w500 : FontWeight.normal,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  bool get _hasUnsavedPasswordChanges =>
+      _oldPasswordController.text.isNotEmpty ||
+      _newPasswordController.text.isNotEmpty ||
+      _confirmPasswordController.text.isNotEmpty;
+
+  void _handleBackFromChangePassword() {
+    if (!_hasUnsavedPasswordChanges) {
+      setState(() {
+        _settingsSubView = _AdminSettingsSubView.main;
+        _passwordErrorMessage = null;
+      });
+      return;
+    }
+
+    _showDiscardPasswordChangesDialog();
+  }
+
+  void _showDiscardPasswordChangesDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Anda memiliki perubahan kata sandi yang belum disimpan. Apakah Anda yakin ingin keluar tanpa menyimpan perubahan?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF475569)
+                            : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Text(
+                      'Tetap di Halaman',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _oldPasswordController.clear();
+                      _newPasswordController.clear();
+                      _confirmPasswordController.clear();
+                      setState(() {
+                        _passwordErrorMessage = null;
+                        _settingsSubView = _AdminSettingsSubView.main;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE53935),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Keluar',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -4297,6 +4441,109 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       return;
     }
 
+    // Tampilkan dialog konfirmasi sebelum memperbarui kata sandi
+    _showConfirmSavePasswordDialog(oldPass, newPass);
+  }
+
+  void _showConfirmSavePasswordDialog(String oldPass, String newPass) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Konfirmasi Perubahan Kata Sandi',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Apakah Anda yakin ingin menyimpan kata sandi baru? Setelah dikonfirmasi, kata sandi lama akan diganti dengan kata sandi baru.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: isDark
+                    ? const Color(0xFFCBD5E1)
+                    : const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF475569)
+                            : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _executeSavePassword(oldPass, newPass);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF388E6B),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Ya, Simpan',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _executeSavePassword(String oldPass, String newPass) async {
     setState(() {
       _isChangingPassword = true;
     });
@@ -4358,8 +4605,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       setState(() {
         _isChangingPassword = false;
         if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
-          _passwordErrorMessage =
-              'Verifikasi gagal: Password lama Anda salah.';
+          _passwordErrorMessage = 'Verifikasi gagal: Password lama Anda salah.';
         } else if (e.code == 'weak-password') {
           _passwordErrorMessage =
               'Password baru dinilai terlalu lemah oleh sistem.';
@@ -4425,9 +4671,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: isDark
-                  ? const Color(0xFF6EE7B7)
-                  : const Color(0xFF388E6B),
+              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF388E6B),
             ),
           ),
           const SizedBox(height: 10),
@@ -4492,7 +4736,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                     ),
@@ -4539,9 +4785,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF2E1F0B)
-                  : const Color(0xFFFFFBEB),
+              color: isDark ? const Color(0xFF2E1F0B) : const Color(0xFFFFFBEB),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isDark
@@ -4598,9 +4842,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isDark
-                  ? const Color(0xFF94A3B8)
-                  : const Color(0xFF388E6B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF388E6B),
             ),
           ),
           const SizedBox(height: 2),
@@ -4608,9 +4850,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             '© 2026 Obesight. Semua hak dilindungi.',
             style: GoogleFonts.poppins(
               fontSize: 11,
-              color: isDark
-                  ? const Color(0xFF64748B)
-                  : const Color(0xFF94A3B8),
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
             ),
           ),
 
@@ -4632,9 +4872,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F9F6),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark
-              ? const Color(0xFF334155)
-              : const Color(0xFFE2EBE5),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2EBE5),
         ),
       ),
       child: Row(
@@ -4643,16 +4881,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF1E3A2F)
-                  : const Color(0xFFE8F5EE),
+              color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F5EE),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 18,
-              color: const Color(0xFF388E6B),
-            ),
+            child: Icon(icon, size: 18, color: const Color(0xFF388E6B)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -4695,9 +4927,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -4821,7 +5051,10 @@ class _DonutChartPainter extends CustomPainter {
     final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    final totalPercentage = slices.fold<double>(0.0, (sum, s) => sum + s.percentage);
+    final totalPercentage = slices.fold<double>(
+      0.0,
+      (sum, s) => sum + s.percentage,
+    );
     if (totalPercentage <= 0.0) {
       final emptyPaint = Paint()
         ..color = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)
@@ -4854,4 +5087,3 @@ class _DonutChartPainter extends CustomPainter {
       oldDelegate.strokeWidth != strokeWidth ||
       oldDelegate.isDark != isDark;
 }
-
