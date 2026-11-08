@@ -18,7 +18,9 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const sageGreen = Color(0xFF529471); // Warna hijau sage Obesight
+    final pageBgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     return Scaffold(
       backgroundColor: sageGreen,
@@ -59,9 +61,10 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
       ),
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        height: double.infinity,
+        decoration: BoxDecoration(
+          color: pageBgColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
