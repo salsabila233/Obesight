@@ -192,7 +192,7 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
         widget.imageAsset != null && widget.imageAsset!.trim().isNotEmpty;
 
     return Scaffold(
-      backgroundColor: effectiveHeaderColor,
+      backgroundColor: effectiveSheetColor,
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -200,6 +200,7 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
           SliverAppBar(
             expandedHeight: widget.expandedHeight ?? 250.0,
             pinned: true,
+            stretch: true,
             elevation: _isCollapsed ? 2 : 0,
             backgroundColor: effectiveHeaderColor,
             leading: widget.leading ??
@@ -305,35 +306,52 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
 
           // Area konten melengkung (sheet) yang menumpuk di atas bagian bawah foto
           SliverToBoxAdapter(
-            child: Container(
-              transform: Matrix4.translationValues(0, -widget.overlap, 0),
-              decoration: BoxDecoration(
-                color: effectiveSheetColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(28),
-                  topRight: Radius.circular(28),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A000000),
-                    blurRadius: 16,
-                    offset: Offset(0, -4),
+            child: Transform.translate(
+              offset: Offset(0, -widget.overlap),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: effectiveSheetColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(28),
+                    topRight: Radius.circular(28),
                   ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(28),
-                  topRight: Radius.circular(28),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x0A000000),
+                      blurRadius: 16,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
                 ),
-                child: widget.contentPadding != null
-                    ? Padding(
-                        padding: widget.contentPadding!,
-                        child: widget.body,
-                      )
-                    : widget.body,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(28),
+                        topRight: Radius.circular(28),
+                      ),
+                      child: widget.contentPadding != null
+                          ? Padding(
+                              padding: widget.contentPadding!,
+                              child: widget.body,
+                            )
+                          : widget.body,
+                    ),
+                    // Kompensasi tinggi pergeseran overlap agar bagian bawah sheet tertutup sempurna tanpa celah
+                    SizedBox(height: widget.overlap),
+                  ],
+                ),
               ),
             ),
+          ),
+
+          // Memastikan sisa viewport di bagian bawah dan area overscroll selalu berwarna putih (sheetColor)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            fillOverscroll: true,
+            child: Container(color: effectiveSheetColor),
           ),
         ],
       ),
@@ -354,7 +372,7 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
     final overlap = widget.overlap;
 
     return Scaffold(
-      backgroundColor: effectiveHeaderColor,
+      backgroundColor: effectiveSheetColor,
       body: Stack(
         children: [
           // 1. Header Hijau Pinned di Atas (termasuk area overlap)

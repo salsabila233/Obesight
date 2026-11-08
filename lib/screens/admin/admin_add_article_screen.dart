@@ -26,6 +26,105 @@ class RichArticleTextController extends TextEditingController {
   RichArticleTextController({this.isDark = false, super.text});
 
   @override
+  set value(TextEditingValue newValue) {
+    final processed = _processAutoList(value, newValue);
+    super.value = processed;
+  }
+
+  /// Fitur pintar penomoran otomatis & bullet saat menekan Enter seperti Microsoft Word.
+  TextEditingValue _processAutoList(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (!newValue.selection.isCollapsed) return newValue;
+
+    final newPos = newValue.selection.baseOffset;
+    if (newPos <= 0 || newPos > newValue.text.length) return newValue;
+
+    // Pastikan karakter yang baru diketik tepat sebelum kursor adalah '\n' (tombol Enter)
+    if (newValue.text[newPos - 1] != '\n') return newValue;
+
+    // Pastikan ini adalah penekanan tombol Enter 1 karakter biasa, bukan paste teks panjang
+    final oldSelectionLength = oldValue.selection.isValid
+        ? (oldValue.selection.end - oldValue.selection.start).abs()
+        : 0;
+    if (newValue.text.length != oldValue.text.length - oldSelectionLength + 1) {
+      return newValue;
+    }
+
+    final textBeforeEnter = newValue.text.substring(0, newPos - 1);
+    final lastNewlineIndex = textBeforeEnter.lastIndexOf('\n');
+    final previousLine = lastNewlineIndex == -1
+        ? textBeforeEnter
+        : textBeforeEnter.substring(lastNewlineIndex + 1);
+
+    // 1. Cek format penomoran angka: e.g. "1. ", "2. ", "12. "
+    final numberRegex = RegExp(r'^(\s*)(\d+)\.\s*(.*)$');
+    final numberMatch = numberRegex.firstMatch(previousLine);
+
+    if (numberMatch != null) {
+      final indent = numberMatch.group(1) ?? '';
+      final numStr = numberMatch.group(2) ?? '1';
+      final content = numberMatch.group(3) ?? '';
+      final currentNum = int.tryParse(numStr) ?? 1;
+
+      // Jika baris nomor sebelumnya kosong (menekan Enter pada "2. " tanpa teks):
+      // Seperti di Microsoft Word: nomor dihapus dan keluar dari mode penomoran
+      if (content.trim().isEmpty) {
+        final lineStart = lastNewlineIndex == -1 ? 0 : lastNewlineIndex + 1;
+        final prefixLength = previousLine.length;
+        final textWithoutNumber = newValue.text.replaceRange(lineStart, lineStart + prefixLength, '');
+        return TextEditingValue(
+          text: textWithoutNumber,
+          selection: TextSelection.collapsed(offset: lineStart),
+        );
+      }
+
+      // Baris ada isinya: buat nomor berikutnya secara otomatis "2. ", "3. ", dst.
+      final nextNum = currentNum + 1;
+      final nextPrefix = '$indent$nextNum. ';
+      final afterEnter = newValue.text.substring(newPos);
+      final updatedText = '$textBeforeEnter\n$nextPrefix$afterEnter';
+      final updatedCursor = newPos + nextPrefix.length;
+
+      return TextEditingValue(
+        text: updatedText,
+        selection: TextSelection.collapsed(offset: updatedCursor),
+      );
+    }
+
+    // 2. Cek format bullet: e.g. "• ", "- ", "* "
+    final bulletRegex = RegExp(r'^(\s*)([•\-\*])\s*(.*)$');
+    final bulletMatch = bulletRegex.firstMatch(previousLine);
+
+    if (bulletMatch != null) {
+      final indent = bulletMatch.group(1) ?? '';
+      final bulletChar = bulletMatch.group(2) ?? '•';
+      final content = bulletMatch.group(3) ?? '';
+
+      // Jika bullet kosong di-enter, hapus bullet dan keluar mode list
+      if (content.trim().isEmpty) {
+        final lineStart = lastNewlineIndex == -1 ? 0 : lastNewlineIndex + 1;
+        final prefixLength = previousLine.length;
+        final textWithoutBullet = newValue.text.replaceRange(lineStart, lineStart + prefixLength, '');
+        return TextEditingValue(
+          text: textWithoutBullet,
+          selection: TextSelection.collapsed(offset: lineStart),
+        );
+      }
+
+      final nextPrefix = '$indent$bulletChar ';
+      final afterEnter = newValue.text.substring(newPos);
+      final updatedText = '$textBeforeEnter\n$nextPrefix$afterEnter';
+      final updatedCursor = newPos + nextPrefix.length;
+
+      return TextEditingValue(
+        text: updatedText,
+        selection: TextSelection.collapsed(offset: updatedCursor),
+      );
+    }
+
+    return newValue;
+  }
+
+  @override
   TextSpan buildTextSpan({
     required BuildContext context,
     TextStyle? style,
@@ -217,22 +316,153 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
     setState(() {});
   }
 
-  void _insertLinePrefix(String linePrefix) {
+  void _toggleNumberedList() {
     final currentSelection = _contentController.selection;
     final selection = currentSelection.isValid ? currentSelection : _lastContentSelection;
     final text = _contentController.text;
-    final insertPos = (selection.isValid && selection.start >= 0)
+
+    final selStart = (selection.isValid && selection.start >= 0)
         ? selection.start.clamp(0, text.length)
         : text.length;
+    final selEnd = (selection.isValid && selection.end >= 0)
+        ? selection.end.clamp(0, text.length)
+        : text.length;
 
-    final needNewline = insertPos > 0 && !text.substring(0, insertPos).endsWith('\n');
-    final insertion = needNewline ? '\n$linePrefix ' : '$linePrefix ';
+    final rangeStart = selStart <= selEnd ? selStart : selEnd;
+    final rangeEnd = selStart <= selEnd ? selEnd : selStart;
 
-    final newText = text.replaceRange(insertPos, insertPos, insertion);
-    _contentController.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: insertPos + insertion.length),
-    );
+    final blockStart = rangeStart > 0 ? text.lastIndexOf('\n', rangeStart - 1) + 1 : 0;
+    final nextNl = text.indexOf('\n', rangeEnd);
+    final blockEnd = nextNl == -1 ? text.length : nextNl;
+
+    final blockText = text.substring(blockStart, blockEnd);
+    final lines = blockText.split('\n');
+
+    final numberRegex = RegExp(r'^(\s*)(\d+)\.\s*(.*)$');
+    final allNumbered = lines.every((l) => l.trim().isEmpty || numberRegex.hasMatch(l));
+
+    if (allNumbered && lines.any((l) => numberRegex.hasMatch(l))) {
+      // Toggle OFF: Hapus penomoran
+      final unnumberedLines = lines.map((l) {
+        final m = numberRegex.firstMatch(l);
+        if (m != null) {
+          final indent = m.group(1) ?? '';
+          final rest = m.group(3) ?? '';
+          return '$indent$rest';
+        }
+        return l;
+      }).toList();
+
+      final replacement = unnumberedLines.join('\n');
+      final newText = text.replaceRange(blockStart, blockEnd, replacement);
+      _contentController.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: (blockStart + replacement.length).clamp(0, newText.length)),
+      );
+    } else {
+      // Toggle ON: Berikan nomor urut
+      int startingNumber = 1;
+      if (blockStart > 0) {
+        final prevLineEnd = blockStart - 1;
+        final prevLineStart = prevLineEnd > 0 ? text.lastIndexOf('\n', prevLineEnd - 1) + 1 : 0;
+        final prevLine = text.substring(prevLineStart, prevLineEnd);
+        final prevMatch = numberRegex.firstMatch(prevLine);
+        if (prevMatch != null) {
+          final pNum = int.tryParse(prevMatch.group(2) ?? '0') ?? 0;
+          if (pNum > 0) startingNumber = pNum + 1;
+        }
+      }
+
+      int currentNum = startingNumber;
+      final bulletRegex = RegExp(r'^\s*[•\-\*]\s*');
+      final numberedLines = lines.map((l) {
+        final cleanLine = l.replaceFirst(bulletRegex, '');
+        final prefix = '$currentNum. ';
+        currentNum++;
+        return '$prefix$cleanLine';
+      }).toList();
+
+      final replacement = numberedLines.join('\n');
+      final newText = text.replaceRange(blockStart, blockEnd, replacement);
+
+      final newCursorOffset = (lines.length == 1 && lines.first.isEmpty)
+          ? blockStart + '$startingNumber. '.length
+          : (blockStart + replacement.length);
+
+      _contentController.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newCursorOffset.clamp(0, newText.length)),
+      );
+    }
+
+    _lastContentSelection = _contentController.selection;
+    _contentFocusNode.requestFocus();
+    setState(() {});
+  }
+
+  void _toggleBulletList() {
+    final currentSelection = _contentController.selection;
+    final selection = currentSelection.isValid ? currentSelection : _lastContentSelection;
+    final text = _contentController.text;
+
+    final selStart = (selection.isValid && selection.start >= 0)
+        ? selection.start.clamp(0, text.length)
+        : text.length;
+    final selEnd = (selection.isValid && selection.end >= 0)
+        ? selection.end.clamp(0, text.length)
+        : text.length;
+
+    final rangeStart = selStart <= selEnd ? selStart : selEnd;
+    final rangeEnd = selStart <= selEnd ? selEnd : selStart;
+
+    final blockStart = rangeStart > 0 ? text.lastIndexOf('\n', rangeStart - 1) + 1 : 0;
+    final nextNl = text.indexOf('\n', rangeEnd);
+    final blockEnd = nextNl == -1 ? text.length : nextNl;
+
+    final blockText = text.substring(blockStart, blockEnd);
+    final lines = blockText.split('\n');
+
+    final bulletRegex = RegExp(r'^(\s*)[•\-\*]\s*(.*)$');
+    final allBulleted = lines.every((l) => l.trim().isEmpty || bulletRegex.hasMatch(l));
+
+    if (allBulleted && lines.any((l) => bulletRegex.hasMatch(l))) {
+      // Toggle OFF: Hapus bullet
+      final unbulletedLines = lines.map((l) {
+        final m = bulletRegex.firstMatch(l);
+        if (m != null) {
+          final indent = m.group(1) ?? '';
+          final rest = m.group(2) ?? '';
+          return '$indent$rest';
+        }
+        return l;
+      }).toList();
+
+      final replacement = unbulletedLines.join('\n');
+      final newText = text.replaceRange(blockStart, blockEnd, replacement);
+      _contentController.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: (blockStart + replacement.length).clamp(0, newText.length)),
+      );
+    } else {
+      // Toggle ON: Berikan bullet
+      final numberRegex = RegExp(r'^\s*\d+\.\s*');
+      final bulletedLines = lines.map((l) {
+        final cleanLine = l.replaceFirst(numberRegex, '');
+        return '• $cleanLine';
+      }).toList();
+
+      final replacement = bulletedLines.join('\n');
+      final newText = text.replaceRange(blockStart, blockEnd, replacement);
+
+      final newCursorOffset = (lines.length == 1 && lines.first.isEmpty)
+          ? blockStart + '• '.length
+          : (blockStart + replacement.length);
+
+      _contentController.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newCursorOffset.clamp(0, newText.length)),
+      );
+    }
 
     _lastContentSelection = _contentController.selection;
     _contentFocusNode.requestFocus();
@@ -1213,13 +1443,13 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                                     icon: Icons.format_list_bulleted_rounded,
                                     tooltip: 'Daftar berpoin (Bullet)',
                                     isDark: isDark,
-                                    onTap: () => _insertLinePrefix('•'),
+                                    onTap: _toggleBulletList,
                                   ),
                                   _buildToolbarIcon(
                                     icon: Icons.format_list_numbered_rounded,
-                                    tooltip: 'Daftar penomoran',
+                                    tooltip: 'Daftar penomoran otomatis (tekan Enter untuk nomor berikutnya)',
                                     isDark: isDark,
-                                    onTap: () => _insertLinePrefix('1.'),
+                                    onTap: _toggleNumberedList,
                                   ),
                                 ],
                               ),
@@ -1265,7 +1495,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Tips: Pisahkan setiap paragraf dengan Enter 2x agar teks di layar pengguna tersusun rapi.',
+                            'Tips: Klik ikon penomoran (1.) untuk memulai nomor 1. Tekan Enter untuk membuat nomor berikutnya otomatis seperti di Word. Tekan Enter pada nomor kosong untuk selesai/keluar.',
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
