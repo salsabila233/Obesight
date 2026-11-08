@@ -82,11 +82,22 @@ class AdminUserService {
   bool get isFirebaseAvailable => Firebase.apps.isNotEmpty;
 
   /// Mendengarkan stream koleksi `users` di Cloud Firestore secara real-time.
-  /// Menampilkan semua akun pengguna dan admin secara global tanpa filter
-  /// berdasarkan akun admin login atau perangkat tertentu.
+  /// Mendengarkan stream koleksi `users` di Cloud Firestore secara real-time.
+  /// Menampilkan semua akun pasien/pengguna terdaftar.
+  /// Akun dengan role administrator (misal adminobesight@gmail.com) disaring
+  /// agar tidak masuk ke daftar pengguna/pasien.
   Stream<List<UserModel>> streamUsers() {
     if (!isFirebaseAvailable) {
-      return Stream.value(_cachedUsers);
+      return Stream.value(_cachedUsers
+          .where((u) =>
+              !u.name.toLowerCase().contains("hendra") &&
+              !u.email.toLowerCase().contains("hendra") &&
+              !u.isAdmin &&
+              u.role != UserRole.admin &&
+              u.email.toLowerCase() != 'adminobesight@gmail.com' &&
+              !u.email.toLowerCase().contains('adminobesight') &&
+              u.email.toLowerCase() != 'admin@obesight.com')
+          .toList());
     }
 
     return _firestore.collection('users').snapshots().map((snapshot) {
@@ -103,6 +114,16 @@ class AdminUserService {
             _scheduleHendraCleanup();
             continue;
           }
+
+          // Saring akun dengan role admin (misal adminobesight@gmail.com) agar tidak masuk ke daftar pengguna
+          if (user.isAdmin ||
+              user.role == UserRole.admin ||
+              emailLower == 'adminobesight@gmail.com' ||
+              emailLower.contains('adminobesight') ||
+              emailLower == 'admin@obesight.com') {
+            continue;
+          }
+
           users.add(user);
         } catch (e) {
           debugPrint('[AdminUserService] Error parsing user doc ${doc.id}: $e');
@@ -134,7 +155,16 @@ class AdminUserService {
   /// Mengambil data seluruh pengguna secara langsung dari Firestore (server/cache)
   Future<List<UserModel>> fetchUsers({Source source = Source.serverAndCache}) async {
     if (!isFirebaseAvailable) {
-      return _cachedUsers;
+      return _cachedUsers
+          .where((u) =>
+              !u.name.toLowerCase().contains("hendra") &&
+              !u.email.toLowerCase().contains("hendra") &&
+              !u.isAdmin &&
+              u.role != UserRole.admin &&
+              u.email.toLowerCase() != 'adminobesight@gmail.com' &&
+              !u.email.toLowerCase().contains('adminobesight') &&
+              u.email.toLowerCase() != 'admin@obesight.com')
+          .toList();
     }
 
     try {
@@ -153,6 +183,16 @@ class AdminUserService {
             _scheduleHendraCleanup();
             continue;
           }
+
+          // Saring akun dengan role admin (misal adminobesight@gmail.com) agar tidak masuk ke daftar pengguna
+          if (user.isAdmin ||
+              user.role == UserRole.admin ||
+              emailLower == 'adminobesight@gmail.com' ||
+              emailLower.contains('adminobesight') ||
+              emailLower == 'admin@obesight.com') {
+            continue;
+          }
+
           users.add(user);
         } catch (e) {
           debugPrint('[AdminUserService] Error parsing user doc ${doc.id}: $e');
@@ -182,7 +222,16 @@ class AdminUserService {
   /// Method bantuan untuk pengujian unit/widget saat Firebase belum diinisialisasi
   @visibleForTesting
   void setMockUsers(List<UserModel> users) {
-    _cachedUsers = users.where((u) => !u.name.toLowerCase().contains("hendra") && !u.email.toLowerCase().contains("hendra")).toList();
+    _cachedUsers = users
+        .where((u) =>
+            !u.name.toLowerCase().contains("hendra") &&
+            !u.email.toLowerCase().contains("hendra") &&
+            !u.isAdmin &&
+            u.role != UserRole.admin &&
+            u.email.toLowerCase() != 'adminobesight@gmail.com' &&
+            !u.email.toLowerCase().contains('adminobesight') &&
+            u.email.toLowerCase() != 'admin@obesight.com')
+        .toList();
   }
 
   /// Mendengarkan stream satu dokumen pengguna berdasarkan UID langsung dari Firestore

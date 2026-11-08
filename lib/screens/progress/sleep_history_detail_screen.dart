@@ -34,10 +34,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
         final summaries = service.getPast7DaysSummaries(_currentWeekEnd);
 
         final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
-        final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
+        final pageColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
         return Scaffold(
-          backgroundColor: backgroundColor,
+          backgroundColor: pageColor,
           appBar: AppBar(
             backgroundColor: headerColor,
             elevation: 0,
@@ -56,30 +56,51 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             ),
             centerTitle: true,
           ),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: backgroundColor,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Segmented Filter Tabs (Jam | Hari | Minggu | Bulan)
-                    _buildSegmentedTabs(isDark),
-                    const SizedBox(height: 16),
+          body: Stack(
+            children: [
+              // Background hijau penyangga di balik lengkungan atas
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 32,
+                child: Container(color: headerColor),
+              ),
+              // Lembaran halaman utama putih bersih dengan sudut lengkung radius 28
+              Positioned.fill(
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: pageColor,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. Segmented Filter Tabs (Jam | Hari | Minggu | Bulan)
+                          _buildSegmentedTabs(isDark),
+                          const SizedBox(height: 16),
 
-                    // 2. Dynamic Chart Card (Jam / Hari / Minggu / Bulan)
-                    _buildDynamicChartCard(service, summaries, isDark),
-                    const SizedBox(height: 20),
+                          // 2. Dynamic Chart Card (Jam / Hari / Minggu / Bulan)
+                          _buildDynamicChartCard(service, summaries, isDark),
+                          const SizedBox(height: 20),
 
-                    // 3. Section: Riwayat Catatan Tidur (List records with edit & delete)
-                    _buildRecordListSection(service, isDark),
-                  ],
+                          // 3. Section: Riwayat Catatan Tidur (List records with edit & delete)
+                          _buildRecordListSection(service, isDark),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
+          ),
         );
       },
     );
@@ -1230,7 +1251,8 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
   }
 
   Widget _buildRecordListSection(SleepTrackingService service, bool isDark) {
-    final allRecords = service.allRecords;
+    // 1 Hari = 1 Catatan Tidur, dan hanya menampilkan riwayat pencatatan dalam 1 bulan saja
+    final records = service.getPastMonthRecords();
 
     return Container(
       width: double.infinity,
@@ -1265,7 +1287,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${allRecords.length} catatan',
+                '${records.length} catatan',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -1275,12 +1297,12 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
           ),
           const SizedBox(height: 14),
 
-          if (allRecords.isEmpty)
+          if (records.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Text(
-                  'Belum ada catatan tidur pada rentang tanggal ini.',
+                  'Belum ada catatan tidur dalam 1 bulan terakhir.',
                   style: GoogleFonts.poppins(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8)),
                 ),
               ),
@@ -1289,10 +1311,10 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: allRecords.length,
+              itemCount: records.length,
               separatorBuilder: (context, index) => Divider(height: 16, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
               itemBuilder: (context, index) {
-                final record = allRecords[index];
+                final record = records[index];
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [

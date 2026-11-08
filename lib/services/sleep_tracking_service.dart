@@ -308,9 +308,50 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     final list = List<SleepRecord>.from(_records);
     list.sort((a, b) => b.startTime.compareTo(a.startTime));
     for (final rec in list) {
-      uniqueByDate.putIfAbsent(rec.date, () => rec);
+      if (uniqueByDate.containsKey(rec.date)) {
+        if (!rec.isAutomatic && uniqueByDate[rec.date]!.isAutomatic) {
+          uniqueByDate[rec.date] = rec;
+        }
+      } else {
+        uniqueByDate[rec.date] = rec;
+      }
     }
-    return uniqueByDate.values.toList();
+    final result = uniqueByDate.values.toList();
+    result.sort((a, b) => b.startTime.compareTo(a.startTime));
+    return result;
+  }
+
+  /// Riwayat catatan tidur 1 bulan terakhir:
+  /// - 1 Hari = Maksimal 1 Catatan Tidur (memprioritaskan catatan manual terkonfirmasi)
+  /// - Hanya menampilkan catatan dalam rentang 1 bulan terakhir (30 hari terakhir)
+  List<SleepRecord> getPastMonthRecords({DateTime? referenceDate}) {
+    final now = referenceDate ?? DateTime.now();
+    final oneMonthAgo = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 30));
+
+    final Map<String, SleepRecord> uniqueByDate = {};
+    final list = List<SleepRecord>.from(_records);
+    list.sort((a, b) => b.startTime.compareTo(a.startTime));
+
+    for (final rec in list) {
+      final recDate = DateTime(rec.startTime.year, rec.startTime.month, rec.startTime.day);
+      if (recDate.isBefore(oneMonthAgo)) {
+        continue;
+      }
+
+      // Pertahankan logika 1 hari 1 catatan tidur
+      if (uniqueByDate.containsKey(rec.date)) {
+        if (!rec.isAutomatic && uniqueByDate[rec.date]!.isAutomatic) {
+          uniqueByDate[rec.date] = rec;
+        }
+      } else {
+        uniqueByDate[rec.date] = rec;
+      }
+    }
+
+    final result = uniqueByDate.values.toList();
+    result.sort((a, b) => b.startTime.compareTo(a.startTime));
+    return result;
   }
 
   /// Memeriksa ketersediaan ekosistem kesehatan bawaan OS (Health Connect / Google Fit / Samsung Health)

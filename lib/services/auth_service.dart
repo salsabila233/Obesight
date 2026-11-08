@@ -1720,7 +1720,6 @@ class AuthService {
     if (!isFirebaseAvailable) {
       final now = DateTime.now();
       return Stream.value([
-        defaultAdminAccount.copyWith(createdAt: now.subtract(const Duration(days: 6))),
         defaultUserAccount.copyWith(createdAt: now.subtract(const Duration(days: 3))),
         alternativeUserAccount.copyWith(
           createdAt: now.subtract(const Duration(days: 2)),
@@ -1735,6 +1734,13 @@ class AuthService {
       return _firestore.collection('users').snapshots().map((snapshot) {
         final users = snapshot.docs.map((doc) {
           return UserModel.fromMap(doc.data(), doc.id);
+        }).where((u) {
+          final emailLower = u.email.toLowerCase();
+          return !u.isAdmin &&
+              u.role != UserRole.admin &&
+              emailLower != 'adminobesight@gmail.com' &&
+              !emailLower.contains('adminobesight') &&
+              emailLower != 'admin@obesight.com';
         }).toList();
         users.sort((a, b) {
           if (a.createdAt != null && b.createdAt != null) {

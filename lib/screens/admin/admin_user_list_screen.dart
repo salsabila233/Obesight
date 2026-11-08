@@ -241,21 +241,27 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                   final query = _searchQuery.trim().toLowerCase();
 
                   final filteredUsers = allUsers.where((u) {
+                    final emailLower = u.email.toLowerCase();
+                    // Saring akun administrator agar tidak masuk sebagai daftar pengguna/pasien
+                    if (u.isAdmin ||
+                        u.role == UserRole.admin ||
+                        emailLower == 'adminobesight@gmail.com' ||
+                        emailLower.contains('adminobesight') ||
+                        emailLower == 'admin@obesight.com') {
+                      return false;
+                    }
+
                     if (query.isEmpty) return true;
                     final nameMatch = u.name.toLowerCase().contains(query);
-                    final emailMatch = u.email.toLowerCase().contains(query);
+                    final emailMatch = emailLower.contains(query);
                     final phoneMatch =
                         u.phone != null && u.phone!.contains(query);
                     final usernameMatch =
                         u.username.toLowerCase().contains(query);
-                    final roleMatch =
-                        u.roleDisplayName.toLowerCase().contains(query) ||
-                            (u.isAdmin ? 'admin' : 'pengguna').contains(query);
                     return nameMatch ||
                         emailMatch ||
                         phoneMatch ||
-                        usernameMatch ||
-                        roleMatch;
+                        usernameMatch;
                   }).toList();
 
                   if (filteredUsers.isEmpty) {

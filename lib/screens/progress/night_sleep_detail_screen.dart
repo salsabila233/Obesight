@@ -90,7 +90,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           totalDurationFormatted = '-- j -- m';
         }
 
-        final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
+        final backgroundColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
         return Scaffold(
           backgroundColor: backgroundColor,
@@ -1257,7 +1257,7 @@ class _SleepCollapsibleHeaderDelegate extends SliverPersistentHeaderDelegate {
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final double collapseRange = maxExtent - minExtent;
     final double t = collapseRange > 0 ? (shrinkOffset / collapseRange).clamp(0.0, 1.0) : 0.0;
-    final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
+    final backgroundColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     return SizedBox.expand(
       child: Stack(

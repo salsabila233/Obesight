@@ -5,7 +5,6 @@ import 'package:obesight/screens/progress/activity_timer_screen.dart';
 import 'package:obesight/screens/progress/activity_detail_screen.dart';
 import 'package:obesight/services/activity_timer_service.dart';
 import 'package:obesight/services/activity_alarm_service.dart';
-import 'package:obesight/services/physical_activity_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

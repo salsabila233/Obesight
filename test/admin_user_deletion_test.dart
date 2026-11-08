@@ -143,5 +143,35 @@ void main() {
 
       expect(find.text('Hapus Akun Pengguna?'), findsNothing);
     });
+
+    test('5. AdminUserService excludes adminobesight@gmail.com and admin accounts from user list', () async {
+      final service = AdminUserService.instance;
+
+      final sampleUsers = <UserModel>[
+        UserModel(
+          id: 'user_regular',
+          name: 'Pasien Zahra',
+          username: 'zahra',
+          email: 'zahra@example.com',
+          role: UserRole.user,
+        ),
+        UserModel(
+          id: 'admin_account',
+          name: 'Admin ObeSight',
+          username: 'admin',
+          email: 'adminobesight@gmail.com',
+          role: UserRole.admin,
+        ),
+      ];
+
+      service.setMockUsers(sampleUsers);
+
+      final fetched = await service.fetchUsers();
+      // Admin account must NOT appear in the user list
+      expect(fetched.any((u) => u.email.toLowerCase() == 'adminobesight@gmail.com'), isFalse);
+      expect(fetched.any((u) => u.isAdmin || u.role == UserRole.admin), isFalse);
+      expect(fetched.any((u) => u.id == 'user_regular'), isTrue);
+      expect(fetched.length, 1);
+    });
   });
 }
