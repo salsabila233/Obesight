@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -105,6 +106,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   AdminReportData? _adminReportData;
   bool _isLaporanLoading = false;
   String? _laporanErrorMessage;
+  StreamSubscription<AdminReportData>? _laporanSubscription;
 
   // Sub-view Pengaturan Admin
   _AdminSettingsSubView _settingsSubView = _AdminSettingsSubView.main;
@@ -132,6 +134,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     _currentUser = widget.user;
     _newPasswordController.addListener(_validatePasswordCriteria);
     _refreshProfile();
+    _subscribeToLaporanUpdates();
     _fetchLaporanData();
   }
 
@@ -147,6 +150,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   @override
   void dispose() {
+    _laporanSubscription?.cancel();
+    _laporanSubscription = null;
     _newPasswordController.removeListener(_validatePasswordCriteria);
     _oldPasswordController.dispose();
     _newPasswordController.dispose();
@@ -157,10 +162,36 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchLaporanData() async {
+  void _subscribeToLaporanUpdates() {
+    _laporanSubscription?.cancel();
+    _laporanSubscription = AdminReportService.instance
+        .streamReportData(
+          startDate: _laporanStartDate,
+          endDate: _laporanEndDate,
+        )
+        .listen(
+      (data) {
+        if (!mounted) return;
+        setState(() {
+          _adminReportData = data;
+          _isLaporanLoading = false;
+          _laporanErrorMessage = null;
+        });
+      },
+      onError: (e) {
+        if (!mounted) return;
+        setState(() {
+          _isLaporanLoading = false;
+          _laporanErrorMessage = 'Gagal memuat data laporan: $e';
+        });
+      },
+    );
+  }
+
+  Future<void> _fetchLaporanData({bool forceRefresh = false}) async {
     if (!mounted) return;
     setState(() {
-      _isLaporanLoading = true;
+      _isLaporanLoading = _adminReportData == null;
       _laporanErrorMessage = null;
     });
 
@@ -168,6 +199,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       final data = await AdminReportService.instance.fetchAdminReportData(
         startDate: _laporanStartDate,
         endDate: _laporanEndDate,
+        forceRefresh: forceRefresh,
       );
       if (!mounted) return;
       setState(() {
@@ -221,6 +253,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       _laporanEndDate = end;
     });
 
+    _subscribeToLaporanUpdates();
     _fetchLaporanData();
   }
 
@@ -245,6 +278,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         _passwordErrorMessage = null;
       }
     });
+    if (index == 3 || index == 2) {
+      _fetchLaporanData();
+    }
   }
 
   @override
@@ -2728,92 +2764,98 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       title: 'Laporan',
       centerTitle: true,
       onBack: () => _switchTab(0),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Teks semantik untuk kompatibilitas suite pengujian
-            const SizedBox(
-              height: 0,
-              width: 0,
-              child: Text('Laporan & Analitik', style: TextStyle(fontSize: 0)),
-            ),
+      body: RefreshIndicator(
+        onRefresh: () => _fetchLaporanData(forceRefresh: true),
+        color: const Color(0xFF388E6B),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Teks semantik untuk kompatibilitas suite pengujian
+              const SizedBox(
+                height: 0,
+                width: 0,
+                child: Text('Laporan & Analitik', style: TextStyle(fontSize: 0)),
+              ),
 
-            // 1. Filter Rentang Tanggal
-            _buildDateFilterDropdown(isDark),
-            const SizedBox(height: 16),
+              // 1. Filter Rentang Tanggal
+              _buildDateFilterDropdown(isDark),
+              const SizedBox(height: 16),
 
-            // 2. Tiga Kartu Ringkasan Atas (Agregasi Data Aktual Firestore)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStaticSummaryCard(
-                    title: 'Total Skrining',
-                    value: AdminReportService.formatNumber(
-                      reportData.totalScreenings,
+              // 2. Tiga Kartu Ringkasan Atas (Agregasi Data Aktual Firestore)
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStaticSummaryCard(
+                      title: 'Total Skrining',
+                      value: AdminReportService.formatNumber(
+                        reportData.totalScreenings,
+                      ),
+                      badgeText: reportData.totalScreeningsBadgeText,
+                      hasArrow: reportData.totalScreeningsHasArrow,
+                      isUp: reportData.totalScreeningsIsUp,
+                      isDark: isDark,
                     ),
-                    badgeText: reportData.totalScreeningsBadgeText,
-                    hasArrow: reportData.totalScreeningsHasArrow,
-                    isUp: reportData.totalScreeningsIsUp,
-                    isDark: isDark,
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildStaticSummaryCard(
-                    title: 'Pengguna Baru',
-                    value: AdminReportService.formatNumber(
-                      reportData.newUsersCount,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildStaticSummaryCard(
+                      title: 'Pengguna Baru',
+                      value: AdminReportService.formatNumber(
+                        reportData.newUsersCount,
+                      ),
+                      badgeText: reportData.newUsersBadgeText,
+                      hasArrow: reportData.newUsersHasArrow,
+                      isUp: reportData.newUsersIsUp,
+                      isDark: isDark,
                     ),
-                    badgeText: reportData.newUsersBadgeText,
-                    hasArrow: reportData.newUsersHasArrow,
-                    isUp: reportData.newUsersIsUp,
-                    isDark: isDark,
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildStaticSummaryCard(
-                    title: 'Skrining\nRata-rata/Hari',
-                    value: AdminReportService.formatNumber(
-                      reportData.screeningsPerDay,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildStaticSummaryCard(
+                      title: 'Skrining\nRata-rata/Hari',
+                      value: AdminReportService.formatNumber(
+                        reportData.screeningsPerDay,
+                      ),
+                      badgeText: reportData.screeningsPerDayBadgeText,
+                      hasArrow: reportData.screeningsPerDayHasArrow,
+                      isUp: reportData.screeningsPerDayIsUp,
+                      isDark: isDark,
                     ),
-                    badgeText: reportData.screeningsPerDayBadgeText,
-                    hasArrow: reportData.screeningsPerDayHasArrow,
-                    isUp: reportData.screeningsPerDayIsUp,
-                    isDark: isDark,
                   ),
-                ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // 3. Distribusi Hasil Skrining (Donut Chart Berdasarkan Data Aktual Firestore)
+              _buildStaticScreeningDistributionCard(isDark, reportData),
+              const SizedBox(height: 22),
+
+              // 4. BAGIAN DATA BARU (Agregasi Live Firestore Berdasarkan Rentang Tanggal)
+              if (_isLaporanLoading)
+                _buildLaporanLoadingState(isDark)
+              else if (_laporanErrorMessage != null)
+                _buildLaporanErrorState(isDark)
+              else if (reportData.isEmpty)
+                _buildLaporanEmptyState(isDark)
+              else ...[
+                // a) Jumlah Pengguna (Pasien) Terdaftar
+                _buildPatientCountCard(isDark, _adminReportData!),
+                const SizedBox(height: 18),
+
+                // b) Pengguna per Jenis Kelamin
+                _buildGenderBreakdownCard(isDark, _adminReportData!),
+                const SizedBox(height: 18),
+
+                // c) Kategori Obesitas (Skrining Terbaru per Pengguna)
+                _buildObesityCategoriesCard(isDark, _adminReportData!),
               ],
-            ),
-            const SizedBox(height: 18),
-
-            // 3. Distribusi Hasil Skrining (Donut Chart Berdasarkan Data Aktual Firestore)
-            _buildStaticScreeningDistributionCard(isDark, reportData),
-            const SizedBox(height: 22),
-
-            // 4. BAGIAN DATA BARU (Agregasi Live Firestore Berdasarkan Rentang Tanggal)
-            if (_isLaporanLoading)
-              _buildLaporanLoadingState(isDark)
-            else if (_laporanErrorMessage != null)
-              _buildLaporanErrorState(isDark)
-            else if (reportData.isEmpty)
-              _buildLaporanEmptyState(isDark)
-            else ...[
-              // a) Jumlah Pengguna (Pasien) Terdaftar
-              _buildPatientCountCard(isDark, _adminReportData!),
-              const SizedBox(height: 18),
-
-              // b) Pengguna per Jenis Kelamin
-              _buildGenderBreakdownCard(isDark, _adminReportData!),
-              const SizedBox(height: 18),
-
-              // c) Kategori Obesitas (Skrining Terbaru per Pengguna)
-              _buildObesityCategoriesCard(isDark, _adminReportData!),
             ],
-          ],
+          ),
         ),
       ),
     );

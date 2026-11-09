@@ -306,28 +306,24 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
 
-        // Pastikan akun admin dan pengguna reguler muncul tanpa filter
-        expect(find.text('Admin Utama Satu'), findsOneWidget);
-        expect(find.text('Admin Utama Dua'), findsOneWidget);
-        expect(find.text('Admin'), findsAtLeastNWidgets(2));
-
-        // Scroll untuk melihat pengguna reguler di bawah
-        await tester.drag(find.byType(ListView), const Offset(0, -600));
-        await tester.pumpAndSettle();
+        // Pastikan akun pengguna reguler muncul dan akun admin disaring secara aman
+        expect(find.text('Siti Rahmawati'), findsOneWidget);
         expect(find.text('Budi Hartono'), findsOneWidget);
+        expect(find.text('Admin Utama Satu'), findsNothing);
 
         // Uji pencarian pengguna
         await tester.enterText(find.byType(TextField), 'Budi');
         await tester.pumpAndSettle();
 
         expect(find.text('Budi Hartono'), findsOneWidget);
-        expect(find.text('Admin Utama Satu'), findsNothing);
+        expect(find.text('Siti Rahmawati'), findsNothing);
 
         // Bersihkan pencarian
         await tester.tap(find.byIcon(Icons.close_rounded));
         await tester.pumpAndSettle();
 
-        expect(find.text('Admin Utama Satu'), findsOneWidget);
+        expect(find.text('Siti Rahmawati'), findsOneWidget);
+        expect(find.text('Budi Hartono'), findsOneWidget);
       },
     );
 

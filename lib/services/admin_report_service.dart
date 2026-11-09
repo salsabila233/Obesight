@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/screening_history_model.dart';
@@ -487,13 +488,16 @@ class AdminReportService {
   static bool isDateInRange(DateTime? date, DateTime? start, DateTime? end) {
     if (date == null) return false;
     if (start == null && end == null) return true;
+    final localDate = date.toLocal();
     if (start != null) {
-      final startDay = DateTime(start.year, start.month, start.day, 0, 0, 0);
-      if (date.isBefore(startDay)) return false;
+      final localStart = start.toLocal();
+      final startDay = DateTime(localStart.year, localStart.month, localStart.day, 0, 0, 0, 0, 0);
+      if (localDate.isBefore(startDay)) return false;
     }
     if (end != null) {
-      final endDay = DateTime(end.year, end.month, end.day, 23, 59, 59, 999);
-      if (date.isAfter(endDay)) return false;
+      final localEnd = end.toLocal();
+      final endDay = DateTime(localEnd.year, localEnd.month, localEnd.day, 23, 59, 59, 999, 999);
+      if (localDate.isAfter(endDay)) return false;
     }
     return true;
   }
@@ -533,6 +537,31 @@ class AdminReportService {
     return null;
   }
 
+  /// Resolusi kategori klinis lengkap (dari label atau evaluasi IMT/BMI sebagai fallback aman)
+  static ObesityCategory resolveObesityCategory(
+    ScreeningHistoryItem? screening, [
+    UserModel? user,
+  ]) {
+    final raw = extractCategoryRaw(screening, user);
+    final cat = normalizeObesityCategory(raw);
+    if (cat != ObesityCategory.tidakDiketahui) {
+      return cat;
+    }
+    final bmi = (screening != null && screening.bmi > 0)
+        ? screening.bmi
+        : (user != null && user.bmiScore > 0 ? user.bmiScore : 0.0);
+    if (bmi > 0.0) {
+      if (bmi < 18.5) return ObesityCategory.insufficientWeight;
+      if (bmi < 23.0) return ObesityCategory.normalWeight;
+      if (bmi < 25.0) return ObesityCategory.overweightLevel1;
+      if (bmi < 30.0) return ObesityCategory.overweightLevel2;
+      if (bmi < 35.0) return ObesityCategory.obesityType1;
+      if (bmi < 40.0) return ObesityCategory.obesityType2;
+      return ObesityCategory.obesityType3;
+    }
+    return ObesityCategory.tidakDiketahui;
+  }
+
   /// Menghitung seluruh data laporan admin secara bersama di sisi client (pure & testable):
   /// 1. Total Skrining: jumlah skrining pada rentang + persentase perbandingan periode lalu
   /// 2. Pengguna Baru: jumlah pasien baru pada rentang + persentase perbandingan periode lalu
@@ -546,19 +575,52 @@ class AdminReportService {
     DateTime? startDate,
     DateTime? endDate,
   }) {
-    // 1. Filter hanya pasien (non-admin)
-    final patients = users.where((u) => !u.isAdmin).toList();
+    // A. Deduplikasi dan penyaringan pengguna valid
+    final seenUserIds = <String>{};
+    final uniqueUsers = <UserModel>[];
+    for (final u in users) {
+      if (u.id.trim().isEmpty) {
+        debugPrint('[AdminReportService] Data tidak lengkap: Pengguna dengan ID kosong dilewati.');
+        continue;
+      }
+      if (seenUserIds.add(u.id)) {
+        uniqueUsers.add(u);
+      } else {
+        debugPrint('[AdminReportService] Data duplikat diabaikan: Pengguna ID ${u.id}');
+      }
+    }
+
+    // 1. Filter hanya pasien reguler (non-admin & non-dokter Hendra)
+    final patients = uniqueUsers.where((u) {
+      final nameLower = u.name.toLowerCase();
+      final emailLower = u.email.toLowerCase();
+      if (nameLower.contains('hendra') || emailLower.contains('hendra')) {
+        return false;
+      }
+      if (u.isAdmin ||
+          u.role == UserRole.admin ||
+          emailLower == 'adminobesight@gmail.com' ||
+          emailLower.contains('adminobesight') ||
+          emailLower == 'admin@obesight.com') {
+        return false;
+      }
+      return true;
+    }).toList();
 
     // 2. Filter rentang tanggal untuk pendaftaran pengguna
     final filteredPatients = patients.where((u) {
       if (startDate == null || endDate == null) return true;
       final uDate = extractUserDate(u);
+      if (uDate == null) {
+        debugPrint('[AdminReportService] Data tidak lengkap: Pengguna ${u.id} tidak memiliki tanggal registrasi valid.');
+        return false;
+      }
       return isDateInRange(uDate, startDate, endDate);
     }).toList();
 
     final totalPatients = filteredPatients.length;
 
-    // 3. Breakdown jenis kelamin pasien
+    // 3. Breakdown jenis kelamin pasien (jumlah P + L + Tidak diketahui = total pengguna)
     final genderCounts = <AdminReportGender, int>{
       AdminReportGender.perempuan: 0,
       AdminReportGender.lakiLaki: 0,
@@ -585,28 +647,56 @@ class AdminReportService {
       ),
     };
 
-    // 4. Kumpulkan seluruh dokumen skrining
-    List<ScreeningHistoryItem> allScreeningsList = allScreenings != null
+    // 4. Kumpulkan seluruh dokumen skrining dan deduplikasi
+    List<ScreeningHistoryItem> rawScreeningsList = allScreenings != null
         ? List<ScreeningHistoryItem>.from(allScreenings)
         : (latestScreenings != null
             ? latestScreenings.values.whereType<ScreeningHistoryItem>().toList()
             : <ScreeningHistoryItem>[]);
 
+    final seenScreeningIds = <String>{};
+    final validScreenings = <ScreeningHistoryItem>[];
+    for (final s in rawScreeningsList) {
+      if (s.id.trim().isEmpty) {
+        debugPrint('[AdminReportService] Data tidak lengkap: Skrining dengan ID kosong dilewati.');
+        continue;
+      }
+      if (seenScreeningIds.add(s.id)) {
+        validScreenings.add(s);
+      } else {
+        debugPrint('[AdminReportService] Data duplikat diabaikan: Skrining ID ${s.id}');
+      }
+    }
+
     // 5. Hitung rentang periode sebelumnya yang panjangnya sama
     final prevPeriod = calculatePreviousPeriod(startDate, endDate);
 
     // 6. Filter dokumen skrining periode ini dan periode sebelumnya
-    final screeningsInPeriod = allScreeningsList
-        .where((s) => isDateInRange(s.date, startDate, endDate))
-        .toList();
+    final screeningDistributionCounts = <ObesityCategory, int>{
+      for (final cfg in ObesityCategoryConfig.all7Categories)
+        cfg.category: 0,
+    };
+
+    final screeningsInPeriod = <ScreeningHistoryItem>[];
+    for (final s in validScreenings) {
+      if (!isDateInRange(s.date, startDate, endDate)) continue;
+      final cat = resolveObesityCategory(s);
+      if (cat == ObesityCategory.tidakDiketahui) {
+        debugPrint('[AdminReportService] Data tidak lengkap: Skrining ${s.id} tanpa kategori atau IMT valid dilewati.');
+        continue;
+      }
+      screeningsInPeriod.add(s);
+      screeningDistributionCounts[cat] = (screeningDistributionCounts[cat] ?? 0) + 1;
+    }
 
     final prevScreenings = prevPeriod != null
-        ? allScreeningsList
-            .where((s) => isDateInRange(s.date, prevPeriod.start, prevPeriod.end))
-            .toList()
+        ? validScreenings.where((s) {
+            if (!isDateInRange(s.date, prevPeriod.start, prevPeriod.end)) return false;
+            return resolveObesityCategory(s) != ObesityCategory.tidakDiketahui;
+          }).toList()
         : <ScreeningHistoryItem>[];
 
-    // a) Total Skrining
+    // a) Total Skrining (jumlah donat kategori = Total Skrining pada rentang yang sama)
     final totalScreenings = screeningsInPeriod.length;
     final prevTotalScreenings = prevScreenings.length;
     final totalScreeningsBadge = calculateChangeBadge(
@@ -654,19 +744,6 @@ class AdminReportService {
     final avgBadge = calculateChangeBadge(exactAvg, prevExactAvg);
 
     // d) Distribusi Hasil Skrining (Donut Chart 7 Kategori)
-    final screeningDistributionCounts = <ObesityCategory, int>{
-      for (final cfg in ObesityCategoryConfig.all7Categories)
-        cfg.category: 0,
-    };
-
-    for (final s in screeningsInPeriod) {
-      final cat = normalizeObesityCategory(extractCategoryRaw(s));
-      if (screeningDistributionCounts.containsKey(cat)) {
-        screeningDistributionCounts[cat] =
-            (screeningDistributionCounts[cat] ?? 0) + 1;
-      }
-    }
-
     final screeningDistributionPercentages = <ObesityCategory, double>{};
     for (final cfg in ObesityCategoryConfig.all7Categories) {
       screeningDistributionPercentages[cfg.category] = calculatePercentage(
@@ -675,13 +752,13 @@ class AdminReportService {
       );
     }
 
-    // e) Kategori Obesitas Terbaru per Pengguna (Bottom Section)
+    // e) Kategori Obesitas Terbaru per Pengguna (Bottom Section: 1 Pengguna Dihitung 1 Kali)
     final latestScreeningsMap = Map<String, ScreeningHistoryItem?>.from(
       latestScreenings ?? {},
     );
-    if (latestScreenings == null && allScreenings != null) {
+    if (latestScreenings == null) {
       for (final u in filteredPatients) {
-        final userScreenings = allScreeningsList
+        final userScreenings = validScreenings
             .where((s) => s.userId == u.id)
             .toList()
           ..sort((a, b) => b.date.compareTo(a.date));
@@ -705,10 +782,9 @@ class AdminReportService {
     int screenedCount = 0;
     for (final u in filteredPatients) {
       final screening = latestScreeningsMap[u.id];
-      final rawCat = extractCategoryRaw(screening, u);
+      final cat = resolveObesityCategory(screening, u);
 
-      if (rawCat != null && rawCat.trim().isNotEmpty) {
-        final cat = normalizeObesityCategory(rawCat);
+      if (cat != ObesityCategory.tidakDiketahui) {
         obesityCounts[cat] = (obesityCounts[cat] ?? 0) + 1;
         screenedCount++;
       } else {
@@ -764,6 +840,9 @@ class AdminReportService {
   // Mock data untuk pengujian unit & widget
   List<UserModel>? _mockUsers;
   List<ScreeningHistoryItem>? _mockScreenings;
+  final List<VoidCallback> _mockUpdateListeners = [];
+
+  bool get isFirebaseAvailable => AdminUserService.instance.isFirebaseAvailable;
 
   @visibleForTesting
   void setMockData({
@@ -772,6 +851,46 @@ class AdminReportService {
   }) {
     _mockUsers = users != null ? List<UserModel>.from(users) : null;
     _mockScreenings = screenings != null ? List<ScreeningHistoryItem>.from(screenings) : null;
+    _notifyMockListeners();
+  }
+
+  @visibleForTesting
+  void addMockScreening(ScreeningHistoryItem screening) {
+    _mockScreenings ??= [];
+    _mockScreenings!.add(screening);
+    _notifyMockListeners();
+  }
+
+  @visibleForTesting
+  void removeMockScreening(String screeningId) {
+    _mockScreenings?.removeWhere((s) => s.id == screeningId);
+    _notifyMockListeners();
+  }
+
+  @visibleForTesting
+  void updateMockUser(UserModel updatedUser) {
+    if (_mockUsers != null) {
+      final index = _mockUsers!.indexWhere((u) => u.id == updatedUser.id);
+      if (index >= 0) {
+        _mockUsers![index] = updatedUser;
+      } else {
+        _mockUsers!.add(updatedUser);
+      }
+      _notifyMockListeners();
+    }
+  }
+
+  @visibleForTesting
+  void removeMockUser(String userId) {
+    _mockUsers?.removeWhere((u) => u.id == userId);
+    _mockScreenings?.removeWhere((s) => s.userId == userId);
+    _notifyMockListeners();
+  }
+
+  void _notifyMockListeners() {
+    for (final listener in List<VoidCallback>.from(_mockUpdateListeners)) {
+      listener();
+    }
   }
 
   @visibleForTesting
@@ -780,17 +899,197 @@ class AdminReportService {
     _mockScreenings = null;
     _cachedUsers = null;
     _cachedScreenings = null;
+    _mockUpdateListeners.clear();
+  }
+
+  /// Mendengarkan perubahan data laporan secara real-time via Cloud Firestore snapshots.
+  /// Memantau koleksi 'users' dan seluruh sub-koleksi 'screenings' milik pengguna.
+  /// Mengupdate otomatis setiap ada pengguna baru, jenis kelamin diubah, skrining ditambah, atau data dihapus.
+  Stream<AdminReportData> streamReportData({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    if (_mockUsers != null) {
+      late StreamController<AdminReportData> controller;
+      void emitCurrent() {
+        if (!controller.isClosed) {
+          final data = computeReportData(
+            users: _mockUsers ?? [],
+            allScreenings: _mockScreenings ?? [],
+            startDate: startDate,
+            endDate: endDate,
+          );
+          controller.add(data);
+        }
+      }
+
+      controller = StreamController<AdminReportData>.broadcast(
+        onListen: () {
+          _mockUpdateListeners.add(emitCurrent);
+          emitCurrent();
+        },
+        onCancel: () {
+          _mockUpdateListeners.remove(emitCurrent);
+        },
+      );
+      return controller.stream;
+    }
+
+    if (!isFirebaseAvailable) {
+      final initialUsers = _cachedUsers ?? getDefaultMockUsers();
+      final initialScreenings = _cachedScreenings ?? getDefaultMockScreenings();
+      final data = computeReportData(
+        users: initialUsers,
+        allScreenings: initialScreenings,
+        startDate: startDate,
+        endDate: endDate,
+      );
+      return Stream.value(data);
+    }
+
+    late StreamController<AdminReportData> controller;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? usersSub;
+    final Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>> screeningsSubs = {};
+    final Map<String, List<ScreeningHistoryItem>> patientScreenings = {};
+    List<UserModel> currentPatients = [];
+
+    void emitReport() {
+      if (controller.isClosed) return;
+      try {
+        final allScreenings = patientScreenings.values.expand((list) => list).toList();
+        final report = computeReportData(
+          users: currentPatients,
+          allScreenings: allScreenings,
+          startDate: startDate,
+          endDate: endDate,
+        );
+        _cachedUsers = currentPatients;
+        _cachedScreenings = allScreenings;
+        controller.add(report);
+      } catch (e, st) {
+        debugPrint('[AdminReportService] Error computing stream report data: $e');
+        if (!controller.isClosed) {
+          controller.addError(e, st);
+        }
+      }
+    }
+
+    void subscribeToScreeningsFor(String userId) {
+      if (screeningsSubs.containsKey(userId)) return;
+      final sub = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('screenings')
+          .snapshots()
+          .listen(
+        (snap) {
+          final items = <ScreeningHistoryItem>[];
+          for (final doc in snap.docs) {
+            try {
+              final data = doc.data();
+              if (data['date'] == null && data['createdAt'] == null && data['dateIso'] == null) {
+                debugPrint('[AdminReportService] Data tidak lengkap: Skrining ${doc.id} tanpa tanggal valid dilewati.');
+                continue;
+              }
+              items.add(ScreeningHistoryItem.fromMap(data));
+            } catch (e) {
+              debugPrint('[AdminReportService] Data tidak lengkap: Gagal parsing skrining ${doc.id}: $e');
+            }
+          }
+          patientScreenings[userId] = items;
+          emitReport();
+        },
+        onError: (err) {
+          debugPrint('[AdminReportService] Error streaming screenings for $userId: $err');
+        },
+      );
+      screeningsSubs[userId] = sub;
+    }
+
+    void unsubscribeFromScreeningsFor(String userId) {
+      final sub = screeningsSubs.remove(userId);
+      sub?.cancel();
+      patientScreenings.remove(userId);
+    }
+
+    controller = StreamController<AdminReportData>.broadcast(
+      onListen: () {
+        usersSub = FirebaseFirestore.instance
+            .collection('users')
+            .snapshots()
+            .listen(
+          (userSnap) {
+            final activeUserIds = <String>{};
+            final patients = <UserModel>[];
+
+            for (final doc in userSnap.docs) {
+              try {
+                final user = UserModel.fromMap(doc.data(), doc.id);
+                final nameLower = user.name.toLowerCase();
+                final emailLower = user.email.toLowerCase();
+
+                // Filter Dokter Hendra
+                if (nameLower.contains('hendra') || emailLower.contains('hendra')) {
+                  continue;
+                }
+                // Filter akun admin
+                if (user.isAdmin ||
+                    user.role == UserRole.admin ||
+                    emailLower == 'adminobesight@gmail.com' ||
+                    emailLower.contains('adminobesight') ||
+                    emailLower == 'admin@obesight.com') {
+                  continue;
+                }
+
+                patients.add(user);
+                activeUserIds.add(user.id);
+                subscribeToScreeningsFor(user.id);
+              } catch (e) {
+                debugPrint('[AdminReportService] Data tidak lengkap: Gagal parsing user doc ${doc.id}: $e');
+              }
+            }
+
+            final existingSubIds = List<String>.from(screeningsSubs.keys);
+            for (final subId in existingSubIds) {
+              if (!activeUserIds.contains(subId)) {
+                unsubscribeFromScreeningsFor(subId);
+              }
+            }
+
+            currentPatients = patients;
+            emitReport();
+          },
+          onError: (err, st) {
+            debugPrint('[AdminReportService] Error streaming users: $err');
+            if (!controller.isClosed) {
+              controller.addError(err, st);
+            }
+          },
+        );
+      },
+      onCancel: () {
+        usersSub?.cancel();
+        usersSub = null;
+        for (final sub in screeningsSubs.values) {
+          sub.cancel();
+        }
+        screeningsSubs.clear();
+        patientScreenings.clear();
+      },
+    );
+
+    return controller.stream;
   }
 
   /// Mengambil data laporan admin secara efisien dari Cloud Firestore:
-  /// - Dokumen diambil sekali dan di-cache dalam memori
+  /// - Dokumen diambil dari Firestore server/cache
   /// - Riwayat skrining pengguna diambil secara paralel
+  /// - Bebas data dummy: jika data kosong di Firestore, mengembalikan data kosong
   Future<AdminReportData> fetchAdminReportData({
     DateTime? startDate,
     DateTime? endDate,
     bool forceRefresh = false,
   }) async {
-    final adminService = AdminUserService.instance;
     List<UserModel> users = [];
     List<ScreeningHistoryItem> allScreenings = [];
 
@@ -799,31 +1098,54 @@ class AdminReportService {
       allScreenings = _mockScreenings != null
           ? List<ScreeningHistoryItem>.from(_mockScreenings!)
           : getDefaultMockScreenings();
-    } else if (adminService.isFirebaseAvailable) {
+    } else if (isFirebaseAvailable) {
       if (_cachedUsers != null && _cachedScreenings != null && !forceRefresh) {
         users = _cachedUsers!;
         allScreenings = _cachedScreenings!;
       } else {
-        try {
-          final snap = await FirebaseFirestore.instance
-              .collection('users')
-              .get()
-              .timeout(const Duration(seconds: 10));
+        final snap = await FirebaseFirestore.instance
+            .collection('users')
+            .get(GetOptions(source: forceRefresh ? Source.server : Source.serverAndCache))
+            .timeout(const Duration(seconds: 10));
 
-          users = snap.docs.map((d) => UserModel.fromMap(d.data(), d.id)).toList();
+        users = snap.docs.map((d) => UserModel.fromMap(d.data(), d.id)).toList();
 
-          final patients = users.where((u) => !u.isAdmin).toList();
-          final screeningFutures = patients.map((u) => adminService.fetchAllScreeningsForUser(u.id));
-          final screeningResults = await Future.wait(screeningFutures);
-          allScreenings = screeningResults.expand((list) => list).toList();
+        final patients = users.where((u) {
+          final nameLower = u.name.toLowerCase();
+          final emailLower = u.email.toLowerCase();
+          if (nameLower.contains('hendra') || emailLower.contains('hendra')) {
+            return false;
+          }
+          if (u.isAdmin ||
+              u.role == UserRole.admin ||
+              emailLower == 'adminobesight@gmail.com' ||
+              emailLower.contains('adminobesight') ||
+              emailLower == 'admin@obesight.com') {
+            return false;
+          }
+          return true;
+        }).toList();
 
-          _cachedUsers = users;
-          _cachedScreenings = allScreenings;
-        } catch (e) {
-          debugPrint('[AdminReportService] Notice loading data from Firestore: $e');
-          users = getDefaultMockUsers();
-          allScreenings = getDefaultMockScreenings();
-        }
+        final screeningFutures = patients.map((u) async {
+          try {
+            final sSnap = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(u.id)
+                .collection('screenings')
+                .get(GetOptions(source: forceRefresh ? Source.server : Source.serverAndCache))
+                .timeout(const Duration(seconds: 10));
+            return sSnap.docs.map((d) => ScreeningHistoryItem.fromMap(d.data())).toList();
+          } catch (e) {
+            debugPrint('[AdminReportService] Gagal memuat skrining untuk user ${u.id}: $e');
+            return <ScreeningHistoryItem>[];
+          }
+        });
+
+        final screeningResults = await Future.wait(screeningFutures);
+        allScreenings = screeningResults.expand((list) => list).toList();
+
+        _cachedUsers = users;
+        _cachedScreenings = allScreenings;
       }
     } else {
       users = getDefaultMockUsers();
