@@ -337,5 +337,114 @@ void main() {
       // Kandidat harus null karena tidak boleh menggunakan jam buka aplikasi (05.25) sebagai jam bangun
       expect(service.pendingAutoDetectedRecord, isNull);
     });
+
+    // =========================================================================
+    // BAGIAN 5: Logika Multi-Sesi Tidur Malam (Longest Continuous Sleep Session)
+    // =========================================================================
+
+    test('5.1. Multi-sesi: Mengambil rentang durasi terlama (longest continuous sleep session) saat ada beberapa sesi tertidur', () {
+      final service = SleepTrackingService.instance;
+      // Sesi 1: Tidur jam 22:00, terbangun/layar menyala jam 01:00 (Durasi: 3 jam = 180 menit)
+      final session1 = SleepSessionInterval(
+        startTime: DateTime(2026, 10, 24, 22, 0),
+        endTime: DateTime(2026, 10, 25, 1, 0),
+      );
+
+      // Sesi 2: Tidur kembali jam 01:30, bangun pagi/layar unlock jam 07:30 (Durasi: 6 jam = 360 menit)
+      final session2 = SleepSessionInterval(
+        startTime: DateTime(2026, 10, 25, 1, 30),
+        endTime: DateTime(2026, 10, 25, 7, 30),
+      );
+
+      final detected = service.detectSleepFromSensors(
+        sessions: [session1, session2],
+        referenceNow: DateTime(2026, 10, 25, 8, 0),
+      );
+
+      expect(detected, isNotNull);
+      // Sistem HARUS memilih Sesi 2 karena merupakan sesi continuous terlama (6 jam vs 3 jam)
+      expect(detected!.startTime, session2.startTime);
+      expect(detected.endTime, session2.endTime);
+      expect(detected.durationMinutes, 360);
+      expect(detected.durationHours, 6);
+      expect(detected.durationRemainingMinutes, 0);
+      expect(detected.standard8HoursCategory, 'Tidur Kurang');
+    });
+
+    test('5.2. Multi-sesi: Memilih sesi pertama jika sesi pertama yang terlama dan mencapai standar >= 8 jam ("Tidur Cukup")', () {
+      final service = SleepTrackingService.instance;
+      // Sesi 1: Tidur jam 21:30, terbangun jam 05:45 (Durasi: 8 jam 15 menit = 495 menit)
+      final session1 = SleepSessionInterval(
+        startTime: DateTime(2026, 10, 24, 21, 30),
+        endTime: DateTime(2026, 10, 25, 5, 45),
+      );
+
+      // Sesi 2: Tidur siang/pagi sejenak jam 06:15 s.d. 07:30 (Durasi: 1 jam 15 menit = 75 menit)
+      final session2 = SleepSessionInterval(
+        startTime: DateTime(2026, 10, 25, 6, 15),
+        endTime: DateTime(2026, 10, 25, 7, 30),
+      );
+
+      final detected = service.detectSleepFromSensors(
+        sessions: [session1, session2],
+        referenceNow: DateTime(2026, 10, 25, 8, 0),
+      );
+
+      expect(detected, isNotNull);
+      // Sistem HARUS memilih Sesi 1 (495 menit)
+      expect(detected!.startTime, session1.startTime);
+      expect(detected.endTime, session1.endTime);
+      expect(detected.durationMinutes, 495);
+      expect(detected.standard8HoursCategory, 'Tidur Cukup');
+      expect(detected.isIdeal8Hours, isTrue);
+    });
+
+    testWidgets('5.3. Sinkronisasi real-time ke Card Utama Waktu Tidur saat aplikasi dibuka di pagi hari', (WidgetTester tester) async {
+      setPhoneViewport(tester);
+      final service = SleepTrackingService.instance;
+
+      // Buat kandidat otomatis dari multi-sesi malam hari
+      final session1 = SleepSessionInterval(
+        startTime: DateTime(2026, 10, 24, 22, 0),
+        endTime: DateTime(2026, 10, 25, 1, 0),
+      );
+      final session2 = SleepSessionInterval(
+        startTime: DateTime(2026, 10, 25, 1, 30),
+        endTime: DateTime(2026, 10, 25, 7, 30),
+      );
+
+      // Simulasikan deteksi otomatis multi-sesi pagi hari
+      service.simulateSensorDetection(
+        sessions: [session1, session2],
+        referenceNow: DateTime(2026, 10, 25, 8, 0),
+      );
+
+      expect(service.pendingAutoDetectedRecord, isNotNull);
+      expect(service.pendingAutoDetectedRecord!.durationHours, 6);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const NightSleepDetailScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Card Utama Waktu Tidur menampilkan data sesi tidur terlama (6j 0m) secara real-time
+      expect(find.text('6 j 0 m'), findsOneWidget);
+      expect(find.text('Tidur Kurang'), findsOneWidget);
+
+      // Tombol "Catat waktu ini" tersedia untuk menyimpan data ini secara bersih ke database
+      final catatButton = find.text('Catat waktu ini');
+      expect(catatButton, findsOneWidget);
+
+      // Pengguna mengklik "Catat waktu ini"
+      await tester.tap(catatButton);
+      await tester.pumpAndSettle();
+
+      // Data resmi tersimpan tanpa error dan status berubah menjadi "Tercatat"
+      expect(find.text('Tercatat'), findsOneWidget);
+      expect(service.hasTodayData, isTrue);
+    });
   });
 }

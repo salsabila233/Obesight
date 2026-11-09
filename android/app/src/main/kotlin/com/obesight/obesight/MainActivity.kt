@@ -55,6 +55,11 @@ class MainActivity : FlutterActivity() {
                     val lastLightRise = prefs.getLong("last_light_rise_millis", 0L)
                     result.success(lastLightRise)
                 }
+                "getSleepSessions" -> {
+                    queryUsageStatsForSleep(applicationContext, prefs)
+                    val sessionsJson = prefs.getString("last_sleep_sessions_json", "[]")
+                    result.success(sessionsJson)
+                }
                 "getAmbientLux" -> {
                     result.success(currentAmbientLux)
                 }
@@ -64,6 +69,7 @@ class MainActivity : FlutterActivity() {
                         .remove("last_screen_on_millis")
                         .remove("last_dark_millis")
                         .remove("last_light_rise_millis")
+                        .remove("last_sleep_sessions_json")
                         .apply()
                     result.success(true)
                 }
@@ -120,6 +126,10 @@ class MainActivity : FlutterActivity() {
             var lastScreenOffTime = 0L
             var firstScreenOnTime = 0L
 
+            data class UsageSleepSession(val offTime: Long, val onTime: Long, val duration: Long)
+            val detectedSessions = mutableListOf<UsageSleepSession>()
+            var currentOffTime = 0L
+
             val event = android.app.usage.UsageEvents.Event()
             while (events.hasNextEvent()) {
                 events.getNextEvent(event)
@@ -129,19 +139,46 @@ class MainActivity : FlutterActivity() {
                 // Event 16: SCREEN_NON_INTERACTIVE (Layar HP mati)
                 // Event 17: KEYGUARD_SHOWN (HP terkunci)
                 if (event.eventType == 16 || event.eventType == 17) {
-                    if (h >= 20 || h < 5) {
+                    if (h >= 20 || h < 6) {
+                        currentOffTime = event.timeStamp
                         lastScreenOffTime = event.timeStamp
                     }
                 }
                 // Event 15: SCREEN_INTERACTIVE (Layar HP nyala)
                 // Event 18: KEYGUARD_HIDDEN (Kunci HP dibuka)
                 if (event.eventType == 15 || event.eventType == 18) {
+                    if (currentOffTime > 0L && event.timeStamp > currentOffTime) {
+                        val dur = event.timeStamp - currentOffTime
+                        if (dur >= 30 * 60 * 1000L) { // sesi minimal 30 menit
+                            detectedSessions.add(UsageSleepSession(currentOffTime, event.timeStamp, dur))
+                        }
+                    }
                     if (h in 5..14 && lastScreenOffTime > 0L && event.timeStamp > lastScreenOffTime) {
                         if (firstScreenOnTime == 0L) {
                             firstScreenOnTime = event.timeStamp
                         }
                     }
                 }
+            }
+
+            // Jika ada beberapa sesi tidur di malam hari, ambil sesi durasi terlama (longest continuous sleep session)
+            if (detectedSessions.isNotEmpty()) {
+                val longest = detectedSessions.maxByOrNull { it.duration }
+                if (longest != null) {
+                    lastScreenOffTime = longest.offTime
+                    firstScreenOnTime = longest.onTime
+                }
+
+                val jsonArray = org.json.JSONArray()
+                for (s in detectedSessions) {
+                    val obj = org.json.JSONObject().apply {
+                        put("start", s.offTime)
+                        put("end", s.onTime)
+                        put("durationMinutes", s.duration / (60 * 1000L))
+                    }
+                    jsonArray.put(obj)
+                }
+                prefs.edit().putString("last_sleep_sessions_json", jsonArray.toString()).apply()
             }
 
             val existingOff = prefs.getLong("last_screen_off_millis", 0L)

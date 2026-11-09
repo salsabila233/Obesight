@@ -238,3 +238,67 @@ class SleepRecord {
     );
   }
 }
+
+/// Mewakili interval satu sesi tidur (misalnya saat pengguna tertidur, terbangun, lalu tidur lagi).
+/// Digunakan untuk mendeteksi sesi tidur terlama (longest continuous sleep session)
+/// ketika terdapat beberapa sesi tertidur di malam hari.
+class SleepSessionInterval {
+  final DateTime startTime;
+  final DateTime endTime;
+  final String? note;
+  final int durationMinutes;
+
+  SleepSessionInterval({
+    required this.startTime,
+    required DateTime endTime,
+    this.note,
+    int? durationMinutes,
+  })  : endTime = (endTime.isBefore(startTime)) ? endTime.add(const Duration(days: 1)) : endTime,
+        durationMinutes = durationMinutes != null && durationMinutes > 0
+            ? durationMinutes
+            : SleepRecord.calculateDurationMinutes(
+                startTime,
+                endTime.isBefore(startTime) ? endTime.add(const Duration(days: 1)) : endTime,
+              );
+
+  int get duration => durationMinutes;
+
+  int get durationHours => durationMinutes ~/ 60;
+  int get durationRemainingMinutes => durationMinutes % 60;
+
+  String get durationFormatted {
+    final h = durationHours;
+    final m = durationRemainingMinutes;
+    if (h > 0 && m > 0) return '$h jam $m menit';
+    if (h > 0) return '$h jam';
+    return '$m menit';
+  }
+
+  String get shortDurationFormatted {
+    final h = durationHours;
+    final m = durationRemainingMinutes;
+    if (h > 0 && m > 0) return '${h}j ${m}m';
+    if (h > 0) return '${h}j';
+    return '${m}m';
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'startTime': startTime.toIso8601String(),
+      'endTime': endTime.toIso8601String(),
+      'durationMinutes': durationMinutes,
+      'note': note,
+    };
+  }
+
+  factory SleepSessionInterval.fromMap(Map<String, dynamic> map) {
+    final start = DateTime.parse(map['startTime'] as String);
+    final end = DateTime.parse(map['endTime'] as String);
+    return SleepSessionInterval(
+      startTime: start,
+      endTime: end,
+      durationMinutes: map['durationMinutes'] as int?,
+      note: map['note'] as String?,
+    );
+  }
+}

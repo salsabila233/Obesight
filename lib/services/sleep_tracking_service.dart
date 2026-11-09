@@ -864,6 +864,8 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   /// c. Sensor Cahaya Lingkungan (Ambient Light Sensor): Mendeteksi ruangan gelap di malam hari (< 5 lux)
   ///    dan peningkatan intensitas cahaya di pagi hari (> 40 lux). Jika sensor tidak tersedia, sistem tetap
   ///    berjalan menggunakan indikator aktivitas perangkat lainnya.
+  /// d. Multi-Sesi Tidur Malam: Jika ada beberapa sesi tertidur di malam hari, sistem mengambil sesi dengan
+  ///    rentang durasi terlama (longest continuous sleep session) sebagai acuan waktu tidur utama.
   /// CATATAN PENTING: Waktu buka/tutup aplikasi TIDAK digunakan sebagai waktu tidur/bangun!
   SleepRecord? detectSleepFromSensors({
     DateTime? screenOff,
@@ -872,8 +874,53 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     DateTime? lightRiseTime,
     DateTime? referenceNow,
     DateTime? lastInactivityTime,
+    List<SleepSessionInterval>? sessions,
+    List<SleepRecord>? multipleSessions,
   }) {
     final now = referenceNow ?? DateTime.now();
+
+    // 0. Deteksi Multi-Sesi Tidur Malam:
+    // Jika ada beberapa sesi tertidur di malam hari, ambil rentang durasi terlama
+    // (longest continuous sleep session) sebagai acuan waktu tidur utama malam tersebut.
+    final candidateSessions = <SleepSessionInterval>[];
+    if (sessions != null && sessions.isNotEmpty) {
+      candidateSessions.addAll(sessions);
+    }
+    if (multipleSessions != null && multipleSessions.isNotEmpty) {
+      for (final rec in multipleSessions) {
+        candidateSessions.add(
+          SleepSessionInterval(
+            startTime: rec.startTime,
+            endTime: rec.endTime,
+            durationMinutes: rec.durationMinutes,
+            note: rec.note,
+          ),
+        );
+      }
+    }
+
+    if (candidateSessions.isNotEmpty) {
+      // Saring sesi tidur dengan durasi minimal 30 menit s.d. 840 menit (14 jam)
+      final validSessions = candidateSessions.where((s) => s.duration >= 30 && s.duration <= 840).toList();
+      final pool = validSessions.isNotEmpty ? validSessions : candidateSessions;
+
+      // Ambil rentang durasi terlama (longest continuous sleep session)
+      final longest = pool.reduce((a, b) => a.duration >= b.duration ? a : b);
+      final dateKey = formatDateKey(longest.endTime);
+      return SleepRecord(
+        id: 'auto_${longest.startTime.millisecondsSinceEpoch}',
+        userId: currentUserId,
+        date: dateKey,
+        startTime: longest.startTime,
+        endTime: longest.endTime,
+        durationMinutes: longest.duration,
+        source: 'automatic',
+        isConfirmed: false,
+        createdAt: now,
+        updatedAt: now,
+        note: longest.note,
+      );
+    }
 
     // 1. Tentukan Titik Mulai Tidur (Waktu Malam: >= 20.00 atau < 05.00)
     // Harus bersumber dari layar HP dimatikan (screen off) atau sensor cahaya gelap (darkTime)
@@ -955,14 +1002,18 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   /// Fungsi pendeteksi waktu tidur otomatis yang menggunakan aktivitas layar perangkat
   /// (screen off di malam hari: >= 20.00 atau < 05.00, dan screen on di pagi hari: >= 05.00 s.d. 14.00).
   SleepRecord? detectSleepFromScreenActivity({
-    required DateTime? screenOff,
-    required DateTime? screenOn,
+    DateTime? screenOff,
+    DateTime? screenOn,
     DateTime? referenceNow,
+    List<SleepSessionInterval>? sessions,
+    List<SleepRecord>? multipleSessions,
   }) {
     return detectSleepFromSensors(
       screenOff: screenOff,
       screenOn: screenOn,
       referenceNow: referenceNow,
+      sessions: sessions,
+      multipleSessions: multipleSessions,
     );
   }
 
@@ -971,12 +1022,34 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     DateTime? screenOff,
     DateTime? screenOn,
     DateTime? referenceNow,
+    List<SleepSessionInterval>? sessions,
+    List<SleepRecord>? multipleSessions,
   }) {
     return detectSleepFromSensors(
       screenOff: screenOff,
       screenOn: screenOn,
       referenceNow: referenceNow,
+      sessions: sessions,
+      multipleSessions: multipleSessions,
     );
+  }
+
+  /// Memilih dan mendeteksi sesi tidur terlama (longest continuous sleep session)
+  /// dari beberapa sesi tertidur di malam hari sebagai acuan waktu tidur utama.
+  SleepRecord? detectLongestSleepSession({
+    required List<SleepSessionInterval> sessions,
+    DateTime? referenceNow,
+  }) {
+    return detectSleepFromSensors(
+      sessions: sessions,
+      referenceNow: referenceNow,
+    );
+  }
+
+  /// Mengambil sesi tidur dengan durasi terlama dari daftar SleepRecord
+  SleepRecord? selectLongestSleepSession(List<SleepRecord> records) {
+    if (records.isEmpty) return null;
+    return records.reduce((a, b) => a.durationMinutes >= b.durationMinutes ? a : b);
   }
 
   /// Merekam waktu tidur otomatis dan menghubungkannya ke sistem tanpa mengganggu
@@ -988,13 +1061,23 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
   Future<SleepRecord?> recordAutomaticSleep({
     DateTime? screenOff,
     DateTime? screenOn,
+    DateTime? darkTime,
+    DateTime? lightRiseTime,
+    DateTime? lastInactivityTime,
     DateTime? referenceNow,
+    List<SleepSessionInterval>? sessions,
+    List<SleepRecord>? multipleSessions,
     bool autoConfirm = false,
   }) async {
     final candidate = detectSleepFromSensors(
       screenOff: screenOff,
       screenOn: screenOn,
+      darkTime: darkTime,
+      lightRiseTime: lightRiseTime,
+      lastInactivityTime: lastInactivityTime,
       referenceNow: referenceNow,
+      sessions: sessions,
+      multipleSessions: multipleSessions,
     );
 
     if (candidate == null) return null;
@@ -1031,6 +1114,8 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     DateTime? darkTime,
     DateTime? lightRiseTime,
     DateTime? referenceNow,
+    List<SleepSessionInterval>? sessions,
+    List<SleepRecord>? multipleSessions,
   }) {
     final candidate = detectSleepFromSensors(
       screenOff: screenOff,
@@ -1038,6 +1123,8 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       darkTime: darkTime,
       lightRiseTime: lightRiseTime,
       referenceNow: referenceNow,
+      sessions: sessions,
+      multipleSessions: multipleSessions,
     );
     if (candidate != null) {
       _pendingAutoDetectedRecord = candidate;
@@ -1066,6 +1153,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     DateTime? screenOn = _lastScreenOnTime;
     DateTime? darkTime = _lastDarkTime;
     DateTime? lightRiseTime = _lastLightRiseTime;
+    List<SleepSessionInterval>? sessionsList;
 
     if (_isNativeSupported) {
       try {
@@ -1087,6 +1175,23 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
           lightRiseTime = DateTime.fromMillisecondsSinceEpoch(lastLightRiseMillis);
         }
 
+        try {
+          final sessionsRaw = await _platformChannel.invokeMethod<String>('getSleepSessions');
+          if (sessionsRaw != null && sessionsRaw.isNotEmpty && sessionsRaw != '[]') {
+            final decoded = jsonDecode(sessionsRaw) as List;
+            final parsed = decoded.map((item) {
+              final map = Map<String, dynamic>.from(item as Map);
+              return SleepSessionInterval(
+                startTime: DateTime.fromMillisecondsSinceEpoch(map['start'] as int),
+                endTime: DateTime.fromMillisecondsSinceEpoch(map['end'] as int),
+              );
+            }).toList();
+            if (parsed.isNotEmpty) {
+              sessionsList = parsed;
+            }
+          }
+        } catch (_) {}
+
         _lastScreenOffTime = screenOff;
         _lastScreenOnTime = screenOn;
         _lastDarkTime = darkTime;
@@ -1097,6 +1202,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     // Jam bangun tidur HARUS diambil dari aktivitas unlock/layar menyala pertama di pagi hari (screenOn)
     // atau sensor cahaya pagi (lightRiseTime), dan BUKAN dari jam saat pengguna membuka aplikasi.
     // Jam mulai tidur diambil dari saat terakhir layar HP dimatikan (screenOff) di malam hari.
+    // Jika terdapat multi-sesi, ambil rentang durasi terlama (longest continuous sleep session).
     final candidate = detectSleepFromSensors(
       screenOff: screenOff,
       screenOn: screenOn,
@@ -1104,6 +1210,7 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
       lightRiseTime: lightRiseTime,
       referenceNow: now,
       lastInactivityTime: _lastNightInactiveTime,
+      sessions: sessionsList,
     );
 
     if (candidate != null) {
