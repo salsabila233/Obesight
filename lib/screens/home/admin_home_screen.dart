@@ -12,11 +12,13 @@ import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/curved_header_scaffold.dart';
+import '../admin/admin_activity_list_screen.dart';
 import '../admin/admin_add_article_screen.dart';
 import '../admin/admin_login_screen.dart';
 import '../admin/admin_profile_screen.dart';
 import '../admin/admin_user_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
+import '../progress/night_sleep_detail_screen.dart';
 import '../../widgets/article_thumbnail_image.dart';
 import '../../widgets/admin_capsule_bottom_nav.dart';
 
@@ -1898,7 +1900,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               const SizedBox(width: 8),
               InkWell(
-                onTap: () => _switchTab(1), // Go to Pengguna tab
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AdminActivityListScreen(),
+                    ),
+                  );
+                },
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -2077,7 +2085,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           subtitle: displayItems[i].subtitle,
                           time: _formatRelativeTime(displayItems[i].timestamp),
                           isDark: isDark,
-                          onTap: displayItems[i].onTap,
                         ),
                       ],
                     ],
@@ -2172,73 +2179,63 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     required String subtitle,
     required String time,
     required bool isDark,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: iconColor, size: 18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: iconBg,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF0F1E36),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              child: Icon(icon, color: iconColor, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : const Color(0xFF0F1E36),
                     ),
-                    const SizedBox(height: 1),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                time,
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  color: const Color(0xFF94A3B8),
-                  fontWeight: FontWeight.w500,
-                ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              time,
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                color: const Color(0xFF94A3B8),
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(width: 4),
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 16,
-                color: Color(0xFF94A3B8),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -533,7 +533,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          'Acuan Standar 8 Jam: ${isIdeal ? "Tidur Cukup" : "Tidur Kurang"}',
+                          'Acuan Standar Halodoc (7–9 Jam): ${isIdeal ? "Tidur Cukup" : "Tidur Kurang"}',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -560,7 +560,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                           )
                         else
                           Text(
-                            '(< 8 jam)',
+                            '(< 7 jam)',
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
                               color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309),
@@ -855,7 +855,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Status: ${service.getSleepStandard8HoursCategory(totalMinutes)} (${totalMinutes >= 480 ? "Ideal" : "< 8 jam"}) • $status (Target: ${targetM ~/ 60} jam)',
+                      'Status: ${service.getSleepStandardHalodocCategory(totalMinutes)} (${totalMinutes >= 420 ? "Ideal" : "< 7 jam"}) • $status (Target: ${targetM ~/ 60} jam)',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(

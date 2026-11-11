@@ -43,19 +43,30 @@ class DailySleepSummary {
     return '${remainingMinutes}m';
   }
 
-  /// Standar ideal tidur malam 8 jam (480 menit)
-  static const int standardIdealMinutes = 8 * 60;
+  /// Standar ideal tidur malam menurut acuan medis Halodoc untuk orang dewasa: 7–9 jam (420–540 menit)
+  static const int standardHalodocMinSleepHours = 7;
+  static const int standardHalodocMinSleepMinutes = 7 * 60; // 420 menit
+  static const int standardHalodocMaxSleepHours = 9;
+  static const int standardHalodocMaxSleepMinutes = 9 * 60; // 540 menit
+  static const int standardIdealMinutes = 7 * 60; // 420 menit (Acuan Halodoc)
 
-  /// Kategori penilaian acuan standar tidur 8 jam: "Tidur Kurang" (< 8 jam) atau "Tidur Cukup" (>= 8 jam)
+  /// Kategori penilaian acuan standar tidur Halodoc: "Tidur Kurang" (< 7 jam) atau "Tidur Cukup" (>= 7 jam)
   String get standard8HoursCategory =>
       totalMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
 
-  /// Status ideal acuan 8 jam: "Tidur Kurang" atau "Ideal"
+  String get standardHalodocCategory =>
+      totalMinutes < standardHalodocMinSleepMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
+
+  /// Status ideal acuan Halodoc: "Tidur Kurang" atau "Ideal"
   String get standard8HoursStatus =>
       totalMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Ideal';
 
-  /// Memeriksa apakah durasi tidur mencapai standar ideal 8 jam
+  String get standardHalodocStatus =>
+      totalMinutes < standardHalodocMinSleepMinutes ? 'Tidur Kurang' : 'Ideal';
+
+  /// Memeriksa apakah durasi tidur mencapai standar ideal Halodoc (>= 7 jam)
   bool get isIdeal8Hours => totalMinutes >= standardIdealMinutes;
+  bool get isIdealHalodoc => totalMinutes >= standardHalodocMinSleepMinutes;
 }
 
 class WeeklySleepSummary {
@@ -1431,35 +1442,68 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// 2. Validasi Acuan Standar Tidur 8 Jam:
-  /// Standar ideal durasi tidur malam adalah 8 jam (480 menit).
-  static const int standardIdealSleepHours = 8;
-  static const int standardIdealSleepMinutes = 8 * 60; // 480 menit
+  /// 2. Validasi Acuan Standar Tidur Medis (Standar Halodoc untuk Orang Dewasa: 7–9 Jam):
+  /// Standar ideal durasi tidur malam untuk orang dewasa adalah 7–9 jam setiap malam (420–540 menit).
+  static const int standardHalodocMinSleepHours = 7;
+  static const int standardHalodocMinSleepMinutes = 7 * 60; // 420 menit (7 jam)
+  static const int standardHalodocMaxSleepHours = 9;
+  static const int standardHalodocMaxSleepMinutes = 9 * 60; // 540 menit (9 jam)
 
-  /// Aturan penilaian berdasarkan standar ideal 8 jam:
-  /// - JIKA total durasi tidur kurang dari 8 jam (< 8 jam), berikan status "Tidur Kurang".
-  /// - JIKA total durasi tidur mencapai atau melebihi 8 jam (>= 8 jam), berikan status "Tidur Cukup".
+  static const int standardIdealSleepHours = 7;
+  static const int standardIdealSleepMinutes = 7 * 60; // 420 menit
+
+  /// Aturan penilaian berdasarkan standar pedoman medis Halodoc (rentang ideal 7–9 jam):
+  /// - JIKA total durasi tidur kurang dari standar ideal (< 7 jam / < 420 menit), berikan status "Tidur Kurang".
+  /// - JIKA memenuhi durasi ideal (7–9 jam atau lebih / >= 420 menit), berikan status "Tidur Cukup".
+  String getSleepStandardHalodocCategory(int totalMinutes) {
+    if (totalMinutes <= 0) return 'Belum ada data';
+    return totalMinutes < standardHalodocMinSleepMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
+  }
+
+  /// Label alternatif status acuan standar Halodoc ("Tidur Kurang" / "Ideal"):
+  /// - < 7 jam: "Tidur Kurang"
+  /// - >= 7 jam: "Ideal"
+  String getSleepStandardHalodocStatus(int totalMinutes) {
+    if (totalMinutes <= 0) return 'Belum ada data';
+    return totalMinutes < standardHalodocMinSleepMinutes ? 'Tidur Kurang' : 'Ideal';
+  }
+
+  /// Memeriksa apakah total durasi tidur memenuhi standar ideal Halodoc (>= 7 jam / 420 menit)
+  bool isSleepDurationIdealHalodoc(int totalMinutes) {
+    return totalMinutes >= standardHalodocMinSleepMinutes;
+  }
+
+  /// Penilaian status utama merujuk pada standar Halodoc (7–9 jam)
   String getSleepStandard8HoursCategory(int totalMinutes) {
-    if (totalMinutes <= 0) return 'Belum ada data';
-    return totalMinutes < standardIdealSleepMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
+    return getSleepStandardHalodocCategory(totalMinutes);
   }
 
-  /// Label alternatif status acuan standar 8 jam ("Tidur Kurang" / "Ideal"):
-  /// - < 8 jam: "Tidur Kurang"
-  /// - >= 8 jam: "Ideal"
+  /// Label alternatif status acuan standar utama ("Tidur Kurang" / "Ideal")
   String getSleepStandard8HoursStatus(int totalMinutes) {
-    if (totalMinutes <= 0) return 'Belum ada data';
-    return totalMinutes < standardIdealSleepMinutes ? 'Tidur Kurang' : 'Ideal';
+    return getSleepStandardHalodocStatus(totalMinutes);
   }
 
-  /// Evaluasi validasi acuan standar tidur 8 jam (alias)
+  /// Evaluasi validasi acuan standar tidur (alias)
   String getSleepValidationCategory(int totalMinutes) {
-    return getSleepStandard8HoursCategory(totalMinutes);
+    return getSleepStandardHalodocCategory(totalMinutes);
   }
 
-  /// Memeriksa apakah total durasi tidur mencapai atau melampaui standar ideal 8 jam (>= 480 menit)
+  /// Memeriksa apakah total durasi tidur mencapai atau melampaui standar ideal (>= 420 menit / 7 jam)
   bool isSleepDurationIdeal8Hours(int totalMinutes) {
-    return totalMinutes >= standardIdealSleepMinutes;
+    return isSleepDurationIdealHalodoc(totalMinutes);
+  }
+
+  /// Alias evaluasi standar tidur ideal umum
+  String getSleepStandardCategory(int totalMinutes) {
+    return getSleepStandardHalodocCategory(totalMinutes);
+  }
+
+  String getSleepStandardStatus(int totalMinutes) {
+    return getSleepStandardHalodocStatus(totalMinutes);
+  }
+
+  bool isSleepDurationIdeal(int totalMinutes) {
+    return isSleepDurationIdealHalodoc(totalMinutes);
   }
 
   /// Rekomendasi/insight pola tidur berdasarkan durasi

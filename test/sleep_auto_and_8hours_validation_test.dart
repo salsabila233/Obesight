@@ -97,65 +97,70 @@ void main() {
     });
 
     // =========================================================================
-    // BAGIAN 2: Validasi Acuan Standar Tidur 8 Jam
+    // BAGIAN 2: Validasi Acuan Standar Tidur Medis (Halodoc: 7–9 Jam)
     // =========================================================================
 
-    test('2.1. Durasi tidur < 8 jam (< 480 menit) dikategorikan sebagai "Tidur Kurang"', () {
+    test('2.1. Durasi tidur < 7 jam (< 420 menit) dikategorikan sebagai "Tidur Kurang"', () {
       final service = SleepTrackingService.instance;
 
       // Kasus 1: 5 jam (300 menit)
-      expect(service.getSleepStandard8HoursCategory(300), 'Tidur Kurang');
-      expect(service.getSleepStandard8HoursStatus(300), 'Tidur Kurang');
-      expect(service.isSleepDurationIdeal8Hours(300), isFalse);
+      expect(service.getSleepStandardHalodocCategory(300), 'Tidur Kurang');
+      expect(service.getSleepStandardHalodocStatus(300), 'Tidur Kurang');
+      expect(service.isSleepDurationIdealHalodoc(300), isFalse);
 
-      // Kasus 2: 7 jam 45 menit (465 menit)
-      expect(service.getSleepStandard8HoursCategory(465), 'Tidur Kurang');
-      expect(service.getSleepStandard8HoursStatus(465), 'Tidur Kurang');
-      expect(service.isSleepDurationIdeal8Hours(465), isFalse);
+      // Kasus 2: 6 jam 30 menit (390 menit)
+      expect(service.getSleepStandardHalodocCategory(390), 'Tidur Kurang');
+      expect(service.getSleepStandardHalodocStatus(390), 'Tidur Kurang');
+      expect(service.isSleepDurationIdealHalodoc(390), isFalse);
 
-      // Kasus 3: 7 jam 59 menit (479 menit) - tepat di bawah 8 jam
-      expect(service.getSleepStandard8HoursCategory(479), 'Tidur Kurang');
-      expect(service.isSleepDurationIdeal8Hours(479), isFalse);
+      // Kasus 3: 6 jam 59 menit (419 menit) - tepat di bawah 7 jam
+      expect(service.getSleepStandardHalodocCategory(419), 'Tidur Kurang');
+      expect(service.isSleepDurationIdealHalodoc(419), isFalse);
     });
 
-    test('2.2. Durasi tidur >= 8 jam (>= 480 menit) dikategorikan sebagai "Tidur Cukup" / "Ideal"', () {
+    test('2.2. Durasi tidur >= 7 jam (>= 420 menit, 7–9 jam atau lebih) dikategorikan sebagai "Tidur Cukup" / "Ideal"', () {
       final service = SleepTrackingService.instance;
 
-      // Kasus 1: Tepat 8 jam (480 menit)
-      expect(service.getSleepStandard8HoursCategory(480), 'Tidur Cukup');
-      expect(service.getSleepStandard8HoursStatus(480), 'Ideal');
-      expect(service.isSleepDurationIdeal8Hours(480), isTrue);
+      // Kasus 1: Tepat 7 jam (420 menit)
+      expect(service.getSleepStandardHalodocCategory(420), 'Tidur Cukup');
+      expect(service.getSleepStandardHalodocStatus(420), 'Ideal');
+      expect(service.isSleepDurationIdealHalodoc(420), isTrue);
 
-      // Kasus 2: 8 jam 30 menit (510 menit)
-      expect(service.getSleepStandard8HoursCategory(510), 'Tidur Cukup');
-      expect(service.getSleepStandard8HoursStatus(510), 'Ideal');
-      expect(service.isSleepDurationIdeal8Hours(510), isTrue);
+      // Kasus 2: 7 jam 45 menit (465 menit)
+      expect(service.getSleepStandardHalodocCategory(465), 'Tidur Cukup');
+      expect(service.getSleepStandardHalodocStatus(465), 'Ideal');
+      expect(service.isSleepDurationIdealHalodoc(465), isTrue);
 
-      // Kasus 3: 9 jam (540 menit)
-      expect(service.getSleepStandard8HoursCategory(540), 'Tidur Cukup');
-      expect(service.getSleepStandard8HoursStatus(540), 'Ideal');
-      expect(service.isSleepDurationIdeal8Hours(540), isTrue);
+      // Kasus 3: 8 jam (480 menit)
+      expect(service.getSleepStandardHalodocCategory(480), 'Tidur Cukup');
+      expect(service.getSleepStandardHalodocStatus(480), 'Ideal');
+      expect(service.isSleepDurationIdealHalodoc(480), isTrue);
+
+      // Kasus 4: 9 jam (540 menit)
+      expect(service.getSleepStandardHalodocCategory(540), 'Tidur Cukup');
+      expect(service.getSleepStandardHalodocStatus(540), 'Ideal');
+      expect(service.isSleepDurationIdealHalodoc(540), isTrue);
     });
 
     // =========================================================================
     // BAGIAN 3: Tampilan Kategori pada Kartu Ringkasan Tidur Harian di UI
     // =========================================================================
 
-    testWidgets('3.1. Kartu ringkasan tidur harian menampilkan label "Tidur Kurang" ketika durasi < 8 jam', (tester) async {
+    testWidgets('3.1. Kartu ringkasan tidur harian menampilkan label "Tidur Kurang" ketika durasi < 7 jam', (tester) async {
       setPhoneViewport(tester);
 
       final service = SleepTrackingService.instance;
       final now = DateTime.now();
       final dateKey = SleepTrackingService.formatDateKey(now);
 
-      // Catat tidur 7 jam (420 menit, < 8 jam)
+      // Catat tidur 6 jam (360 menit, < 7 jam)
       final recordShort = SleepRecord(
         id: 'rec_short_sleep',
         userId: service.currentUserId,
         date: dateKey,
         startTime: DateTime(now.year, now.month, now.day - 1, 23, 0),
-        endTime: DateTime(now.year, now.month, now.day, 6, 0),
-        durationMinutes: 420,
+        endTime: DateTime(now.year, now.month, now.day, 5, 0),
+        durationMinutes: 360,
         source: 'manual',
         isConfirmed: true,
       );
@@ -171,18 +176,18 @@ void main() {
 
       // Memastikan label penanda "Tidur Kurang" tampil dengan jelas pada kartu ringkasan tidur harian
       expect(find.text('Tidur Kurang'), findsWidgets);
-      expect(find.text('7 j 0 m'), findsOneWidget);
-      expect(find.textContaining('Acuan Standar 8 Jam: Tidur Kurang'), findsOneWidget);
+      expect(find.text('6 j 0 m'), findsOneWidget);
+      expect(find.textContaining('Acuan Standar Halodoc (7–9 Jam): Tidur Kurang'), findsOneWidget);
     });
 
-    testWidgets('3.2. Kartu ringkasan tidur harian menampilkan status "Tidur Cukup" dan "Ideal" ketika durasi >= 8 jam', (tester) async {
+    testWidgets('3.2. Kartu ringkasan tidur harian menampilkan status "Tidur Cukup" dan "Ideal" ketika durasi >= 7 jam', (tester) async {
       setPhoneViewport(tester);
 
       final service = SleepTrackingService.instance;
       final now = DateTime.now();
       final dateKey = SleepTrackingService.formatDateKey(now);
 
-      // Catat tidur 8 jam (480 menit, >= 8 jam)
+      // Catat tidur 8 jam (480 menit, >= 7 jam)
       final recordIdeal = SleepRecord(
         id: 'rec_ideal_sleep',
         userId: service.currentUserId,
@@ -207,7 +212,7 @@ void main() {
       expect(find.text('Tidur Cukup'), findsWidgets);
       expect(find.text('Ideal'), findsWidgets);
       expect(find.text('8 j 0 m'), findsOneWidget);
-      expect(find.textContaining('Acuan Standar 8 Jam: Tidur Cukup'), findsOneWidget);
+      expect(find.textContaining('Acuan Standar Halodoc (7–9 Jam): Tidur Cukup'), findsOneWidget);
     });
 
     testWidgets('3.3. Tombol "Catat waktu ini" dan grafik 7 hari tetap bekerja dengan tepat', (tester) async {

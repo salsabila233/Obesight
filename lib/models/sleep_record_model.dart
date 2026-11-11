@@ -93,23 +93,38 @@ class SleepRecord {
   String get sourceLabel =>
       isAutomatic ? 'Perkiraan berdasarkan aktivitas HP' : 'Dicatat oleh pengguna';
 
-  /// Standar ideal tidur malam menurut acuan kesehatan (8 jam = 480 menit)
-  static const int standardIdealMinutes = 8 * 60;
+  /// Standar acuan medis Halodoc untuk orang dewasa (rentang ideal 7–9 jam setiap malam)
+  static const int standardHalodocMinMinutes = 7 * 60; // 420 menit (7 jam)
+  static const int standardHalodocMaxMinutes = 9 * 60; // 540 menit (9 jam)
+  static const int standardIdealMinutes = 7 * 60; // 420 menit (Acuan Standar Halodoc: 7 jam)
 
-  /// Penilaian status berdasarkan acuan standar ideal tidur 8 jam:
-  /// - < 8 jam (< 480 menit): "Tidur Kurang"
-  /// - >= 8 jam (>= 480 menit): "Tidur Cukup"
+  /// Penilaian status berdasarkan acuan standar medis Halodoc (7–9 jam):
+  /// - < 7 jam (< 420 menit): "Tidur Kurang"
+  /// - >= 7 jam (>= 420 menit): "Tidur Cukup"
+  String get standardHalodocCategory =>
+      durationMinutes < standardHalodocMinMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
+
+  /// Status ideal acuan Halodoc ("Tidur Kurang" atau "Ideal")
+  String get standardHalodocStatus =>
+      durationMinutes < standardHalodocMinMinutes ? 'Tidur Kurang' : 'Ideal';
+
+  /// Apakah durasi tidur memenuhi standar ideal Halodoc (>= 7 jam)
+  bool get isIdealHalodoc => durationMinutes >= standardHalodocMinMinutes;
+
+  /// Penilaian status berdasarkan acuan standar ideal tidur (Standar Halodoc):
+  /// - < 7 jam (< 420 menit): "Tidur Kurang"
+  /// - >= 7 jam (>= 420 menit): "Tidur Cukup"
   String get standard8HoursCategory =>
       durationMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Tidur Cukup';
 
-  /// Status ideal acuan 8 jam ("Tidur Kurang" atau "Ideal")
+  /// Status ideal acuan ("Tidur Kurang" atau "Ideal")
   String get standard8HoursStatus =>
       durationMinutes < standardIdealMinutes ? 'Tidur Kurang' : 'Ideal';
 
-  /// Apakah durasi tidur mencapai standar ideal (>= 8 jam)
+  /// Apakah durasi tidur mencapai standar ideal (>= 7 jam)
   bool get isIdeal8Hours => durationMinutes >= standardIdealMinutes;
 
-  /// Apakah durasi tidur kurang dari standar ideal (< 8 jam)
+  /// Apakah durasi tidur kurang dari standar ideal (< 7 jam)
   bool get isUnder8Hours => durationMinutes < standardIdealMinutes;
 
   Map<String, dynamic> toMap() {
