@@ -342,13 +342,17 @@ class SkriningData {
       aiRawCategoryKey: map['aiRawCategoryKey'] as String?,
       aiRawCategoryTitle: map['aiRawCategoryTitle'] as String?,
       aiClinicalClass: map['aiClinicalClass'] as String?,
-      aiCategoryKey: map['aiCategoryKey'] as String?,
-      aiCategoryTitle: map['aiCategoryTitle'] as String?,
-      aiCategoryBadge: map['aiCategoryBadge'] as String?,
+      aiCategoryKey: (map['aiCategoryKey'] ?? map['classificationCategory']) as String?,
+      aiCategoryTitle: (map['aiCategoryTitle'] ?? map['categoryTitle'] ?? map['category']) as String?,
+      aiCategoryBadge: (map['aiCategoryBadge'] ?? map['badgeLabel']) as String?,
       isClinicallyAdjusted: map['isClinicallyAdjusted'] as bool? ?? false,
       clinicalAdjustmentReason: map['clinicalAdjustmentReason'] as String?,
       aiConfidence: (map['aiConfidence'] as num?)?.toDouble(),
-      isPredictionSuccess: map['isPredictionSuccess'] as bool? ?? false,
+      isPredictionSuccess: map['isPredictionSuccess'] as bool? ??
+          (map['aiCategoryTitle'] != null ||
+              map['categoryTitle'] != null ||
+              map['aiCategoryKey'] != null ||
+              map['classificationCategory'] != null),
       predictionErrorMessage: map['predictionErrorMessage'] as String?,
       date: parsedDate,
     );

@@ -219,6 +219,8 @@ class AdminUserService {
     }
   }
 
+  final Map<String, List<ScreeningHistoryItem>> _mockUserScreenings = {};
+
   /// Method bantuan untuk pengujian unit/widget saat Firebase belum diinisialisasi
   @visibleForTesting
   void setMockUsers(List<UserModel> users) {
@@ -232,6 +234,28 @@ class AdminUserService {
             !u.email.toLowerCase().contains('adminobesight') &&
             u.email.toLowerCase() != 'admin@obesight.com')
         .toList();
+  }
+
+  /// Method bantuan pengujian unit/widget untuk menyetel riwayat skrining mock per user
+  @visibleForTesting
+  void setMockUserScreenings(String userId, List<ScreeningHistoryItem> screenings) {
+    final cleanId = userId.trim();
+    final sorted = List<ScreeningHistoryItem>.from(screenings)
+      ..sort((a, b) => b.date.compareTo(a.date));
+    _mockUserScreenings[cleanId] = sorted;
+    if (sorted.isNotEmpty) {
+      _summaryCache[cleanId] = UserScreeningSummary(
+        totalScreenings: sorted.length,
+        lastScreeningDate: sorted.first.date,
+        latestScreening: sorted.first,
+        hasLoaded: true,
+      );
+    } else {
+      _summaryCache[cleanId] = const UserScreeningSummary(
+        totalScreenings: 0,
+        hasLoaded: true,
+      );
+    }
   }
 
   /// Mendengarkan stream satu dokumen pengguna berdasarkan UID langsung dari Firestore
@@ -272,6 +296,9 @@ class AdminUserService {
   Stream<List<ScreeningHistoryItem>> streamUserScreenings(String userId) {
     final cleanId = userId.trim();
     if (!isFirebaseAvailable || cleanId.isEmpty) {
+      if (_mockUserScreenings.containsKey(cleanId)) {
+        return Stream.value(_mockUserScreenings[cleanId]!);
+      }
       return Stream.value(const <ScreeningHistoryItem>[]);
     }
 
@@ -317,6 +344,15 @@ class AdminUserService {
   Future<UserScreeningSummary> getUserScreeningSummary(String userId) async {
     final cleanId = userId.trim();
     if (!isFirebaseAvailable || cleanId.isEmpty) {
+      if (_mockUserScreenings.containsKey(cleanId)) {
+        final sorted = _mockUserScreenings[cleanId]!;
+        return UserScreeningSummary(
+          totalScreenings: sorted.length,
+          lastScreeningDate: sorted.isNotEmpty ? sorted.first.date : null,
+          latestScreening: sorted.isNotEmpty ? sorted.first : null,
+          hasLoaded: true,
+        );
+      }
       return const UserScreeningSummary(hasLoaded: true);
     }
 

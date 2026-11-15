@@ -23,7 +23,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     final pageBgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     return Scaffold(
-      backgroundColor: sageGreen,
+      backgroundColor: pageBgColor,
       extendBody: true,
       appBar: AppBar(
         backgroundColor: sageGreen,
@@ -59,90 +59,89 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           const SizedBox(width: 4),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          color: pageBgColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          child: StreamBuilder<UserModel?>(
-            stream: AdminUserService.instance.streamUserById(userId),
-            initialData: initialUser,
-            builder: (context, userSnapshot) {
-              final user =
-                  userSnapshot.data ??
-                  initialUser ??
-                  UserModel(
-                    id: userId,
-                    name: 'Pengguna ObeSight',
-                    email: '',
-                    username: 'user',
-                    role: UserRole.user,
-                  );
+      body: Stack(
+        children: [
+          // Latar belakang hijau sage di balik lengkungan atas agar lekukan terlihat sempurna identik dengan Pengguna & Laporan
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 32,
+            child: Container(color: sageGreen),
+          ),
 
-              return StreamBuilder<List<ScreeningHistoryItem>>(
-                stream: AdminUserService.instance.streamUserScreenings(userId),
-                builder: (context, screeningSnapshot) {
-                  final screenings = screeningSnapshot.data ?? [];
-                  final latestScreening = screenings.isNotEmpty
-                      ? screenings.first
-                      : null;
-                  final totalScreenings = screenings.length;
+          // Lembaran konten putih dengan sudut atas melengkung (Radius 28)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: pageBgColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                child: StreamBuilder<UserModel?>(
+                  stream: AdminUserService.instance.streamUserById(userId),
+                  initialData: initialUser,
+                  builder: (context, userSnapshot) {
+                    final user =
+                        userSnapshot.data ??
+                        initialUser ??
+                        UserModel(
+                          id: userId,
+                          name: 'Pengguna ObeSight',
+                          email: '',
+                          username: 'user',
+                          role: UserRole.user,
+                        );
 
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 1. Header Card Profil Pengguna (Persis Gambar 2)
-                        _buildTopProfileCard(
-                          user: user,
-                          totalScreenings: totalScreenings,
-                          lastScreeningDate: latestScreening?.date,
-                        ),
+                    return StreamBuilder<List<ScreeningHistoryItem>>(
+                      stream: AdminUserService.instance.streamUserScreenings(userId),
+                      builder: (context, screeningSnapshot) {
+                        final screenings = screeningSnapshot.data ?? [];
+                        final latestScreening = screenings.isNotEmpty
+                            ? screenings.first
+                            : null;
+                        final totalScreenings = screenings.length;
 
-                        const SizedBox(height: 18),
+                        return SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 1. Header Card Profil Pengguna (Persis Gambar 2)
+                              _buildTopProfileCard(
+                                user: user,
+                                totalScreenings: totalScreenings,
+                                lastScreeningDate: latestScreening?.date,
+                              ),
 
-                        // 2. Dua Card Berdampingan: Hasil Skrining Terakhir & Informasi Pribadi
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Card Kiri: Hasil Skrining Terakhir
-                            Expanded(
-                              flex: 57,
-                              child: _buildLatestScreeningColumn(
+                              const SizedBox(height: 18),
+
+                              // 2. Card Hasil Skrining Terakhir (Dilebarkan Full Width)
+                              _buildLatestScreeningColumn(
                                 latestScreening,
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            // Card Kanan: Informasi Pribadi
-                            Expanded(
-                              flex: 43,
-                              child: _buildPersonalInformationColumn(user),
-                            ),
-                          ],
-                        ),
 
-                        const SizedBox(height: 22),
+                              const SizedBox(height: 22),
 
-                        // 3. Section Riwayat Singkat (Persis Gambar 2)
-                        _buildRiwayatSingkatSection(
-                          context: context,
-                          screenings: screenings,
-                          user: user,
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
+                              // 3. Section Riwayat Singkat (Persis Gambar 2)
+                              _buildRiwayatSingkatSection(
+                                context: context,
+                                screenings: screenings,
+                                user: user,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       bottomNavigationBar: AdminCapsuleBottomNav(
         currentIndex: 1,
@@ -361,6 +360,137 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   }
 
   // ===========================================================================
+  // HELPER UNIFIKASI KLASIFIKASI & WARNA SKRINING
+  // ===========================================================================
+  static _ScreeningDisplayInfo _getScreeningDisplayInfo(ScreeningHistoryItem item) {
+    final data = item.skriningData;
+    final rawCatTitle = data.categoryTitle.replaceAll('\n', ' ').trim();
+    final rawClassCat = data.classificationCategory.trim();
+    final rawCategory = item.category.trim();
+    final bmi = item.bmi > 0 ? item.bmi : data.bmi;
+
+    final combined =
+        '${rawCatTitle.toLowerCase()} ${rawClassCat.toLowerCase()} ${rawCategory.toLowerCase()}';
+
+    final isObesity = combined.contains('obesi') ||
+        combined.contains('morbid') ||
+        bmi >= 27.0;
+    final isOverweight = !isObesity &&
+        (combined.contains('overweight') ||
+            combined.contains('lebih') ||
+            (bmi >= 23.0 && bmi < 27.0));
+    final isUnderweight = !isObesity &&
+        !isOverweight &&
+        (combined.contains('underweight') ||
+            combined.contains('insufficient') ||
+            combined.contains('kurang') ||
+            (bmi > 0 && bmi < 18.5));
+
+    if (isObesity) {
+      String sub = 'Level I';
+      String badge = 'Tipe 1';
+      if (combined.contains('iii') ||
+          combined.contains('3') ||
+          combined.contains('morbid') ||
+          bmi >= 35.0) {
+        sub = 'Level III';
+        badge = 'Tipe 3';
+      } else if (combined.contains('ii') ||
+          combined.contains('2') ||
+          bmi >= 30.0) {
+        sub = 'Level II';
+        badge = 'Tipe 2';
+      } else if (combined.contains('i') || combined.contains('1')) {
+        sub = 'Level I';
+        badge = 'Tipe 1';
+      }
+
+      return _ScreeningDisplayInfo(
+        categoryTitle: 'Obesitas',
+        subCategory: sub,
+        badgeLabel: badge,
+        descriptionNote: data.riskDescription.isNotEmpty
+            ? data.riskDescription
+            : 'Perlu evaluasi klinis dan pemantauan dokter',
+        themeColor: const Color(0xFFEF4444),
+        badgeBg: const Color(0xFFFEE2E2),
+        badgeTextColor: const Color(0xFFB91C1C),
+        boxBg: const Color(0xFFFEF2F2),
+        boxTextColor: const Color(0xFF991B1B),
+        boxIcon: Icons.warning_amber_rounded,
+        boxIconColor: const Color(0xFFEF4444),
+        boxText:
+            'Perlu evaluasi klinis & konsultasi dokter untuk penanganan obesitas secara terstruktur.',
+      );
+    }
+
+    if (isOverweight) {
+      String sub = 'Level I';
+      String badge = 'Level 1';
+      if (combined.contains('ii') || combined.contains('2') || bmi >= 25.0) {
+        sub = 'Level II';
+        badge = 'Level 2';
+      }
+
+      return _ScreeningDisplayInfo(
+        categoryTitle: 'Overweight',
+        subCategory: sub,
+        badgeLabel: badge,
+        descriptionNote: data.riskDescription.isNotEmpty
+            ? data.riskDescription
+            : 'Berat badan sedikit diatas rentang ideal',
+        themeColor: const Color(0xFFF59E0B),
+        badgeBg: const Color(0xFFFEF3C7),
+        badgeTextColor: const Color(0xFF92400E),
+        boxBg: const Color(0xFFFEF9C3),
+        boxTextColor: const Color(0xFF854D0E),
+        boxIcon: Icons.error_outline_rounded,
+        boxIconColor: const Color(0xFFD97706),
+        boxText:
+            'Disarankan untuk mulai mengatur pola makan & meningkatkan aktivitas fisik secara teratur.',
+      );
+    }
+
+    if (isUnderweight) {
+      return _ScreeningDisplayInfo(
+        categoryTitle: 'Insufficient Weight',
+        subCategory: 'Kurang',
+        badgeLabel: 'Kurang',
+        descriptionNote: data.riskDescription.isNotEmpty
+            ? data.riskDescription
+            : 'Berat badan di bawah rentang ideal',
+        themeColor: const Color(0xFF0284C7),
+        badgeBg: const Color(0xFFE0F2FE),
+        badgeTextColor: const Color(0xFF0369A1),
+        boxBg: const Color(0xFFF0F9FF),
+        boxTextColor: const Color(0xFF075985),
+        boxIcon: Icons.info_outline_rounded,
+        boxIconColor: const Color(0xFF0284C7),
+        boxText:
+            'Perhatikan pemenuhan nutrisi dan kalori harian untuk mencapai berat badan ideal.',
+      );
+    }
+
+    return _ScreeningDisplayInfo(
+      categoryTitle: 'Normal Weight',
+      subCategory: 'Normal',
+      badgeLabel: 'Ideal',
+      descriptionNote: data.riskDescription.isNotEmpty
+          ? data.riskDescription
+          : 'Berat badan dalam rentang ideal',
+      themeColor: const Color(0xFF10B981),
+      badgeBg: const Color(0xFFDCFCE7),
+      badgeTextColor: const Color(0xFF15803D),
+      boxBg: const Color(0xFFF0FDF4),
+      boxTextColor: const Color(0xFF166534),
+      boxIcon: Icons.check_circle_outline_rounded,
+      boxIconColor: const Color(0xFF10B981),
+      boxText:
+          'Kondisi berat badan dan pola hidup dalam batas normal. Pertahankan gaya hidup sehat Anda!',
+    );
+  }
+
+  // ===========================================================================
   // 2A. CARD KIRI: HASIL SKRINING TERAKHIR (Persis Gambar 2)
   // ===========================================================================
   Widget _buildLatestScreeningColumn(ScreeningHistoryItem? screening) {
@@ -432,24 +562,15 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
       );
     }
 
+    final info = _getScreeningDisplayInfo(screening);
     final heightVal = screening.skriningData.height?.toInt() ?? 0;
     final weightVal = screening.skriningData.weight?.toInt() ?? 0;
-    final bmiVal = screening.bmi;
+    final bmiVal = screening.bmi > 0 ? screening.bmi : screening.skriningData.bmi;
     final bmiFormatted = bmiVal.toStringAsFixed(1).replaceAll('.', ',');
 
-    final categoryTitle = screening.skriningData.categoryTitle.isNotEmpty
-        ? screening.skriningData.categoryTitle
-        : (screening.category.contains('Obesitas') ? 'Obesitas' : 'Overweight');
-    final subCategory = screening.skriningData.classificationCategory.isNotEmpty
-        ? screening.skriningData.classificationCategory
-        : (screening.category.contains('Level') || screening.category.contains('Tipe')
-            ? screening.category
-            : (screening.category.contains('Obesitas') ? 'Level II' : 'Level I'));
-    final descriptionNote = screening.skriningData.riskDescription.isNotEmpty
-        ? screening.skriningData.riskDescription
-        : (screening.category.contains('Obesitas')
-            ? 'Perlu evaluasi klinis dan pemantauan dokter'
-            : 'Berat badan sedikit diatas rentang ideal');
+    final categoryTitle = info.categoryTitle;
+    final subCategory = info.subCategory;
+    final descriptionNote = info.descriptionNote;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -517,7 +638,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFFEAB308), // Warna Kuning/Emas
+                            color: info.themeColor,
                             height: 1.1,
                           ),
                         ),
@@ -528,7 +649,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFEF08A), // Kuning lembut
+                            color: info.badgeBg,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -536,7 +657,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 7.5,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF854D0E),
+                              color: info.badgeTextColor,
                             ),
                           ),
                         ),
@@ -584,29 +705,29 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              // Yellow Warning Box di bagian bawah
+              // Dynamic Box di bagian bawah
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF9C3),
+                  color: info.boxBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.error_outline_rounded,
+                    Icon(
+                      info.boxIcon,
                       size: 14,
-                      color: Color(0xFF0F172A),
+                      color: info.boxIconColor,
                     ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Hasil ini berdasarkan data yang diberikan pengguna dan merupakan diagnosis medis.',
+                        info.boxText,
                         style: GoogleFonts.poppins(
                           fontSize: 7.5,
-                          color: const Color(0xFF0F172A),
+                          color: info.boxTextColor,
                           height: 1.3,
                         ),
                       ),
@@ -782,131 +903,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     );
   }
 
-  // ===========================================================================
-  // 2B. CARD KANAN: INFORMASI PRIBADI (Persis Gambar 2)
-  // ===========================================================================
-  Widget _buildPersonalInformationColumn(UserModel user) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Informasi Pribadi',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF0F172A),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPersonalDetailRow(
-                icon: Icons.person_outline_rounded,
-                label: 'Nama Lengkap',
-                value: user.name.isNotEmpty ? user.name : 'Pengguna ObeSight',
-              ),
-              const SizedBox(height: 8),
-              _buildPersonalDetailRow(
-                icon: Icons.calendar_today_outlined,
-                label: 'Tanggal Lahir',
-                value: (user.dob != null && user.dob!.trim().isNotEmpty)
-                    ? user.dob!.trim()
-                    : '-',
-              ),
-              const SizedBox(height: 8),
-              _buildPersonalDetailRow(
-                icon: Icons.people_outline_rounded,
-                label: 'Jenis Kelamin',
-                value: (user.gender != null && user.gender!.trim().isNotEmpty)
-                    ? user.gender!.trim()
-                    : '-',
-              ),
-              const SizedBox(height: 8),
-              _buildPersonalDetailRow(
-                icon: Icons.mail_outline_rounded,
-                label: 'Email',
-                value: user.email.isNotEmpty ? user.email : '-',
-                isEmail: true,
-              ),
-              const SizedBox(height: 8),
-              _buildPersonalDetailRow(
-                icon: Icons.phone_outlined,
-                label: 'Telepon',
-                value: (user.phone != null && user.phone!.trim().isNotEmpty)
-                    ? user.phone!.trim()
-                    : '-',
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildPersonalDetailRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    bool isEmail = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
-          ),
-          child: Icon(icon, size: 12, color: const Color(0xFF94A3B8)),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 7.5,
-                  color: const Color(0xFF94A3B8),
-                  height: 1.0,
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: isEmail ? 9.0 : 9.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
-                  height: 1.1,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   // ===========================================================================
   // 3. RIWAYAT SINGKAT (Persis Gambar 2)
@@ -936,22 +933,20 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             itemCount: screenings.length,
             itemBuilder: (context, index) {
               final item = screenings[index];
-              final isObesity =
-                  item.category.toLowerCase().contains('obesitas') ||
-                  item.risk.toLowerCase().contains('tinggi');
+              final info = _getScreeningDisplayInfo(item);
 
-              final themeColor = isObesity
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFFF97316);
-              final categoryName = isObesity ? 'Obesitas' : 'Overweight';
-              final badgeLabel = isObesity ? 'Tipe 2' : 'Level 1';
+              final themeColor = info.themeColor;
+              final categoryName = info.categoryTitle;
+              final badgeLabel = info.badgeLabel;
               final dateStr =
                   '${item.date.day.toString().padLeft(2, '0')}/${item.date.month.toString().padLeft(2, '0')}/${item.date.year}';
               final timeStr =
                   '${item.date.hour.toString().padLeft(2, '0')}:${item.date.minute.toString().padLeft(2, '0')} WIB';
-              final heightVal = item.skriningData.height?.toInt() ?? 168;
-              final weightVal = item.skriningData.weight?.toInt() ?? 72;
-              final bmiVal = item.bmi.toStringAsFixed(1).replaceAll('.', ',');
+              final heightVal = item.skriningData.height?.toInt() ?? 0;
+              final weightVal = item.skriningData.weight?.toInt() ?? 0;
+              final bmiVal = (item.bmi > 0 ? item.bmi : item.skriningData.bmi)
+                  .toStringAsFixed(1)
+                  .replaceAll('.', ',');
 
               return _buildRiwayatCard(
                 context: context,
@@ -982,9 +977,16 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -1033,9 +1035,16 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFDF5),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFEF08A), width: 0.8),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -1397,4 +1406,34 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
       }
     });
   }
+}
+
+class _ScreeningDisplayInfo {
+  final String categoryTitle;
+  final String subCategory;
+  final String badgeLabel;
+  final String descriptionNote;
+  final Color themeColor;
+  final Color badgeBg;
+  final Color badgeTextColor;
+  final Color boxBg;
+  final Color boxTextColor;
+  final IconData boxIcon;
+  final Color boxIconColor;
+  final String boxText;
+
+  const _ScreeningDisplayInfo({
+    required this.categoryTitle,
+    required this.subCategory,
+    required this.badgeLabel,
+    required this.descriptionNote,
+    required this.themeColor,
+    required this.badgeBg,
+    required this.badgeTextColor,
+    required this.boxBg,
+    required this.boxTextColor,
+    required this.boxIcon,
+    required this.boxIconColor,
+    required this.boxText,
+  });
 }

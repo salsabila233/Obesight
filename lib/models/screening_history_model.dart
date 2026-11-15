@@ -187,9 +187,13 @@ class ScreeningHistoryItem {
     // atau gunakan top-level fields jika disimpan secara datar
     SkriningData data;
     if (map['skriningData'] is Map && (map['skriningData'] as Map).isNotEmpty) {
-      data = SkriningData.fromMap(
-        Map<String, dynamic>.from(map['skriningData'] as Map),
-      );
+      final nested = Map<String, dynamic>.from(map['skriningData'] as Map);
+      for (final key in map.keys) {
+        if (!nested.containsKey(key) || nested[key] == null) {
+          nested[key] = map[key];
+        }
+      }
+      data = SkriningData.fromMap(nested);
     } else {
       data = SkriningData.fromMap(map);
     }
@@ -197,7 +201,9 @@ class ScreeningHistoryItem {
 
     final bmiVal = (map['bmi'] as num?)?.toDouble() ?? data.bmi;
     final riskVal = map['risk'] as String? ?? data.riskTitle;
-    final catVal = map['category'] as String? ?? data.categoryTitle.replaceAll('\n', ' ');
+    final catVal = map['category'] as String? ??
+        (map['categoryTitle'] as String?)?.replaceAll('\n', ' ') ??
+        data.categoryTitle.replaceAll('\n', ' ');
 
     return ScreeningHistoryItem(
       id: map['id'] as String? ?? 'scr_${dt.millisecondsSinceEpoch}',
