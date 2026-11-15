@@ -14,6 +14,7 @@ import '../../widgets/curved_header_scaffold.dart';
 import '../admin/admin_activity_list_screen.dart';
 import '../admin/admin_add_article_screen.dart';
 import '../admin/admin_login_screen.dart';
+import '../admin/admin_print_report_screen.dart';
 import '../admin/admin_profile_screen.dart';
 import '../admin/admin_user_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
@@ -2832,9 +2833,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 _buildLaporanLoadingState(isDark)
               else if (_laporanErrorMessage != null)
                 _buildLaporanErrorState(isDark)
-              else if (reportData.isEmpty)
-                _buildLaporanEmptyState(isDark)
-              else ...[
+              else if (reportData.isEmpty) ...[
+                _buildLaporanEmptyState(isDark),
+                const SizedBox(height: 18),
+                _buildCetakLaporanEntryCard(isDark),
+              ] else ...[
                 // a) Jumlah Pengguna (Pasien) Terdaftar
                 _buildPatientCountCard(isDark, _adminReportData!),
                 const SizedBox(height: 18),
@@ -2845,6 +2848,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
                 // c) Kategori Obesitas (Skrining Terbaru per Pengguna)
                 _buildObesityCategoriesCard(isDark, _adminReportData!),
+                const SizedBox(height: 18),
+
+                // d) Kartu Masuk Cetak Laporan
+                _buildCetakLaporanEntryCard(isDark),
               ],
             ],
           ),
@@ -3615,6 +3622,81 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCetakLaporanEntryCard(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF1B4D36) : const Color(0xFFCCE8D9),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AdminPrintReportScreen(adminUser: _currentUser),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.print_outlined,
+                  color: Color(0xFF267352),
+                  size: 26,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cetak Laporan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Unduh atau cetak laporan lengkap dalam format PDF.',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w400,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF267352),
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
