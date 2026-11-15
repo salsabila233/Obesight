@@ -620,6 +620,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         TextFormField(
           controller: controller,
           obscureText: obscureText,
+          textAlignVertical: TextAlignVertical.center,
           style: GoogleFonts.poppins(
             fontSize: 13.5,
             color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -683,6 +684,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   Widget _buildCheckItem(String label, bool isSatisfied, bool isDark) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Icon(
           isSatisfied

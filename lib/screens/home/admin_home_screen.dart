@@ -171,22 +171,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           endDate: _laporanEndDate,
         )
         .listen(
-      (data) {
-        if (!mounted) return;
-        setState(() {
-          _adminReportData = data;
-          _isLaporanLoading = false;
-          _laporanErrorMessage = null;
-        });
-      },
-      onError: (e) {
-        if (!mounted) return;
-        setState(() {
-          _isLaporanLoading = false;
-          _laporanErrorMessage = 'Gagal memuat data laporan: $e';
-        });
-      },
-    );
+          (data) {
+            if (!mounted) return;
+            setState(() {
+              _adminReportData = data;
+              _isLaporanLoading = false;
+              _laporanErrorMessage = null;
+            });
+          },
+          onError: (e) {
+            if (!mounted) return;
+            setState(() {
+              _isLaporanLoading = false;
+              _laporanErrorMessage = 'Gagal memuat data laporan: $e';
+            });
+          },
+        );
   }
 
   Future<void> _fetchLaporanData({bool forceRefresh = false}) async {
@@ -2188,10 +2188,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(
-                color: iconBg,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
               child: Icon(icon, color: iconColor, size: 18),
             ),
             const SizedBox(width: 12),
@@ -2774,7 +2771,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               const SizedBox(
                 height: 0,
                 width: 0,
-                child: Text('Laporan & Analitik', style: TextStyle(fontSize: 0)),
+                child: Text(
+                  'Laporan & Analitik',
+                  style: TextStyle(fontSize: 0),
+                ),
               ),
 
               // 1. Filter Rentang Tanggal
@@ -2969,20 +2969,30 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
     if (hasArrow) {
       if (isUp) {
-        badgeBgColor = isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE);
+        badgeBgColor = isDark
+            ? const Color(0xFF0F2D1F)
+            : const Color(0xFFE8F5EE);
         badgeTextColor = const Color(0xFF267352);
       } else {
-        badgeBgColor = isDark ? const Color(0xFF3B1212) : const Color(0xFFFEE2E2);
+        badgeBgColor = isDark
+            ? const Color(0xFF3B1212)
+            : const Color(0xFFFEE2E2);
         badgeTextColor = const Color(0xFFDC2626);
       }
     } else {
       if (badgeText == 'Baru') {
-        badgeBgColor = isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE);
+        badgeBgColor = isDark
+            ? const Color(0xFF0F2D1F)
+            : const Color(0xFFE8F5EE);
         badgeTextColor = const Color(0xFF267352);
       } else {
         // Netral "0%"
-        badgeBgColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
-        badgeTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+        badgeBgColor = isDark
+            ? const Color(0xFF334155)
+            : const Color(0xFFF1F5F9);
+        badgeTextColor = isDark
+            ? const Color(0xFF94A3B8)
+            : const Color(0xFF64748B);
       }
     }
 
@@ -3018,7 +3028,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,
                   height: 1.25,
-                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF1E293B),
+                  color: isDark
+                      ? const Color(0xFFCBD5E1)
+                      : const Color(0xFF1E293B),
                 ),
               ),
             ),
@@ -3069,10 +3081,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   /// Kartu Tren Aktivitas Skrining (Grafik Garis Halus & Area Transparan)
-  Widget _buildScreeningTrendCard(
-    bool isDark, [
-    AdminReportData? reportData,
-  ]) {
+  Widget _buildScreeningTrendCard(bool isDark, [AdminReportData? reportData]) {
     final data = reportData ?? _adminReportData ?? AdminReportData.empty();
     final trendPoints = data.trendPoints;
     final hasData = data.totalScreenings > 0 && trendPoints.isNotEmpty;
@@ -3102,7 +3111,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE),
+                  color: isDark
+                      ? const Color(0xFF0F2D1F)
+                      : const Color(0xFFE8F5EE),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -3148,7 +3159,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   Icon(
                     Icons.show_chart_rounded,
                     size: 36,
-                    color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                    color: isDark
+                        ? const Color(0xFF475569)
+                        : const Color(0xFFCBD5E1),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -3157,7 +3170,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -3649,7 +3664,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => AdminPrintReportScreen(adminUser: _currentUser),
+                builder: (context) =>
+                    AdminPrintReportScreen(adminUser: _currentUser),
               ),
             );
           },
@@ -3672,7 +3688,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F1E36),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -3681,7 +3699,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w400,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -4234,163 +4254,184 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   // B. SUB-VIEW: UBAH KATA SANDI (Password lama, baru, konfirmasi, checklist, Simpan)
   // ---------------------------------------------------------------------------
   Widget _buildUbahKataSandiView(bool isDark, Color primaryColor) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 68, 20, 110),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Pesan Error jika validasi / verifikasi gagal
-          if (_passwordErrorMessage != null) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFCA5A5)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline_rounded,
-                    color: Color(0xFFDC2626),
-                    size: 18,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 110),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Label Judul 'Password'
+              Padding(
+                padding: const EdgeInsets.only(left: 6, bottom: 12),
+                child: Text(
+                  'Password',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _passwordErrorMessage!,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFB91C1C),
+                ),
+              ),
+
+              // Pesan Error jika validasi / verifikasi gagal
+              if (_passwordErrorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFCA5A5)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: Color(0xFFDC2626),
+                        size: 18,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-          ],
-
-          // Input 1: Password lama
-          _buildPillInputField(
-            controller: _oldPasswordController,
-            focusNode: _oldPasswordFocus,
-            hintText: 'Password lama',
-            obscureText: _obscureOldPassword,
-            onToggleObscure: () {
-              setState(() {
-                _obscureOldPassword = !_obscureOldPassword;
-              });
-            },
-            isDark: isDark,
-            textInputAction: TextInputAction.next,
-          ),
-
-          const SizedBox(height: 18),
-
-          // Input 2: Password baru
-          _buildPillInputField(
-            controller: _newPasswordController,
-            focusNode: _newPasswordFocus,
-            hintText: 'Password baru',
-            obscureText: _obscureNewPassword,
-            onToggleObscure: () {
-              setState(() {
-                _obscureNewPassword = !_obscureNewPassword;
-              });
-            },
-            isDark: isDark,
-            textInputAction: TextInputAction.next,
-          ),
-
-          const SizedBox(height: 14),
-
-          // Checklist kriteria validasi kata sandi baru (Live Feedback)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              children: [
-                _buildPasswordCheckItem(
-                  'Minimum 8 karakter (maksimal 16)',
-                  _hasMinLength,
-                  isDark,
-                ),
-                _buildPasswordCheckItem(
-                  'Terdapat minimum 1 angka',
-                  _hasDigit,
-                  isDark,
-                ),
-                _buildPasswordCheckItem(
-                  'Terdapat minimum 1 huruf besar dan 1 huruf kecil',
-                  _hasUpperAndLower,
-                  isDark,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
-          // Input 3: Konfirmasi password baru
-          _buildPillInputField(
-            controller: _confirmPasswordController,
-            focusNode: _confirmPasswordFocus,
-            hintText: 'Konfirmasi password baru',
-            obscureText: _obscureConfirmPassword,
-            onToggleObscure: () {
-              setState(() {
-                _obscureConfirmPassword = !_obscureConfirmPassword;
-              });
-            },
-            isDark: isDark,
-            textInputAction: TextInputAction.done,
-            onEditingComplete: _handleSaveNewPassword,
-          ),
-
-          const SizedBox(height: 32),
-
-          // Tombol Aksi Simpan (Hijau berbentuk kapsul / pill)
-          Center(
-            child: SizedBox(
-              width: 160,
-              height: 44,
-              child: ElevatedButton(
-                onPressed: _isChangingPassword ? null : _handleSaveNewPassword,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF388E6B),
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-                child: _isChangingPassword
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _passwordErrorMessage!,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFFB91C1C),
                           ),
                         ),
-                      )
-                    : Text(
-                        'Simpan',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
                       ),
-              ),
-            ),
-          ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+              ],
 
-          const SizedBox(height: 20),
-        ],
+              // Input 1: Password lama
+              _buildPillInputField(
+                controller: _oldPasswordController,
+                focusNode: _oldPasswordFocus,
+                hintText: 'Password lama',
+                obscureText: _obscureOldPassword,
+                onToggleObscure: () {
+                  setState(() {
+                    _obscureOldPassword = !_obscureOldPassword;
+                  });
+                },
+                isDark: isDark,
+                textInputAction: TextInputAction.next,
+              ),
+
+              const SizedBox(height: 18),
+
+              // Input 2: Password baru
+              _buildPillInputField(
+                controller: _newPasswordController,
+                focusNode: _newPasswordFocus,
+                hintText: 'Password baru',
+                obscureText: _obscureNewPassword,
+                onToggleObscure: () {
+                  setState(() {
+                    _obscureNewPassword = !_obscureNewPassword;
+                  });
+                },
+                isDark: isDark,
+                textInputAction: TextInputAction.next,
+              ),
+
+              const SizedBox(height: 14),
+
+              // Checklist kriteria validasi kata sandi baru (Live Feedback)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildPasswordCheckItem(
+                      'Minimum 8 karakter (maksimal 16)',
+                      _hasMinLength,
+                      isDark,
+                    ),
+                    _buildPasswordCheckItem(
+                      'Terdapat minimum 1 angka',
+                      _hasDigit,
+                      isDark,
+                    ),
+                    _buildPasswordCheckItem(
+                      'Terdapat minimum 1 huruf besar dan 1 huruf kecil',
+                      _hasUpperAndLower,
+                      isDark,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Input 3: Konfirmasi password baru
+              _buildPillInputField(
+                controller: _confirmPasswordController,
+                focusNode: _confirmPasswordFocus,
+                hintText: 'Konfirmasi password baru',
+                obscureText: _obscureConfirmPassword,
+                onToggleObscure: () {
+                  setState(() {
+                    _obscureConfirmPassword = !_obscureConfirmPassword;
+                  });
+                },
+                isDark: isDark,
+                textInputAction: TextInputAction.done,
+                onEditingComplete: _handleSaveNewPassword,
+              ),
+
+              const SizedBox(height: 32),
+
+              // Tombol Aksi Simpan (Hijau berbentuk kapsul / pill)
+              Center(
+                child: SizedBox(
+                  width: 160,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: _isChangingPassword
+                        ? null
+                        : _handleSaveNewPassword,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF388E6B),
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: _isChangingPassword
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'Simpan',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -4422,38 +4463,48 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.only(left: 20, right: 8),
+      padding: const EdgeInsets.only(left: 20, right: 6),
       alignment: Alignment.center,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        obscureText: obscureText,
-        textInputAction: textInputAction,
-        onEditingComplete: onEditingComplete,
-        onChanged: (_) {
-          if (_passwordErrorMessage != null) {
-            setState(() {
-              _passwordErrorMessage = null;
-            });
-          }
-        },
-        style: GoogleFonts.poppins(
-          fontSize: 14,
-          color: isDark ? Colors.white : const Color(0xFF0F172A),
-        ),
-        decoration: InputDecoration(
-          isDense: true,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-          hintText: hintText,
-          hintStyle: GoogleFonts.poppins(
-            fontSize: 13.5,
-            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              obscureText: obscureText,
+              textInputAction: textInputAction,
+              onEditingComplete: onEditingComplete,
+              textAlignVertical: TextAlignVertical.center,
+              onChanged: (_) {
+                if (_passwordErrorMessage != null) {
+                  setState(() {
+                    _passwordErrorMessage = null;
+                  });
+                }
+              },
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                hintText: hintText,
+                hintStyle: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  color: isDark
+                      ? const Color(0xFF64748B)
+                      : const Color(0xFF94A3B8),
+                ),
+              ),
+            ),
           ),
-          suffixIcon: IconButton(
+          IconButton(
             icon: Icon(
               obscureText
                   ? Icons.visibility_off_outlined
@@ -4462,16 +4513,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               size: 20,
             ),
             onPressed: onToggleObscure,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            splashRadius: 20,
           ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildPasswordCheckItem(String label, bool isSatisfied, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             isSatisfied
@@ -4479,23 +4534,21 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 : Icons.radio_button_unchecked,
             size: 16,
             color: isSatisfied
-                ? const Color(0xFF388E6B)
-                : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
+                ? const Color(0xFF16A34A)
+                : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               label,
               style: GoogleFonts.poppins(
                 fontSize: 12,
+                fontWeight: isSatisfied ? FontWeight.w600 : FontWeight.w400,
                 color: isSatisfied
-                    ? (isDark
-                          ? const Color(0xFFE2E8F0)
-                          : const Color(0xFF334155))
+                    ? const Color(0xFF16A34A)
                     : (isDark
-                          ? const Color(0xFF64748B)
-                          : const Color(0xFF94A3B8)),
-                fontWeight: isSatisfied ? FontWeight.w500 : FontWeight.normal,
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B)),
               ),
             ),
           ),
@@ -5302,9 +5355,7 @@ class _ScreeningTrendChartPainter extends CustomPainter {
           : const Color(0xFFF1F5F9)
       ..strokeWidth = 1.0;
 
-    final yTextPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-    );
+    final yTextPainter = TextPainter(textDirection: TextDirection.ltr);
 
     for (int i = 0; i <= tickCount; i++) {
       final int tickVal = i * yStep;
@@ -5329,7 +5380,10 @@ class _ScreeningTrendChartPainter extends CustomPainter {
       yTextPainter.layout();
       yTextPainter.paint(
         canvas,
-        Offset(leftMargin - yTextPainter.width - 6, yPos - (yTextPainter.height / 2)),
+        Offset(
+          leftMargin - yTextPainter.width - 6,
+          yPos - (yTextPainter.height / 2),
+        ),
       );
     }
 
@@ -5341,7 +5395,8 @@ class _ScreeningTrendChartPainter extends CustomPainter {
       final double xPos = n == 1
           ? leftMargin + chartWidth / 2
           : leftMargin + (chartWidth * i / (n - 1));
-      final double yPos = topMargin + chartHeight * (1.0 - (points[i].count / yMax));
+      final double yPos =
+          topMargin + chartHeight * (1.0 - (points[i].count / yMax));
       pointOffsets.add(Offset(xPos, yPos));
     }
 
@@ -5358,8 +5413,14 @@ class _ScreeningTrendChartPainter extends CustomPainter {
         final p2 = pointOffsets[i + 1];
         final p3 = (i < n - 2) ? pointOffsets[i + 2] : p2;
 
-        final cp1 = Offset(p1.dx + (p2.dx - p0.dx) / 6, p1.dy + (p2.dy - p0.dy) / 6);
-        final cp2 = Offset(p2.dx - (p3.dx - p1.dx) / 6, p2.dy - (p3.dy - p1.dy) / 6);
+        final cp1 = Offset(
+          p1.dx + (p2.dx - p0.dx) / 6,
+          p1.dy + (p2.dy - p0.dy) / 6,
+        );
+        final cp2 = Offset(
+          p2.dx - (p3.dx - p1.dx) / 6,
+          p2.dy - (p3.dy - p1.dy) / 6,
+        );
 
         path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p2.dx, p2.dy);
       }
@@ -5372,14 +5433,17 @@ class _ScreeningTrendChartPainter extends CustomPainter {
     areaPath.close();
 
     final areaPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          const Color(0xFF267352).withValues(alpha: isDark ? 0.35 : 0.20),
-          const Color(0xFF267352).withValues(alpha: 0.01),
-        ],
-      ).createShader(Rect.fromLTWH(leftMargin, topMargin, chartWidth, chartHeight))
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF267352).withValues(alpha: isDark ? 0.35 : 0.20),
+              const Color(0xFF267352).withValues(alpha: 0.01),
+            ],
+          ).createShader(
+            Rect.fromLTWH(leftMargin, topMargin, chartWidth, chartHeight),
+          )
       ..style = PaintingStyle.fill;
     canvas.drawPath(areaPath, areaPaint);
 
@@ -5407,9 +5471,7 @@ class _ScreeningTrendChartPainter extends CustomPainter {
     }
 
     // 7. Gambar Label Sumbu X di Bawah Titik
-    final xTextPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-    );
+    final xTextPainter = TextPainter(textDirection: TextDirection.ltr);
 
     for (int i = 0; i < n; i++) {
       final label = points[i].label;
@@ -5430,7 +5492,8 @@ class _ScreeningTrendChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ScreeningTrendChartPainter oldDelegate) {
-    if (oldDelegate.isDark != isDark || oldDelegate.points.length != points.length) {
+    if (oldDelegate.isDark != isDark ||
+        oldDelegate.points.length != points.length) {
       return true;
     }
     for (int i = 0; i < points.length; i++) {
