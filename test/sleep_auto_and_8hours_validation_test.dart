@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:obesight/models/sleep_record_model.dart';
 import 'package:obesight/screens/progress/night_sleep_detail_screen.dart';
+import 'package:obesight/screens/progress/sleep_record_form_screen.dart';
 import 'package:obesight/services/sleep_tracking_service.dart';
 import 'package:obesight/theme/app_theme.dart';
 
@@ -215,25 +216,12 @@ void main() {
       expect(find.textContaining('Acuan Standar Halodoc (7–9 Jam): Tidur Cukup'), findsOneWidget);
     });
 
-    testWidgets('3.3. Tombol "Catat waktu ini" dan grafik 7 hari tetap bekerja dengan tepat', (tester) async {
+    testWidgets('3.3. Tombol "Masukkan data" di kartu atas dan grafik 7 hari tetap bekerja dengan tepat', (tester) async {
       setPhoneViewport(tester);
 
       final service = SleepTrackingService.instance;
       final now = DateTime.now();
       final dateKey = SleepTrackingService.formatDateKey(now);
-
-      // Siapkan kandidat deteksi otomatis tidur 8 jam 15 menit
-      final candidate = SleepRecord(
-        id: 'candidate_auto_ideal',
-        userId: service.currentUserId,
-        date: dateKey,
-        startTime: DateTime(now.year, now.month, now.day - 1, 22, 15),
-        endTime: DateTime(now.year, now.month, now.day, 6, 30),
-        durationMinutes: 495,
-        source: 'automatic',
-        isConfirmed: false,
-      );
-      service.setPendingAutoRecord(candidate);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -243,20 +231,43 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Kartu menampilkan estimasi dan status validasi 8 jam
+      // Tombol "Masukkan data" tersedia di kartu ringkasan atas saat belum ada data
+      final masukBtn = find.text('Masukkan data');
+      expect(masukBtn, findsOneWidget);
+
+      // Pastikan tombol bawah lama sudah tidak ada
+      expect(find.byType(ElevatedButton), findsNothing);
+
+      // Tekan tombol "Masukkan data" membuka SleepRecordFormScreen
+      await tester.tap(masukBtn);
+      await tester.pumpAndSettle();
+      expect(find.byType(SleepRecordFormScreen), findsOneWidget);
+      expect(find.text('Masukkan Data Istirahat'), findsOneWidget);
+
+      // Tutup form dengan tombol Batal
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      // Tambahkan data tidur terkonfirmasi
+      final record = SleepRecord(
+        id: 'rec_auto_ideal_confirmed',
+        userId: service.currentUserId,
+        date: dateKey,
+        startTime: DateTime(now.year, now.month, now.day - 1, 22, 15),
+        endTime: DateTime(now.year, now.month, now.day, 6, 30),
+        durationMinutes: 495,
+        source: 'manual',
+        isConfirmed: true,
+      );
+      await service.addRecord(record);
+      await tester.pumpAndSettle();
+
+      // Kartu menampilkan durasi dan status validasi standar
       expect(find.text('8 j 15 m'), findsOneWidget);
       expect(find.text('Tidur Cukup'), findsWidgets);
       expect(find.text('Ideal'), findsWidgets);
 
-      // Tombol "Catat waktu ini" tersedia
-      final catatBtn = find.text('Catat waktu ini');
-      expect(catatBtn, findsOneWidget);
-
-      // Tekan tombol "Catat waktu ini"
-      await tester.tap(catatBtn);
-      await tester.pumpAndSettle();
-
-      // Tombol berubah menjadi status tercatat
+      // Tombol atas berubah menjadi status tercatat
       expect(find.text('Tercatat'), findsOneWidget);
 
       // Grafik 7 hari langsung aktif memperbarui batang harian
@@ -407,25 +418,29 @@ void main() {
     testWidgets('5.3. Sinkronisasi real-time ke Card Utama Waktu Tidur saat aplikasi dibuka di pagi hari', (WidgetTester tester) async {
       setPhoneViewport(tester);
       final service = SleepTrackingService.instance;
+      final now = DateTime.now();
 
-      // Buat kandidat otomatis dari multi-sesi malam hari
+      // Buat kandidat otomatis dari multi-sesi malam hari hingga pagi ini
       final session1 = SleepSessionInterval(
-        startTime: DateTime(2026, 10, 24, 22, 0),
-        endTime: DateTime(2026, 10, 25, 1, 0),
+        startTime: DateTime(now.year, now.month, now.day - 1, 22, 0),
+        endTime: DateTime(now.year, now.month, now.day, 1, 0),
       );
       final session2 = SleepSessionInterval(
-        startTime: DateTime(2026, 10, 25, 1, 30),
-        endTime: DateTime(2026, 10, 25, 7, 30),
+        startTime: DateTime(now.year, now.month, now.day, 1, 30),
+        endTime: DateTime(now.year, now.month, now.day, 7, 30),
       );
 
       // Simulasikan deteksi otomatis multi-sesi pagi hari
       service.simulateSensorDetection(
         sessions: [session1, session2],
-        referenceNow: DateTime(2026, 10, 25, 8, 0),
+        referenceNow: now,
       );
 
       expect(service.pendingAutoDetectedRecord, isNotNull);
       expect(service.pendingAutoDetectedRecord!.durationHours, 6);
+
+      // Terima/konfirmasi record ke database
+      await service.acceptPendingAutoRecord();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -438,14 +453,6 @@ void main() {
       // Card Utama Waktu Tidur menampilkan data sesi tidur terlama (6j 0m) secara real-time
       expect(find.text('6 j 0 m'), findsOneWidget);
       expect(find.text('Tidur Kurang'), findsOneWidget);
-
-      // Tombol "Catat waktu ini" tersedia untuk menyimpan data ini secara bersih ke database
-      final catatButton = find.text('Catat waktu ini');
-      expect(catatButton, findsOneWidget);
-
-      // Pengguna mengklik "Catat waktu ini"
-      await tester.tap(catatButton);
-      await tester.pumpAndSettle();
 
       // Data resmi tersimpan tanpa error dan status berubah menjadi "Tercatat"
       expect(find.text('Tercatat'), findsOneWidget);

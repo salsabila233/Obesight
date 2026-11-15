@@ -1207,25 +1207,30 @@ class SleepTrackingService extends ChangeNotifier with WidgetsBindingObserver {
         _lastScreenOnTime = screenOn;
         _lastDarkTime = darkTime;
         _lastLightRiseTime = lightRiseTime;
-      } catch (_) {}
+      } catch (_) {
+        // Platform channel tidak tersedia di environment test / non-Android
+      }
     }
 
-    // Jam bangun tidur HARUS diambil dari aktivitas unlock/layar menyala pertama di pagi hari (screenOn)
-    // atau sensor cahaya pagi (lightRiseTime), dan BUKAN dari jam saat pengguna membuka aplikasi.
-    // Jam mulai tidur diambil dari saat terakhir layar HP dimatikan (screenOff) di malam hari.
-    // Jika terdapat multi-sesi, ambil rentang durasi terlama (longest continuous sleep session).
+    // Logika Perekaman Waktu Tidur Otomatis:
+    // 1. Waktu mulai tidur diambil dari sensor lingkungan saat lampu mati (darkTime)
+    //    atau saat pengguna mematikan layar HP di malam hari (screenOff).
+    // 2. Waktu bangun diambil dari sensor lingkungan saat cahaya pagi hari muncul (lightRiseTime)
+    //    atau saat pengguna menyalakan/membuka kembali HP esok harinya (screenOn).
+    // 3. Waktu pengguna membuka aplikasi TIDAK PERNAH digunakan sebagai jam bangun maupun jam tidur!
+    // 4. Jika terdapat jeda layar menyala di tengah malam (multi-sesi), sistem otomatis mengambil
+    //    jarak durasi terpanjang (longest continuous sleep session) sebagai acuan tidur utama malam tersebut.
     final candidate = detectSleepFromSensors(
       screenOff: screenOff,
       screenOn: screenOn,
       darkTime: darkTime,
       lightRiseTime: lightRiseTime,
       referenceNow: now,
-      lastInactivityTime: _lastNightInactiveTime,
       sessions: sessionsList,
     );
 
     if (candidate != null) {
-      // Pastikan kandidat otomatis tidak menimpa catatan manual yang valid
+      // Pastikan kandidat otomatis tidak menimpa catatan manual yang sudah valid
       final existingRecord = getSavedRecordForDate(candidate.endTime);
       if (existingRecord != null && existingRecord.isConfirmed && existingRecord.source == 'manual') {
         if (_pendingAutoDetectedRecord != null) {

@@ -143,21 +143,26 @@ void main() {
     });
 
     // =========================================================================
-    // 3. Render Estimasi Otomatis pada Kartu Ringkasan Tanpa Mengganggu Manual
+    // 3. Render Status Tidur pada Kartu Ringkasan & Fungsi Tombol "Masukkan data"
     // =========================================================================
-    testWidgets('3.1. Kartu ringkasan merender estimasi otomatis (Tidur Kurang) & tombol manual tetap aman', (WidgetTester tester) async {
+    testWidgets('3.1. Kartu ringkasan merender status tidur (Tidur Kurang) & tombol Masukkan data di atas berfungsi', (WidgetTester tester) async {
       setPhoneViewport(tester);
 
-      // Simulasikan kandidat tidur otomatis 5 jam 30 menit (330 menit < 7 jam)
       final now = DateTime.now();
-      final nightOff = DateTime(now.year, now.month, now.day - 1, 23, 30);
-      final morningOn = DateTime(now.year, now.month, now.day, 5, 0);
+      final dateKey = SleepTrackingService.formatDateKey(now);
 
-      service.simulateSensorDetection(
-        screenOff: nightOff,
-        screenOn: morningOn,
-        referenceNow: now,
+      // Simulasikan rekaman tidur 5 jam 30 menit (330 menit < 7 jam)
+      final sleepRecord = SleepRecord(
+        id: 'rec_sleep_kurang',
+        userId: service.currentUserId,
+        date: dateKey,
+        startTime: DateTime(now.year, now.month, now.day - 1, 23, 30),
+        endTime: DateTime(now.year, now.month, now.day, 5, 0),
+        durationMinutes: 330,
+        source: 'manual',
+        isConfirmed: true,
       );
+      await service.addRecord(sleepRecord);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -167,32 +172,35 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Durasi otomatis 5 j 30 m ter-render akurat di kartu ringkasan
+      // Durasi 5 j 30 m ter-render akurat di kartu ringkasan
       expect(find.text('5 j 30 m'), findsOneWidget);
       // Status kategori otomatis "Tidur Kurang" (< 7 jam)
       expect(find.text('Tidur Kurang'), findsWidgets);
+      // Status tombol atas menjadi "Tercatat"
+      expect(find.text('Tercatat'), findsOneWidget);
 
-      // Tombol "Catat waktu ini" tersedia tanpa mengganggu input manual
-      final catatButton = find.text('Catat waktu ini');
-      expect(catatButton, findsOneWidget);
-
-      // Tombol manual "Masukkan data" di FAB / Header tetap ada dan bisa ditekan
-      expect(find.text('Masukkan data'), findsOneWidget);
+      // Tombol bawah sudah dihapus (tidak ada tombol Masukkan data redundan di bawah)
+      expect(find.byType(ElevatedButton), findsNothing);
     });
 
-    testWidgets('3.2. Kartu ringkasan merender estimasi otomatis ideal (Tidur Cukup / Ideal: 7j 45m)', (WidgetTester tester) async {
+    testWidgets('3.2. Kartu ringkasan merender status tidur ideal (Tidur Cukup / Ideal: 7j 45m)', (WidgetTester tester) async {
       setPhoneViewport(tester);
 
-      // Simulasikan kandidat tidur otomatis 7 jam 45 menit (465 menit: 7–9 jam)
       final now = DateTime.now();
-      final nightOff = DateTime(now.year, now.month, now.day - 1, 22, 30);
-      final morningOn = DateTime(now.year, now.month, now.day, 6, 15);
+      final dateKey = SleepTrackingService.formatDateKey(now);
 
-      service.simulateSensorDetection(
-        screenOff: nightOff,
-        screenOn: morningOn,
-        referenceNow: now,
+      // Simulasikan rekaman tidur 7 jam 45 menit (465 menit: 7–9 jam)
+      final sleepRecord = SleepRecord(
+        id: 'rec_sleep_ideal',
+        userId: service.currentUserId,
+        date: dateKey,
+        startTime: DateTime(now.year, now.month, now.day - 1, 22, 30),
+        endTime: DateTime(now.year, now.month, now.day, 6, 15),
+        durationMinutes: 465,
+        source: 'manual',
+        isConfirmed: true,
       );
+      await service.addRecord(sleepRecord);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -204,14 +212,10 @@ void main() {
 
       // Durasi 7 j 45 m ter-render akurat
       expect(find.text('7 j 45 m'), findsOneWidget);
-      // Status kategori otomatis "Tidur Cukup" & badge "Ideal" sesuai standar Halodoc
+      // Status kategori "Tidur Cukup" & badge "Ideal" sesuai standar Halodoc
       expect(find.text('Tidur Cukup'), findsWidgets);
       expect(find.text('Ideal'), findsWidgets);
-
-      // Menekan "Catat waktu ini" berhasil menyimpan data dan merender status "Tercatat"
-      await tester.tap(find.text('Catat waktu ini'));
-      await tester.pumpAndSettle();
-
+      // Status tombol atas "Tercatat"
       expect(find.text('Tercatat'), findsOneWidget);
       expect(service.hasTodayData, isTrue);
     });

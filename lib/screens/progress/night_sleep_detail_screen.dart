@@ -15,13 +15,11 @@ class NightSleepDetailScreen extends StatefulWidget {
 
 class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   final DateTime _selectedDate = DateTime.now();
-  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     try {
-      SleepTrackingService.instance.checkDeviceInactivityCandidate();
       SleepTrackingService.instance.startFirestoreRealtimeListener();
       if (SleepTrackingService.instance.reminderEnabled) {
         SleepTrackingService.instance.scheduleBedtimeNotification();
@@ -73,7 +71,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
         final hasDataForSelectedDate = recordsForSelectedDate.isNotEmpty;
         final totalMinutesSelected = service.getTotalSleepMinutesForDate(_selectedDate);
         final statusText = service.getSleepStatus(totalMinutesSelected);
-        final pendingAuto = service.pendingAutoDetectedRecord;
         final summaries = service.getPast7DaysSummaries(_selectedDate);
 
         // Format durasi
@@ -82,10 +79,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           totalDurationFormatted = totalMinutesSelected >= 60
               ? '${totalMinutesSelected ~/ 60} j ${totalMinutesSelected % 60} m'
               : '$totalMinutesSelected m';
-        } else if (isSelectedToday && pendingAuto != null) {
-          final h = pendingAuto.durationHours;
-          final m = pendingAuto.durationRemainingMinutes;
-          totalDurationFormatted = '$h j $m m';
         } else {
           totalDurationFormatted = '-- j -- m';
         }
@@ -129,7 +122,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         ),
                       ),
 
-                      // --- CARD 1: Status / Estimasi Waktu Tidur (dengan Tombol "Catat waktu ini") ---
+                      // --- CARD 1: Status Waktu Tidur (dengan Tombol "Masukkan data") ---
                       _buildTodaySleepStatusCard(
                         service: service,
                         selectedRecs: recordsForSelectedDate,
@@ -138,7 +131,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         selectedDate: _selectedDate,
                         totalDurationFormatted: totalDurationFormatted,
                         statusText: statusText,
-                        pendingAuto: pendingAuto,
                         isDark: isDark,
                       ),
                       const SizedBox(height: 16),
@@ -162,40 +154,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                       // --- CARD TIPS ISTIRAHAT ---
                       _buildTipsSection(isDark: isDark),
                       const SizedBox(height: 24),
-
-                      // --- TOMBOL UTAMA: Masukkan Data ---
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF36785A),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                            elevation: 0,
-                          ),
-                          onPressed: () => _openForm(),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.access_time_filled_rounded,
-                                size: 19,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Masukkan data',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -208,7 +166,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
   }
 
   // ==========================================
-  // CARD 1: Status Waktu Tidur & Estimasi Otomatis
+  // CARD 1: Status Waktu Tidur
   // ==========================================
   Widget _buildTodaySleepStatusCard({
     required SleepTrackingService service,
@@ -218,7 +176,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
     required DateTime selectedDate,
     required String totalDurationFormatted,
     required String statusText,
-    required SleepRecord? pendingAuto,
     required bool isDark,
   }) {
     const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -229,8 +186,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
 
     final totalMinutes = hasDataForSelectedDate
         ? service.getTotalSleepMinutesForDate(selectedDate)
-        : (isSelectedToday && pendingAuto != null ? pendingAuto.durationMinutes : 0);
-    final hasAnyData = hasDataForSelectedDate || (isSelectedToday && pendingAuto != null);
+        : 0;
     final isIdeal = totalMinutes >= SleepTrackingService.standardIdealSleepMinutes;
     final standardCategory = service.getSleepStandard8HoursCategory(totalMinutes);
 
@@ -292,7 +248,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             ),
                           ),
                         ),
-                        if (hasAnyData)
+                        if (hasDataForSelectedDate)
                           Flexible(
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -356,116 +312,57 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                     ),
                                   ),
                                 )
-                              else if (isSelectedToday && pendingAuto != null)
+                              else
                                 Padding(
                                   padding: const EdgeInsets.only(top: 2),
                                   child: Text(
-                                    '${pendingAuto.startTimeFormatted.replaceAll(':', '.')} - ${pendingAuto.endTimeFormatted.replaceAll(':', '.')}',
+                                    '--.-- - --.--',
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0xFF94A3B8),
                                     ),
                                   ),
                                 ),
                             ],
                           ),
                         ),
-                        // Tombol Aksi: Status "Tercatat" jika data sudah tercatat, atau "Catat waktu ini" jika belum
+                        // Tombol Aksi: Status "Tercatat" jika data sudah tercatat, atau "Masukkan data" jika belum
                         if (hasDataForSelectedDate)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.5) : const Color(0xFFEDF7F2),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA5D6C1)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.check_circle_rounded,
-                                  size: 14,
-                                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
-                                ),
-                                const SizedBox(width: 5),
-                                Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Text(
-                                      'Tercatat',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
-                                      ),
+                          InkWell(
+                            onTap: () => _openForm(),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.5) : const Color(0xFFEDF7F2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: isDark ? const Color(0xFF059669) : const Color(0xFFA5D6C1)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    size: 14,
+                                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Tercatat',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF265C45),
                                     ),
-                                    Text(
-                                      'Sudah Dicatat',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.transparent,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                         else
                           InkWell(
-                            onTap: _isSaving
-                                ? null
-                                : () async {
-                                    if (isSelectedToday && pendingAuto != null) {
-                                      setState(() {
-                                        _isSaving = true;
-                                      });
-                                      try {
-                                        final autoData = pendingAuto;
-                                        final success = await service.acceptPendingAutoRecord(targetDate: selectedDate);
-                                        if (mounted) {
-                                          setState(() {
-                                            _isSaving = false;
-                                          });
-                                          if (success) {
-                                            AppAlert.showSuccess(
-                                              context,
-                                              'Waktu tidur berhasil dicatat (${autoData.timeRangeFormatted}) dan grafik langsung diperbarui.',
-                                            );
-                                          } else {
-                                            AppAlert.showError(
-                                              context,
-                                              'Gagal menyimpan data tidur. Silakan coba lagi.',
-                                            );
-                                          }
-                                        }
-                                      } catch (e) {
-                                        debugPrint('[NightSleepDetailScreen] Error accepting pending auto record: $e');
-                                        if (mounted) {
-                                          setState(() {
-                                            _isSaving = false;
-                                          });
-                                          AppAlert.showError(
-                                            context,
-                                            'Terjadi kesalahan saat menyimpan data: $e',
-                                          );
-                                        }
-                                      } finally {
-                                        if (mounted) {
-                                          setState(() {
-                                            _isSaving = false;
-                                          });
-                                        }
-                                      }
-                                    } else {
-                                      AppAlert.showWarning(
-                                        context,
-                                        'Data perkiraan waktu tidur belum tersedia. Silakan gunakan tombol Masukkan data.',
-                                      );
-                                    }
-                                  },
+                            onTap: () => _openForm(),
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -473,23 +370,14 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                 color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: _isSaving
-                                  ? SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
-                                      ),
-                                    )
-                                  : Text(
-                                      'Catat waktu ini',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                                      ),
-                                    ),
+                              child: Text(
+                                'Masukkan data',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                ),
+                              ),
                             ),
                           ),
                       ],
@@ -500,7 +388,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             ],
           ),
 
-          if (hasAnyData) ...[
+          if (hasDataForSelectedDate) ...[
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
@@ -573,34 +461,6 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
               ),
             ),
           ],
-
-          const SizedBox(height: 10),
-          // Label Disclaimer
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isDark ? const Color(0xFF334155) : Colors.transparent),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF94A3B8)),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Perkiraan waktu tidur otomatis berdasarkan kombinasi aktivitas layar HP dan sensor cahaya lingkungan (ambient light sensor).',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                      height: 1.35,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -908,7 +768,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Catat perkiraan waktu tidur otomatis atau masukkan waktu tidur secara manual di bawah.',
+            'Gunakan tombol Masukkan data di atas untuk mencatat waktu tidur Anda.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 11,
