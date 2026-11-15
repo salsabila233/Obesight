@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/app_alert.dart';
@@ -18,7 +17,6 @@ import '../admin/admin_login_screen.dart';
 import '../admin/admin_profile_screen.dart';
 import '../admin/admin_user_list_screen.dart';
 import '../article/health_article_detail_screen.dart';
-import '../progress/night_sleep_detail_screen.dart';
 import '../../widgets/article_thumbnail_image.dart';
 import '../../widgets/admin_capsule_bottom_nav.dart';
 
@@ -2179,7 +2177,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     required String subtitle,
     required String time,
     required bool isDark,
-    VoidCallback? onTap,
   }) {
     return Material(
       color: Colors.transparent,
@@ -2815,9 +2812,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   Expanded(
                     child: _buildStaticSummaryCard(
                       title: 'Skrining\nRata-rata/Hari',
-                      value: AdminReportService.formatNumber(
-                        reportData.screeningsPerDay,
-                      ),
+                      value: reportData.formattedScreeningsPerDay,
                       badgeText: reportData.screeningsPerDayBadgeText,
                       hasArrow: reportData.screeningsPerDayHasArrow,
                       isUp: reportData.screeningsPerDayIsUp,
@@ -2828,8 +2823,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               const SizedBox(height: 18),
 
-              // 3. Distribusi Hasil Skrining (Donut Chart Berdasarkan Data Aktual Firestore)
-              _buildStaticScreeningDistributionCard(isDark, reportData),
+              // 3. Tren Aktivitas Skrining (Grafik Garis & Area Aktual Firestore)
+              _buildScreeningTrendCard(isDark, reportData),
               const SizedBox(height: 22),
 
               // 4. BAGIAN DATA BARU (Agregasi Live Firestore Berdasarkan Rentang Tanggal)
@@ -2962,6 +2957,28 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     required bool isDark,
     bool isUp = true,
   }) {
+    Color badgeBgColor;
+    Color badgeTextColor;
+
+    if (hasArrow) {
+      if (isUp) {
+        badgeBgColor = isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE);
+        badgeTextColor = const Color(0xFF267352);
+      } else {
+        badgeBgColor = isDark ? const Color(0xFF3B1212) : const Color(0xFFFEE2E2);
+        badgeTextColor = const Color(0xFFDC2626);
+      }
+    } else {
+      if (badgeText == 'Baru') {
+        badgeBgColor = isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE);
+        badgeTextColor = const Color(0xFF267352);
+      } else {
+        // Netral "0%"
+        badgeBgColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+        badgeTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
@@ -2981,14 +2998,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            maxLines: 2,
-            style: GoogleFonts.poppins(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-              height: 1.25,
-              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF1E293B),
+          // Area judul dengan tinggi seragam agar baris angka dan badge sejajar persis
+          SizedBox(
+            height: 32,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  height: 1.25,
+                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF1E293B),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -3004,7 +3029,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE),
+              color: badgeBgColor,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Row(
@@ -3016,7 +3041,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         ? Icons.arrow_upward_rounded
                         : Icons.arrow_downward_rounded,
                     size: 10,
-                    color: const Color(0xFF267352),
+                    color: badgeTextColor,
                   ),
                   const SizedBox(width: 2),
                 ],
@@ -3025,7 +3050,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF267352),
+                    color: badgeTextColor,
                   ),
                 ),
               ],
@@ -3036,20 +3061,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  Widget _buildStaticScreeningDistributionCard(
+  /// Kartu Tren Aktivitas Skrining (Grafik Garis Halus & Area Transparan)
+  Widget _buildScreeningTrendCard(
     bool isDark, [
     AdminReportData? reportData,
   ]) {
     final data = reportData ?? _adminReportData ?? AdminReportData.empty();
-    final slices = ObesityCategoryConfig.all7Categories.map((cfg) {
-      final percentage =
-          data.screeningDistributionPercentages[cfg.category] ?? 0.0;
-      return _DonutSlice(
-        label: cfg.label,
-        percentage: percentage,
-        color: cfg.color,
-      );
-    }).toList();
+    final trendPoints = data.trendPoints;
+    final hasData = data.totalScreenings > 0 && trendPoints.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -3070,81 +3089,156 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Distribusi Hasil Skrining',
-            style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF0F1E36),
-            ),
-          ),
-          const SizedBox(height: 18),
+          // 1. Baris Judul: Ikon grafik batang dalam kotak hijau muda, Judul, & Dropdown rentang
           Row(
             children: [
-              // Donut Chart di sisi kiri
-              SizedBox(
-                width: 120,
-                height: 120,
-                child: CustomPaint(
-                  painter: _DonutChartPainter(
-                    slices: slices,
-                    strokeWidth: 20,
-                    isDark: isDark,
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F2D1F) : const Color(0xFFE8F5EE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.bar_chart_rounded,
+                  color: Color(0xFF267352),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Tren Aktivitas Skrining',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF0F1E36),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              _buildCompactDateFilterDropdown(isDark),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // 2. Teks Pendukung
+          Text(
+            'Perkembangan jumlah skrining selama periode yang dipilih.',
+            style: GoogleFonts.poppins(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w400,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 18),
 
-              // Daftar Legend di sisi kanan
-              Expanded(
-                child: Column(
-                  children: slices.map((slice) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3.5),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: slice.color,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              slice.label,
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: isDark
-                                    ? const Color(0xFFE2E8F0)
-                                    : const Color(0xFF1E293B),
-                              ),
-                            ),
-                          ),
-                          Text(
-                            AdminReportService.formatPercentage(
-                              slice.percentage,
-                            ),
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? const Color(0xFFCBD5E1)
-                                  : const Color(0xFF334155),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+          // 3. Area Grafik Garis atau State Kosong Rapi
+          if (!hasData)
+            Container(
+              height: 160,
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.show_chart_rounded,
+                    size: 36,
+                    color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Belum ada aktivitas skrining pada periode ini.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              height: 160,
+              width: double.infinity,
+              child: CustomPaint(
+                painter: _ScreeningTrendChartPainter(
+                  points: trendPoints,
+                  isDark: isDark,
                 ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Dropdown kecil di dalam kartu Tren yang berbagi state yang sama persis dengan filter atas
+  Widget _buildCompactDateFilterDropdown(bool isDark) {
+    return Theme(
+      data: Theme.of(
+        context,
+      ).copyWith(cardColor: isDark ? const Color(0xFF1E293B) : Colors.white),
+      child: PopupMenuButton<String>(
+        tooltip: 'Pilih rentang tanggal tren',
+        initialValue: _selectedLaporanPeriod,
+        offset: const Offset(0, 36),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          ),
+        ),
+        onSelected: _onLaporanPeriodSelected,
+        itemBuilder: (context) => [
+          _buildPopupPeriodItem('29/07/2026 - 29/08/2026', isDark),
+          _buildPopupPeriodItem('7 hari terakhir', isDark),
+          _buildPopupPeriodItem('30 hari terakhir', isDark),
+          _buildPopupPeriodItem('Bulan ini', isDark),
+          _buildPopupPeriodItem('Semua waktu', isDark),
+        ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 110),
+                child: Text(
+                  _selectedLaporanPeriod,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -5061,68 +5155,208 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 }
 
-class _DonutSlice {
-  final String label;
-  final double percentage;
-  final Color color;
-
-  const _DonutSlice({
-    required this.label,
-    required this.percentage,
-    required this.color,
-  });
-}
-
-class _DonutChartPainter extends CustomPainter {
-  final List<_DonutSlice> slices;
-  final double strokeWidth;
+class _ScreeningTrendChartPainter extends CustomPainter {
+  final List<ScreeningTrendPoint> points;
   final bool isDark;
 
-  const _DonutChartPainter({
-    required this.slices,
-    this.strokeWidth = 20.0,
+  const _ScreeningTrendChartPainter({
+    required this.points,
     this.isDark = false,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
+    if (points.isEmpty) return;
 
-    final totalPercentage = slices.fold<double>(
-      0.0,
-      (sum, s) => sum + s.percentage,
-    );
-    if (totalPercentage <= 0.0) {
-      final emptyPaint = Paint()
-        ..color = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth;
-      canvas.drawArc(rect, 0, 2 * math.pi, false, emptyPaint);
-      return;
+    const double leftMargin = 26.0;
+    const double rightMargin = 12.0;
+    const double topMargin = 12.0;
+    const double bottomMargin = 24.0;
+
+    final double chartWidth = size.width - leftMargin - rightMargin;
+    final double chartHeight = size.height - topMargin - bottomMargin;
+
+    if (chartWidth <= 0 || chartHeight <= 0) return;
+
+    // 1. Hitung nilai tertinggi (maksimum) dari data
+    int rawMax = 0;
+    for (final p in points) {
+      if (p.count > rawMax) rawMax = p.count;
     }
 
-    double startAngle = -math.pi / 2;
+    // 2. Tentukan skala sumbu Y secara dinamis dengan bilangan bulat rapi
+    int yMax;
+    int yStep;
+    if (rawMax <= 3) {
+      yMax = 3;
+      yStep = 1;
+    } else if (rawMax <= 5) {
+      yMax = 5;
+      yStep = 1;
+    } else if (rawMax <= 10) {
+      yMax = 10;
+      yStep = 5;
+    } else if (rawMax <= 15) {
+      yMax = 15;
+      yStep = 5; // Ticks: 0, 5, 10, 15 (identik dengan gambar referensi)
+    } else if (rawMax <= 20) {
+      yMax = 20;
+      yStep = 5;
+    } else if (rawMax <= 40) {
+      yMax = ((rawMax + 9) ~/ 10) * 10;
+      yStep = 10;
+    } else {
+      yStep = ((rawMax / 4).ceil() ~/ 5 + 1) * 5;
+      if (yStep < 1) yStep = 1;
+      yMax = yStep * 4;
+    }
 
-    for (final slice in slices) {
-      final sweepAngle = (slice.percentage / 100.0) * (2 * math.pi);
-      if (sweepAngle > 0) {
-        final paint = Paint()
-          ..color = slice.color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.butt;
+    final int tickCount = (yMax / yStep).round();
 
-        canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
-        startAngle += sweepAngle;
+    // 3. Gambar Garis Kisi (Grid lines) & Label Sumbu Y
+    final gridPaint = Paint()
+      ..color = isDark
+          ? const Color(0xFF334155).withValues(alpha: 0.6)
+          : const Color(0xFFF1F5F9)
+      ..strokeWidth = 1.0;
+
+    final yTextPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+
+    for (int i = 0; i <= tickCount; i++) {
+      final int tickVal = i * yStep;
+      final double yPos = topMargin + chartHeight * (1.0 - (tickVal / yMax));
+
+      // Garis kisi horizontal tipis
+      canvas.drawLine(
+        Offset(leftMargin, yPos),
+        Offset(size.width - rightMargin, yPos),
+        gridPaint,
+      );
+
+      // Label sumbu Y bilangan bulat
+      yTextPainter.text = TextSpan(
+        text: '$tickVal',
+        style: GoogleFonts.poppins(
+          fontSize: 10,
+          fontWeight: FontWeight.w400,
+          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
+        ),
+      );
+      yTextPainter.layout();
+      yTextPainter.paint(
+        canvas,
+        Offset(leftMargin - yTextPainter.width - 6, yPos - (yTextPainter.height / 2)),
+      );
+    }
+
+    // 4. Hitung Koordinat Titik Data
+    final int n = points.length;
+    final List<Offset> pointOffsets = [];
+
+    for (int i = 0; i < n; i++) {
+      final double xPos = n == 1
+          ? leftMargin + chartWidth / 2
+          : leftMargin + (chartWidth * i / (n - 1));
+      final double yPos = topMargin + chartHeight * (1.0 - (points[i].count / yMax));
+      pointOffsets.add(Offset(xPos, yPos));
+    }
+
+    // 5. Gambar Garis Halus (Cubic Bézier Spline) & Area Hijau Transparan di Bawahnya
+    final path = Path();
+    path.moveTo(pointOffsets.first.dx, pointOffsets.first.dy);
+
+    if (n == 1) {
+      path.lineTo(pointOffsets.first.dx + 1, pointOffsets.first.dy);
+    } else {
+      for (int i = 0; i < n - 1; i++) {
+        final p0 = i > 0 ? pointOffsets[i - 1] : pointOffsets[i];
+        final p1 = pointOffsets[i];
+        final p2 = pointOffsets[i + 1];
+        final p3 = (i < n - 2) ? pointOffsets[i + 2] : p2;
+
+        final cp1 = Offset(p1.dx + (p2.dx - p0.dx) / 6, p1.dy + (p2.dy - p0.dy) / 6);
+        final cp2 = Offset(p2.dx - (p3.dx - p1.dx) / 6, p2.dy - (p3.dy - p1.dy) / 6);
+
+        path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p2.dx, p2.dy);
       }
+    }
+
+    // Area Fill dengan gradien hijau transparan halus
+    final areaPath = Path.from(path);
+    areaPath.lineTo(pointOffsets.last.dx, topMargin + chartHeight);
+    areaPath.lineTo(pointOffsets.first.dx, topMargin + chartHeight);
+    areaPath.close();
+
+    final areaPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          const Color(0xFF267352).withValues(alpha: isDark ? 0.35 : 0.20),
+          const Color(0xFF267352).withValues(alpha: 0.01),
+        ],
+      ).createShader(Rect.fromLTWH(leftMargin, topMargin, chartWidth, chartHeight))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(areaPath, areaPaint);
+
+    // Garis Hijau Tema
+    final linePaint = Paint()
+      ..color = const Color(0xFF267352)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, linePaint);
+
+    // 6. Gambar Titik Bulat pada tiap data
+    final dotOuterPaint = Paint()
+      ..color = const Color(0xFF267352)
+      ..style = PaintingStyle.fill;
+
+    final dotInnerPaint = Paint()
+      ..color = isDark ? const Color(0xFF1E293B) : Colors.white
+      ..style = PaintingStyle.fill;
+
+    for (final pt in pointOffsets) {
+      canvas.drawCircle(pt, 4.5, dotOuterPaint);
+      canvas.drawCircle(pt, 2.0, dotInnerPaint);
+    }
+
+    // 7. Gambar Label Sumbu X di Bawah Titik
+    final xTextPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+
+    for (int i = 0; i < n; i++) {
+      final label = points[i].label;
+      xTextPainter.text = TextSpan(
+        text: label,
+        style: GoogleFonts.poppins(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+        ),
+      );
+      xTextPainter.layout();
+      final double xPos = pointOffsets[i].dx - (xTextPainter.width / 2);
+      final double yPos = topMargin + chartHeight + 6;
+      xTextPainter.paint(canvas, Offset(xPos, yPos));
     }
   }
 
   @override
-  bool shouldRepaint(covariant _DonutChartPainter oldDelegate) =>
-      oldDelegate.slices != slices ||
-      oldDelegate.strokeWidth != strokeWidth ||
-      oldDelegate.isDark != isDark;
+  bool shouldRepaint(covariant _ScreeningTrendChartPainter oldDelegate) {
+    if (oldDelegate.isDark != isDark || oldDelegate.points.length != points.length) {
+      return true;
+    }
+    for (int i = 0; i < points.length; i++) {
+      if (oldDelegate.points[i].count != points[i].count ||
+          oldDelegate.points[i].label != points[i].label) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

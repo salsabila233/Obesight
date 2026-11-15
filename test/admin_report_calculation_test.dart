@@ -501,11 +501,11 @@ void main() {
     });
 
     test('4. Persentase perubahan badge ketika periode sebelumnya 0: Tanpa pembagian nol', () {
-      // Periode lalu 0, periode ini > 0 -> badgeText: "0%", hasArrow: true, isUp: true
+      // Periode lalu 0, periode ini > 0 -> badgeText: "Baru", hasArrow: false, isUp: true
       final badgeFromZero = AdminReportService.calculateChangeBadge(10, 0);
       expect(badgeFromZero.percentage, 0.0);
-      expect(badgeFromZero.badgeText, '0%');
-      expect(badgeFromZero.hasArrow, isTrue);
+      expect(badgeFromZero.badgeText, 'Baru');
+      expect(badgeFromZero.hasArrow, isFalse);
       expect(badgeFromZero.isUp, isTrue);
 
       // Periode lalu 0, periode ini 0 -> badgeText: "0%", hasArrow: false
@@ -620,6 +620,97 @@ void main() {
       expect(prev7!.start, DateTime(2026, 7, 25, 0, 0, 0));
       expect(prev7.end, DateTime(2026, 7, 31, 23, 59, 59, 999));
       expect(prev7.end.difference(prev7.start).inDays + 1, 7);
+    });
+
+    test('9. Format Skrining Rata-rata/Hari: 1 angka desimal dengan koma, anti 0 untuk nilai kecil, bulat jika genap', () {
+      // 12 skrining dalam 30 hari = 0,4
+      expect(AdminReportService.formatScreeningsPerDay(12 / 30), '0,4');
+
+      // 14 skrining dalam 7 hari = 2
+      expect(AdminReportService.formatScreeningsPerDay(14 / 7), '2');
+
+      // 1 skrining dalam 30 hari = 0,0333... -> tidak boleh 0, harus 0,1
+      expect(AdminReportService.formatScreeningsPerDay(1 / 30), '0,1');
+
+      // 0 skrining = 0
+      expect(AdminReportService.formatScreeningsPerDay(0), '0');
+
+      // 5 skrining dalam 2 hari = 2,5
+      expect(AdminReportService.formatScreeningsPerDay(5 / 2), '2,5');
+    });
+
+    test('10. Pembagian bucket Tren Aktivitas Skrining: 7 hari menghasilkan 7 titik harian', () {
+      // 7 hari (1 s.d. 7 Agustus 2026): Sen..Min
+      final screenings = [
+        ScreeningHistoryItem(
+          id: 's_d1',
+          userId: 'u_01',
+          date: DateTime(2026, 8, 1, 10, 0), // Sabtu
+          bmi: 22.0,
+          risk: 'Rendah',
+          category: 'Normal Weight',
+          skriningData: SkriningData(),
+        ),
+        ScreeningHistoryItem(
+          id: 's_d2',
+          userId: 'u_01',
+          date: DateTime(2026, 8, 1, 14, 0), // Sabtu
+          bmi: 23.0,
+          risk: 'Rendah',
+          category: 'Normal Weight',
+          skriningData: SkriningData(),
+        ),
+        ScreeningHistoryItem(
+          id: 's_d3',
+          userId: 'u_02',
+          date: DateTime(2026, 8, 4, 9, 0), // Selasa
+          bmi: 26.0,
+          risk: 'Sedang',
+          category: 'Overweight Level 1',
+          skriningData: SkriningData(),
+        ),
+      ];
+
+      final trend7Days = AdminReportService.calculateTrendPoints(
+        screenings: screenings,
+        startDate: DateTime(2026, 8, 1),
+        endDate: DateTime(2026, 8, 7),
+      );
+
+      expect(trend7Days.length, 7);
+      expect(trend7Days.first.label, 'Sab'); // 1 Agustus 2026 adalah Sabtu
+      final totalPointCounts = trend7Days.fold<int>(0, (sum, p) => sum + p.count);
+      expect(totalPointCounts, 3, reason: 'Total jumlah titik grafik harus persis sama dengan total skrining');
+    });
+
+    test('11. Pembagian bucket Tren Aktivitas Skrining: 30 hari menghasilkan per minggu (Mgg 1..Mgg 5)', () {
+      final screenings30 = List.generate(12, (i) {
+        return ScreeningHistoryItem(
+          id: 's_w_$i',
+          userId: 'u_01',
+          date: DateTime(2026, 8, 1 + (i * 2), 11, 0),
+          bmi: 22.0,
+          risk: 'Rendah',
+          category: 'Normal Weight',
+          skriningData: SkriningData(),
+        );
+      });
+
+      final report = AdminReportService.computeReportData(
+        users: [testUser1],
+        allScreenings: screenings30,
+        startDate: DateTime(2026, 8, 1),
+        endDate: DateTime(2026, 8, 30),
+      );
+
+      expect(report.totalScreenings, 12);
+      expect(report.formattedScreeningsPerDay, '0,4'); // 12 / 30 = 0,4
+      expect(report.trendPoints.length, 5); // 30 hari = 5 minggu (Mgg 1 .. Mgg 5)
+      expect(report.trendPoints.first.label, 'Mgg 1');
+      expect(report.trendPoints.last.label, 'Mgg 5');
+
+      final sumTrendCounts = report.trendPoints.fold<int>(0, (sum, p) => sum + p.count);
+      expect(sumTrendCounts, report.totalScreenings, reason: 'Jumlah seluruh titik tren = Total Skrining');
     });
   });
 }

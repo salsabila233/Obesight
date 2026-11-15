@@ -41,7 +41,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 3. Verifikasi telah berpindah ke tab Laporan
-      expect(find.text('Distribusi Hasil Skrining'), findsOneWidget);
+      expect(find.text('Tren Aktivitas Skrining'), findsOneWidget);
       expect(find.text('Total Skrining'), findsOneWidget);
       expect(find.text('Total Pengguna (Pasien)'), findsOneWidget);
     });
@@ -70,7 +70,7 @@ void main() {
       // Menu dropdown terbuka, tetap berada di tab Beranda (bukan tab Laporan)
       expect(find.text('1 bulan terakhir'), findsOneWidget);
       expect(find.text('1 tahun terakhir'), findsOneWidget);
-      expect(find.text('Distribusi Hasil Skrining'), findsNothing);
+      expect(find.text('Tren Aktivitas Skrining'), findsNothing);
     });
 
     testWidgets('3. Halaman Laporan: CurvedHeaderScaffold pinned header (title: Laporan) & radius 28', (WidgetTester tester) async {
@@ -146,7 +146,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // a) Filter Tanggal
-      expect(find.text('29/07/2026 - 29/08/2026'), findsOneWidget);
+      expect(find.text('29/07/2026 - 29/08/2026'), findsWidgets);
 
       // b) 3 Kartu Ringkasan Skrining Dinamis Berdasarkan Data Aktual/Uji
       expect(find.text('Total Skrining'), findsOneWidget);
@@ -154,24 +154,16 @@ void main() {
       expect(find.text('Pengguna Baru'), findsOneWidget);
       expect(find.text('2'), findsWidgets);
       expect(find.textContaining('Rata-rata/Hari'), findsOneWidget);
-      expect(find.text('0'), findsOneWidget);
+      expect(find.text('0,1'), findsOneWidget);
 
       // Verifikasi angka statis lama sudah tidak ditampilkan lagi
       expect(find.text('3.456'), findsNothing);
       expect(find.text('234'), findsNothing);
       expect(find.text('115'), findsNothing);
 
-      // c) Card Donut "Distribusi Hasil Skrining" (Dihitung Dinamis dari Skrining Aktual)
-      expect(find.text('Distribusi Hasil Skrining'), findsOneWidget);
-      expect(find.text('Insufficient Weight'), findsWidgets);
-      expect(find.text('Normal Weight'), findsWidgets);
-      expect(find.text('Overweight Level 1'), findsWidgets);
-      expect(find.text('Overweight Level 2'), findsWidgets);
-      expect(find.text('Obesity Type 1'), findsWidgets);
-      expect(find.text('Obesity Type 2'), findsWidgets);
-      expect(find.text('Obesity Type 3'), findsWidgets);
-      expect(find.text('66,7%'), findsWidgets);
-      expect(find.text('33,3%'), findsWidgets);
+      // c) Card Tren Aktivitas Skrining (Grafik Garis & Titik Dihitung Dinamis dari Skrining Aktual)
+      expect(find.text('Tren Aktivitas Skrining'), findsOneWidget);
+      expect(find.text('Perkembangan jumlah skrining selama periode yang dipilih.'), findsOneWidget);
 
       // d) Bagian Baru: Jumlah Pengguna (Pasien)
       expect(find.text('Total Pengguna (Pasien)'), findsOneWidget);
@@ -214,15 +206,15 @@ void main() {
       await tester.pumpAndSettle();
 
       // Ubah filter tanggal ke opsi yang membuat data kosong atau memicu fetch
-      await tester.tap(find.text('29/07/2026 - 29/08/2026'));
+      await tester.tap(find.text('29/07/2026 - 29/08/2026').first);
       await tester.pumpAndSettle();
 
       // Pilih "Semua waktu"
-      expect(find.text('Semua waktu'), findsOneWidget);
-      await tester.tap(find.text('Semua waktu'));
+      expect(find.text('Semua waktu'), findsWidgets);
+      await tester.tap(find.text('Semua waktu').first);
       await tester.pumpAndSettle();
 
-      expect(find.text('Semua waktu'), findsOneWidget);
+      expect(find.text('Semua waktu'), findsWidgets);
       expect(caughtDetails, isNull);
     });
   });

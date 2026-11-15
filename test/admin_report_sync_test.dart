@@ -99,8 +99,8 @@ void main() {
     test('2. Persentase perubahan dengan periode lalu bernilai 0 (anti divide-by-zero)', () {
       final badgeFromZero = AdminReportService.calculateChangeBadge(15, 0);
       expect(badgeFromZero.percentage, 0.0);
-      expect(badgeFromZero.badgeText, '0%');
-      expect(badgeFromZero.hasArrow, isTrue);
+      expect(badgeFromZero.badgeText, 'Baru');
+      expect(badgeFromZero.hasArrow, isFalse);
       expect(badgeFromZero.isUp, isTrue);
 
       final badgeZeroToZero = AdminReportService.calculateChangeBadge(0, 0);
@@ -196,6 +196,8 @@ void main() {
       expect(report.totalScreenings, 7);
       final sumDonut = report.screeningDistributionCounts.values.fold(0, (a, b) => a + b);
       expect(sumDonut, report.totalScreenings);
+      final sumTrend = report.trendPoints.fold<int>(0, (a, b) => a + b.count);
+      expect(sumTrend, report.totalScreenings, reason: 'Total seluruh titik grafik Tren sama persis dengan Total Skrining');
     });
 
     test('4. Jenis kelamin dengan variasi penulisan, kosong, dan konsistensi total pengguna', () {
@@ -466,6 +468,8 @@ void main() {
       );
       await Future.delayed(const Duration(milliseconds: 10));
       expect(snapshots.last.totalScreenings, 2);
+      final sumTrendRealtime = snapshots.last.trendPoints.fold<int>(0, (sum, p) => sum + p.count);
+      expect(sumTrendRealtime, 2, reason: 'Titik grafik Tren ikut terupdate otomatis saat Total Skrining bertambah');
 
       // (b) Ubah jenis kelamin pengguna: jumlah Perempuan/Laki-laki berubah
       final updatedAlpha = UserModel(
@@ -570,11 +574,12 @@ void main() {
       // 3. Verifikasi RefreshIndicator terpasang
       expect(find.byType(RefreshIndicator), findsOneWidget);
 
-      // 4. Verifikasi komponen kartu ringkasan, donat, jenis kelamin, dan kategori
+      // 4. Verifikasi komponen kartu ringkasan, tren aktivitas skrining, jenis kelamin, dan kategori
       expect(find.text('Total Skrining'), findsOneWidget);
       expect(find.text('Pengguna Baru'), findsOneWidget);
       expect(find.textContaining('Rata-rata/Hari'), findsOneWidget);
-      expect(find.text('Distribusi Hasil Skrining'), findsOneWidget);
+      expect(find.text('Tren Aktivitas Skrining'), findsOneWidget);
+      expect(find.text('Perkembangan jumlah skrining selama periode yang dipilih.'), findsOneWidget);
       expect(find.text('Total Pengguna (Pasien)'), findsOneWidget);
       expect(find.text('Pengguna per Jenis Kelamin'), findsOneWidget);
       expect(find.text('Kategori Hasil Skrining Terbaru'), findsOneWidget);

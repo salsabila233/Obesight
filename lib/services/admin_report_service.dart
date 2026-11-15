@@ -88,6 +88,24 @@ class ObesityCategoryConfig {
   }
 }
 
+/// Model representasi titik data tren aktivitas skrining
+class ScreeningTrendPoint {
+  final String label; // "Sen", "Sel", dst. atau "Mgg 1", "Mgg 2", dst.
+  final int count;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const ScreeningTrendPoint({
+    required this.label,
+    required this.count,
+    required this.startDate,
+    required this.endDate,
+  });
+
+  @override
+  String toString() => 'ScreeningTrendPoint(label: $label, count: $count)';
+}
+
 /// Model hasil kalkulasi laporan agregasi admin
 class AdminReportData {
   final int totalPatients;
@@ -117,12 +135,16 @@ class AdminReportData {
   // 3. Kartu Ringkasan: Skrining Rata-rata/Hari
   final int screeningsPerDay;
   final double exactScreeningsPerDay;
+  final String formattedScreeningsPerDay;
   final double screeningsPerDayChangePercentage;
   final bool screeningsPerDayHasArrow;
   final bool screeningsPerDayIsUp;
   final String screeningsPerDayBadgeText;
 
-  // 4. Donut Chart: Distribusi Hasil Skrining (7 Kategori)
+  // 4. Tren Aktivitas Skrining (Grafik Garis Halus & Area Transparan)
+  final List<ScreeningTrendPoint> trendPoints;
+
+  // 5. Donut Chart: Distribusi Hasil Skrining (7 Kategori) - Kompatibilitas
   final Map<ObesityCategory, int> screeningDistributionCounts;
   final Map<ObesityCategory, double> screeningDistributionPercentages;
 
@@ -148,10 +170,12 @@ class AdminReportData {
     this.newUsersBadgeText = '0%',
     this.screeningsPerDay = 0,
     this.exactScreeningsPerDay = 0.0,
+    this.formattedScreeningsPerDay = '0',
     this.screeningsPerDayChangePercentage = 0.0,
     this.screeningsPerDayHasArrow = false,
     this.screeningsPerDayIsUp = true,
     this.screeningsPerDayBadgeText = '0%',
+    this.trendPoints = const [],
     this.screeningDistributionCounts = const {},
     this.screeningDistributionPercentages = const {},
   });
@@ -207,10 +231,12 @@ class AdminReportData {
       newUsersBadgeText: '0%',
       screeningsPerDay: 0,
       exactScreeningsPerDay: 0.0,
+      formattedScreeningsPerDay: '0',
       screeningsPerDayChangePercentage: 0.0,
       screeningsPerDayHasArrow: false,
       screeningsPerDayIsUp: true,
       screeningsPerDayBadgeText: '0%',
+      trendPoints: [],
       screeningDistributionCounts: {
         ObesityCategory.insufficientWeight: 0,
         ObesityCategory.normalWeight: 0,
@@ -376,6 +402,187 @@ class AdminReportService {
     );
   }
 
+  /// Format angka skrining rata-rata/hari: 1 desimal dengan koma (contoh: 12 skrining / 30 hari = 0,4)
+  /// Nilai kecil di atas 0 tidak boleh tampil sebagai 0 (misal: 1 / 30 = 0,033 -> 0,1)
+  /// Jika hasilnya bilangan bulat (atau 0), tampilkan bulat (contoh: 2 atau 0) konsisten dengan kartu lain
+  static String formatScreeningsPerDay(double value) {
+    if (value <= 0.0) return '0';
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+    double rounded = double.parse(value.toStringAsFixed(1));
+    if (rounded == 0.0) {
+      rounded = 0.1; // Nilai kecil di atas 0 jangan tampil sebagai 0
+    }
+    if (rounded == rounded.roundToDouble()) {
+      return rounded.toInt().toString();
+    }
+    return rounded.toStringAsFixed(1).replaceAll('.', ',');
+  }
+
+  /// Menghitung pembagian bucket titik tren aktivitas skrining:
+  /// - 7 hari: 1 titik per hari (Sen, Sel, ...)
+  /// - 30 hari / 1 bulan: per minggu (4 sampai 5 titik) berlabel "Mgg 1", "Mgg 2", ...
+  /// - Rentang lebih panjang / semua waktu: per minggu atau per bulan (maks 12 titik)
+  /// - Periode tanpa skrining bernilai 0
+  /// - Jumlah total seluruh titik konsisten 100% sama dengan totalScreenings
+  static List<ScreeningTrendPoint> calculateTrendPoints({
+    required List<ScreeningHistoryItem> screenings,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    const dayNames = {
+      1: 'Sen',
+      2: 'Sel',
+      3: 'Rab',
+      4: 'Kam',
+      5: 'Jum',
+      6: 'Sab',
+      7: 'Min',
+    };
+
+    const monthNames = {
+      1: 'Jan',
+      2: 'Feb',
+      3: 'Mar',
+      4: 'Apr',
+      5: 'Mei',
+      6: 'Jun',
+      7: 'Jul',
+      8: 'Agu',
+      9: 'Sep',
+      10: 'Okt',
+      11: 'Nov',
+      12: 'Des',
+    };
+
+    DateTime start;
+    DateTime end;
+
+    if (startDate != null && endDate != null) {
+      start = DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0);
+      end = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+    } else {
+      // Rentang "Semua waktu"
+      if (screenings.isNotEmpty) {
+        DateTime earliest = screenings.first.date;
+        DateTime latest = screenings.first.date;
+        for (final s in screenings) {
+          if (s.date.isBefore(earliest)) earliest = s.date;
+          if (s.date.isAfter(latest)) latest = s.date;
+        }
+        start = DateTime(earliest.year, earliest.month, earliest.day, 0, 0, 0);
+        end = DateTime(latest.year, latest.month, latest.day, 23, 59, 59, 999);
+      } else {
+        // Fallback rentang 7 hari jika kosong
+        final now = DateTime.now();
+        start = DateTime(now.year, now.month, now.day - 6, 0, 0, 0);
+        end = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+      }
+    }
+
+    final int daysCount = end.difference(start).inDays + 1;
+
+    // A. 7 hari atau kurang: 1 titik per hari (Sen, Sel, ...)
+    if (daysCount <= 7) {
+      final points = <ScreeningTrendPoint>[];
+      for (int i = 0; i < daysCount; i++) {
+        final dayStart = start.add(Duration(days: i));
+        final dayEnd = DateTime(dayStart.year, dayStart.month, dayStart.day, 23, 59, 59, 999);
+        final label = dayNames[dayStart.weekday] ?? 'Hari';
+
+        final count = screenings.where((s) => isDateInRange(s.date, dayStart, dayEnd)).length;
+        points.add(ScreeningTrendPoint(
+          label: label,
+          count: count,
+          startDate: dayStart,
+          endDate: dayEnd,
+        ));
+      }
+      return points;
+    }
+
+    // B. Antara 8 sampai 35 hari (misal 30 hari atau 1 bulan): per minggu ("Mgg 1", "Mgg 2", ...)
+    if (daysCount <= 35) {
+      final numWeeks = (daysCount / 7.0).ceil();
+      final points = <ScreeningTrendPoint>[];
+
+      for (int w = 0; w < numWeeks; w++) {
+        final wStart = start.add(Duration(days: w * 7));
+        DateTime wEnd;
+        if (w == numWeeks - 1) {
+          wEnd = end;
+        } else {
+          final temp = start.add(Duration(days: (w + 1) * 7 - 1));
+          wEnd = DateTime(temp.year, temp.month, temp.day, 23, 59, 59, 999);
+        }
+
+        final count = screenings.where((s) {
+          return !s.date.isBefore(wStart) && !s.date.isAfter(wEnd);
+        }).length;
+
+        points.add(ScreeningTrendPoint(
+          label: 'Mgg ${w + 1}',
+          count: count,
+          startDate: wStart,
+          endDate: wEnd,
+        ));
+      }
+      return points;
+    }
+
+    // C. Lebih dari 35 hari: per bulan (maksimal ~12 titik) atau per minggu jika pendek
+    if (daysCount <= 84) {
+      final numWeeks = (daysCount / 7.0).ceil();
+      final points = <ScreeningTrendPoint>[];
+      for (int w = 0; w < numWeeks; w++) {
+        final wStart = start.add(Duration(days: w * 7));
+        DateTime wEnd = (w == numWeeks - 1)
+            ? end
+            : DateTime(wStart.year, wStart.month, wStart.day + 6, 23, 59, 59, 999);
+
+        final count = screenings.where((s) {
+          return !s.date.isBefore(wStart) && !s.date.isAfter(wEnd);
+        }).length;
+
+        points.add(ScreeningTrendPoint(
+          label: 'Mgg ${w + 1}',
+          count: count,
+          startDate: wStart,
+          endDate: wEnd,
+        ));
+      }
+      return points;
+    } else {
+      // Per bulan (maksimal 12 bulan)
+      final points = <ScreeningTrendPoint>[];
+      DateTime currentMonthStart = DateTime(start.year, start.month, 1);
+
+      while (!currentMonthStart.isAfter(end) && points.length < 12) {
+        final nextMonth = DateTime(currentMonthStart.year, currentMonthStart.month + 1, 1);
+        final currentMonthEnd = nextMonth.subtract(const Duration(milliseconds: 1));
+
+        final bucketStart = currentMonthStart.isBefore(start) ? start : currentMonthStart;
+        final bucketEnd = currentMonthEnd.isAfter(end) ? end : currentMonthEnd;
+
+        final label = monthNames[currentMonthStart.month] ?? '${currentMonthStart.month}';
+        final count = screenings.where((s) {
+          return !s.date.isBefore(bucketStart) && !s.date.isAfter(bucketEnd);
+        }).length;
+
+        points.add(ScreeningTrendPoint(
+          label: label,
+          count: count,
+          startDate: bucketStart,
+          endDate: bucketEnd,
+        ));
+
+        currentMonthStart = nextMonth;
+      }
+      return points;
+    }
+  }
+
   /// Menghitung rentang tanggal periode sebelumnya dengan durasi hari yang persis sama
   static ({DateTime start, DateTime end})? calculatePreviousPeriod(
     DateTime? start,
@@ -396,6 +603,9 @@ class AdminReportService {
   }
 
   /// Menghitung persentase perubahan periode ini dibanding periode lalu secara aman (anti divide-by-zero)
+  /// - Panah naik/turun hanya muncul jika nilai benar-benar naik atau turun
+  /// - Jika periode sebelumnya 0 dan periode ini > 0: penanda netral "Baru" tanpa panah
+  /// - Jika keduanya 0 atau tidak berubah: "0%" netral tanpa panah
   static ({
     double percentage,
     bool hasArrow,
@@ -406,9 +616,9 @@ class AdminReportService {
       if (current > 0) {
         return (
           percentage: 0.0,
-          hasArrow: true,
+          hasArrow: false,
           isUp: true,
-          badgeText: '0%',
+          badgeText: 'Baru',
         );
       }
       return (
@@ -738,12 +948,20 @@ class AdminReportService {
 
     final double exactAvg = totalScreenings / daysInRange;
     final int avgPerDay = exactAvg.round();
+    final String formattedAvg = formatScreeningsPerDay(exactAvg);
     final double prevExactAvg = (prevPeriod != null && daysInRange > 0)
         ? (prevTotalScreenings / daysInRange)
         : 0.0;
     final avgBadge = calculateChangeBadge(exactAvg, prevExactAvg);
 
-    // d) Distribusi Hasil Skrining (Donut Chart 7 Kategori)
+    // d) Tren Aktivitas Skrining (Grafik Garis & Area)
+    final trendPoints = calculateTrendPoints(
+      screenings: screeningsInPeriod,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    // e) Distribusi Hasil Skrining (Donut Chart 7 Kategori - kompatibilitas)
     final screeningDistributionPercentages = <ObesityCategory, double>{};
     for (final cfg in ObesityCategoryConfig.all7Categories) {
       screeningDistributionPercentages[cfg.category] = calculatePercentage(
@@ -752,7 +970,7 @@ class AdminReportService {
       );
     }
 
-    // e) Kategori Obesitas Terbaru per Pengguna (Bottom Section: 1 Pengguna Dihitung 1 Kali)
+    // f) Kategori Obesitas Terbaru per Pengguna (Bottom Section: 1 Pengguna Dihitung 1 Kali)
     final latestScreeningsMap = Map<String, ScreeningHistoryItem?>.from(
       latestScreenings ?? {},
     );
@@ -824,10 +1042,12 @@ class AdminReportService {
       newUsersBadgeText: newUsersBadge.badgeText,
       screeningsPerDay: avgPerDay,
       exactScreeningsPerDay: exactAvg,
+      formattedScreeningsPerDay: formattedAvg,
       screeningsPerDayChangePercentage: avgBadge.percentage,
       screeningsPerDayHasArrow: avgBadge.hasArrow,
       screeningsPerDayIsUp: avgBadge.isUp,
       screeningsPerDayBadgeText: avgBadge.badgeText,
+      trendPoints: trendPoints,
       screeningDistributionCounts: screeningDistributionCounts,
       screeningDistributionPercentages: screeningDistributionPercentages,
     );
