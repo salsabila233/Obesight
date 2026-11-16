@@ -48,15 +48,9 @@ class _HealthArticleDetailScreenState extends State<HealthArticleDetailScreen> {
       _isPublishing = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Artikel "${_article.title}" berhasil dipublikasikan!',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: const Color(0xFF2E7D5A),
-        behavior: SnackBarBehavior.floating,
-      ),
+    AppAlert.showSuccess(
+      context,
+      'Artikel "${_article.title}" berhasil dipublikasikan!',
     );
   }
 

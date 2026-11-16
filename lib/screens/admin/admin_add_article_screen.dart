@@ -776,11 +776,9 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal mengambil gambar: $e'),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
+        AppAlert.showError(
+          context,
+          'Gagal mengambil gambar: $e',
         );
       }
     }
@@ -871,29 +869,17 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
         .toList();
 
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Judul artikel wajib diisi',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showWarning(
+        context,
+        'Judul artikel wajib diisi',
       );
       return;
     }
 
     if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Konten artikel wajib diisi',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppAlert.showWarning(
+        context,
+        'Konten artikel wajib diisi',
       );
       return;
     }
@@ -930,28 +916,18 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
 
       if (!mounted) return;
 
+      final isEditing = widget.initialArticle != null;
       final message = _isPublished
-          ? 'Artikel berhasil disimpan dan langsung dipublikasikan ke pengguna!'
-          : 'Artikel berhasil disimpan sebagai draf.';
+          ? (isEditing
+              ? 'Artikel "${savedArticle.title}" berhasil diperbarui dan dipublikasikan!'
+              : 'Artikel "${savedArticle.title}" berhasil disimpan dan langsung dipublikasikan!')
+          : (isEditing
+              ? 'Artikel "${savedArticle.title}" berhasil diperbarui sebagai draf.'
+              : 'Artikel "${savedArticle.title}" berhasil disimpan sebagai draf.');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  message,
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 13),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF2E7D5A),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
-        ),
+      AppAlert.showSuccess(
+        context,
+        message,
       );
 
       // Kembalikan status ke AdminHomeScreen agar langsung fokus ke tab yang tepat
@@ -959,15 +935,14 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
         'success': true,
         'isPublished': _isPublished,
         'article': savedArticle,
+        'message': message,
       });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Terjadi kesalahan: $e'),
-          backgroundColor: const Color(0xFFEF4444),
-        ),
+      AppAlert.showError(
+        context,
+        'Terjadi kesalahan saat menyimpan artikel: $e',
       );
     }
   }
