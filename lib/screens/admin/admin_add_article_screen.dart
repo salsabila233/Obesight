@@ -20,15 +20,295 @@ class AdminAddArticleScreen extends StatefulWidget {
   State<AdminAddArticleScreen> createState() => _AdminAddArticleScreenState();
 }
 
+class ParsedRichText {
+  final String plainText;
+  final List<int> styles;
+  const ParsedRichText(this.plainText, this.styles);
+}
+
 class RichArticleTextController extends TextEditingController {
   bool isDark;
 
-  RichArticleTextController({this.isDark = false, super.text});
+  // Mask bit untuk gaya teks format
+  static const int boldMask = 1;      // 0b001
+  static const int italicMask = 2;    // 0b010
+  static const int underlineMask = 4; // 0b100
+
+  // Style bitmask untuk setiap karakter teks. Panjang selalu sama dengan text.length
+  List<int> _styles = [];
+
+  // Style aktif untuk karakter berikutnya yang diketik
+  int _activeStyle = 0;
+
+  bool get isCurrentSelectionBold => _isStyleActiveForSelection(boldMask);
+  bool get isCurrentSelectionItalic => _isStyleActiveForSelection(italicMask);
+  bool get isCurrentSelectionUnderline => _isStyleActiveForSelection(underlineMask);
+
+  bool _isStyleActiveForSelection(int mask) {
+    if (!selection.isValid || selection.isCollapsed) {
+      return (_activeStyle & mask) != 0;
+    }
+    final start = selection.start.clamp(0, text.length);
+    final end = selection.end.clamp(0, text.length);
+    if (start >= end) return (_activeStyle & mask) != 0;
+    for (int i = start; i < end; i++) {
+      if (i < _styles.length && (_styles[i] & mask) != 0) return true;
+    }
+    return false;
+  }
+
+  RichArticleTextController({this.isDark = false, String? text}) {
+    if (text != null && text.isNotEmpty) {
+      loadFormattedText(text);
+    }
+  }
+
+  /// Memuat teks artikel lama yang mungkin berisi tag format (markdown / HTML).
+  /// Memisahkan teks murni dan style visual sehingga editor 100% bebas dari kode <...>.
+  void loadFormattedText(String rawText) {
+    final parsed = _parseRawToPlainAndStyles(rawText);
+    _styles = parsed.styles;
+    super.value = TextEditingValue(
+      text: parsed.plainText,
+      selection: TextSelection.collapsed(offset: parsed.plainText.length),
+    );
+  }
+
+  static ParsedRichText _parseRawToPlainAndStyles(String rawText, [int currentStyle = 0]) {
+    if (rawText.isEmpty) {
+      return const ParsedRichText('', []);
+    }
+
+    final buffer = StringBuffer();
+    final styles = <int>[];
+
+    final regex = RegExp(
+      r'(\*\*(?:[\s\S]+?)\*\*|<b>(?:[\s\S]+?)<\/b>|<strong>(?:[\s\S]+?)<\/strong>|'
+      r'__(?:[\s\S]+?)__|<u>(?:[\s\S]*?)<\/u>|<ins>(?:[\s\S]*?)<\/ins>|'
+      r'\*(?:[\s\S]+?)\*|_(?:[\s\S]+?)_|<i>(?:[\s\S]+?)<\/i>|<em>(?:[\s\S]+?)<\/em>)',
+      caseSensitive: false,
+    );
+
+    int lastIndex = 0;
+    for (final match in regex.allMatches(rawText)) {
+      if (match.start > lastIndex) {
+        final unformatted = rawText.substring(lastIndex, match.start);
+        buffer.write(unformatted);
+        styles.addAll(List<int>.filled(unformatted.length, currentStyle));
+      }
+
+      final raw = match.group(0)!;
+      final lower = raw.toLowerCase();
+
+      String inner = '';
+      int childStyle = currentStyle;
+
+      if (raw.startsWith('**') && raw.endsWith('**') && raw.length >= 4) {
+        inner = raw.substring(2, raw.length - 2);
+        childStyle |= boldMask;
+      } else if (lower.startsWith('<b>') || lower.startsWith('<strong>')) {
+        final openLen = lower.startsWith('<b>') ? 3 : 8;
+        final closeLen = lower.startsWith('<b>') ? 4 : 9;
+        inner = raw.substring(openLen, raw.length - closeLen);
+        childStyle |= boldMask;
+      } else if (raw.startsWith('__') && raw.endsWith('__') && raw.length >= 4) {
+        inner = raw.substring(2, raw.length - 2);
+        childStyle |= underlineMask;
+      } else if (lower.startsWith('<u>') || lower.startsWith('<ins>')) {
+        final openLen = lower.startsWith('<u>') ? 3 : 5;
+        final closeLen = lower.startsWith('<u>') ? 4 : 6;
+        inner = raw.substring(openLen, raw.length - closeLen);
+        childStyle |= underlineMask;
+      } else if ((raw.startsWith('*') && raw.endsWith('*') && raw.length >= 2) ||
+          (raw.startsWith('_') && raw.endsWith('_') && raw.length >= 2)) {
+        inner = raw.substring(1, raw.length - 1);
+        childStyle |= italicMask;
+      } else if (lower.startsWith('<i>') || lower.startsWith('<em>')) {
+        final openLen = lower.startsWith('<i>') ? 3 : 4;
+        final closeLen = lower.startsWith('<i>') ? 4 : 5;
+        inner = raw.substring(openLen, raw.length - closeLen);
+        childStyle |= italicMask;
+      } else {
+        inner = raw;
+      }
+
+      final innerParsed = _parseRawToPlainAndStyles(inner, childStyle);
+      buffer.write(innerParsed.plainText);
+      styles.addAll(innerParsed.styles);
+
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < rawText.length) {
+      final unformatted = rawText.substring(lastIndex);
+      buffer.write(unformatted);
+      styles.addAll(List<int>.filled(unformatted.length, currentStyle));
+    }
+
+    return ParsedRichText(buffer.toString(), styles);
+  }
+
+  void toggleBold() {
+    _toggleMask(boldMask);
+  }
+
+  void toggleItalic() {
+    _toggleMask(italicMask);
+  }
+
+  void toggleUnderline() {
+    _toggleMask(underlineMask);
+  }
+
+  void _toggleMask(int mask) {
+    if (_styles.length != text.length) {
+      _styles = List<int>.filled(text.length, 0);
+    }
+
+    if (!selection.isValid || selection.isCollapsed) {
+      _activeStyle ^= mask;
+      notifyListeners();
+      return;
+    }
+
+    final start = selection.start.clamp(0, text.length);
+    final end = selection.end.clamp(0, text.length);
+    if (start >= end) {
+      _activeStyle ^= mask;
+      notifyListeners();
+      return;
+    }
+
+    bool allHaveMask = true;
+    for (int i = start; i < end; i++) {
+      if ((_styles[i] & mask) == 0) {
+        allHaveMask = false;
+        break;
+      }
+    }
+
+    for (int i = start; i < end; i++) {
+      if (allHaveMask) {
+        _styles[i] &= ~mask;
+      } else {
+        _styles[i] |= mask;
+      }
+    }
+
+    notifyListeners();
+  }
+
+  /// Mengekspor teks berformat untuk disimpan ke Firestore atau ditampilkan di pratinjau.
+  String getFormattedText() {
+    if (text.isEmpty) return '';
+    if (_styles.length != text.length) return text;
+
+    final buffer = StringBuffer();
+    int runStart = 0;
+    int currentStyle = _styles[0];
+
+    for (int i = 1; i < text.length; i++) {
+      if (_styles[i] != currentStyle) {
+        _appendFormattedRun(buffer, text.substring(runStart, i), currentStyle);
+        runStart = i;
+        currentStyle = _styles[i];
+      }
+    }
+    _appendFormattedRun(buffer, text.substring(runStart), currentStyle);
+
+    return buffer.toString();
+  }
+
+  void _appendFormattedRun(StringBuffer buffer, String run, int styleBits) {
+    if (run.isEmpty) return;
+    if (styleBits == 0) {
+      buffer.write(run);
+      return;
+    }
+
+    final isBold = (styleBits & boldMask) != 0;
+    final isItalic = (styleBits & italicMask) != 0;
+    final isUnderline = (styleBits & underlineMask) != 0;
+
+    String formatted = run;
+    if (isUnderline) {
+      formatted = '__${formatted}__';
+    }
+    if (isItalic) {
+      formatted = '*${formatted}*';
+    }
+    if (isBold) {
+      formatted = '**${formatted}**';
+    }
+    buffer.write(formatted);
+  }
 
   @override
   set value(TextEditingValue newValue) {
-    final processed = _processAutoList(value, newValue);
-    super.value = processed;
+    // 1. Tangani auto-numbering & bullet saat Enter (fitur Word)
+    final autoListed = _processAutoList(value, newValue);
+
+    // 2. Sinkronkan _styles dengan perubahan teks
+    _syncStylesOnTextChange(value, autoListed);
+
+    super.value = autoListed;
+  }
+
+  void _syncStylesOnTextChange(TextEditingValue oldVal, TextEditingValue newVal) {
+    if (newVal.text.isEmpty) {
+      _styles = [];
+      return;
+    }
+    if (_styles.length != oldVal.text.length) {
+      _styles = List<int>.filled(oldVal.text.length, 0);
+    }
+    if (oldVal.text == newVal.text) {
+      if (newVal.selection.isCollapsed) {
+        final pos = newVal.selection.baseOffset;
+        if (pos > 0 && pos <= _styles.length) {
+          _activeStyle = _styles[pos - 1];
+        } else if (_styles.isNotEmpty) {
+          _activeStyle = _styles.first;
+        } else {
+          _activeStyle = 0;
+        }
+      }
+      return;
+    }
+
+    final oldText = oldVal.text;
+    final newText = newVal.text;
+
+    int prefixLen = 0;
+    while (prefixLen < oldText.length &&
+        prefixLen < newText.length &&
+        oldText[prefixLen] == newText[prefixLen]) {
+      prefixLen++;
+    }
+
+    int suffixLen = 0;
+    while (suffixLen < (oldText.length - prefixLen) &&
+        suffixLen < (newText.length - prefixLen) &&
+        oldText[oldText.length - 1 - suffixLen] == newText[newText.length - 1 - suffixLen]) {
+      suffixLen++;
+    }
+
+    final insertCount = newText.length - prefixLen - suffixLen;
+
+    final inheritedStyle = (prefixLen > 0 && prefixLen <= _styles.length)
+        ? _styles[prefixLen - 1]
+        : _activeStyle;
+
+    final newStyles = <int>[];
+    newStyles.addAll(_styles.sublist(0, prefixLen));
+    if (insertCount > 0) {
+      newStyles.addAll(List<int>.filled(insertCount, inheritedStyle));
+    }
+    if (suffixLen > 0) {
+      newStyles.addAll(_styles.sublist(oldText.length - suffixLen));
+    }
+
+    _styles = newStyles;
   }
 
   /// Fitur pintar penomoran otomatis & bullet saat menekan Enter seperti Microsoft Word.
@@ -130,18 +410,61 @@ class RichArticleTextController extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
-    final effectiveStyle = style ??
+    final baseStyle = style ??
         GoogleFonts.poppins(
           fontSize: 13.5,
           height: 1.6,
           color: isDark ? Colors.white : const Color(0xFF0F172A),
         );
 
-    // Menggunakan buildHighlightedEditorSpans yang mempertahankan 100% karakter asli
-    // agar toPlainText() == text tetap terpenuhi dan tidak memicu crash di layout/cursor.
-    return TextSpan(
-      children: buildHighlightedEditorSpans(text, effectiveStyle, isDark: isDark),
-    );
+    if (text.isEmpty) {
+      return TextSpan(text: '', style: baseStyle);
+    }
+
+    if (_styles.length != text.length) {
+      _styles = List<int>.filled(text.length, 0);
+    }
+
+    final spans = <InlineSpan>[];
+    int runStart = 0;
+    int currentStyle = _styles[0];
+
+    for (int i = 1; i < text.length; i++) {
+      if (_styles[i] != currentStyle) {
+        spans.add(_createSpan(text.substring(runStart, i), currentStyle, baseStyle));
+        runStart = i;
+        currentStyle = _styles[i];
+      }
+    }
+    spans.add(_createSpan(text.substring(runStart), currentStyle, baseStyle));
+
+    return TextSpan(children: spans);
+  }
+
+  TextSpan _createSpan(String runText, int styleBits, TextStyle baseStyle) {
+    final isBold = (styleBits & boldMask) != 0;
+    final isItalic = (styleBits & italicMask) != 0;
+    final isUnderline = (styleBits & underlineMask) != 0;
+
+    TextStyle spanStyle = baseStyle;
+    if (isBold) {
+      spanStyle = spanStyle.copyWith(
+        fontWeight: FontWeight.w700,
+      );
+    }
+    if (isItalic) {
+      spanStyle = spanStyle.copyWith(
+        fontStyle: FontStyle.italic,
+      );
+    }
+    if (isUnderline) {
+      spanStyle = spanStyle.copyWith(
+        decoration: TextDecoration.underline,
+        decorationColor: isDark ? Colors.white : const Color(0xFF0F172A),
+      );
+    }
+
+    return TextSpan(text: runText, style: spanStyle);
   }
 }
 
@@ -227,6 +550,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
     if (_contentController.selection.isValid && _contentController.selection.start >= 0) {
       _lastContentSelection = _contentController.selection;
     }
+    if (mounted) setState(() {});
   }
 
   // --- Dynamic Takeaway Items Handler ---
@@ -250,71 +574,6 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
   }
 
   // --- Formatting Helpers for Content Toolbar ---
-
-  void _applyFormatting(String prefix, String suffix, {String placeholder = 'teks'}) {
-    final currentSelection = _contentController.selection;
-    final selection = currentSelection.isValid ? currentSelection : _lastContentSelection;
-    final text = _contentController.text;
-
-    if (!selection.isValid || selection.start < 0 || selection.end < 0) {
-      final newText = '$text$prefix$placeholder$suffix';
-      _contentController.value = TextEditingValue(
-        text: newText,
-        selection: TextSelection(
-          baseOffset: text.length + prefix.length,
-          extentOffset: text.length + prefix.length + placeholder.length,
-        ),
-      );
-      _contentFocusNode.requestFocus();
-      setState(() {});
-      return;
-    }
-
-    if (selection.isCollapsed) {
-      final pos = selection.start.clamp(0, text.length);
-      final newText = text.replaceRange(pos, pos, '$prefix$placeholder$suffix');
-      _contentController.value = TextEditingValue(
-        text: newText,
-        selection: TextSelection(
-          baseOffset: pos + prefix.length,
-          extentOffset: pos + prefix.length + placeholder.length,
-        ),
-      );
-    } else {
-      final start = selection.start.clamp(0, text.length);
-      final end = selection.end.clamp(0, text.length);
-      final selectedText = text.substring(start, end);
-
-      // Fitur pintar: Toggle off jika teks yang diblok sudah memiliki format ini
-      if (selectedText.startsWith(prefix) &&
-          selectedText.endsWith(suffix) &&
-          selectedText.length >= prefix.length + suffix.length) {
-        final unwrapped = selectedText.substring(prefix.length, selectedText.length - suffix.length);
-        final newText = text.replaceRange(start, end, unwrapped);
-        _contentController.value = TextEditingValue(
-          text: newText,
-          selection: TextSelection(
-            baseOffset: start,
-            extentOffset: start + unwrapped.length,
-          ),
-        );
-      } else {
-        final formatted = '$prefix$selectedText$suffix';
-        final newText = text.replaceRange(start, end, formatted);
-        _contentController.value = TextEditingValue(
-          text: newText,
-          selection: TextSelection(
-            baseOffset: start + prefix.length,
-            extentOffset: start + prefix.length + selectedText.length,
-          ),
-        );
-      }
-    }
-
-    _lastContentSelection = _contentController.selection;
-    _contentFocusNode.requestFocus();
-    setState(() {});
-  }
 
   void _toggleNumberedList() {
     final currentSelection = _contentController.selection;
@@ -604,7 +863,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
 
   Future<void> _handleSave() async {
     final title = _titleController.text.trim();
-    final content = _contentController.text.trim();
+    final content = _contentController.getFormattedText().trim();
     final snippet = _snippetController.text.trim();
     final takeaways = _takeawayControllers
         .map((c) => c.text.trim())
@@ -1371,7 +1630,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                             ),
                           ),
                           FormattedArticleContent(
-                            content: _contentController.text,
+                            content: _contentController.getFormattedText(),
                             isDark: isDark,
                           ),
                         ],
@@ -1417,23 +1676,35 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                                   _buildToolbarIconButton(
                                     label: 'B',
                                     isBold: true,
-                                    tooltip: 'Tebalkan teks terpilih (Bold)',
+                                    isActive: _contentController.isCurrentSelectionBold,
+                                    tooltip: 'Tebalkan teks (Bold)',
                                     isDark: isDark,
-                                    onTap: () => _applyFormatting('**', '**', placeholder: 'teks tebal'),
+                                    onTap: () {
+                                      _contentController.toggleBold();
+                                      setState(() {});
+                                    },
                                   ),
                                   _buildToolbarIconButton(
                                     label: 'I',
                                     isItalic: true,
-                                    tooltip: 'Miringkan teks terpilih (Italic)',
+                                    isActive: _contentController.isCurrentSelectionItalic,
+                                    tooltip: 'Miringkan teks (Italic)',
                                     isDark: isDark,
-                                    onTap: () => _applyFormatting('*', '*', placeholder: 'teks miring'),
+                                    onTap: () {
+                                      _contentController.toggleItalic();
+                                      setState(() {});
+                                    },
                                   ),
                                   _buildToolbarIconButton(
                                     label: 'U',
                                     isUnderline: true,
-                                    tooltip: 'Garis bawahi teks terpilih (Underline)',
+                                    isActive: _contentController.isCurrentSelectionUnderline,
+                                    tooltip: 'Garis bawahi teks (Underline)',
                                     isDark: isDark,
-                                    onTap: () => _applyFormatting('<u>', '</u>', placeholder: 'teks bergaris bawah'),
+                                    onTap: () {
+                                      _contentController.toggleUnderline();
+                                      setState(() {});
+                                    },
                                   ),
                                   const SizedBox(
                                     height: 18,
@@ -1894,6 +2165,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
     bool isBold = false,
     bool isItalic = false,
     bool isUnderline = false,
+    bool isActive = false,
     bool isDark = false,
   }) {
     return Tooltip(
@@ -1907,10 +2179,15 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 2),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFF1F5F9),
+              color: isActive
+                  ? (isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F5EE))
+                  : (isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFF1F5F9)),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                color: isActive
+                    ? const Color(0xFF2E7D5A)
+                    : (isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0)),
+                width: isActive ? 1.5 : 1,
               ),
             ),
             child: Text(
@@ -1920,7 +2197,9 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                 fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
                 fontStyle: isItalic ? FontStyle.italic : FontStyle.normal,
                 decoration: isUnderline ? TextDecoration.underline : TextDecoration.none,
-                color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF334155),
+                color: isActive
+                    ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF1E5B40))
+                    : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF334155)),
               ),
             ),
           ),

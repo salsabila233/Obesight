@@ -12,8 +12,8 @@ List<InlineSpan> parseFormattedSpans(String text, TextStyle baseStyle) {
   final spans = <InlineSpan>[];
   final regex = RegExp(
     r'(\*\*(?:[^*]+)\*\*|<b>(?:.+?)<\/b>|<strong>(?:.+?)<\/strong>|'
-    r'\*(?:[^*]+)\*|_(?:[^_]+)_|<i>(?:.+?)<\/i>|<em>(?:.+?)<\/em>|'
-    r'<u>(?:[\s\S]*?)<\/u>|<ins>(?:[\s\S]*?)<\/ins>)',
+    r'__(?:[^_]+)__|<u>(?:[\s\S]*?)<\/u>|<ins>(?:[\s\S]*?)<\/ins>|'
+    r'\*(?:[^*]+)\*|_(?:[^_]+)_|<i>(?:.+?)<\/i>|<em>(?:.+?)<\/em>)',
     caseSensitive: false,
   );
   int lastIndex = 0;
@@ -46,6 +46,14 @@ List<InlineSpan> parseFormattedSpans(String text, TextStyle baseStyle) {
         children: parseFormattedSpans(
           inner,
           baseStyle.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ));
+    } else if (raw.startsWith('__') && raw.endsWith('__') && raw.length >= 4) {
+      final inner = raw.substring(2, raw.length - 2);
+      spans.add(TextSpan(
+        children: parseFormattedSpans(
+          inner,
+          baseStyle.copyWith(decoration: TextDecoration.underline),
         ),
       ));
     } else if ((lower.startsWith('<u>') && lower.endsWith('</u>')) ||
