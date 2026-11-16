@@ -63,7 +63,7 @@ void main() {
       }
     });
 
-    test('3. Data kosong, null, atau tidak dikenal menghasilkan AdminReportGender.tidakDiketahui', () {
+    test('3. Data kosong, null, atau tidak dikenal menghasilkan null', () {
       const unknownVariants = [
         null,
         '',
@@ -77,7 +77,7 @@ void main() {
       for (final variant in unknownVariants) {
         expect(
           AdminReportService.normalizeGender(variant),
-          AdminReportGender.tidakDiketahui,
+          isNull,
           reason: 'Gagal menangani nilai kosong/tidak dikenal: "$variant"',
         );
       }
@@ -354,7 +354,6 @@ void main() {
       expect(report.isEmpty, isTrue);
       expect(report.genderPercentages[AdminReportGender.perempuan], 0.0);
       expect(report.genderPercentages[AdminReportGender.lakiLaki], 0.0);
-      expect(report.genderPercentages[AdminReportGender.tidakDiketahui], 0.0);
       expect(report.obesityCounts[ObesityCategory.normalWeight], 0);
     });
   });
@@ -366,6 +365,7 @@ void main() {
       email: 'u1@example.com',
       username: 'u1',
       role: UserRole.user,
+      gender: 'Perempuan',
       joined: '01 Agustus 2026',
     );
 
@@ -375,6 +375,7 @@ void main() {
       email: 'u2@example.com',
       username: 'u2',
       role: UserRole.user,
+      gender: 'Laki-laki',
       joined: '15 Agustus 2026',
     );
 

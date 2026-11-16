@@ -10,7 +10,6 @@ import 'admin_user_service.dart';
 enum AdminReportGender {
   perempuan,
   lakiLaki,
-  tidakDiketahui,
 }
 
 /// 7 Kategori obesitas resmi sesuai standar klinis ObeSight dan referensi donat Laporan
@@ -188,12 +187,10 @@ class AdminReportData {
       genderCounts: {
         AdminReportGender.perempuan: 0,
         AdminReportGender.lakiLaki: 0,
-        AdminReportGender.tidakDiketahui: 0,
       },
       genderPercentages: {
         AdminReportGender.perempuan: 0.0,
         AdminReportGender.lakiLaki: 0.0,
-        AdminReportGender.tidakDiketahui: 0.0,
       },
       obesityCounts: {
         ObesityCategory.insufficientWeight: 0,
@@ -572,10 +569,10 @@ class AdminReportService {
   AdminReportService._internal();
 
   /// 1. Normalisasi jenis kelamin pengguna dengan penanganan variasi penulisan & data kosong
-  static AdminReportGender normalizeGender(String? raw) {
-    if (raw == null) return AdminReportGender.tidakDiketahui;
+  static AdminReportGender? normalizeGender(String? raw) {
+    if (raw == null) return null;
     final clean = raw.trim().toLowerCase();
-    if (clean.isEmpty) return AdminReportGender.tidakDiketahui;
+    if (clean.isEmpty) return null;
 
     if (clean == 'perempuan' ||
         clean == 'wanita' ||
@@ -595,7 +592,7 @@ class AdminReportService {
       return AdminReportGender.lakiLaki;
     }
 
-    return AdminReportGender.tidakDiketahui;
+    return null;
   }
 
   /// Label tampilan bahasa Indonesia untuk jenis kelamin
@@ -605,8 +602,6 @@ class AdminReportService {
         return 'Perempuan';
       case AdminReportGender.lakiLaki:
         return 'Laki-laki';
-      case AdminReportGender.tidakDiketahui:
-        return 'Tidak diketahui';
     }
   }
 
@@ -1121,6 +1116,10 @@ class AdminReportService {
           emailLower == 'admin@obesight.com') {
         return false;
       }
+      // Akun tanpa jenis kelamin dikeluarkan dari seluruh perhitungan Laporan
+      if (normalizeGender(u.gender) == null) {
+        return false;
+      }
       return true;
     }).toList();
 
@@ -1137,31 +1136,36 @@ class AdminReportService {
 
     final totalPatients = filteredPatients.length;
 
-    // 3. Breakdown jenis kelamin pasien (jumlah P + L + Tidak diketahui = total pengguna)
-    final genderCounts = <AdminReportGender, int>{
-      AdminReportGender.perempuan: 0,
-      AdminReportGender.lakiLaki: 0,
-      AdminReportGender.tidakDiketahui: 0,
-    };
+    // 3. Breakdown jenis kelamin pasien (hanya Perempuan dan Laki-laki)
+    int perempuanCount = 0;
+    int lakiLakiCount = 0;
 
     for (final u in filteredPatients) {
       final g = normalizeGender(u.gender);
-      genderCounts[g] = (genderCounts[g] ?? 0) + 1;
+      if (g == AdminReportGender.perempuan) {
+        perempuanCount++;
+      } else if (g == AdminReportGender.lakiLaki) {
+        lakiLakiCount++;
+      }
     }
 
+    final genderCounts = <AdminReportGender, int>{
+      AdminReportGender.perempuan: perempuanCount,
+      AdminReportGender.lakiLaki: lakiLakiCount,
+    };
+
+    final double perempuanPercentage = totalPatients > 0
+        ? calculatePercentage(perempuanCount, totalPatients)
+        : 0.0;
+    final double lakiLakiPercentage = totalPatients > 0
+        ? (perempuanCount > 0 && lakiLakiCount > 0
+            ? double.parse((100.0 - perempuanPercentage).toStringAsFixed(1))
+            : calculatePercentage(lakiLakiCount, totalPatients))
+        : 0.0;
+
     final genderPercentages = <AdminReportGender, double>{
-      AdminReportGender.perempuan: calculatePercentage(
-        genderCounts[AdminReportGender.perempuan] ?? 0,
-        totalPatients,
-      ),
-      AdminReportGender.lakiLaki: calculatePercentage(
-        genderCounts[AdminReportGender.lakiLaki] ?? 0,
-        totalPatients,
-      ),
-      AdminReportGender.tidakDiketahui: calculatePercentage(
-        genderCounts[AdminReportGender.tidakDiketahui] ?? 0,
-        totalPatients,
-      ),
+      AdminReportGender.perempuan: perempuanPercentage,
+      AdminReportGender.lakiLaki: lakiLakiPercentage,
     };
 
     // 4. Kumpulkan seluruh dokumen skrining dan deduplikasi
@@ -1576,6 +1580,10 @@ class AdminReportService {
           emailLower == 'admin@obesight.com') {
         return false;
       }
+      // Akun tanpa jenis kelamin dikeluarkan dari seluruh perhitungan Laporan
+      if (normalizeGender(u.gender) == null) {
+        return false;
+      }
       return true;
     }).toList();
 
@@ -1698,7 +1706,9 @@ class AdminReportService {
         ? calculatePercentage(perempuanCount, validGenderTotal)
         : 0.0;
     final double lakiLakiPercentage = validGenderTotal > 0
-        ? calculatePercentage(lakiLakiCount, validGenderTotal)
+        ? (perempuanCount > 0 && lakiLakiCount > 0
+            ? double.parse((100.0 - perempuanPercentage).toStringAsFixed(1))
+            : calculatePercentage(lakiLakiCount, validGenderTotal))
         : 0.0;
 
     // d) Distribusi Kategori Hasil Skrining Terbaru & Tingkat Risiko

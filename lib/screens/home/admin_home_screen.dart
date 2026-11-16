@@ -3355,12 +3355,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   Widget _buildGenderBreakdownCard(bool isDark, AdminReportData data) {
     final pCount = data.genderCounts[AdminReportGender.perempuan] ?? 0;
     final lCount = data.genderCounts[AdminReportGender.lakiLaki] ?? 0;
-    final uCount = data.genderCounts[AdminReportGender.tidakDiketahui] ?? 0;
 
     final pPct = data.genderPercentages[AdminReportGender.perempuan] ?? 0.0;
     final lPct = data.genderPercentages[AdminReportGender.lakiLaki] ?? 0.0;
-    final uPct =
-        data.genderPercentages[AdminReportGender.tidakDiketahui] ?? 0.0;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -3402,8 +3399,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           // Multi-color Segmented Bar
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: SizedBox(
+            child: Container(
               height: 10,
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
               child: Row(
                 children: [
                   if (pCount > 0)
@@ -3415,11 +3413,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     Expanded(
                       flex: (lPct * 10).round().clamp(1, 1000),
                       child: Container(color: const Color(0xFF2563EB)),
-                    ),
-                  if (uCount > 0)
-                    Expanded(
-                      flex: (uPct * 10).round().clamp(1, 1000),
-                      child: Container(color: const Color(0xFF94A3B8)),
                     ),
                 ],
               ),
@@ -3445,18 +3438,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             color: const Color(0xFF2563EB),
             isDark: isDark,
           ),
-
-          // 3. Tidak diketahui (HANYA ditampilkan jika ada datanya / uCount > 0)
-          if (uCount > 0) ...[
-            const SizedBox(height: 10),
-            _buildGenderRow(
-              label: 'Tidak diketahui',
-              count: uCount,
-              percentage: uPct,
-              color: const Color(0xFF94A3B8),
-              isDark: isDark,
-            ),
-          ],
         ],
       ),
     );

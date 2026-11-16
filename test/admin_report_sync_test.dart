@@ -256,15 +256,21 @@ void main() {
         endDate: DateTime(2026, 8, 10),
       );
 
-      expect(report.totalPatients, 5);
+      // Akun tanpa jenis kelamin dikeluarkan dari seluruh perhitungan Laporan
+      expect(report.totalPatients, 3);
       expect(report.genderCounts[AdminReportGender.perempuan], 2);
       expect(report.genderCounts[AdminReportGender.lakiLaki], 1);
-      expect(report.genderCounts[AdminReportGender.tidakDiketahui], 2);
 
       final totalGender = report.genderCounts[AdminReportGender.perempuan]! +
-          report.genderCounts[AdminReportGender.lakiLaki]! +
-          report.genderCounts[AdminReportGender.tidakDiketahui]!;
+          report.genderCounts[AdminReportGender.lakiLaki]!;
       expect(totalGender, report.totalPatients);
+
+      // Persentase Perempuan dan Laki-laki berjumlah 100%
+      expect(report.genderPercentages[AdminReportGender.perempuan], 66.7);
+      expect(report.genderPercentages[AdminReportGender.lakiLaki], 33.3);
+      final sumPct = report.genderPercentages[AdminReportGender.perempuan]! +
+          report.genderPercentages[AdminReportGender.lakiLaki]!;
+      expect(sumPct, 100.0);
     });
 
     test('5. Pengguna dengan banyak skrining dihitung satu kali berdasarkan skrining terbarunya', () {
