@@ -59,7 +59,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
           title: 'Daftar Artikel Kesehatan',
           headerColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
           sheetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
-          centerTitle: false,
+          centerTitle: true,
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
             physics: const BouncingScrollPhysics(),
