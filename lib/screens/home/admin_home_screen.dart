@@ -4235,12 +4235,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   // B. SUB-VIEW: UBAH KATA SANDI (Password lama, baru, konfirmasi, checklist, Simpan)
   // ---------------------------------------------------------------------------
   Widget _buildUbahKataSandiView(bool isDark, Color primaryColor) {
-    return Center(
+    return Align(
+      alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 440),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 110),
+          padding: const EdgeInsets.fromLTRB(20, 48, 20, 110),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -4474,7 +4475,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 errorBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                contentPadding: const EdgeInsets.only(top: 11, bottom: 13),
                 hintText: hintText,
                 hintStyle: GoogleFonts.poppins(
                   fontSize: 13.5,
