@@ -1180,13 +1180,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  // 7. Custom Floating Bottom Navigation Bar
+  // 7. Custom Floating Bottom Navigation Bar (Warna & Desain Selaras dengan AdminCapsuleBottomNav)
   Widget _buildFloatingBottomNav(bool isDark) {
+    const capsuleBgColor = Color(0xFF246B4D);
+
     return Container(
-      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
-        borderRadius: BorderRadius.circular(28),
+        color: isDark ? const Color(0xFF1E293B) : capsuleBgColor,
+        borderRadius: BorderRadius.circular(36),
         border: Border.all(
           color: isDark ? const Color(0xFF334155) : Colors.transparent,
           width: 1.5,
@@ -1195,36 +1197,39 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           BoxShadow(
             color: isDark
                 ? Colors.black.withValues(alpha: 0.3)
-                : const Color(0xFF2E6B4F).withValues(alpha: 0.35),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+                : capsuleBgColor.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // Tab 0: Home
+          // Tab 0: Beranda
           _buildNavItem(
             index: 0,
-            icon: Icons.home_rounded,
+            icon: Icons.home_outlined,
             activeIcon: Icons.home_rounded,
+            label: 'Beranda',
             isDark: isDark,
           ),
 
-          // Tab 1: Stats
+          // Tab 1: Progres
           _buildNavItem(
             index: 1,
-            icon: Icons.bar_chart_rounded,
+            icon: Icons.bar_chart_outlined,
             activeIcon: Icons.bar_chart_rounded,
+            label: 'Progres',
             isDark: isDark,
           ),
 
-          // Tab 2: Settings
+          // Tab 2: Pengaturan
           _buildNavItem(
             index: 2,
-            icon: Icons.settings_rounded,
+            icon: Icons.settings_outlined,
             activeIcon: Icons.settings_rounded,
+            label: 'Pengaturan',
             isDark: isDark,
           ),
         ],
@@ -1236,53 +1241,80 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     required int index,
     required IconData icon,
     required IconData activeIcon,
+    required String label,
     required bool isDark,
   }) {
+    const activeColorPill = Color(0xFF388E6B);
     final isActive = _selectedTabIndex == index;
-    return GestureDetector(
-      onTap: () {
-        if (index == 1) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ProgressScreen(user: widget.user),
-            ),
-          ).then((_) {
-            if (mounted) {
-              _syncUserData();
-            }
-          });
-        } else if (index == 2) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => SettingsScreen(user: widget.user),
-            ),
-          ).then((_) {
-            if (mounted) {
-              _syncUserData();
-            }
-          });
-        } else {
-          setState(() {
-            _selectedTabIndex = 0;
-          });
-        }
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: isActive ? 44 : 36,
-        height: isActive ? 38 : 36,
-        decoration: BoxDecoration(
-          color: isActive
-              ? (isDark ? const Color(0xFF334155) : Colors.white.withValues(alpha: 0.28))
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Icon(
-          isActive ? activeIcon : icon,
-          color: isDark
-              ? (isActive ? const Color(0xFF58AF86) : const Color(0xFF94A3B8))
-              : Colors.white,
-          size: 22,
+
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (index == 1) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ProgressScreen(user: widget.user),
+              ),
+            ).then((_) {
+              if (mounted) {
+                _syncUserData();
+              }
+            });
+          } else if (index == 2) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => SettingsScreen(user: widget.user),
+              ),
+            ).then((_) {
+              if (mounted) {
+                _syncUserData();
+              }
+            });
+          } else {
+            setState(() {
+              _selectedTabIndex = 0;
+            });
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? (isDark ? const Color(0xFF334155) : activeColorPill)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  isActive ? activeIcon : icon,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: isActive
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.75),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

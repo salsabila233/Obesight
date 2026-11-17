@@ -14,6 +14,7 @@ class UserModel {
   final String? dob;
   final String? gender;
   final String? phone;
+  final String? address;
   final bool isBiodataComplete;
   final double bmiScore;
   final String bmiCategory;
@@ -34,6 +35,7 @@ class UserModel {
     this.dob,
     this.gender,
     this.phone,
+    this.address,
     this.isBiodataComplete = false,
     this.bmiScore = 22.8,
     this.bmiCategory = 'Normal',
@@ -46,6 +48,15 @@ class UserModel {
   bool get isAdmin => role == UserRole.admin;
 
   String get roleDisplayName => isAdmin ? 'Administrator' : 'Pengguna Biasa';
+
+  String? get alamat => address;
+
+  String get addressDisplay {
+    if (address != null && address!.trim().isNotEmpty) {
+      return address!.trim();
+    }
+    return 'Alamat belum diisi';
+  }
 
   /// True jika status [isBiodataComplete] telah aktif atau ketiga syarat gating (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) telah terisi
   bool get hasCompletedRequiredProfile {
@@ -223,6 +234,12 @@ class UserModel {
             map['telepon'])
         ?.toString()
         .trim();
+    final address = (map['alamat'] ??
+            map['address'] ??
+            map['userAddress'] ??
+            map['lokasi'])
+        ?.toString()
+        .trim();
 
     final bool isBioComplete = (map['isBiodataComplete'] == true) ||
         (map['isBiodataComplete']?.toString().toLowerCase() == 'true') ||
@@ -260,6 +277,7 @@ class UserModel {
       dob: (dob != null && dob.isNotEmpty) ? dob : null,
       gender: (gender != null && gender.isNotEmpty) ? gender : null,
       phone: (phone != null && phone.isNotEmpty) ? phone : null,
+      address: (address != null && address.isNotEmpty) ? address : null,
       isBiodataComplete: isBioComplete,
       bmiScore: bmiVal,
       bmiCategory: bmiCat,
@@ -283,6 +301,8 @@ class UserModel {
       'dob': dob ?? '',
       'gender': gender ?? '',
       'phone': phone ?? '',
+      'alamat': address ?? '',
+      'address': address ?? '',
       'isBiodataComplete': isBiodataComplete,
       'bmiScore': bmiScore,
       'bmiCategory': bmiCategory,
@@ -305,6 +325,7 @@ class UserModel {
     String? dob,
     String? gender,
     String? phone,
+    String? address,
     bool? isBiodataComplete,
     double? bmiScore,
     String? bmiCategory,
@@ -325,6 +346,7 @@ class UserModel {
       dob: dob ?? this.dob,
       gender: gender ?? this.gender,
       phone: phone ?? this.phone,
+      address: address ?? this.address,
       isBiodataComplete: isBiodataComplete ?? this.isBiodataComplete,
       bmiScore: bmiScore ?? this.bmiScore,
       bmiCategory: bmiCategory ?? this.bmiCategory,

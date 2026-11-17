@@ -265,6 +265,36 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                     color: const Color(0xFF334155),
                   ),
                 ),
+                const SizedBox(height: 3),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 11,
+                      color: Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: Text(
+                        (user.address != null && user.address!.trim().isNotEmpty)
+                            ? user.address!.trim()
+                            : 'Alamat belum diisi',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: (user.address != null && user.address!.trim().isNotEmpty)
+                              ? const Color(0xFF334155)
+                              : const Color(0xFF94A3B8),
+                          fontStyle: (user.address != null && user.address!.trim().isNotEmpty)
+                              ? FontStyle.normal
+                              : FontStyle.italic,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -272,7 +302,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           // Garis Pembatas Vertikal
           Container(
             width: 1,
-            height: 64,
+            height: 74,
             color: const Color(0xFFE2E8F0),
             margin: const EdgeInsets.symmetric(horizontal: 10),
           ),

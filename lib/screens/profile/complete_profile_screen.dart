@@ -33,6 +33,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _dobController;
   late TextEditingController _phoneController;
+  late TextEditingController _addressController;
 
   String? _selectedGender;
   bool _isLoading = false;
@@ -56,11 +57,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final initialDob = profile['dob'] ?? widget.user.dob ?? '';
     final initialGender = profile['gender'] ?? widget.user.gender;
     final initialPhone = profile['phone'] ?? widget.user.phone ?? '';
+    final initialAddress = profile['alamat'] ?? profile['address'] ?? widget.user.address ?? '';
 
     _nameController = TextEditingController(text: initialName);
     _emailController = TextEditingController(text: initialEmail);
     _dobController = TextEditingController(text: initialDob);
     _phoneController = TextEditingController(text: initialPhone);
+    _addressController = TextEditingController(text: initialAddress);
 
     if (initialGender != null && (initialGender == 'Perempuan' || initialGender == 'Laki-laki')) {
       _selectedGender = initialGender;
@@ -75,6 +78,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     _emailController.dispose();
     _dobController.dispose();
     _phoneController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -153,6 +157,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final dob = _dobController.text.trim();
     final gender = _selectedGender!;
     final phone = _phoneController.text.trim();
+    final address = _addressController.text.trim();
 
     // 1. Simpan secara asinkron ke AuthService & Cloud Firestore users/{uid}
     await _authService.updateUserProfile(
@@ -161,6 +166,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       dob: dob,
       gender: gender,
       phone: phone,
+      address: address,
     );
 
     if (!mounted) return;
@@ -174,6 +180,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       dob: dob,
       gender: gender,
       phone: phone,
+      address: address,
       isBiodataComplete: true,
     );
 
@@ -520,6 +527,29 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           }
                           return null;
                         },
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      // Field 6: Alamat Tempat Tinggal
+                      Text(
+                        'Alamat',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _addressController,
+                        minLines: 1,
+                        maxLines: 3,
+                        style: GoogleFonts.poppins(fontSize: 13.5, color: textDark),
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan alamat lengkap tempat tinggal',
+                          prefixIcon: Icon(Icons.location_on_outlined, color: textMuted, size: 20),
+                        ),
                       ),
                     ],
                   ),

@@ -631,6 +631,8 @@ class AuthService {
         'gender': _currentUser!.gender ?? cached?['gender'] ?? 'Perempuan',
         'email': _currentUser!.email.isNotEmpty ? _currentUser!.email : (cached?['email'] ?? ''),
         'phone': _currentUser!.phone ?? cached?['phone'] ?? '',
+        'alamat': _currentUser!.address ?? cached?['alamat'] ?? cached?['address'] ?? '',
+        'address': _currentUser!.address ?? cached?['address'] ?? cached?['alamat'] ?? '',
         'joined': cached?['joined'] ?? 'Bergabung sejak Juni 2026',
         'avatar': _currentUser!.avatarUrl ?? cached?['avatar'] ?? 'assets/avatar_zahra.png',
         'photo_path': _currentUser!.photoPath ?? cached?['photo_path'] ?? '',
@@ -645,6 +647,8 @@ class AuthService {
       'gender': 'Perempuan',
       'email': '',
       'phone': '',
+      'alamat': '',
+      'address': '',
       'joined': 'Bergabung sejak Juni 2026',
       'avatar': 'assets/avatar_zahra.png',
       'photo_path': '',
@@ -667,6 +671,7 @@ class AuthService {
         final dob = (data['dob'] as String?)?.trim() ?? '';
         final rawGender = (data['gender'] as String?)?.trim() ?? '';
         final phone = (data['phone'] as String?)?.trim() ?? '';
+        final address = ((data['alamat'] ?? data['address']) as String?)?.trim() ?? '';
         final roleStr = data['role'] as String? ?? 'user';
         final isComplete = (data['isBiodataComplete'] == true) ||
             (dob.isNotEmpty && rawGender.isNotEmpty && phone.isNotEmpty);
@@ -681,6 +686,7 @@ class AuthService {
             ? await getAdminLocalPhone()
             : phone;
         final email = (rawEmail != null && rawEmail.isNotEmpty) ? rawEmail : existingProfile['email']!;
+        final effectiveAddress = address.isNotEmpty ? address : (existingProfile['alamat'] ?? existingProfile['address'] ?? '');
 
         final updatedProfile = {
           'name': effectiveName,
@@ -688,6 +694,8 @@ class AuthService {
           'gender': gender,
           'email': email,
           'phone': effectivePhone,
+          'alamat': effectiveAddress,
+          'address': effectiveAddress,
           'joined': (data['joined'] as String?) ?? existingProfile['joined'] ?? 'Bergabung sejak ${DateTime.now().year}',
           'avatar': (photoUrl != null && photoUrl.isNotEmpty) ? photoUrl : (existingProfile['avatar'] ?? 'assets/avatar_zahra.png'),
           'photo_path': photoUrl ?? existingProfile['photo_path'] ?? '',
@@ -703,6 +711,7 @@ class AuthService {
             dob: dob,
             gender: gender,
             phone: effectivePhone,
+            address: effectiveAddress,
             avatarUrl: photoUrl,
             photoPath: photoUrl,
             role: roleStr == 'admin' ? UserRole.admin : UserRole.user,
@@ -728,6 +737,7 @@ class AuthService {
     String? gender,
     String? email,
     String? phone,
+    String? address,
     String? avatar,
     String? photoPath,
     String? joined,
@@ -771,6 +781,8 @@ class AuthService {
       'gender': gender ?? current['gender'] ?? 'Perempuan',
       'email': email ?? current['email'] ?? '',
       'phone': phone ?? current['phone'] ?? '',
+      'alamat': address ?? current['alamat'] ?? current['address'] ?? '',
+      'address': address ?? current['address'] ?? current['alamat'] ?? '',
       'joined': joined ?? current['joined'] ?? 'Bergabung sejak Juni 2026',
       'avatar': avatar ?? current['avatar'] ?? 'assets/avatar_zahra.png',
       'photo_path': photoPath ?? current['photo_path'] ?? '',
@@ -791,6 +803,7 @@ class AuthService {
         dob: updatedMap['dob'],
         gender: updatedMap['gender'],
         phone: updatedMap['phone'],
+        address: updatedMap['alamat'],
         avatarUrl: updatedMap['avatar'],
         photoPath: updatedMap['photo_path'],
         isBiodataComplete: isGatedComplete,
@@ -806,6 +819,8 @@ class AuthService {
         'dob': updatedMap['dob'],
         'gender': updatedMap['gender'],
         'phone': updatedMap['phone'],
+        'alamat': updatedMap['alamat'],
+        'address': updatedMap['address'],
         'isBiodataComplete': isGatedComplete,
         'updatedAt': FieldValue.serverTimestamp(),
       };

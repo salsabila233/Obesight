@@ -115,6 +115,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final dob = _profileData['dob'] ?? '12 Juli 2003';
     final gender = _profileData['gender'] ?? 'Perempuan';
     final phone = _profileData['phone'] ?? '089334212098';
+    final rawAddress = _profileData['alamat'] ?? _profileData['address'] ?? widget.user.address ?? '';
+    final address = rawAddress.trim().isNotEmpty ? rawAddress.trim() : 'Alamat belum diisi';
     final joined = _profileData['joined'] ?? 'Bergabung sejak Juni 2026';
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -229,12 +231,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                     ),
                                     const SizedBox(width: 5),
-                                    Text(
-                                      joined,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                                    Flexible(
+                                      child: Text(
+                                        joined,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -367,6 +373,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       iconColor: const Color(0xFF16A34A),
                       label: 'Telepon',
                       value: phone,
+                    ),
+                    _buildInfoRow(
+                      isDark: isDark,
+                      icon: Icons.location_on_outlined,
+                      iconBg: isDark ? const Color(0xFF2C2A4A) : const Color(0xFFEDE9FE),
+                      iconColor: const Color(0xFF8B5CF6),
+                      label: 'Alamat',
+                      value: address,
                       isLast: true,
                     ),
                   ],
