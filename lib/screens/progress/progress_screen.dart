@@ -299,14 +299,18 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                   decoration: BoxDecoration(
-                    color: service.daysUntilNextScreening <= 3
-                        ? const Color(0xFFEF4444).withValues(alpha: 0.12)
-                        : const Color(0xFF36785A).withValues(alpha: 0.12),
+                    color: service.isScreeningAvailable
+                        ? const Color(0xFF36785A).withValues(alpha: 0.15)
+                        : (service.daysUntilNextScreening <= 3
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.12)
+                            : const Color(0xFF36785A).withValues(alpha: 0.12)),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: service.daysUntilNextScreening <= 3
-                          ? const Color(0xFFEF4444).withValues(alpha: 0.4)
-                          : const Color(0xFF36785A).withValues(alpha: 0.3),
+                      color: service.isScreeningAvailable
+                          ? const Color(0xFF36785A).withValues(alpha: 0.5)
+                          : (service.daysUntilNextScreening <= 3
+                              ? const Color(0xFFEF4444).withValues(alpha: 0.4)
+                              : const Color(0xFF36785A).withValues(alpha: 0.3)),
                     ),
                   ),
                   child: FittedBox(
@@ -315,21 +319,29 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.timer_outlined,
+                          service.isScreeningAvailable
+                              ? Icons.check_circle_outline_rounded
+                              : Icons.timer_outlined,
                           size: 13,
-                          color: service.daysUntilNextScreening <= 3
-                              ? const Color(0xFFEF4444)
-                              : const Color(0xFF36785A),
+                          color: service.isScreeningAvailable
+                              ? const Color(0xFF36785A)
+                              : (service.daysUntilNextScreening <= 3
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFF36785A)),
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${service.daysUntilNextScreening} Hari Lagi',
+                          service.isScreeningAvailable
+                              ? 'Tersedia Sekarang'
+                              : '${service.daysUntilNextScreening} Hari Lagi',
                           style: GoogleFonts.poppins(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
-                            color: service.daysUntilNextScreening <= 3
-                                ? const Color(0xFFEF4444)
-                                : const Color(0xFF36785A),
+                            color: service.isScreeningAvailable
+                                ? const Color(0xFF36785A)
+                                : (service.daysUntilNextScreening <= 3
+                                    ? const Color(0xFFEF4444)
+                                    : const Color(0xFF36785A)),
                           ),
                         ),
                       ],
@@ -360,7 +372,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Jadwal skrining ulang dijadwalkan tepat 1 bulan (30 hari) setelah skrining terakhir (${service.formattedStartDate}) untuk mengevaluasi efektivitas latihan fisik dan asupan nutrisi Anda.',
+                    service.isScreeningAvailable
+                        ? 'Jadwal skrining ulang Anda (${service.formattedNextScreeningDate}) sudah tiba (tepat 30 hari setelah skrining terakhir pada ${service.formattedStartDate}). Silakan lakukan skrining ulang untuk mengevaluasi efektivitas latihan fisik dan asupan nutrisi Anda.'
+                        : 'Jadwal skrining ulang dijadwalkan tepat 1 bulan (30 hari) setelah skrining terakhir (${service.formattedStartDate}) untuk mengevaluasi efektivitas latihan fisik dan asupan nutrisi Anda.',
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
                       color: textMuted,

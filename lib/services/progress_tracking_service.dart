@@ -139,6 +139,23 @@ class ProgressTrackingService extends ChangeNotifier {
     return diff > 0 ? diff : 0;
   }
 
+  /// Cek apakah skrining ulang sudah tersedia (sudah 30 hari atau lebih sejak skrining terakhir)
+  bool get isScreeningAvailable {
+    if (!_hasActiveScreening) return true;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(_nextScreeningDate.year, _nextScreeningDate.month, _nextScreeningDate.day);
+    return today.isAfter(target) || today.isAtSameMomentAs(target);
+  }
+
+  /// Jumlah hari yang telah berlalu sejak skrining terakhir
+  int get daysSinceLastScreening {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = DateTime(_startDate.year, _startDate.month, _startDate.day);
+    return today.difference(start).inDays;
+  }
+
   String get formattedStartDate {
     final months = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -172,14 +189,10 @@ class ProgressTrackingService extends ChangeNotifier {
     final today = DateTime(now.year, now.month, now.day);
     DateTime cycleStart = DateTime(d.year, d.month, d.day);
 
-    // Jika 30 hari telah lewat dari skrining awal dan belum melakukan skrining ulang,
-    // majukan siklus kelipatan 30 hari agar hari ini selalu masuk dalam rentang pemantauan aktif
-    if (today.difference(cycleStart).inDays >= 30) {
-      final cyclesPassed = today.difference(cycleStart).inDays ~/ 30;
-      cycleStart = cycleStart.add(Duration(days: cyclesPassed * 30));
-    }
-
-    // 1 kali skrining = 1 progres siklus baru (mulai dari tanggal skrining tersebut)
+    // 1 kali skrining = 1 acuan siklus progres (mulai dari tanggal skrining tersebut).
+    // Tanggal skrining terakhir dan jadwal skrining ulang (tepat 30 hari setelahnya)
+    // TETAP konsisten dan TIDAK BOLEH dimajukan otomatis meskipun sudah melewati 30 hari,
+    // sampai pengguna benar-benar melakukan skrining ulang baru.
     _startDate = cycleStart;
     _cycleDays = 30; // 30 hari / 4 minggu
     _nextScreeningDate = _startDate.add(const Duration(days: 30));
