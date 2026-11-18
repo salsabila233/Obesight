@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../widgets/admin_capsule_bottom_nav.dart';
 import '../home/admin_home_screen.dart';
 import 'admin_user_screening_detail_screen.dart';
+import '../../widgets/app_alert.dart';
 
 class AdminUserListScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -39,6 +40,152 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
       widget.onBackToHome!();
     } else if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _confirmDeleteUser(UserModel user) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final displayName =
+        user.name.trim().isNotEmpty ? user.name.trim() : 'Pengguna ObeSight';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFECACA), width: 1.5),
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: Color(0xFFDC2626),
+                size: 30,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Hapus Akun Pengguna?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 17,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Apakah kamu yakin ingin menghapus akun "$displayName"? Seluruh data riwayat skrining dan catatan kesehatannya akan dihapus secara permanen.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color:
+                    isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+            if (user.email.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  user.email,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFFDC2626),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF475569)
+                            : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC2626),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Hapus',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await _adminUserService.deleteUserAccount(user.id);
+      if (mounted) {
+        if (success) {
+          AppAlert.showSuccess(
+            context,
+            'Akun pengguna "$displayName" berhasil dihapus.',
+          );
+        } else {
+          AppAlert.showError(
+            context,
+            'Gagal menghapus akun pengguna.',
+          );
+        }
+      }
     }
   }
 
@@ -315,8 +462,8 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                         return _AdminUserCardItem(
                           user: user,
                           onTap: () async {
-                            final targetTab =
-                                await Navigator.of(context).push<int>(
+                            final result =
+                                await Navigator.of(context).push<dynamic>(
                               MaterialPageRoute(
                                 builder: (context) =>
                                     AdminUserScreeningDetailScreen(
@@ -328,10 +475,11 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                             if (mounted) {
                               setState(() {});
                             }
-                            if (targetTab != null && mounted) {
-                              _handleNavTap(targetTab);
+                            if (result is int && mounted) {
+                              _handleNavTap(result);
                             }
                           },
+                          onDelete: () => _confirmDeleteUser(user),
                         );
                       },
                     ),
@@ -388,8 +536,13 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
 class _AdminUserCardItem extends StatelessWidget {
   final UserModel user;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
 
-  const _AdminUserCardItem({required this.user, required this.onTap});
+  const _AdminUserCardItem({
+    required this.user,
+    required this.onTap,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -564,13 +717,42 @@ class _AdminUserCardItem extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
 
-                    // 4. Chevron Navigation Arrow
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 22,
-                      color: Color(0xFF0F172A),
+                    // 4. BAGIAN AKSI: Tombol Hapus Pengguna & Chevron Detail
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Tooltip(
+                          message: 'Hapus Pengguna',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: onDelete,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEE2E2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Color(0xFFDC2626),
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 20,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ],
                     ),
                   ],
                 ),

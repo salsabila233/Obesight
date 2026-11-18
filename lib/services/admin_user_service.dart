@@ -508,7 +508,29 @@ class AdminUserService {
         await doc.reference.delete();
       }
 
-      // 4. Hapus dokumen utama profil pengguna
+      // 4. Hapus data aktivitas fisik terkait pengguna jika ada
+      try {
+        final actSnap = await _firestore
+            .collection('progress_aktivitas_fisik')
+            .where('idPengguna', isEqualTo: cleanId)
+            .get();
+        for (final doc in actSnap.docs) {
+          await doc.reference.delete();
+        }
+      } catch (_) {}
+
+      // 5. Hapus riwayat kalkulator IMT terkait pengguna jika ada
+      try {
+        final imtSnap = await _firestore
+            .collection('kalkulator_imt')
+            .where('idPengguna', isEqualTo: cleanId)
+            .get();
+        for (final doc in imtSnap.docs) {
+          await doc.reference.delete();
+        }
+      } catch (_) {}
+
+      // 6. Hapus dokumen utama profil pengguna
       await userDocRef.delete();
 
       debugPrint('[AdminUserService] Successfully deleted isolated user $cleanId');

@@ -5,6 +5,7 @@ import '../../models/user_model.dart';
 import '../../services/admin_user_service.dart';
 import '../../widgets/admin_capsule_bottom_nav.dart';
 import '../skrining/skrining_result_screen.dart';
+import '../../widgets/app_alert.dart';
 
 class AdminUserScreeningDetailScreen extends StatelessWidget {
   final String userId;
@@ -1353,85 +1354,141 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   void _confirmDeleteUser(BuildContext context) {
     final displayName = initialUser?.name.trim().isNotEmpty == true
         ? initialUser!.name
-        : 'pengguna ini';
+        : 'Pengguna ObeSight';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Color(0xFFE53935), size: 24),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Hapus Akun Pengguna?',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E293B),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFECACA), width: 1.5),
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: Color(0xFFDC2626),
+                size: 30,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Hapus Akun Pengguna?',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 17,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Apakah kamu yakin ingin menghapus akun "$displayName"? Seluruh data riwayat skrining dan catatan kesehatannya akan dihapus secara permanen.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                height: 1.45,
+              ),
+            ),
+            if (initialUser != null && initialUser!.email.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  initialUser!.email,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFFDC2626),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+            ],
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(dialogCtx).pop(false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: BorderSide(
+                        color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogCtx).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC2626),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Hapus',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        content: Text(
-          'Apakah Anda yakin ingin menghapus akun "$displayName" beserta seluruh data riwayat skrining dan catatan kesehatannya? Tindakan ini bersifat permanen dan terisolasi.',
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            color: const Color(0xFF64748B),
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF64748B),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE53935),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: Text(
-              'Hapus Akun',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
       ),
     ).then((confirmed) async {
       if (confirmed == true && context.mounted) {
-        final messenger = ScaffoldMessenger.of(context);
         final navigator = Navigator.of(context);
-
         final success = await AdminUserService.instance.deleteUserAccount(userId);
         if (context.mounted) {
           navigator.pop(true);
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(
-                success
-                    ? 'Akun $displayName berhasil dihapus.'
-                    : 'Gagal menghapus akun pengguna.',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: success ? const Color(0xFF529471) : Colors.red,
-            ),
-          );
+          if (success) {
+            AppAlert.showSuccess(
+              context,
+              'Akun pengguna "$displayName" berhasil dihapus.',
+            );
+          } else {
+            AppAlert.showError(
+              context,
+              'Gagal menghapus akun pengguna.',
+            );
+          }
         }
       }
     });
