@@ -101,9 +101,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   AdminUserStatsPeriod _selectedStatsPeriod = AdminUserStatsPeriod.last7Days;
 
   // Filter Periode & State Halaman Laporan Admin
-  String _selectedLaporanPeriod = '29/07/2026 - 29/08/2026';
-  DateTime? _laporanStartDate = DateTime(2026, 7, 29);
-  DateTime? _laporanEndDate = DateTime(2026, 8, 29);
+  String _selectedLaporanPeriod = 'Semua waktu';
+  DateTime? _laporanStartDate;
+  DateTime? _laporanEndDate;
   AdminReportData? _adminReportData;
   bool _isLaporanLoading = false;
   String? _laporanErrorMessage;
@@ -217,16 +217,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   void _onLaporanPeriodSelected(String period) {
+    if (period == '__custom__') {
+      _selectCustomDateRange();
+      return;
+    }
+
     if (_selectedLaporanPeriod == period) return;
     DateTime? start;
     DateTime? end;
 
     final now = DateTime.now();
     switch (period) {
-      case '29/07/2026 - 29/08/2026':
-        start = DateTime(2026, 7, 29);
-        end = DateTime(2026, 8, 29);
-        break;
       case '7 hari terakhir':
         start = now.subtract(const Duration(days: 7));
         end = now;
@@ -244,8 +245,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         end = null;
         break;
       default:
-        start = DateTime(2026, 7, 29);
-        end = DateTime(2026, 8, 29);
+        start = null;
+        end = null;
     }
 
     setState(() {
@@ -256,6 +257,99 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
     _subscribeToLaporanUpdates();
     _fetchLaporanData();
+  }
+
+  /// Membuka dialog pemilih rentang tanggal kalender kustom untuk laporan
+  Future<void> _selectCustomDateRange() async {
+    final now = DateTime.now();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    DateTime startInitial =
+        _laporanStartDate ?? now.subtract(const Duration(days: 30));
+    DateTime endInitial = _laporanEndDate ?? now;
+    final firstDate = DateTime(2020, 1, 1);
+    final lastDate = DateTime(now.year + 5, 12, 31);
+
+    if (startInitial.isBefore(firstDate)) startInitial = firstDate;
+    if (endInitial.isAfter(lastDate)) endInitial = lastDate;
+    if (startInitial.isAfter(endInitial)) startInitial = endInitial;
+
+    final initialRange = DateTimeRange(
+      start: startInitial,
+      end: endInitial,
+    );
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      initialDateRange: initialRange,
+      initialEntryMode: DatePickerEntryMode.calendar,
+      helpText: 'Pilih Rentang Tanggal Laporan',
+      cancelText: 'Batal',
+      confirmText: 'Pilih',
+      saveText: 'Simpan',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: Color(0xFF388E6B),
+                    onPrimary: Colors.white,
+                    surface: Color(0xFF1E293B),
+                    onSurface: Colors.white,
+                  )
+                : const ColorScheme.light(
+                    primary: Color(0xFF267352),
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: Color(0xFF0F1E36),
+                  ),
+            dialogTheme: DialogThemeData(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final start = DateTime(
+        picked.start.year,
+        picked.start.month,
+        picked.start.day,
+        0,
+        0,
+        0,
+      );
+      final end = DateTime(
+        picked.end.year,
+        picked.end.month,
+        picked.end.day,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      final formatStart =
+          '${start.day.toString().padLeft(2, '0')}/${start.month.toString().padLeft(2, '0')}/${start.year}';
+      final formatEnd =
+          '${end.day.toString().padLeft(2, '0')}/${end.month.toString().padLeft(2, '0')}/${end.year}';
+      final label = '$formatStart - $formatEnd';
+
+      setState(() {
+        _selectedLaporanPeriod = label;
+        _laporanStartDate = start;
+        _laporanEndDate = end;
+      });
+
+      _subscribeToLaporanUpdates();
+      _fetchLaporanData();
+    }
   }
 
   Future<void> _refreshProfile() async {
@@ -2877,11 +2971,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
         onSelected: _onLaporanPeriodSelected,
         itemBuilder: (context) => [
-          _buildPopupPeriodItem('29/07/2026 - 29/08/2026', isDark),
           _buildPopupPeriodItem('7 hari terakhir', isDark),
           _buildPopupPeriodItem('30 hari terakhir', isDark),
           _buildPopupPeriodItem('Bulan ini', isDark),
           _buildPopupPeriodItem('Semua waktu', isDark),
+          const PopupMenuDivider(height: 8),
+          _buildPopupCustomItem(isDark),
         ],
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
@@ -2902,6 +2997,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const Icon(
+                Icons.calendar_month_rounded,
+                size: 16,
+                color: Color(0xFF267352),
+              ),
+              const SizedBox(width: 6),
               Text(
                 _selectedLaporanPeriod,
                 style: GoogleFonts.poppins(
@@ -2949,6 +3050,59 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isDark ? Colors.white : const Color(0xFF0F1E36),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildPopupCustomItem(bool isDark) {
+    const presets = [
+      '7 hari terakhir',
+      '30 hari terakhir',
+      'Bulan ini',
+      'Semua waktu',
+    ];
+    final isCustomSelected = !presets.contains(_selectedLaporanPeriod);
+
+    return PopupMenuItem<String>(
+      value: '__custom__',
+      child: Row(
+        children: [
+          Icon(
+            isCustomSelected
+                ? Icons.radio_button_checked_rounded
+                : Icons.radio_button_off_rounded,
+            size: 16,
+            color: const Color(0xFF267352),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    isCustomSelected
+                        ? 'Kustom ($_selectedLaporanPeriod)'
+                        : 'Kustom (Pilih Tanggal Sendiri)',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight:
+                          isCustomSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: isDark ? Colors.white : const Color(0xFF0F1E36),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.calendar_month_rounded,
+                  size: 16,
+                  color: Color(0xFF267352),
+                ),
+              ],
             ),
           ),
         ],
@@ -3212,11 +3366,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
         onSelected: _onLaporanPeriodSelected,
         itemBuilder: (context) => [
-          _buildPopupPeriodItem('29/07/2026 - 29/08/2026', isDark),
           _buildPopupPeriodItem('7 hari terakhir', isDark),
           _buildPopupPeriodItem('30 hari terakhir', isDark),
           _buildPopupPeriodItem('Bulan ini', isDark),
           _buildPopupPeriodItem('Semua waktu', isDark),
+          const PopupMenuDivider(height: 8),
+          _buildPopupCustomItem(isDark),
         ],
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
