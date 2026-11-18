@@ -12,6 +12,11 @@ class SleepRecord {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? note;
+  final bool isSplitSleep;
+  final DateTime? firstEndTime;
+  final DateTime? secondStartTime;
+  final int? firstSessionMinutes;
+  final int? secondSessionMinutes;
 
   SleepRecord({
     required this.id,
@@ -25,13 +30,20 @@ class SleepRecord {
     DateTime? createdAt,
     DateTime? updatedAt,
     this.note,
+    this.isSplitSleep = false,
+    this.firstEndTime,
+    this.secondStartTime,
+    this.firstSessionMinutes,
+    this.secondSessionMinutes,
   })  : endTime = (endTime.isBefore(startTime)) ? endTime.add(const Duration(days: 1)) : endTime,
         durationMinutes = durationMinutes != null && durationMinutes > 0
             ? durationMinutes
-            : calculateDurationMinutes(
-                startTime,
-                endTime.isBefore(startTime) ? endTime.add(const Duration(days: 1)) : endTime,
-              ),
+            : (isSplitSleep && firstSessionMinutes != null && secondSessionMinutes != null
+                ? (firstSessionMinutes + secondSessionMinutes)
+                : calculateDurationMinutes(
+                    startTime,
+                    endTime.isBefore(startTime) ? endTime.add(const Duration(days: 1)) : endTime,
+                  )),
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
@@ -86,7 +98,56 @@ class SleepRecord {
     return '$h:$m';
   }
 
-  String get timeRangeFormatted => '$startTimeFormatted – $endTimeFormatted';
+  String _formatTime(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  String get timeRangeFormatted {
+    if (isSplitSleep && firstEndTime != null && secondStartTime != null) {
+      return '$startTimeFormatted–${_formatTime(firstEndTime!)} & ${_formatTime(secondStartTime!)}–$endTimeFormatted';
+    }
+    return '$startTimeFormatted – $endTimeFormatted';
+  }
+
+  int? get awakeGapMinutes {
+    if (isSplitSleep && firstEndTime != null && secondStartTime != null) {
+      final diff = secondStartTime!.difference(firstEndTime!).inMinutes;
+      return diff > 0 ? diff : 0;
+    }
+    return null;
+  }
+
+  String? get awakeGapFormatted {
+    final gap = awakeGapMinutes;
+    if (gap == null) return null;
+    final h = gap ~/ 60;
+    final m = gap % 60;
+    if (h > 0 && m > 0) return '$h jam $m menit';
+    if (h > 0) return '$h jam';
+    return '$m menit';
+  }
+
+  String get firstSessionFormatted {
+    final mins = firstSessionMinutes ?? (firstEndTime != null ? calculateDurationMinutes(startTime, firstEndTime!) : null);
+    if (mins == null) return '';
+    final h = mins ~/ 60;
+    final m = mins % 60;
+    if (h > 0 && m > 0) return '$h jam $m menit';
+    if (h > 0) return '$h jam';
+    return '$m menit';
+  }
+
+  String get secondSessionFormatted {
+    final mins = secondSessionMinutes ?? (secondStartTime != null ? calculateDurationMinutes(secondStartTime!, endTime) : null);
+    if (mins == null) return '';
+    final h = mins ~/ 60;
+    final m = mins % 60;
+    if (h > 0 && m > 0) return '$h jam $m menit';
+    if (h > 0) return '$h jam';
+    return '$m menit';
+  }
 
   bool get isAutomatic => source == 'automatic';
 
@@ -96,7 +157,7 @@ class SleepRecord {
   /// Standar acuan medis Halodoc untuk orang dewasa (rentang ideal 7–9 jam setiap malam)
   static const int standardHalodocMinMinutes = 7 * 60; // 420 menit (7 jam)
   static const int standardHalodocMaxMinutes = 9 * 60; // 540 menit (9 jam)
-  static const int standardIdealMinutes = 7 * 60; // 420 menit (Acuan Standar Halodoc: 7 jam)
+  static const int standardIdealMinutes = 7 * 60; // 420 menit (Acuan Standar: 7 jam)
 
   /// Penilaian status berdasarkan acuan standar medis Halodoc (7–9 jam):
   /// - < 7 jam (< 420 menit): "Tidur Kurang"
@@ -152,6 +213,16 @@ class SleepRecord {
       'updated_at': updatedAt.toUtc().toIso8601String(),
       'note': note,
       'catatan': note,
+      'isSplitSleep': isSplitSleep,
+      'is_split_sleep': isSplitSleep,
+      'firstEndTime': firstEndTime?.toUtc().toIso8601String(),
+      'first_end_time': firstEndTime?.toUtc().toIso8601String(),
+      'secondStartTime': secondStartTime?.toUtc().toIso8601String(),
+      'second_start_time': secondStartTime?.toUtc().toIso8601String(),
+      'firstSessionMinutes': firstSessionMinutes,
+      'first_session_minutes': firstSessionMinutes,
+      'secondSessionMinutes': secondSessionMinutes,
+      'second_session_minutes': secondSessionMinutes,
     };
   }
 
@@ -180,6 +251,16 @@ class SleepRecord {
       'updated_at': Timestamp.fromDate(updatedAt.toUtc()),
       'note': note,
       'catatan': note,
+      'isSplitSleep': isSplitSleep,
+      'is_split_sleep': isSplitSleep,
+      'firstEndTime': firstEndTime != null ? Timestamp.fromDate(firstEndTime!.toUtc()) : null,
+      'first_end_time': firstEndTime != null ? Timestamp.fromDate(firstEndTime!.toUtc()) : null,
+      'secondStartTime': secondStartTime != null ? Timestamp.fromDate(secondStartTime!.toUtc()) : null,
+      'second_start_time': secondStartTime != null ? Timestamp.fromDate(secondStartTime!.toUtc()) : null,
+      'firstSessionMinutes': firstSessionMinutes,
+      'first_session_minutes': firstSessionMinutes,
+      'secondSessionMinutes': secondSessionMinutes,
+      'second_session_minutes': secondSessionMinutes,
     };
   }
 
@@ -207,6 +288,16 @@ class SleepRecord {
     final rawDuration = map['durationMinutes'] ?? map['duration'] ?? map['durasi'];
     final rawConfirmed = map['isConfirmed'] ?? map['status_konfirmasi'] ?? map['is_confirmed'] ?? (map['status'] == 'confirmed');
 
+    final isSplit = map['isSplitSleep'] == true ||
+        map['is_split_sleep'] == true ||
+        map['split_sleep'] == true;
+    final firstEndRaw = map['firstEndTime'] ?? map['first_end_time'];
+    final secondStartRaw = map['secondStartTime'] ?? map['second_start_time'];
+    final firstEnd = firstEndRaw != null ? _parseDateTime(firstEndRaw, end) : null;
+    final secondStart = secondStartRaw != null ? _parseDateTime(secondStartRaw, end) : null;
+    final rawFirstMins = map['firstSessionMinutes'] ?? map['first_session_minutes'];
+    final rawSecondMins = map['secondSessionMinutes'] ?? map['second_session_minutes'];
+
     // Gunakan tanggal waktu bangun (pagi hari sesi tidur malam) sebagai fallback jika tanggal kosong
     final fallbackDate = '${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}';
 
@@ -222,6 +313,11 @@ class SleepRecord {
       createdAt: createdRaw != null ? _parseDateTime(createdRaw, DateTime.now()) : null,
       updatedAt: updatedRaw != null ? _parseDateTime(updatedRaw, DateTime.now()) : null,
       note: (map['note'] ?? map['catatan']) as String?,
+      isSplitSleep: isSplit,
+      firstEndTime: firstEnd,
+      secondStartTime: secondStart,
+      firstSessionMinutes: rawFirstMins is int ? rawFirstMins : (rawFirstMins is num ? rawFirstMins.toInt() : null),
+      secondSessionMinutes: rawSecondMins is int ? rawSecondMins : (rawSecondMins is num ? rawSecondMins.toInt() : null),
     );
   }
 
@@ -237,6 +333,11 @@ class SleepRecord {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? note,
+    bool? isSplitSleep,
+    DateTime? firstEndTime,
+    DateTime? secondStartTime,
+    int? firstSessionMinutes,
+    int? secondSessionMinutes,
   }) {
     return SleepRecord(
       id: id ?? this.id,
@@ -250,6 +351,11 @@ class SleepRecord {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       note: note ?? this.note,
+      isSplitSleep: isSplitSleep ?? this.isSplitSleep,
+      firstEndTime: firstEndTime ?? this.firstEndTime,
+      secondStartTime: secondStartTime ?? this.secondStartTime,
+      firstSessionMinutes: firstSessionMinutes ?? this.firstSessionMinutes,
+      secondSessionMinutes: secondSessionMinutes ?? this.secondSessionMinutes,
     );
   }
 }

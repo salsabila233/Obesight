@@ -115,6 +115,7 @@ void main() {
       // Klik tombol Simpan
       final saveButton = find.text('Simpan & Masuk ke Beranda');
       expect(saveButton, findsOneWidget);
+      await tester.ensureVisible(saveButton);
       await tester.tap(saveButton);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
@@ -201,18 +202,18 @@ void main() {
       // Logo tampil di tengah
       expect(find.byType(Image), findsOneWidget);
 
-      // Tahap 2: Setelah 1.2 detik, background bertransisi ke putih dan teks "ObeSight" muncul
-      await tester.pump(const Duration(milliseconds: 1300));
-      await tester.pump(const Duration(milliseconds: 450));
+      // Tahap 2: Setelah fase hijau (450ms), background bertransisi ke putih dan teks "ObeSight" muncul
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 250));
 
       final whiteContainer = tester.widget<AnimatedContainer>(animatedContainerFinder);
       expect((whiteContainer.decoration as BoxDecoration?)?.color, Colors.white);
       expect(find.text('ObeSight'), findsOneWidget);
 
-      // Jalankan animasi teks fade forward (700ms)
+      // Jalankan animasi teks fade forward (300ms)
+      await tester.pump(const Duration(milliseconds: 350));
+      // Selesaikan jeda tayang brand identity (700ms)
       await tester.pump(const Duration(milliseconds: 750));
-      // Selesaikan jeda tayang brand identity (1500ms)
-      await tester.pump(const Duration(milliseconds: 1550));
       // Transisi rute halaman WelcomeScreen (500ms)
       await tester.pump(const Duration(milliseconds: 550));
 

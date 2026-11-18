@@ -148,8 +148,70 @@ class AppTheme {
         seedColor: AppColors.primaryGreen,
         brightness: Brightness.dark,
         primary: AppColors.primaryGreen,
+        onPrimary: Colors.white,
         secondary: const Color(0xFF58AF86),
+        onSecondary: Colors.white,
         surface: const Color(0xFF1E293B),
+        onSurface: const Color(0xFFF1F5F9),
+        surfaceContainerHighest: const Color(0xFF334155),
+        error: const Color(0xFFF87171),
+        onError: Colors.white,
+      ),
+      iconTheme: const IconThemeData(
+        color: Color(0xFFF1F5F9),
+        size: 24,
+      ),
+      primaryIconTheme: const IconThemeData(
+        color: Colors.white,
+        size: 24,
+      ),
+      listTileTheme: const ListTileThemeData(
+        iconColor: Color(0xFF94A3B8),
+        textColor: Color(0xFFF1F5F9),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: const Color(0xFF1E293B),
+        textStyle: GoogleFonts.poppins(color: const Color(0xFFF1F5F9)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFF334155), width: 1),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.white;
+          }
+          return const Color(0xFF94A3B8);
+        }),
+        trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.primaryGreen;
+          }
+          return const Color(0xFF334155);
+        }),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          side: const BorderSide(color: Color(0xFF334155), width: 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF58AF86),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF1E293B),

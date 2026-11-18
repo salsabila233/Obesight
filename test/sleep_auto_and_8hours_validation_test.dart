@@ -245,6 +245,7 @@ void main() {
       expect(find.text('Masukkan Data Istirahat'), findsOneWidget);
 
       // Tutup form dengan tombol Batal
+      await tester.ensureVisible(find.text('Batal'));
       await tester.tap(find.text('Batal'));
       await tester.pumpAndSettle();
 

@@ -705,28 +705,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       final patientCount = users
                           .where((u) => u.role != UserRole.admin)
                           .length;
-                      return GestureDetector(
-                        onTap: () async {
-                          final targetIndex = await Navigator.of(context)
-                              .push<int>(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const AdminUserListScreen(),
-                                ),
-                              );
-                          if (targetIndex != null && mounted) {
-                            _switchTab(targetIndex);
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF22674A), Color(0xFF2E805C)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(18),
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF22674A), Color(0xFF2E805C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: const Color(
                                 0xFF1E5C42,
@@ -860,9 +847,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
                   ),
                 ),
 
@@ -1245,29 +1231,23 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       AdminUserStatsPeriod.last1Year => '1 tahun terakhir',
     };
 
-    return Material(
-      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      elevation: 0,
-      child: InkWell(
-        onTap: () => _switchTab(3),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
+        ],
+      ),
+      child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -1643,8 +1623,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 

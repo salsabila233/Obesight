@@ -17,7 +17,18 @@ import '../profile/complete_profile_screen.dart';
 ///    - Jika sudah login di Firebase Auth & profil Firestore belum lengkap -> CompleteProfileScreen.
 ///    - Jika sudah login & profil lengkap -> Beranda (UserHomeScreen / AdminHomeScreen).
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final Duration greenPhaseDuration;
+  final Duration transitionDelay;
+  final Duration textFadeDuration;
+  final Duration brandHoldDuration;
+
+  const SplashScreen({
+    super.key,
+    this.greenPhaseDuration = const Duration(milliseconds: 450),
+    this.transitionDelay = const Duration(milliseconds: 200),
+    this.textFadeDuration = const Duration(milliseconds: 300),
+    this.brandHoldDuration = const Duration(milliseconds: 700),
+  });
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -56,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
     // 1. Controller Skala Logo
     _scaleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 350),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
@@ -69,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
     // 2. Controller Fade Teks Brand
     _textController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: widget.textFadeDuration,
     );
 
     _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -114,8 +125,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Jalankan animasi skala awal logo di layar hijau tua
     _scaleController.forward();
 
-    // Tampilkan fase hijau tua selama 1.2 detik
-    await Future.delayed(const Duration(milliseconds: 1200));
+    // Tampilkan fase hijau tua (dipersingkat agar transisi cepat)
+    await Future.delayed(widget.greenPhaseDuration);
     if (!mounted) return;
 
     // Transisi latar belakang menjadi putih bersih atau gelap sesuai preferensi tema
@@ -125,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     // Jeda sejenak untuk transisi warna
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(widget.transitionDelay);
     if (!mounted) return;
 
     // Munculkan teks merek "ObeSight" di samping logo
@@ -135,8 +146,8 @@ class _SplashScreenState extends State<SplashScreen>
     await _textController.forward();
     if (!mounted) return;
 
-    // Tampilkan brand identity lengkap di latar putih selama 1.5 detik
-    await Future.delayed(const Duration(milliseconds: 1500));
+    // Tampilkan brand identity lengkap di latar putih
+    await Future.delayed(widget.brandHoldDuration);
     if (!mounted) return;
 
     // Ambil data user yang telah dipulihkan di latar belakang
