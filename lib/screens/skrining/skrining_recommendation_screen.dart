@@ -187,6 +187,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                     // CARD 1: Perbaiki Pola Makan (Terapi Nutrisi Medis)
                     _buildRecommendationCard(
+                      context: context,
                       title: 'Perbaiki Pola Makan',
                       titleColor: const Color(0xFF2E7D5B),
                       iconWidget: _buildFoodIllustration(),
@@ -197,6 +198,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                     // CARD 2: Tingkatkan Aktivitas Fisik (Latihan Fisik & Olahraga)
                     _buildRecommendationCard(
+                      context: context,
                       title: 'Tingkatkan Aktivitas Fisik',
                       titleColor: const Color(0xFF2563EB),
                       iconWidget: _buildActivityIllustration(),
@@ -207,6 +209,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                     // CARD 3: Hidrasi
                     _buildRecommendationCard(
+                      context: context,
                       title: 'Hidrasi',
                       titleColor: const Color(0xFF0284C7),
                       iconWidget: _buildHydrationIllustration(),
@@ -216,6 +219,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
                     // CARD 4: Istirahat yang cukup
                     _buildRecommendationCard(
+                      context: context,
                       title: 'Istirahat yang cukup',
                       titleColor: const Color(0xFF8B5CF6),
                       iconWidget: _buildRestIllustration(),
@@ -326,12 +330,15 @@ class SkriningRecommendationScreen extends StatelessWidget {
   }
 
   void _showSaveProgressDialog(BuildContext context, UserModel currentUser, CategoryRecommendation rec) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textDark = isDark ? Colors.white : const Color(0xFF1E293B);
+
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.45),
       builder: (dialogContext) {
         return Dialog(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -507,6 +514,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
 
   // =================== CARD BUILDER ===================
   Widget _buildRecommendationCard({
+    required BuildContext context,
     required String title,
     required Color titleColor,
     required Widget iconWidget,
@@ -514,16 +522,20 @@ class SkriningRecommendationScreen extends StatelessWidget {
     VoidCallback? onTap,
     String? actionLabel,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderCol = isDark ? const Color(0xFF334155) : cardBorder;
+    final itemTextCol = isDark ? Colors.white : const Color(0xFF1E293B);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cardBorder, width: 1.2),
+        border: Border.all(color: borderCol, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -565,12 +577,12 @@ class SkriningRecommendationScreen extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             '• ',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: textDark,
+                              color: itemTextCol,
                             ),
                           ),
                           Expanded(
@@ -579,7 +591,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w400,
-                                color: textDark,
+                                color: itemTextCol,
                                 height: 1.35,
                               ),
                             ),

@@ -112,6 +112,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                             children: [
                               // 1. Header Card Profil Pengguna (Persis Gambar 2)
                               _buildTopProfileCard(
+                                isDark: isDark,
                                 user: user,
                                 totalScreenings: totalScreenings,
                                 lastScreeningDate: latestScreening?.date,
@@ -122,6 +123,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                               // 2. Card Hasil Skrining Terakhir (Dilebarkan Full Width)
                               _buildLatestScreeningColumn(
                                 latestScreening,
+                                isDark: isDark,
                               ),
 
                               const SizedBox(height: 22),
@@ -129,6 +131,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                               // 3. Section Riwayat Singkat (Persis Gambar 2)
                               _buildRiwayatSingkatSection(
                                 context: context,
+                                isDark: isDark,
                                 screenings: screenings,
                                 user: user,
                               ),
@@ -161,6 +164,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   // 1. TOP PROFILE CARD (Identik dengan Gambar 2)
   // ===========================================================================
   Widget _buildTopProfileCard({
+    required bool isDark,
     required UserModel user,
     required int totalScreenings,
     required DateTime? lastScreeningDate,
@@ -188,12 +192,15 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -227,7 +234,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -239,7 +246,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                       : 'Email belum diisi',
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     decoration: TextDecoration.underline,
                   ),
                   maxLines: 1,
@@ -253,7 +260,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF334155),
+                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 1),
@@ -263,17 +270,17 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                       : (user.isAdmin ? 'Administrator' : '-'),
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
-                    color: const Color(0xFF334155),
+                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 3),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_on_outlined,
                       size: 11,
-                      color: Color(0xFF64748B),
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     ),
                     const SizedBox(width: 3),
                     Expanded(
@@ -284,7 +291,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 10,
                           color: (user.address != null && user.address!.trim().isNotEmpty)
-                              ? const Color(0xFF334155)
+                              ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155))
                               : const Color(0xFF94A3B8),
                           fontStyle: (user.address != null && user.address!.trim().isNotEmpty)
                               ? FontStyle.normal
@@ -304,7 +311,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           Container(
             width: 1,
             height: 74,
-            color: const Color(0xFFE2E8F0),
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
             margin: const EdgeInsets.symmetric(horizontal: 10),
           ),
 
@@ -315,6 +322,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildRightMetricItem(
+                  isDark: isDark,
                   icon: Icons.calendar_today_outlined,
                   label: 'Bergabung',
                   value: user.joinedFormatted != 'Belum tersedia'
@@ -323,12 +331,14 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 _buildRightMetricItem(
+                  isDark: isDark,
                   icon: Icons.stacked_line_chart_rounded,
                   label: 'Total Skrining',
                   value: '$totalScreenings kali',
                 ),
                 const SizedBox(height: 5),
                 _buildRightMetricItem(
+                  isDark: isDark,
                   icon: Icons.access_time_rounded,
                   label: 'Skrining Terakhir',
                   value: formattedLastDate,
@@ -342,6 +352,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   }
 
   Widget _buildRightMetricItem({
+    required bool isDark,
     required IconData icon,
     required String label,
     required String value,
@@ -352,8 +363,8 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
         Container(
           width: 20,
           height: 20,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF1F5F9),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, size: 11, color: const Color(0xFF3B82F6)),
@@ -377,7 +388,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                   height: 1.1,
                 ),
                 maxLines: 1,
@@ -524,7 +535,10 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   // ===========================================================================
   // 2A. CARD KIRI: HASIL SKRINING TERAKHIR (Persis Gambar 2)
   // ===========================================================================
-  Widget _buildLatestScreeningColumn(ScreeningHistoryItem? screening) {
+  Widget _buildLatestScreeningColumn(
+    ScreeningHistoryItem? screening, {
+    required bool isDark,
+  }) {
     if (screening == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,7 +548,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
           ),
           const SizedBox(height: 8),
@@ -542,12 +556,15 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 28),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+              border: Border.all(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -558,8 +575,8 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF1F5F9),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -574,7 +591,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF334155),
+                    color: isDark ? Colors.white : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -582,7 +599,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   'Pengguna belum pernah melakukan skrining obesitas.',
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
-                    color: const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -611,19 +628,22 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+            border: Border.all(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              width: 1.2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -659,7 +679,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 15.5,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF0F172A),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                             height: 1.1,
                           ),
                         ),
@@ -705,6 +725,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _buildMetricMiniBox(
+                      isDark: isDark,
                       icon: Icons.height_rounded,
                       label: 'Tinggi Badan',
                       value: '$heightVal cm',
@@ -713,6 +734,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: _buildMetricMiniBox(
+                      isDark: isDark,
                       icon: Icons.monitor_weight_outlined,
                       label: 'Berat Badan',
                       value: '$weightVal kg',
@@ -721,6 +743,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: _buildMetricMiniBox(
+                      isDark: isDark,
                       icon: Icons.shopping_bag_outlined,
                       label: 'IMT',
                       value: bmiFormatted,
@@ -732,7 +755,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               const SizedBox(height: 14),
 
               // Indikator Rentang IMT dengan Pointer Segitiga (Persis Gambar 2)
-              _buildExactBmiGauge(bmiVal),
+              _buildExactBmiGauge(bmiVal, isDark: isDark),
 
               const SizedBox(height: 10),
 
@@ -774,6 +797,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   }
 
   Widget _buildMetricMiniBox({
+    required bool isDark,
     required IconData icon,
     required String label,
     required String value,
@@ -781,9 +805,12 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF0F172A) : Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          width: 1.0,
+        ),
       ),
       child: Column(
         children: [
@@ -811,7 +838,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 9.5,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
           ),
         ],
@@ -819,7 +846,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildExactBmiGauge(double bmi) {
+  Widget _buildExactBmiGauge(double bmi, {required bool isDark}) {
     // Normalisasi posisi IMT: rentang 15.0 s/d 35.0
     final progress = ((bmi - 15.0) / (35.0 - 15.0)).clamp(0.0, 1.0);
 
@@ -833,7 +860,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
 
         return Column(
           children: [
-            // Pointer Segitiga Hitam Menunjuk ke Bawah
+            // Pointer Segitiga Menunjuk ke Bawah
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -841,10 +868,10 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 Positioned(
                   left: pointerPos,
                   top: -4,
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_drop_down,
                     size: 18,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
               ],
@@ -887,10 +914,10 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             // 4 Label di Bawah Bar Sesuai Screenshot Gambar 2
             Row(
               children: [
-                _buildGaugeLabel('Kurang', '< 18,49'),
-                _buildGaugeLabel('Normal', '18,5–24,9 kg'),
-                _buildGaugeLabel('Overweight', '25–27 kg'),
-                _buildGaugeLabel('Obesitas', '> 27 kg'),
+                _buildGaugeLabel('Kurang', '< 18,49', isDark: isDark),
+                _buildGaugeLabel('Normal', '18,5–24,9 kg', isDark: isDark),
+                _buildGaugeLabel('Overweight', '25–27 kg', isDark: isDark),
+                _buildGaugeLabel('Obesitas', '> 27 kg', isDark: isDark),
               ],
             ),
           ],
@@ -899,7 +926,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGaugeLabel(String title, String range) {
+  Widget _buildGaugeLabel(String title, String range, {required bool isDark}) {
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -911,7 +938,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 7.5,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
                 height: 1.0,
               ),
               maxLines: 1,
@@ -923,7 +950,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               range,
               style: GoogleFonts.poppins(
                 fontSize: 6.5,
-                color: const Color(0xFF64748B),
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 height: 1.1,
               ),
               maxLines: 1,
@@ -941,6 +968,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   // ===========================================================================
   Widget _buildRiwayatSingkatSection({
     required BuildContext context,
+    required bool isDark,
     required List<ScreeningHistoryItem> screenings,
     required UserModel user,
   }) {
@@ -952,7 +980,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF0F172A),
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
           ),
         ),
         const SizedBox(height: 10),
@@ -981,6 +1009,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
 
               return _buildRiwayatCard(
                 context: context,
+                isDark: isDark,
                 themeColor: themeColor,
                 dateStr: dateStr,
                 timeStr: timeStr,
@@ -1008,12 +1037,15 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+              border: Border.all(
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                width: 1.0,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                   blurRadius: 4,
                   offset: const Offset(0, 1),
                 ),
@@ -1032,7 +1064,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF475569),
+                    color: isDark ? Colors.white : const Color(0xFF475569),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -1040,7 +1072,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   'Pengguna ini belum memiliki riwayat sesi skrining di database.',
                   style: GoogleFonts.poppins(
                     fontSize: 10.5,
-                    color: const Color(0xFF94A3B8),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1053,6 +1085,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
 
   Widget _buildRiwayatCard({
     required BuildContext context,
+    required bool isDark,
     required Color themeColor,
     required String dateStr,
     required String timeStr,
@@ -1066,12 +1099,15 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -1100,7 +1136,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: themeColor.withValues(alpha: 0.1),
+                          color: themeColor.withValues(alpha: isDark ? 0.2 : 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -1116,14 +1152,14 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0F172A),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                             ),
                             Text(
                               timeStr,
                               style: GoogleFonts.poppins(
                                 fontSize: 8,
-                                color: const Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                               ),
                             ),
                           ],
@@ -1231,6 +1267,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: _buildRiwayatStatItem(
+                                    isDark: isDark,
                                     icon: Icons.accessibility_new_rounded,
                                     label: 'IMT',
                                     value: bmiVal,
@@ -1239,6 +1276,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: _buildRiwayatStatItem(
+                                    isDark: isDark,
                                     icon: Icons.height_rounded,
                                     label: 'Tinggi Badan',
                                     value: heightVal,
@@ -1247,6 +1285,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: _buildRiwayatStatItem(
+                                    isDark: isDark,
                                     icon: Icons.scale_rounded,
                                     label: 'Berat Badan',
                                     value: weightVal,
@@ -1269,6 +1308,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   }
 
   Widget _buildRiwayatStatItem({
+    required bool isDark,
     required IconData icon,
     required String label,
     required String value,
@@ -1298,7 +1338,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 8.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1354,7 +1394,11 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   void _confirmDeleteUser(BuildContext context) {
     final displayName = initialUser?.name.trim().isNotEmpty == true
         ? initialUser!.name
+<<<<<<< Updated upstream
         : 'Pengguna ObeSight';
+=======
+        : 'pengguna ini';
+>>>>>>> Stashed changes
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog<bool>(
@@ -1366,6 +1410,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+<<<<<<< Updated upstream
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -1416,6 +1461,17 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+=======
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFE53935), size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Hapus Akun Pengguna?',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+>>>>>>> Stashed changes
                 ),
               ),
             ],
@@ -1471,6 +1527,46 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             ),
           ],
         ),
+<<<<<<< Updated upstream
+=======
+        content: Text(
+          'Apakah Anda yakin ingin menghapus akun "$displayName" beserta seluruh data riwayat skrining dan catatan kesehatannya? Tindakan ini bersifat permanen dan terisolasi.',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53935),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(
+              'Hapus Akun',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+>>>>>>> Stashed changes
       ),
     ).then((confirmed) async {
       if (confirmed == true && context.mounted) {

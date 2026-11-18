@@ -1369,11 +1369,44 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                   ),
                                 ),
                               ),
+                              if (record.isSplitSleep)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE0F2FE),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.call_split_rounded,
+                                        size: 10,
+                                        color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        'Split',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${record.date} • ${record.sourceLabel}',
+                            record.isSplitSleep
+                                ? '${record.date} • Split Sleep (Sesi 1: ${record.firstSessionFormatted}, Sesi 2: ${record.secondSessionFormatted})'
+                                : '${record.date} • ${record.sourceLabel}',
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
                               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),

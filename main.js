@@ -184,30 +184,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tahap 1 (Gambar 4): Dimulai seketika (0ms)
     setSplashStage(1);
 
-    // Tahap 2 (Gambar 3): Latar berubah jadi putih, logo lencana sedang di tengah (setelah 1300ms)
+    // Tahap 2 (Gambar 3): Latar berubah jadi putih, logo lencana sedang di tengah (setelah 450ms)
     animationTimers.push(setTimeout(() => {
       setSplashStage(2);
-    }, 1300));
+    }, 450));
 
-    // Tahap 3 (Gambar 5): Zoom-in besar dramatis di tengah layar (setelah 2600ms)
+    // Tahap 3 (Gambar 5): Zoom-in besar dramatis di tengah layar (setelah 900ms)
     animationTimers.push(setTimeout(() => {
       setSplashStage(3);
-    }, 2600));
+    }, 900));
 
-    // Tahap 4 (Gambar 2): Scale down kembali & jeda singkat dengan subtle drop shadow (setelah 3900ms)
+    // Tahap 4 (Gambar 2): Scale down kembali & jeda singkat dengan subtle drop shadow (setelah 1350ms)
     animationTimers.push(setTimeout(() => {
       setSplashStage(4);
-    }, 3900));
+    }, 1350));
 
-    // Tahap 5 (Gambar 1): Teks ObeSight muncul di kanan logo, keduanya pas di tengah (setelah 5200ms)
+    // Tahap 5 (Gambar 1): Teks ObeSight muncul di kanan logo, keduanya pas di tengah (setelah 1800ms)
     animationTimers.push(setTimeout(() => {
       setSplashStage(5);
-    }, 5200));
+    }, 1800));
 
-    // Selesai: Transisi crossfade ke Layar Login Utama (setelah 7000ms)
+    // Selesai: Transisi crossfade ke Layar Login Utama (setelah 2400ms)
     animationTimers.push(setTimeout(() => {
       transitionToLogin();
-    }, 7000));
+    }, 2400));
   }
 
   function transitionToLogin() {

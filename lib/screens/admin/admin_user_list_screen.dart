@@ -223,15 +223,16 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const sageGreen = Color(
       0xFF529471,
     ); // Warna hijau sage sesuai desain Obesight
 
     final bodyContent = Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -246,10 +247,10 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                   width: 175,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: const Color(0xFF64748B),
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFF64748B),
                       width: 1.0,
                     ),
                   ),
@@ -257,10 +258,10 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.search_rounded,
                         size: 16,
-                        color: Color(0xFF64748B),
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                       const SizedBox(width: 6),
                       Expanded(
@@ -273,13 +274,13 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                           },
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: const Color(0xFF0F172A),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             hintText: 'Cari',
                             hintStyle: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF64748B),
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             ),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
@@ -346,7 +347,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF0F172A),
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -354,7 +355,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                               'Pastikan koneksi internet aktif dan hak akses admin valid.',
                               style: GoogleFonts.poppins(
                                 fontSize: 11.5,
-                                color: const Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -430,7 +431,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                   : 'Pengguna "$query" tidak ditemukan',
                               style: GoogleFonts.poppins(
                                 fontSize: 13.5,
-                                color: const Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                               ),
                             ),
                           ],
@@ -546,6 +547,7 @@ class _AdminUserCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FutureBuilder<UserScreeningSummary>(
       future: AdminUserService.instance.getUserScreeningSummary(user.id),
       builder: (context, snapshot) {
@@ -554,12 +556,15 @@ class _AdminUserCardItem extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+            border: Border.all(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              width: 1.2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
@@ -600,10 +605,14 @@ class _AdminUserCardItem extends StatelessWidget {
                                     vertical: 1.5,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5EE),
+                                    color: isDark
+                                        ? const Color(0xFF1E3A2F)
+                                        : const Color(0xFFE8F5EE),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: const Color(0xFF529471),
+                                      color: isDark
+                                          ? const Color(0xFF34D399)
+                                          : const Color(0xFF529471),
                                       width: 0.8,
                                     ),
                                   ),
@@ -612,7 +621,9 @@ class _AdminUserCardItem extends StatelessWidget {
                                     style: GoogleFonts.poppins(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF267352),
+                                      color: isDark
+                                          ? const Color(0xFF6EE7B7)
+                                          : const Color(0xFF267352),
                                     ),
                                   ),
                                 ),
@@ -625,7 +636,9 @@ class _AdminUserCardItem extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF0F172A),
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -640,7 +653,9 @@ class _AdminUserCardItem extends StatelessWidget {
                                 : 'Email belum diisi',
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
-                              color: const Color(0xFF64748B),
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
                               decoration: TextDecoration.underline,
                             ),
                             maxLines: 1,
@@ -655,7 +670,9 @@ class _AdminUserCardItem extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF334155),
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF334155),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -667,7 +684,9 @@ class _AdminUserCardItem extends StatelessWidget {
                                 : (user.isAdmin ? 'Administrator' : '-'),
                             style: GoogleFonts.poppins(
                               fontSize: 10.5,
-                              color: const Color(0xFF334155),
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF334155),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -680,7 +699,9 @@ class _AdminUserCardItem extends StatelessWidget {
                     Container(
                       width: 1,
                       height: 64,
-                      color: const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
                       margin: const EdgeInsets.symmetric(horizontal: 10),
                     ),
 
@@ -691,6 +712,7 @@ class _AdminUserCardItem extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildRightMetricItem(
+                            isDark: isDark,
                             icon: Icons.calendar_today_outlined,
                             label: 'Bergabung',
                             value: user.joinedFormatted != 'Belum tersedia'
@@ -699,6 +721,7 @@ class _AdminUserCardItem extends StatelessWidget {
                           ),
                           const SizedBox(height: 5),
                           _buildRightMetricItem(
+                            isDark: isDark,
                             icon: Icons.stacked_line_chart_rounded,
                             label: 'Total Skrining',
                             value: summary.totalScreenings > 0
@@ -707,6 +730,7 @@ class _AdminUserCardItem extends StatelessWidget {
                           ),
                           const SizedBox(height: 5),
                           _buildRightMetricItem(
+                            isDark: isDark,
                             icon: Icons.access_time_rounded,
                             label: 'Skrining Terakhir',
                             value: summary.lastScreeningDate != null
@@ -719,6 +743,7 @@ class _AdminUserCardItem extends StatelessWidget {
 
                     const SizedBox(width: 6),
 
+<<<<<<< Updated upstream
                     // 4. BAGIAN AKSI: Tombol Hapus Pengguna & Chevron Detail
                     Column(
                       mainAxisSize: MainAxisSize.min,
@@ -753,6 +778,15 @@ class _AdminUserCardItem extends StatelessWidget {
                           color: Color(0xFF94A3B8),
                         ),
                       ],
+=======
+                    // 4. Chevron Navigation Arrow
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 22,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF0F172A),
+>>>>>>> Stashed changes
                     ),
                   ],
                 ),
@@ -765,6 +799,7 @@ class _AdminUserCardItem extends StatelessWidget {
   }
 
   Widget _buildRightMetricItem({
+    required bool isDark,
     required IconData icon,
     required String label,
     required String value,
@@ -775,8 +810,8 @@ class _AdminUserCardItem extends StatelessWidget {
         Container(
           width: 20,
           height: 20,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF1F5F9),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, size: 11, color: const Color(0xFF3B82F6)),
@@ -800,7 +835,7 @@ class _AdminUserCardItem extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                   height: 1.1,
                 ),
                 maxLines: 1,

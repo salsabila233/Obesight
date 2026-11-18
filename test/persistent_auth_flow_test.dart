@@ -124,11 +124,11 @@ void main() {
       );
       await tester.pump();
 
-      // Fase splash screen berjalan
-      await tester.pump(const Duration(milliseconds: 1300));
-      await tester.pump(const Duration(milliseconds: 450));
+      // Fase splash screen berjalan (versi optimal cepat)
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(milliseconds: 350));
       await tester.pump(const Duration(milliseconds: 750));
-      await tester.pump(const Duration(milliseconds: 1550));
       await tester.pump(const Duration(milliseconds: 550));
 
       // Langsung masuk ke Beranda tanpa meminta login ulang

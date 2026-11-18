@@ -235,10 +235,10 @@ class RichArticleTextController extends TextEditingController {
       formatted = '__${formatted}__';
     }
     if (isItalic) {
-      formatted = '*${formatted}*';
+      formatted = '*$formatted*';
     }
     if (isBold) {
-      formatted = '**${formatted}**';
+      formatted = '**$formatted**';
     }
     buffer.write(formatted);
   }
@@ -785,9 +785,11 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
   }
 
   void _showImageSourceDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -804,7 +806,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -814,7 +816,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 16),
@@ -822,13 +824,30 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5EF),
+                    color: isDark
+                        ? const Color(0xFF1E3A2F)
+                        : const Color(0xFFE8F5EF),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF2E7D5A)),
+                  child: Icon(
+                    Icons.camera_alt_rounded,
+                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF2E7D5A),
+                  ),
                 ),
-                title: Text('Kamera', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                subtitle: Text('Ambil foto baru langsung dari kamera', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B))),
+                title: Text(
+                  'Kamera',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                subtitle: Text(
+                  'Ambil foto baru langsung dari kamera',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickImageFromSource(ImageSource.camera);
@@ -838,13 +857,30 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5EF),
+                    color: isDark
+                        ? const Color(0xFF1E3A2F)
+                        : const Color(0xFFE8F5EF),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFF2E7D5A)),
+                  child: Icon(
+                    Icons.photo_library_rounded,
+                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF2E7D5A),
+                  ),
                 ),
-                title: Text('Galeri Foto', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                subtitle: Text('Pilih foto dari galeri HP atau komputer', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B))),
+                title: Text(
+                  'Galeri Foto',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                subtitle: Text(
+                  'Pilih foto dari galeri HP atau komputer',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _pickImageFromSource(ImageSource.gallery);
