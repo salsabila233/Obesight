@@ -18,6 +18,7 @@ import '../../widgets/article_thumbnail_image.dart';
 import 'imt_form_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
 import '../../services/screening_history_service.dart';
+import '../../services/progress_tracking_service.dart';
 import '../../models/screening_history_model.dart';
 
 class UserHomeScreen extends StatefulWidget {
@@ -44,6 +45,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   // State Riwayat Skrining Terakhir Pengguna (Sumber data Status Kesehatan)
   ScreeningHistoryItem? _latestScreening;
   bool _isLoadingScreening = true;
+  bool _isScreeningBannerDismissed = false;
 
   @override
   void initState() {
@@ -65,6 +67,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     _isLoadingScreening = !ScreeningHistoryService.instance.hasLoaded(userKey) && _latestScreening == null;
 
     ScreeningHistoryService.instance.addListener(_syncScreeningData);
+    ProgressTrackingService.instance.addListener(_onProgressUpdated);
+    ProgressTrackingService.instance.syncWithUserScreening(widget.user.id, widget.user.email);
     ScreeningHistoryService.instance.loadHistory(userKey).then((_) {
       if (mounted) {
         _syncScreeningData();
@@ -102,14 +106,22 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   @override
   void dispose() {
     ScreeningHistoryService.instance.removeListener(_syncScreeningData);
+    ProgressTrackingService.instance.removeListener(_onProgressUpdated);
     AuthService().profileUpdateNotifier.removeListener(_syncUserData);
     super.dispose();
+  }
+
+  void _onProgressUpdated() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _syncScreeningData() {
     final userKey = ScreeningHistoryService.instance.resolveUserKey(widget.user.id, widget.user.email);
     final latest = ScreeningHistoryService.instance.getLatestScreening(userKey);
     final loading = ScreeningHistoryService.instance.isLoading(userKey);
+    ProgressTrackingService.instance.syncWithUserScreening(widget.user.id, widget.user.email);
     if (mounted) {
       setState(() {
         _latestScreening = latest;
@@ -408,7 +420,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               // 1. Greeting Section
               _buildGreetingSection(isDark),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
+
+              // Banner Pengingat Skrining 30 Hari (Muncul saat 30 hari tiba)
+              _build30DaysScreeningReminderBanner(isDark),
 
               // 2. Banner Skrining Obesitas
               _buildScreeningSection(),
@@ -591,6 +606,179 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Banner Notifikasi Pengingat Skrining 30 Hari
+  Widget _build30DaysScreeningReminderBanner(bool isDark) {
+    final progressService = ProgressTrackingService.instance;
+    if (!progressService.hasActiveScreening ||
+        !progressService.isScreeningAvailable ||
+        _isScreeningBannerDismissed) {
+      return const SizedBox.shrink();
+    }
+
+    final isNormal = progressService.category.toLowerCase().contains('normal');
+    final titleText =
+        isNormal ? 'Waktunya Skrining Rutin Bulanan 🎯' : 'Waktunya Skrining Ulang ⏱';
+    final descText = isNormal
+        ? 'Kerja bagus menjaga pola hidup sehat! Lakukan skrining berkala untuk memastikan berat badan dan metabolisme tubuh tetap stabil dan ideal.'
+        : 'Sudah 30 hari sejak skrining terakhir (${progressService.formattedStartDate}). Yuk evaluasi penurunan risiko dan efektivitas latihan fisik serta nutrisimu!';
+    final buttonText = isNormal ? 'Skrining Rutin' : 'Skrining Ulang';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF1E293B), const Color(0xFF162032)]
+              : [const Color(0xFFE8F5EE), const Color(0xFFD6EDE0)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFBCE3CE),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF36785A).withValues(alpha: isDark ? 0.2 : 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF36785A).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.notifications_active_rounded,
+                  color: Color(0xFF36785A),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF36785A),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'PENGINGAT 30 HARI',
+                        style: GoogleFonts.poppins(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      titleText,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      descText,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF475569),
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isScreeningBannerDismissed = true;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 6, top: 2),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ProgressScreen(user: widget.user),
+                    ),
+                  ).then((_) {
+                    if (mounted) _syncUserData();
+                  });
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  visualDensity: VisualDensity.compact,
+                ),
+                child: Text(
+                  'Lihat Progres',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF36785A),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              ElevatedButton.icon(
+                onPressed: _openScreeningFlow,
+                icon: const Icon(Icons.play_arrow_rounded, size: 16),
+                label: Text(buttonText),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF36785A),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  textStyle: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1294,10 +1482,36 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Icon(
-                  isActive ? activeIcon : icon,
-                  color: Colors.white,
-                  size: 20,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isActive ? activeIcon : icon,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    if (index == 1 &&
+                        ProgressTrackingService.instance.hasActiveScreening &&
+                        ProgressTrackingService.instance.isScreeningAvailable)
+                      Positioned(
+                        top: -3,
+                        right: -3,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : const Color(0xFF2D6A4F),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 3),

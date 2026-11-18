@@ -231,6 +231,28 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final textDark = isDark ? Colors.white : const Color(0xFF0F172A);
     final textMuted = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
+    final isNormal = service.category.toLowerCase().contains('normal');
+    final String cardTitle = isNormal ? 'Jadwal Skrining Rutin' : 'Jadwal Skrining Ulang';
+    final String buttonLabel = isNormal ? 'Skrining Rutin' : 'Skrining Ulang';
+    final String descriptionText;
+    if (service.isScreeningAvailable) {
+      if (isNormal) {
+        descriptionText =
+            'Kerja bagus telah menjaga pola hidup sehat! Jadwal skrining berkala Anda (${service.formattedNextScreeningDate}) sudah tiba (tepat 30 hari setelah skrining terakhir pada ${service.formattedStartDate}). Lakukan skrining rutin untuk memastikan berat badan dan metabolisme tubuh Anda tetap stabil dan ideal.';
+      } else {
+        descriptionText =
+            'Sudah 30 hari sejak skrining terakhir (${service.formattedStartDate}). Jadwal skrining ulang Anda (${service.formattedNextScreeningDate}) sudah tiba! Yuk lakukan skrining ulang sekarang untuk mengevaluasi penurunan risiko dan efektivitas latihan fisik serta asupan nutrisi Anda.';
+      }
+    } else {
+      if (isNormal) {
+        descriptionText =
+            'Jadwal skrining rutin berkala dijadwalkan tepat 1 bulan (30 hari) setelah skrining terakhir (${service.formattedStartDate}) untuk memantau stabilitas berat badan dan kebugaran tubuh Anda.';
+      } else {
+        descriptionText =
+            'Jadwal skrining ulang dijadwalkan tepat 1 bulan (30 hari) setelah skrining terakhir (${service.formattedStartDate}) untuk mengevaluasi efektivitas latihan fisik dan asupan nutrisi Anda.';
+      }
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -271,7 +293,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Jadwal Skrining Ulang',
+                      cardTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -372,9 +394,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    service.isScreeningAvailable
-                        ? 'Jadwal skrining ulang Anda (${service.formattedNextScreeningDate}) sudah tiba (tepat 30 hari setelah skrining terakhir pada ${service.formattedStartDate}). Silakan lakukan skrining ulang untuk mengevaluasi efektivitas latihan fisik dan asupan nutrisi Anda.'
-                        : 'Jadwal skrining ulang dijadwalkan tepat 1 bulan (30 hari) setelah skrining terakhir (${service.formattedStartDate}) untuk mengevaluasi efektivitas latihan fisik dan asupan nutrisi Anda.',
+                    descriptionText,
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
                       color: textMuted,
@@ -430,9 +450,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _openScreeningFlow,
                   icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: const FittedBox(
+                  label: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text('Skrining Ulang'),
+                    child: Text(buttonLabel),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF36785A),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +18,7 @@ class ScreeningHistoryService extends ChangeNotifier {
   final Map<String, List<ScreeningHistoryItem>> _historyCache = {};
   final Set<String> _loadedUsers = {};
   final Map<String, bool> _loadingStates = {};
+  final Map<String, StreamSubscription> _realtimeSubscriptions = {};
 
   // Prefix penyimpanan persisten per akun di SharedPreferences
   static const String _prefPrefix = 'screening_records_per_account_v3_';
@@ -143,6 +145,26 @@ class ScreeningHistoryService extends ChangeNotifier {
               }
             }
           }
+        }
+
+        // Pasang listener real-time Cloud Firestore agar pembaruan/penghapusan skrining langsung sinkron
+        if (!_realtimeSubscriptions.containsKey(cleanId)) {
+          _realtimeSubscriptions[cleanId] = FirebaseFirestore.instance
+              .collection('users')
+              .doc(cleanId)
+              .collection('screenings')
+              .orderBy('date', descending: true)
+              .snapshots()
+              .listen((snapshot) {
+            final items = snapshot.docs.map((doc) {
+              return ScreeningHistoryItem.fromMap(doc.data());
+            }).toList();
+            _historyCache[cleanId] = items;
+            _saveToStorage(cleanId, items);
+            notifyListeners();
+          }, onError: (e) {
+            debugPrint('[ScreeningHistoryService] Realtime listener error for $cleanId: $e');
+          });
         }
       } catch (firestoreErr) {
         debugPrint('[ScreeningHistoryService] Notice fetching Firestore screenings for $cleanId: $firestoreErr');
