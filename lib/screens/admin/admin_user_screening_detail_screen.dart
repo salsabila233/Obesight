@@ -206,148 +206,264 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar dengan border ring hijau melingkar
-          Container(
-            width: 58,
-            height: 58,
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF529471), width: 1.5),
-            ),
-            child: ClipOval(child: _buildAvatarImage(user)),
-          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Avatar dengan border ring hijau melingkar
+              Container(
+                width: 58,
+                height: 58,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF529471), width: 1.5),
+                ),
+                child: ClipOval(child: _buildAvatarImage(user)),
+              ),
 
-          const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-          // Tengah: Nama, Email, Nomor Telepon, Gender • Usia
-          Expanded(
-            flex: 10,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.name.isNotEmpty ? user.name : 'Pengguna ObeSight',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  user.email.isNotEmpty
-                      ? user.email
-                      : 'Email belum diisi',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10.5,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    decoration: TextDecoration.underline,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  (user.phone != null && user.phone!.trim().isNotEmpty)
-                      ? user.phone!.trim()
-                      : '-',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  user.genderAndAgeDotFormatted != '--'
-                      ? user.genderAndAgeDotFormatted
-                      : (user.isAdmin ? 'Administrator' : '-'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 10.5,
-                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Row(
+              // Tengah: Nama, Email, Nomor Telepon, Gender • Usia
+              Expanded(
+                flex: 10,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 11,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    Text(
+                      user.name.isNotEmpty ? user.name : 'Pengguna ObeSight',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 3),
-                    Expanded(
-                      child: Text(
-                        (user.address != null && user.address!.trim().isNotEmpty)
-                            ? user.address!.trim()
-                            : 'Alamat belum diisi',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: (user.address != null && user.address!.trim().isNotEmpty)
-                              ? (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155))
-                              : const Color(0xFF94A3B8),
-                          fontStyle: (user.address != null && user.address!.trim().isNotEmpty)
-                              ? FontStyle.normal
-                              : FontStyle.italic,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 1),
+                    Text(
+                      user.email.isNotEmpty
+                          ? user.email
+                          : 'Email belum diisi',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.5,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        decoration: TextDecoration.underline,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      (user.phone != null && user.phone!.trim().isNotEmpty)
+                          ? user.phone!.trim()
+                          : '-',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      user.genderAndAgeDotFormatted != '--'
+                          ? user.genderAndAgeDotFormatted
+                          : (user.isAdmin ? 'Administrator' : '-'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.5,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // Garis Pembatas Vertikal
-          Container(
-            width: 1,
-            height: 74,
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-          ),
+              // Garis Pembatas Vertikal
+              Container(
+                width: 1,
+                height: 74,
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+              ),
 
-          // Kanan: Bergabung, Total Skrining, Skrining Terakhir
-          Expanded(
-            flex: 9,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRightMetricItem(
-                  isDark: isDark,
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Bergabung',
-                  value: user.joinedFormatted != 'Belum tersedia'
-                      ? user.joinedFormatted
-                      : '-',
+              // Kanan: Bergabung, Total Skrining, Skrining Terakhir
+              Expanded(
+                flex: 9,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildRightMetricItem(
+                      isDark: isDark,
+                      icon: Icons.calendar_today_outlined,
+                      label: 'Bergabung',
+                      value: user.joinedFormatted != 'Belum tersedia'
+                          ? user.joinedFormatted
+                          : '-',
+                    ),
+                    const SizedBox(height: 5),
+                    _buildRightMetricItem(
+                      isDark: isDark,
+                      icon: Icons.stacked_line_chart_rounded,
+                      label: 'Total Skrining',
+                      value: '$totalScreenings kali',
+                    ),
+                    const SizedBox(height: 5),
+                    _buildRightMetricItem(
+                      isDark: isDark,
+                      icon: Icons.access_time_rounded,
+                      label: 'Skrining Terakhir',
+                      value: formattedLastDate,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 5),
-                _buildRightMetricItem(
-                  isDark: isDark,
-                  icon: Icons.stacked_line_chart_rounded,
-                  label: 'Total Skrining',
-                  value: '$totalScreenings kali',
-                ),
-                const SizedBox(height: 5),
-                _buildRightMetricItem(
-                  isDark: isDark,
-                  icon: Icons.access_time_rounded,
-                  label: 'Skrining Terakhir',
-                  value: formattedLastDate,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 10),
+          Divider(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+            height: 1,
+          ),
+          const SizedBox(height: 8),
+          _buildStructuredAddressSection(isDark: isDark, user: user),
         ],
       ),
+    );
+  }
+
+  Widget _buildStructuredAddressSection({
+    required bool isDark,
+    required UserModel user,
+  }) {
+    final hasStructured = user.hasStructuredAddress;
+    final fallback = (user.address != null && user.address!.trim().isNotEmpty)
+        ? user.address!.trim()
+        : null;
+
+    final subLabelColor =
+        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final valColor = isDark ? Colors.white : const Color(0xFF0F172A);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          width: 0.8,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.location_on_rounded,
+                size: 13,
+                color: Color(0xFF36785A),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                'Alamat Pengguna',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (hasStructured) ...[
+            _buildAdminAddressLine(
+              label: 'Provinsi',
+              value: user.provinsi!,
+              subLabelColor: subLabelColor,
+              valColor: valColor,
+            ),
+            const SizedBox(height: 3),
+            _buildAdminAddressLine(
+              label: 'Kabupaten/Kota',
+              value: user.kabupatenKota!,
+              subLabelColor: subLabelColor,
+              valColor: valColor,
+            ),
+            const SizedBox(height: 3),
+            _buildAdminAddressLine(
+              label: 'Kecamatan',
+              value: user.kecamatan!,
+              subLabelColor: subLabelColor,
+              valColor: valColor,
+            ),
+          ] else if (fallback != null) ...[
+            _buildAdminAddressLine(
+              label: 'Alamat',
+              value: fallback,
+              subLabelColor: subLabelColor,
+              valColor: valColor,
+            ),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                'Alamat belum diisi',
+                style: GoogleFonts.poppins(
+                  fontSize: 10.5,
+                  color: const Color(0xFF94A3B8),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminAddressLine({
+    required String label,
+    required String value,
+    required Color subLabelColor,
+    required Color valColor,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 95,
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: subLabelColor,
+            ),
+          ),
+        ),
+        Text(
+          ': ',
+          style: GoogleFonts.poppins(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w500,
+            color: subLabelColor,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: valColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1394,11 +1510,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   void _confirmDeleteUser(BuildContext context) {
     final displayName = initialUser?.name.trim().isNotEmpty == true
         ? initialUser!.name
-<<<<<<< Updated upstream
         : 'Pengguna ObeSight';
-=======
-        : 'pengguna ini';
->>>>>>> Stashed changes
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog<bool>(
@@ -1410,7 +1522,6 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-<<<<<<< Updated upstream
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -1461,17 +1572,6 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-=======
-            const Icon(Icons.warning_amber_rounded, color: Color(0xFFE53935), size: 24),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Hapus Akun Pengguna?',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
->>>>>>> Stashed changes
                 ),
               ),
             ],
@@ -1527,46 +1627,6 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             ),
           ],
         ),
-<<<<<<< Updated upstream
-=======
-        content: Text(
-          'Apakah Anda yakin ingin menghapus akun "$displayName" beserta seluruh data riwayat skrining dan catatan kesehatannya? Tindakan ini bersifat permanen dan terisolasi.',
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE53935),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: Text(
-              'Hapus Akun',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
->>>>>>> Stashed changes
       ),
     ).then((confirmed) async {
       if (confirmed == true && context.mounted) {

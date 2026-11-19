@@ -631,6 +631,12 @@ class AuthService {
         'gender': _currentUser!.gender ?? cached?['gender'] ?? 'Perempuan',
         'email': _currentUser!.email.isNotEmpty ? _currentUser!.email : (cached?['email'] ?? ''),
         'phone': _currentUser!.phone ?? cached?['phone'] ?? '',
+        'provinsi': _currentUser!.provinsi ?? cached?['provinsi'] ?? '',
+        'provinsiId': _currentUser!.provinsiId ?? cached?['provinsiId'] ?? '',
+        'kabupatenKota': _currentUser!.kabupatenKota ?? cached?['kabupatenKota'] ?? '',
+        'kabupatenKotaId': _currentUser!.kabupatenKotaId ?? cached?['kabupatenKotaId'] ?? '',
+        'kecamatan': _currentUser!.kecamatan ?? cached?['kecamatan'] ?? '',
+        'kecamatanId': _currentUser!.kecamatanId ?? cached?['kecamatanId'] ?? '',
         'alamat': _currentUser!.address ?? cached?['alamat'] ?? cached?['address'] ?? '',
         'address': _currentUser!.address ?? cached?['address'] ?? cached?['alamat'] ?? '',
         'joined': cached?['joined'] ?? 'Bergabung sejak Juni 2026',
@@ -647,6 +653,12 @@ class AuthService {
       'gender': 'Perempuan',
       'email': '',
       'phone': '',
+      'provinsi': '',
+      'provinsiId': '',
+      'kabupatenKota': '',
+      'kabupatenKotaId': '',
+      'kecamatan': '',
+      'kecamatanId': '',
       'alamat': '',
       'address': '',
       'joined': 'Bergabung sejak Juni 2026',
@@ -671,7 +683,17 @@ class AuthService {
         final dob = (data['dob'] as String?)?.trim() ?? '';
         final rawGender = (data['gender'] as String?)?.trim() ?? '';
         final phone = (data['phone'] as String?)?.trim() ?? '';
-        final address = ((data['alamat'] ?? data['address']) as String?)?.trim() ?? '';
+        final provinsi = ((data['provinsi'] ?? data['province']) as String?)?.trim() ?? '';
+        final provinsiId = ((data['provinsiId'] ?? data['provinceId']) as String?)?.trim() ?? '';
+        final kabupatenKota = ((data['kabupatenKota'] ?? data['kabupaten_kota'] ?? data['regency']) as String?)?.trim() ?? '';
+        final kabupatenKotaId = ((data['kabupatenKotaId'] ?? data['regencyId']) as String?)?.trim() ?? '';
+        final kecamatan = ((data['kecamatan'] ?? data['district']) as String?)?.trim() ?? '';
+        final kecamatanId = ((data['kecamatanId'] ?? data['districtId']) as String?)?.trim() ?? '';
+        final rawAddress = ((data['alamat'] ?? data['address']) as String?)?.trim() ?? '';
+        String address = rawAddress;
+        if (address.isEmpty && provinsi.isNotEmpty && kabupatenKota.isNotEmpty && kecamatan.isNotEmpty) {
+          address = 'Kec. $kecamatan, $kabupatenKota, $provinsi';
+        }
         final roleStr = data['role'] as String? ?? 'user';
         final isComplete = (data['isBiodataComplete'] == true) ||
             (dob.isNotEmpty && rawGender.isNotEmpty && phone.isNotEmpty);
@@ -687,6 +709,12 @@ class AuthService {
             : phone;
         final email = (rawEmail != null && rawEmail.isNotEmpty) ? rawEmail : existingProfile['email']!;
         final effectiveAddress = address.isNotEmpty ? address : (existingProfile['alamat'] ?? existingProfile['address'] ?? '');
+        final effectiveProvinsi = provinsi.isNotEmpty ? provinsi : (existingProfile['provinsi'] ?? '');
+        final effectiveProvinsiId = provinsiId.isNotEmpty ? provinsiId : (existingProfile['provinsiId'] ?? '');
+        final effectiveKabupatenKota = kabupatenKota.isNotEmpty ? kabupatenKota : (existingProfile['kabupatenKota'] ?? '');
+        final effectiveKabupatenKotaId = kabupatenKotaId.isNotEmpty ? kabupatenKotaId : (existingProfile['kabupatenKotaId'] ?? '');
+        final effectiveKecamatan = kecamatan.isNotEmpty ? kecamatan : (existingProfile['kecamatan'] ?? '');
+        final effectiveKecamatanId = kecamatanId.isNotEmpty ? kecamatanId : (existingProfile['kecamatanId'] ?? '');
 
         final updatedProfile = {
           'name': effectiveName,
@@ -694,6 +722,12 @@ class AuthService {
           'gender': gender,
           'email': email,
           'phone': effectivePhone,
+          'provinsi': effectiveProvinsi,
+          'provinsiId': effectiveProvinsiId,
+          'kabupatenKota': effectiveKabupatenKota,
+          'kabupatenKotaId': effectiveKabupatenKotaId,
+          'kecamatan': effectiveKecamatan,
+          'kecamatanId': effectiveKecamatanId,
           'alamat': effectiveAddress,
           'address': effectiveAddress,
           'joined': (data['joined'] as String?) ?? existingProfile['joined'] ?? 'Bergabung sejak ${DateTime.now().year}',
@@ -712,6 +746,12 @@ class AuthService {
             gender: gender,
             phone: effectivePhone,
             address: effectiveAddress,
+            provinsi: effectiveProvinsi,
+            provinsiId: effectiveProvinsiId,
+            kabupatenKota: effectiveKabupatenKota,
+            kabupatenKotaId: effectiveKabupatenKotaId,
+            kecamatan: effectiveKecamatan,
+            kecamatanId: effectiveKecamatanId,
             avatarUrl: photoUrl,
             photoPath: photoUrl,
             role: roleStr == 'admin' ? UserRole.admin : UserRole.user,
@@ -738,6 +778,12 @@ class AuthService {
     String? email,
     String? phone,
     String? address,
+    String? provinsi,
+    String? provinsiId,
+    String? kabupatenKota,
+    String? kabupatenKotaId,
+    String? kecamatan,
+    String? kecamatanId,
     String? avatar,
     String? photoPath,
     String? joined,
@@ -775,14 +821,35 @@ class AuthService {
     }
 
     final current = getUserProfile(userId);
+    final effectiveProvinsi = provinsi ?? current['provinsi'] ?? '';
+    final effectiveProvinsiId = provinsiId ?? current['provinsiId'] ?? '';
+    final effectiveKabupatenKota = kabupatenKota ?? current['kabupatenKota'] ?? '';
+    final effectiveKabupatenKotaId = kabupatenKotaId ?? current['kabupatenKotaId'] ?? '';
+    final effectiveKecamatan = kecamatan ?? current['kecamatan'] ?? '';
+    final effectiveKecamatanId = kecamatanId ?? current['kecamatanId'] ?? '';
+
+    String effectiveAddress = address ?? current['alamat'] ?? current['address'] ?? '';
+    if (effectiveAddress.isEmpty &&
+        effectiveProvinsi.isNotEmpty &&
+        effectiveKabupatenKota.isNotEmpty &&
+        effectiveKecamatan.isNotEmpty) {
+      effectiveAddress = 'Kec. $effectiveKecamatan, $effectiveKabupatenKota, $effectiveProvinsi';
+    }
+
     final updatedMap = {
       'name': name ?? current['name'] ?? 'User',
       'dob': dob ?? current['dob'] ?? '',
       'gender': gender ?? current['gender'] ?? 'Perempuan',
       'email': email ?? current['email'] ?? '',
       'phone': phone ?? current['phone'] ?? '',
-      'alamat': address ?? current['alamat'] ?? current['address'] ?? '',
-      'address': address ?? current['address'] ?? current['alamat'] ?? '',
+      'provinsi': effectiveProvinsi,
+      'provinsiId': effectiveProvinsiId,
+      'kabupatenKota': effectiveKabupatenKota,
+      'kabupatenKotaId': effectiveKabupatenKotaId,
+      'kecamatan': effectiveKecamatan,
+      'kecamatanId': effectiveKecamatanId,
+      'alamat': effectiveAddress,
+      'address': effectiveAddress,
       'joined': joined ?? current['joined'] ?? 'Bergabung sejak Juni 2026',
       'avatar': avatar ?? current['avatar'] ?? 'assets/avatar_zahra.png',
       'photo_path': photoPath ?? current['photo_path'] ?? '',
@@ -804,6 +871,12 @@ class AuthService {
         gender: updatedMap['gender'],
         phone: updatedMap['phone'],
         address: updatedMap['alamat'],
+        provinsi: effectiveProvinsi,
+        provinsiId: effectiveProvinsiId,
+        kabupatenKota: effectiveKabupatenKota,
+        kabupatenKotaId: effectiveKabupatenKotaId,
+        kecamatan: effectiveKecamatan,
+        kecamatanId: effectiveKecamatanId,
         avatarUrl: updatedMap['avatar'],
         photoPath: updatedMap['photo_path'],
         isBiodataComplete: isGatedComplete,
@@ -821,6 +894,12 @@ class AuthService {
         'phone': updatedMap['phone'],
         'alamat': updatedMap['alamat'],
         'address': updatedMap['address'],
+        'provinsi': effectiveProvinsi,
+        'provinsiId': effectiveProvinsiId,
+        'kabupatenKota': effectiveKabupatenKota,
+        'kabupatenKotaId': effectiveKabupatenKotaId,
+        'kecamatan': effectiveKecamatan,
+        'kecamatanId': effectiveKecamatanId,
         'isBiodataComplete': isGatedComplete,
         'updatedAt': FieldValue.serverTimestamp(),
       };

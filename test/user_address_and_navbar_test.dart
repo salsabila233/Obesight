@@ -119,13 +119,16 @@ void main() {
   });
 
   group('C. User Screens Address Integration Tests', () {
-    testWidgets('CompleteProfileScreen renders address input and persists on submit', (tester) async {
+    testWidgets('CompleteProfileScreen renders wilayah dropdowns and requires selection before saving', (tester) async {
       setPhoneViewport(tester);
       const testUser = UserModel(
         id: 'comp_user_01',
         name: 'Lengkapi User',
         email: 'lengkap@gmail.com',
         username: 'lengkapiuser',
+        dob: '12 Juli 2003',
+        gender: 'Perempuan',
+        phone: '081234567890',
         role: UserRole.user,
       );
 
@@ -139,18 +142,55 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find Alamat field
-      expect(find.text('Alamat'), findsOneWidget);
-      expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
+      // Find Wilayah Dropdowns: Provinsi, Kabupaten/Kota, Kecamatan
+      expect(find.text('Provinsi'), findsOneWidget);
+      expect(find.text('Kabupaten/Kota'), findsOneWidget);
+      expect(find.text('Kecamatan'), findsOneWidget);
 
-      final addressField = find.widgetWithText(TextFormField, 'Masukkan alamat lengkap tempat tinggal');
-      expect(addressField, findsOneWidget);
+      final provFinder = find.byKey(const ValueKey('dropdown_provinsi'));
+      expect(provFinder, findsOneWidget);
 
-      // Enter address
-      await tester.enterText(addressField, 'Jl. Cempaka Putih No. 10');
+      // Select Province
+      await tester.ensureVisible(provFinder);
+      await tester.tap(provFinder);
       await tester.pumpAndSettle();
 
-      expect(find.text('Jl. Cempaka Putih No. 10'), findsOneWidget);
+      final baliItem = find.text('Bali').last;
+      await tester.tap(baliItem);
+      await tester.pumpAndSettle();
+
+      // Select Regency
+      final regFinder = find.byKey(const ValueKey('dropdown_kabupaten_kota'));
+      await tester.ensureVisible(regFinder);
+      await tester.tap(regFinder);
+      await tester.pumpAndSettle();
+
+      final badungItem = find.text('Kabupaten Badung').last;
+      await tester.tap(badungItem);
+      await tester.pumpAndSettle();
+
+      // Select District
+      final distFinder = find.byKey(const ValueKey('dropdown_kecamatan'));
+      await tester.ensureVisible(distFinder);
+      await tester.tap(distFinder);
+      await tester.pumpAndSettle();
+
+      final kutaItem = find.text('Kuta').last;
+      await tester.tap(kutaItem);
+      await tester.pumpAndSettle();
+
+      // Tap Simpan
+      final saveBtn = find.text('Simpan Perubahan');
+      expect(saveBtn, findsOneWidget);
+      await tester.ensureVisible(saveBtn);
+      await tester.tap(saveBtn);
+      await tester.pumpAndSettle();
+
+      // Verify saved profile in AuthService
+      final profile = AuthService().getUserProfile('comp_user_01');
+      expect(profile['provinsi'], 'Bali');
+      expect(profile['kabupatenKota'], 'Kabupaten Badung');
+      expect(profile['kecamatan'], 'Kuta');
     });
 
     testWidgets('ProfileScreen displays Alamat and fallback when address is empty', (tester) async {
@@ -177,15 +217,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Alamat'), findsOneWidget);
       expect(find.text('Alamat belum diisi'), findsOneWidget);
 
-      // Now set address
+      // Now set structured address
       AuthService().updateUserProfile(
         userId: 'prof_user_empty',
         name: 'Tanpa Alamat',
         email: 'tanpa@gmail.com',
-        address: 'Jl. Veteran No. 3, Malang',
+        provinsi: 'Jawa Timur',
+        kabupatenKota: 'Kabupaten Jember',
+        kecamatan: 'Sumbersari',
       );
 
       await tester.pumpWidget(
@@ -195,7 +236,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Jl. Veteran No. 3, Malang'), findsOneWidget);
+      expect(find.text('Provinsi'), findsOneWidget);
+      expect(find.text('Jawa Timur'), findsOneWidget);
+      expect(find.text('Kabupaten/Kota'), findsOneWidget);
+      expect(find.text('Kabupaten Jember'), findsOneWidget);
+      expect(find.text('Kecamatan'), findsOneWidget);
+      expect(find.text('Sumbersari'), findsOneWidget);
     });
 
     testWidgets('EditProfileScreen pre-fills address, modifies it and saves', (tester) async {
@@ -205,7 +251,12 @@ void main() {
         name: 'Edit Tester',
         email: 'edit@gmail.com',
         username: 'edittester',
-        address: 'Jl. Lama No. 1',
+        provinsi: 'Bali',
+        provinsiId: '51',
+        kabupatenKota: 'Kabupaten Badung',
+        kabupatenKotaId: '51.03',
+        kecamatan: 'Kuta',
+        kecamatanId: '51.03.01',
         role: UserRole.user,
       );
 
@@ -215,7 +266,12 @@ void main() {
         'dob': '12 Juli 2003',
         'gender': 'Perempuan',
         'phone': '081234567890',
-        'alamat': 'Jl. Lama No. 1',
+        'provinsi': 'Bali',
+        'provinsiId': '51',
+        'kabupatenKota': 'Kabupaten Badung',
+        'kabupatenKotaId': '51.03',
+        'kecamatan': 'Kuta',
+        'kecamatanId': '51.03.01',
       };
 
       await tester.pumpWidget(
@@ -228,12 +284,23 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find the pre-filled address field
-      final addressField = find.widgetWithText(TextFormField, 'Jl. Lama No. 1');
-      expect(addressField, findsOneWidget);
+      // Check dropdowns are present with pre-filled values
+      expect(find.byKey(const ValueKey('dropdown_provinsi')), findsOneWidget);
+      expect(find.byKey(const ValueKey('dropdown_kabupaten_kota')), findsOneWidget);
+      expect(find.byKey(const ValueKey('dropdown_kecamatan')), findsOneWidget);
 
-      // Change address
-      await tester.enterText(addressField, 'Jl. Baru No. 88, Surabaya');
+      expect(find.text('Bali'), findsWidgets);
+      expect(find.text('Kabupaten Badung'), findsWidgets);
+      expect(find.text('Kuta'), findsWidgets);
+
+      // Change district to Mengwi
+      final distFinder = find.byKey(const ValueKey('dropdown_kecamatan'));
+      await tester.ensureVisible(distFinder);
+      await tester.tap(distFinder);
+      await tester.pumpAndSettle();
+
+      final mengwiItem = find.text('Mengwi').last;
+      await tester.tap(mengwiItem);
       await tester.pumpAndSettle();
 
       // Tap Simpan Perubahan
@@ -243,9 +310,9 @@ void main() {
       await tester.tap(saveBtn);
       await tester.pumpAndSettle();
 
-      // Check that AuthService has updated address
+      // Check that AuthService has updated kecamatan
       final updatedProfile = AuthService().getUserProfile('edit_user_01');
-      expect(updatedProfile['alamat'], 'Jl. Baru No. 88, Surabaya');
+      expect(updatedProfile['kecamatan'], 'Mengwi');
     });
   });
 

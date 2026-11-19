@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/wilayah_dropdown_section.dart';
 import '../home/admin_home_screen.dart';
 import '../home/user_home_screen.dart';
 import '../skrining/skrining_landing_screen.dart';
@@ -33,8 +34,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _dobController;
   late TextEditingController _phoneController;
-  late TextEditingController _addressController;
 
+  WilayahSelection _wilayahSelection = const WilayahSelection();
   String? _selectedGender;
   bool _isLoading = false;
 
@@ -54,16 +55,20 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final initialEmail = widget.user.email.isNotEmpty
         ? widget.user.email
         : (profile['email']?.isNotEmpty == true ? profile['email']! : widget.user.email);
-    final initialDob = profile['dob'] ?? widget.user.dob ?? '';
-    final initialGender = profile['gender'] ?? widget.user.gender;
-    final initialPhone = profile['phone'] ?? widget.user.phone ?? '';
-    final initialAddress = profile['alamat'] ?? profile['address'] ?? widget.user.address ?? '';
+    final initialDob = (profile['dob']?.isNotEmpty == true)
+        ? profile['dob']!
+        : (widget.user.dob ?? '');
+    final initialGender = (profile['gender']?.isNotEmpty == true)
+        ? profile['gender']
+        : widget.user.gender;
+    final initialPhone = (profile['phone']?.isNotEmpty == true)
+        ? profile['phone']!
+        : (widget.user.phone ?? '');
 
     _nameController = TextEditingController(text: initialName);
     _emailController = TextEditingController(text: initialEmail);
     _dobController = TextEditingController(text: initialDob);
     _phoneController = TextEditingController(text: initialPhone);
-    _addressController = TextEditingController(text: initialAddress);
 
     if (initialGender != null && (initialGender == 'Perempuan' || initialGender == 'Laki-laki')) {
       _selectedGender = initialGender;
@@ -78,7 +83,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     _emailController.dispose();
     _dobController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
@@ -149,6 +153,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       return;
     }
 
+    if (!_wilayahSelection.isComplete) {
+      AppAlert.showError(
+        context,
+        'Silakan pilih Provinsi, Kabupaten/Kota, dan Kecamatan tempat tinggal secara lengkap',
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -157,7 +169,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final dob = _dobController.text.trim();
     final gender = _selectedGender!;
     final phone = _phoneController.text.trim();
-    final address = _addressController.text.trim();
+    final address = _wilayahSelection.formattedAddress;
 
     // 1. Simpan secara asinkron ke AuthService & Cloud Firestore users/{uid}
     await _authService.updateUserProfile(
@@ -166,6 +178,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       dob: dob,
       gender: gender,
       phone: phone,
+      provinsi: _wilayahSelection.provinsiName,
+      provinsiId: _wilayahSelection.provinsiId,
+      kabupatenKota: _wilayahSelection.kabupatenKotaName,
+      kabupatenKotaId: _wilayahSelection.kabupatenKotaId,
+      kecamatan: _wilayahSelection.kecamatanName,
+      kecamatanId: _wilayahSelection.kecamatanId,
       address: address,
     );
 
@@ -180,6 +198,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       dob: dob,
       gender: gender,
       phone: phone,
+      provinsi: _wilayahSelection.provinsiName,
+      provinsiId: _wilayahSelection.provinsiId,
+      kabupatenKota: _wilayahSelection.kabupatenKotaName,
+      kabupatenKotaId: _wilayahSelection.kabupatenKotaId,
+      kecamatan: _wilayahSelection.kecamatanName,
+      kecamatanId: _wilayahSelection.kecamatanId,
       address: address,
       isBiodataComplete: true,
     );
@@ -531,25 +555,19 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
                       const SizedBox(height: 18),
 
-                      // Field 6: Alamat Tempat Tinggal
-                      Text(
-                        'Alamat',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: textDark,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _addressController,
-                        minLines: 1,
-                        maxLines: 3,
-                        style: GoogleFonts.poppins(fontSize: 13.5, color: textDark),
-                        decoration: InputDecoration(
-                          hintText: 'Masukkan alamat lengkap tempat tinggal',
-                          prefixIcon: Icon(Icons.location_on_outlined, color: textMuted, size: 20),
-                        ),
+                      // Field 6: Sistem Dropdown Wilayah (Provinsi, Kab/Kota, Kecamatan)
+                      WilayahDropdownSection(
+                        initialProvinsiId: widget.user.provinsiId,
+                        initialProvinsiName: widget.user.provinsi,
+                        initialKabupatenKotaId: widget.user.kabupatenKotaId,
+                        initialKabupatenKotaName: widget.user.kabupatenKota,
+                        initialKecamatanId: widget.user.kecamatanId,
+                        initialKecamatanName: widget.user.kecamatan,
+                        isDark: isDark,
+                        isRequired: true,
+                        onChanged: (sel) {
+                          _wilayahSelection = sel;
+                        },
                       ),
                     ],
                   ),

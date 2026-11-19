@@ -691,6 +691,38 @@ class _AdminUserCardItem extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          const SizedBox(height: 3),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 11,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  user.addressDisplay,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10,
+                                    color: user.addressDisplay != 'Alamat belum diisi'
+                                        ? (isDark
+                                            ? const Color(0xFFCBD5E1)
+                                            : const Color(0xFF334155))
+                                        : const Color(0xFF94A3B8),
+                                    fontStyle: user.addressDisplay != 'Alamat belum diisi'
+                                        ? FontStyle.normal
+                                        : FontStyle.italic,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -698,7 +730,7 @@ class _AdminUserCardItem extends StatelessWidget {
                     // Garis Pembatas Vertikal
                     Container(
                       width: 1,
-                      height: 64,
+                      height: 74,
                       color: isDark
                           ? const Color(0xFF334155)
                           : const Color(0xFFE2E8F0),
@@ -743,7 +775,6 @@ class _AdminUserCardItem extends StatelessWidget {
 
                     const SizedBox(width: 6),
 
-<<<<<<< Updated upstream
                     // 4. BAGIAN AKSI: Tombol Hapus Pengguna & Chevron Detail
                     Column(
                       mainAxisSize: MainAxisSize.min,
@@ -778,15 +809,6 @@ class _AdminUserCardItem extends StatelessWidget {
                           color: Color(0xFF94A3B8),
                         ),
                       ],
-=======
-                    // 4. Chevron Navigation Arrow
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 22,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF0F172A),
->>>>>>> Stashed changes
                     ),
                   ],
                 ),

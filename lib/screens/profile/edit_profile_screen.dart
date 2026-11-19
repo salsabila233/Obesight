@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/wilayah_service.dart';
+import '../../widgets/wilayah_dropdown_section.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel user;
@@ -29,8 +31,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _dobController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
-  late TextEditingController _addressController;
   late String _selectedGender;
+
+  // State dropdown wilayah
+  WilayahSelection _wilayahSelection = const WilayahSelection();
 
   // State pengelolaan foto profil
   File? _selectedImageFile;
@@ -41,7 +45,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late String _initialDob;
   late String _initialEmail;
   late String _initialPhone;
-  late String _initialAddress;
+  late String _initialProvinsi;
+  late String _initialProvinsiId;
+  late String _initialKabupatenKota;
+  late String _initialKabupatenKotaId;
+  late String _initialKecamatan;
+  late String _initialKecamatanId;
   late String _initialGender;
   late String _initialPhotoPath;
   late bool _initialIsRemoved;
@@ -53,7 +62,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _initialDob = widget.initialProfile['dob'] ?? '';
     _initialEmail = widget.initialProfile['email'] ?? widget.user.email;
     _initialPhone = widget.initialProfile['phone'] ?? '';
-    _initialAddress = widget.initialProfile['alamat'] ?? widget.initialProfile['address'] ?? widget.user.address ?? '';
+    _initialProvinsi = widget.initialProfile['provinsi'] ?? widget.user.provinsi ?? '';
+    _initialProvinsiId = widget.initialProfile['provinsiId'] ?? widget.user.provinsiId ?? '';
+    _initialKabupatenKota = widget.initialProfile['kabupatenKota'] ?? widget.user.kabupatenKota ?? '';
+    _initialKabupatenKotaId = widget.initialProfile['kabupatenKotaId'] ?? widget.user.kabupatenKotaId ?? '';
+    _initialKecamatan = widget.initialProfile['kecamatan'] ?? widget.user.kecamatan ?? '';
+    _initialKecamatanId = widget.initialProfile['kecamatanId'] ?? widget.user.kecamatanId ?? '';
     _initialGender = widget.initialProfile['gender'] ?? 'Perempuan';
     _initialPhotoPath = widget.initialProfile['photo_path'] ?? '';
     _initialIsRemoved = widget.initialProfile['avatar'] == 'removed';
@@ -62,8 +76,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _dobController = TextEditingController(text: _initialDob);
     _emailController = TextEditingController(text: _initialEmail);
     _phoneController = TextEditingController(text: _initialPhone);
-    _addressController = TextEditingController(text: _initialAddress);
     _selectedGender = _initialGender.isNotEmpty ? _initialGender : 'Perempuan';
+
+    _wilayahSelection = WilayahSelection(
+      provinsi: _initialProvinsi.isNotEmpty
+          ? RegionItem(id: _initialProvinsiId, name: _initialProvinsi)
+          : null,
+      kabupatenKota: _initialKabupatenKota.isNotEmpty
+          ? RegionItem(id: _initialKabupatenKotaId, name: _initialKabupatenKota)
+          : null,
+      kecamatan: _initialKecamatan.isNotEmpty
+          ? RegionItem(id: _initialKecamatanId, name: _initialKecamatan)
+          : null,
+    );
   }
 
   @override
@@ -72,7 +97,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _dobController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
@@ -82,7 +106,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final isDobChanged = _dobController.text.trim() != _initialDob;
     final isEmailChanged = _emailController.text.trim() != _initialEmail;
     final isPhoneChanged = _phoneController.text.trim() != _initialPhone;
-    final isAddressChanged = _addressController.text.trim() != _initialAddress;
+    final isProvinsiChanged = (_wilayahSelection.provinsiName ?? '') != _initialProvinsi;
+    final isKabupatenKotaChanged = (_wilayahSelection.kabupatenKotaName ?? '') != _initialKabupatenKota;
+    final isKecamatanChanged = (_wilayahSelection.kecamatanName ?? '') != _initialKecamatan;
     final isGenderChanged = _selectedGender != _initialGender;
     final isPhotoChanged = _selectedImageFile != null || (_isPhotoRemoved != _initialIsRemoved);
 
@@ -90,7 +116,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         isDobChanged ||
         isEmailChanged ||
         isPhoneChanged ||
-        isAddressChanged ||
+        isProvinsiChanged ||
+        isKabupatenKotaChanged ||
+        isKecamatanChanged ||
         isGenderChanged ||
         isPhotoChanged;
   }
@@ -356,6 +384,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       avatarToSave = widget.initialProfile['avatar'];
     }
 
+    final effectiveAddress = _wilayahSelection.formattedAddress;
+
     _authService.updateUserProfile(
       userId: widget.user.id,
       name: _nameController.text.trim(),
@@ -363,7 +393,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       gender: _selectedGender,
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
-      address: _addressController.text.trim(),
+      provinsi: _wilayahSelection.provinsiName,
+      provinsiId: _wilayahSelection.provinsiId,
+      kabupatenKota: _wilayahSelection.kabupatenKotaName,
+      kabupatenKotaId: _wilayahSelection.kabupatenKotaId,
+      kecamatan: _wilayahSelection.kecamatanName,
+      kecamatanId: _wilayahSelection.kecamatanId,
+      address: effectiveAddress,
       avatar: avatarToSave,
       photoPath: photoPathToSave,
     );
@@ -627,13 +663,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        _buildTextField(
-                          label: 'Alamat',
-                          controller: _addressController,
-                          icon: Icons.location_on_outlined,
-                          hint: 'Masukkan alamat tempat tinggal',
-                          keyboardType: TextInputType.streetAddress,
+                        // Dropdown Wilayah Bertingkat (Provinsi, Kab/Kota, Kecamatan)
+                        WilayahDropdownSection(
+                          initialProvinsiId: _initialProvinsiId,
+                          initialProvinsiName: _initialProvinsi,
+                          initialKabupatenKotaId: _initialKabupatenKotaId,
+                          initialKabupatenKotaName: _initialKabupatenKota,
+                          initialKecamatanId: _initialKecamatanId,
+                          initialKecamatanName: _initialKecamatan,
                           isDark: isDark,
+                          isRequired: false,
+                          onChanged: (sel) {
+                            setState(() {
+                              _wilayahSelection = sel;
+                            });
+                          },
                         ),
                       ],
                     ),

@@ -15,6 +15,12 @@ class UserModel {
   final String? gender;
   final String? phone;
   final String? address;
+  final String? provinsi;
+  final String? provinsiId;
+  final String? kabupatenKota;
+  final String? kabupatenKotaId;
+  final String? kecamatan;
+  final String? kecamatanId;
   final bool isBiodataComplete;
   final double bmiScore;
   final String bmiCategory;
@@ -36,6 +42,12 @@ class UserModel {
     this.gender,
     this.phone,
     this.address,
+    this.provinsi,
+    this.provinsiId,
+    this.kabupatenKota,
+    this.kabupatenKotaId,
+    this.kecamatan,
+    this.kecamatanId,
     this.isBiodataComplete = false,
     this.bmiScore = 22.8,
     this.bmiCategory = 'Normal',
@@ -49,13 +61,50 @@ class UserModel {
 
   String get roleDisplayName => isAdmin ? 'Administrator' : 'Pengguna Biasa';
 
-  String? get alamat => address;
+  String? get alamat => addressDisplay != 'Alamat belum diisi' ? addressDisplay : null;
+
+  bool get hasStructuredAddress =>
+      (provinsi != null && provinsi!.trim().isNotEmpty) &&
+      (kabupatenKota != null && kabupatenKota!.trim().isNotEmpty) &&
+      (kecamatan != null && kecamatan!.trim().isNotEmpty);
+
+  String get formattedAddress {
+    if (hasStructuredAddress) {
+      return 'Kec. ${kecamatan!.trim()}, ${kabupatenKota!.trim()}, ${provinsi!.trim()}';
+    }
+    if (address != null && address!.trim().isNotEmpty) {
+      return address!.trim();
+    }
+    return '';
+  }
 
   String get addressDisplay {
+    if (hasStructuredAddress) {
+      return 'Kec. ${kecamatan!.trim()}, ${kabupatenKota!.trim()}, ${provinsi!.trim()}';
+    }
     if (address != null && address!.trim().isNotEmpty) {
       return address!.trim();
     }
     return 'Alamat belum diisi';
+  }
+
+  /// Baris terstruktur alamat untuk Halaman Profil & Detail Admin
+  List<Map<String, String>> get addressRows {
+    if (hasStructuredAddress) {
+      return [
+        {'label': 'Provinsi', 'value': provinsi!.trim()},
+        {'label': 'Kabupaten/Kota', 'value': kabupatenKota!.trim()},
+        {'label': 'Kecamatan', 'value': kecamatan!.trim()},
+      ];
+    }
+    if (address != null && address!.trim().isNotEmpty) {
+      return [
+        {'label': 'Alamat', 'value': address!.trim()},
+      ];
+    }
+    return [
+      {'label': 'Alamat', 'value': 'Alamat belum diisi'},
+    ];
   }
 
   /// True jika status [isBiodataComplete] telah aktif atau ketiga syarat gating (Tanggal Lahir, Jenis Kelamin, Nomor Telepon) telah terisi
@@ -234,12 +283,35 @@ class UserModel {
             map['telepon'])
         ?.toString()
         .trim();
-    final address = (map['alamat'] ??
+    final rawAddress = (map['alamat'] ??
             map['address'] ??
             map['userAddress'] ??
             map['lokasi'])
         ?.toString()
         .trim();
+    final provinsi = (map['provinsi'] ?? map['province'])?.toString().trim();
+    final provinsiId = (map['provinsiId'] ?? map['provinceId'])?.toString().trim();
+    final kabupatenKota = (map['kabupatenKota'] ??
+            map['kabupaten_kota'] ??
+            map['kabupaten'] ??
+            map['kota'] ??
+            map['regency'])
+        ?.toString()
+        .trim();
+    final kabupatenKotaId = (map['kabupatenKotaId'] ?? map['regencyId'])?.toString().trim();
+    final kecamatan = (map['kecamatan'] ?? map['district'])?.toString().trim();
+    final kecamatanId = (map['kecamatanId'] ?? map['districtId'])?.toString().trim();
+
+    String? resolvedAddress = (rawAddress != null && rawAddress.isNotEmpty) ? rawAddress : null;
+    if (resolvedAddress == null &&
+        provinsi != null &&
+        provinsi.isNotEmpty &&
+        kabupatenKota != null &&
+        kabupatenKota.isNotEmpty &&
+        kecamatan != null &&
+        kecamatan.isNotEmpty) {
+      resolvedAddress = 'Kec. $kecamatan, $kabupatenKota, $provinsi';
+    }
 
     final bool isBioComplete = (map['isBiodataComplete'] == true) ||
         (map['isBiodataComplete']?.toString().toLowerCase() == 'true') ||
@@ -277,7 +349,13 @@ class UserModel {
       dob: (dob != null && dob.isNotEmpty) ? dob : null,
       gender: (gender != null && gender.isNotEmpty) ? gender : null,
       phone: (phone != null && phone.isNotEmpty) ? phone : null,
-      address: (address != null && address.isNotEmpty) ? address : null,
+      address: resolvedAddress,
+      provinsi: (provinsi != null && provinsi.isNotEmpty) ? provinsi : null,
+      provinsiId: (provinsiId != null && provinsiId.isNotEmpty) ? provinsiId : null,
+      kabupatenKota: (kabupatenKota != null && kabupatenKota.isNotEmpty) ? kabupatenKota : null,
+      kabupatenKotaId: (kabupatenKotaId != null && kabupatenKotaId.isNotEmpty) ? kabupatenKotaId : null,
+      kecamatan: (kecamatan != null && kecamatan.isNotEmpty) ? kecamatan : null,
+      kecamatanId: (kecamatanId != null && kecamatanId.isNotEmpty) ? kecamatanId : null,
       isBiodataComplete: isBioComplete,
       bmiScore: bmiVal,
       bmiCategory: bmiCat,
@@ -289,6 +367,10 @@ class UserModel {
   }
 
   Map<String, dynamic> toMap() {
+    final effectiveAddress = (address != null && address!.isNotEmpty)
+        ? address!
+        : (hasStructuredAddress ? 'Kec. $kecamatan, $kabupatenKota, $provinsi' : '');
+
     return {
       'uid': id,
       'name': name,
@@ -301,8 +383,14 @@ class UserModel {
       'dob': dob ?? '',
       'gender': gender ?? '',
       'phone': phone ?? '',
-      'alamat': address ?? '',
-      'address': address ?? '',
+      'alamat': effectiveAddress,
+      'address': effectiveAddress,
+      'provinsi': provinsi ?? '',
+      'provinsiId': provinsiId ?? '',
+      'kabupatenKota': kabupatenKota ?? '',
+      'kabupatenKotaId': kabupatenKotaId ?? '',
+      'kecamatan': kecamatan ?? '',
+      'kecamatanId': kecamatanId ?? '',
       'isBiodataComplete': isBiodataComplete,
       'bmiScore': bmiScore,
       'bmiCategory': bmiCategory,
@@ -326,6 +414,12 @@ class UserModel {
     String? gender,
     String? phone,
     String? address,
+    String? provinsi,
+    String? provinsiId,
+    String? kabupatenKota,
+    String? kabupatenKotaId,
+    String? kecamatan,
+    String? kecamatanId,
     bool? isBiodataComplete,
     double? bmiScore,
     String? bmiCategory,
@@ -347,6 +441,12 @@ class UserModel {
       gender: gender ?? this.gender,
       phone: phone ?? this.phone,
       address: address ?? this.address,
+      provinsi: provinsi ?? this.provinsi,
+      provinsiId: provinsiId ?? this.provinsiId,
+      kabupatenKota: kabupatenKota ?? this.kabupatenKota,
+      kabupatenKotaId: kabupatenKotaId ?? this.kabupatenKotaId,
+      kecamatan: kecamatan ?? this.kecamatan,
+      kecamatanId: kecamatanId ?? this.kecamatanId,
       isBiodataComplete: isBiodataComplete ?? this.isBiodataComplete,
       bmiScore: bmiScore ?? this.bmiScore,
       bmiCategory: bmiCategory ?? this.bmiCategory,

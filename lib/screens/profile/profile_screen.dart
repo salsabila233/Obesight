@@ -112,12 +112,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Sinkronisasi nama, email, dan tanggal bergabung dari data akun
     final name = _profileData['name'] ?? widget.user.name;
     final email = _profileData['email'] ?? widget.user.email;
-    final dob = _profileData['dob'] ?? '12 Juli 2003';
-    final gender = _profileData['gender'] ?? 'Perempuan';
-    final phone = _profileData['phone'] ?? '089334212098';
-    final rawAddress = _profileData['alamat'] ?? _profileData['address'] ?? widget.user.address ?? '';
-    final address = rawAddress.trim().isNotEmpty ? rawAddress.trim() : 'Alamat belum diisi';
-    final joined = _profileData['joined'] ?? 'Bergabung sejak Juni 2026';
+    final dob = _profileData['dob'] ?? widget.user.dob ?? '12 Juli 2003';
+    final gender = _profileData['gender'] ?? widget.user.gender ?? 'Perempuan';
+    final phone = _profileData['phone'] ?? widget.user.phone ?? '089334212098';
+
+    final provinsi = (_profileData['provinsi'] ?? widget.user.provinsi ?? '').toString().trim();
+    final kabupatenKota = (_profileData['kabupatenKota'] ?? widget.user.kabupatenKota ?? '').toString().trim();
+    final kecamatan = (_profileData['kecamatan'] ?? widget.user.kecamatan ?? '').toString().trim();
+    final hasStructuredAddress =
+        provinsi.isNotEmpty && kabupatenKota.isNotEmpty && kecamatan.isNotEmpty;
+
+    final rawAddress = (_profileData['alamat'] ?? _profileData['address'] ?? widget.user.address ?? '').toString().trim();
+    final address = hasStructuredAddress
+        ? 'Kec. $kecamatan, $kabupatenKota, $provinsi'
+        : (rawAddress.isNotEmpty ? rawAddress : 'Alamat belum diisi');
+    final joined = _profileData['joined'] ?? widget.user.joinedFormatted;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
@@ -374,15 +383,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: 'Telepon',
                       value: phone,
                     ),
-                    _buildInfoRow(
-                      isDark: isDark,
-                      icon: Icons.location_on_outlined,
-                      iconBg: isDark ? const Color(0xFF2C2A4A) : const Color(0xFFEDE9FE),
-                      iconColor: const Color(0xFF8B5CF6),
-                      label: 'Alamat',
-                      value: address,
-                      isLast: true,
-                    ),
+                    if (hasStructuredAddress) ...[
+                      _buildInfoRow(
+                        isDark: isDark,
+                        icon: Icons.map_outlined,
+                        iconBg: isDark ? const Color(0xFF2C2A4A) : const Color(0xFFEDE9FE),
+                        iconColor: const Color(0xFF8B5CF6),
+                        label: 'Provinsi',
+                        value: provinsi,
+                      ),
+                      _buildInfoRow(
+                        isDark: isDark,
+                        icon: Icons.location_city_rounded,
+                        iconBg: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE0F2FE),
+                        iconColor: const Color(0xFF0284C7),
+                        label: 'Kabupaten/Kota',
+                        value: kabupatenKota,
+                      ),
+                      _buildInfoRow(
+                        isDark: isDark,
+                        icon: Icons.place_outlined,
+                        iconBg: isDark ? const Color(0xFF133E2B) : const Color(0xFFDCFCE7),
+                        iconColor: const Color(0xFF16A34A),
+                        label: 'Kecamatan',
+                        value: kecamatan,
+                        isLast: true,
+                      ),
+                    ] else ...[
+                      _buildInfoRow(
+                        isDark: isDark,
+                        icon: Icons.location_on_outlined,
+                        iconBg: isDark ? const Color(0xFF2C2A4A) : const Color(0xFFEDE9FE),
+                        iconColor: const Color(0xFF8B5CF6),
+                        label: 'Alamat',
+                        value: address,
+                        isLast: true,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -402,42 +439,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String value,
     bool isLast = false,
   }) {
+    final isUnset = value == 'Alamat belum diisi' || value.isEmpty || value == '-';
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 14),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 17, color: iconColor),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                ),
-              ),
-            ],
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 17, color: iconColor),
           ),
-          Flexible(
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: isUnset
+                    ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
+                    : (isDark ? Colors.white : const Color(0xFF0F172A)),
+                fontStyle: isUnset ? FontStyle.italic : FontStyle.normal,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

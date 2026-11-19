@@ -761,7 +761,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               ),
               const SizedBox(width: 6),
               ElevatedButton.icon(
-                onPressed: _openScreeningFlow,
+                onPressed: _showScreeningModal,
                 icon: const Icon(Icons.play_arrow_rounded, size: 16),
                 label: Text(buttonText),
                 style: ElevatedButton.styleFrom(
