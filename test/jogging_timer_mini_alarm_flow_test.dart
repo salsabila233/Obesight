@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:obesight/screens/progress/activity_detail_screen.dart';
 import 'package:obesight/screens/progress/activity_timer_screen.dart';
 import 'package:obesight/screens/progress/activity_duration_picker_screen.dart';
-import 'package:obesight/screens/progress/activity_rest_detail_screen.dart';
 import 'package:obesight/services/activity_timer_service.dart';
 import 'package:obesight/services/activity_alarm_service.dart';
 import 'package:obesight/services/activity_rest_helper.dart';
@@ -219,7 +218,7 @@ void main() {
   });
 
   group('Alarm & Dialog Waktu Aktivitas Habis Tests (Image 5)', () {
-    testWidgets('Shows dialog with 00:00, clock icon, Lanjutkan istirahat, and Batal dan Selesai', (WidgetTester tester) async {
+    testWidgets('Shows dialog with 00:00, clock icon, and Selesai button', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(412, 915);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -248,21 +247,19 @@ void main() {
       // Alarm is playing
       expect(ActivityAlarmService.instance.isPlaying, isTrue);
 
-      // Dialog is displayed
+      // Dialog is displayed with single Selesai button
       expect(find.text('Waktu Aktivitas Habis'), findsOneWidget);
       expect(find.text('00:00'), findsWidgets);
-      expect(find.text('Lanjutkan istirahat'), findsOneWidget);
-      expect(find.text('Batal dan Selesai'), findsOneWidget);
+      expect(find.text('Selesai'), findsOneWidget);
 
-      // Tapping "Lanjutkan istirahat" stops alarm and navigates to rest screen
-      await tester.tap(find.text('Lanjutkan istirahat'));
+      // Tapping "Selesai" stops alarm and closes dialog
+      await tester.tap(find.text('Selesai'));
       await tester.pumpAndSettle();
 
       expect(ActivityAlarmService.instance.isPlaying, isFalse);
-      expect(find.byType(ActivityRestDetailScreen), findsOneWidget);
     });
 
-    testWidgets('Tapping Batal dan Selesai stops alarm and cancels session', (WidgetTester tester) async {
+    testWidgets('Tapping Selesai stops alarm and cancels session', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(412, 915);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -287,9 +284,9 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Batal dan Selesai'), findsOneWidget);
+      expect(find.text('Selesai'), findsOneWidget);
 
-      await tester.tap(find.text('Batal dan Selesai'));
+      await tester.tap(find.text('Selesai'));
       await tester.pumpAndSettle();
 
       expect(ActivityAlarmService.instance.isPlaying, isFalse);

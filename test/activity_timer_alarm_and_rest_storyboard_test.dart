@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:obesight/screens/progress/activity_timer_screen.dart';
 import 'package:obesight/screens/progress/activity_duration_picker_screen.dart';
-import 'package:obesight/screens/progress/activity_rest_detail_screen.dart';
 import 'package:obesight/services/activity_timer_service.dart';
 import 'package:obesight/services/activity_alarm_service.dart';
 import 'package:obesight/services/activity_rest_helper.dart';
@@ -32,86 +31,6 @@ void main() {
       expect(ActivityRestHelper.clampActivityDuration(35), equals(35));
       expect(ActivityRestHelper.clampActivityDuration(60), equals(60));
       expect(ActivityRestHelper.clampActivityDuration(90), equals(60));
-    });
-
-    test('Provides contextual rest recommendation based on activity type and intensity', () {
-      // 1. Jalan Cepat -> 10 menit
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'jalan_cepat', 'title': 'Jalan Cepat'},
-        ),
-        equals(10),
-      );
-
-      // 2. Yoga / Stretching -> 5 menit (atau 10 menit jika durasi latihan > 30m)
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'yoga', 'title': 'Yoga'},
-          completedDurationMinutes: 20,
-        ),
-        equals(5),
-      );
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'yoga', 'title': 'Yoga'},
-          completedDurationMinutes: 40,
-        ),
-        equals(10),
-      );
-
-      // 3. Senam Ringan -> 15 menit
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'senam', 'title': 'Senam Ringan'},
-        ),
-        equals(15),
-      );
-
-      // 4. Bersepeda Ringan -> 15 menit
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'cycling', 'title': 'Bersepeda Ringan'},
-        ),
-        equals(15),
-      );
-
-      // 5. Lari / HIIT Ringan -> 20 menit (atau 30m jika >= 45m)
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'hiit', 'title': 'High-Intensity Interval Training'},
-          completedDurationMinutes: 20,
-        ),
-        equals(20),
-      );
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'hiit', 'title': 'High-Intensity Interval Training'},
-          completedDurationMinutes: 50,
-        ),
-        equals(30),
-      );
-
-      // 6. Latihan Intensitas Tinggi -> 30 menit
-      expect(
-        ActivityRestHelper.getRecommendedRestMinutes(
-          activity: {'id': 'bodyweight', 'title': 'Latihan Intensitas Tinggi'},
-        ),
-        equals(30),
-      );
-    });
-
-    test('Filters available rest options according to activity intensity', () {
-      // Jalan cepat: 5, 10, 15, 20, 30 menit
-      final jalanOptions = ActivityRestHelper.getAvailableRestOptions({'title': 'Jalan Cepat'});
-      expect(jalanOptions.map((o) => o.minutes).toList(), equals([5, 10, 15, 20, 30]));
-
-      // HIIT: 10, 15, 20, 30 menit
-      final hiitOptions = ActivityRestHelper.getAvailableRestOptions({'title': 'HIIT'});
-      expect(hiitOptions.map((o) => o.minutes).toList(), equals([10, 15, 20, 30]));
-
-      // Latihan Intensitas Tinggi: 15, 20, 30 menit
-      final tinggiOptions = ActivityRestHelper.getAvailableRestOptions({'title': 'Latihan Intensitas Tinggi'});
-      expect(tinggiOptions.map((o) => o.minutes).toList(), equals([15, 20, 30]));
     });
 
     test('ActivityTimerService setDurationMinutes validates and updates target duration', () {
@@ -176,65 +95,8 @@ void main() {
     });
   });
 
-  group('Storyboard Panel 4: ActivityRestDetailScreen Widget Tests', () {
-    testWidgets('Renders rest selection page with 5 duration cards and contextual recommendation', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(412, 915);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        ActivityTimerService.instance.cancelSession();
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      final previousActivity = {
-        'id': 'jalan_cepat',
-        'title': 'Jalan Cepat',
-      };
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ActivityRestDetailScreen(
-            previousActivity: previousActivity,
-            completedDurationMinutes: 30,
-          ),
-        ),
-      );
-      await tester.pump();
-
-      // Title & Subtitle
-      expect(find.text('Waktu Istirahat'), findsWidgets);
-      expect(find.text('Istirahat membantu tubuh pulih dan mengurangi risiko cedera.'), findsOneWidget);
-      expect(find.text('Pilih Durasi Istirahat'), findsOneWidget);
-
-      // 5 Duration options
-      expect(find.text('5 menit'), findsOneWidget);
-      expect(find.text('10 menit'), findsOneWidget);
-      expect(find.text('15 menit'), findsOneWidget);
-      expect(find.text('20 menit'), findsOneWidget);
-      expect(find.text('30 menit'), findsOneWidget);
-
-      // Contextual recommendation badge for Jalan Cepat is 10 menit
-      expect(find.text('Rekomendasi'), findsOneWidget);
-
-      // Tombol Mulai Istirahat
-      expect(find.text('Mulai Istirahat'), findsOneWidget);
-
-      // Tap "Mulai Istirahat" initiates rest timer
-      await tester.tap(find.text('Mulai Istirahat'));
-      await tester.pumpAndSettle();
-
-      expect(ActivityTimerService.instance.isRunning, isTrue);
-      expect(ActivityTimerService.instance.activeActivity?['isRest'], isTrue);
-      expect(find.byType(ActivityTimerScreen), findsOneWidget);
-
-      // Clean up running timer before test completes
-      ActivityTimerService.instance.cancelSession();
-      await tester.pump();
-    });
-  });
-
   group('Storyboard Panel 3: Alarm & Completion Dialog Widget Tests', () {
-    testWidgets('Timer completion displays explicit 00:00, Selesai, and Lanjut Istirahat buttons', (WidgetTester tester) async {
+    testWidgets('Timer completion displays explicit 00:00 and single Selesai button', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(412, 915);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -268,47 +130,10 @@ void main() {
       // Verify Dialog Elements from Storyboard Panel 3
       expect(find.text('Waktu Aktivitas Habis'), findsOneWidget);
       expect(find.text('00:00'), findsWidgets); // Dialog explicit 00:00
-      expect(find.text('Batal dan Selesai'), findsOneWidget);
-      expect(find.text('Lanjutkan istirahat'), findsOneWidget);
+      expect(find.text('Selesai'), findsOneWidget);
 
-      // Tapping "Lanjutkan istirahat" stops alarm and navigates to ActivityRestDetailScreen
-      await tester.tap(find.text('Lanjutkan istirahat'));
-      await tester.pumpAndSettle();
-
-      expect(ActivityAlarmService.instance.isPlaying, isFalse);
-      expect(find.byType(ActivityRestDetailScreen), findsOneWidget);
-    });
-
-    testWidgets('Tapping Batal dan Selesai stops alarm and cleans timer session', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(412, 915);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        ActivityTimerService.instance.cancelSession();
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      final activity = {
-        'id': 'cycling',
-        'title': 'Bersepeda',
-        'isRest': false,
-      };
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ActivityTimerScreen(activity: activity),
-        ),
-      );
-      await tester.pump();
-
-      ActivityTimerService.instance.triggerTimeCompletedForTesting();
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Batal dan Selesai'), findsOneWidget);
-
-      // Tap "Batal dan Selesai"
-      await tester.tap(find.text('Batal dan Selesai'));
+      // Tapping "Selesai" stops alarm and cleans timer session
+      await tester.tap(find.text('Selesai'));
       await tester.pumpAndSettle();
 
       expect(ActivityAlarmService.instance.isPlaying, isFalse);

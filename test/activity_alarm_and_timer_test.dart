@@ -82,54 +82,6 @@ void main() {
       expect(alarmService.isPlaying, isFalse);
     });
 
-    test('Rest alarm triggers with rest sound when completed', () async {
-      final service = ActivityTimerService.instance;
-      final alarmService = ActivityAlarmService.instance;
-
-      service.setupSession(
-        activity: {'id': 'rest_activity', 'title': 'Istirahat Setelah Aktivitas', 'isRest': true},
-        presetSeconds: 10 * 60,
-      );
-
-      await service.startOrResume();
-      expect(service.isRunning, isTrue);
-
-      // Simulasikan timer istirahat mencapai 00:00
-      service.triggerTimeCompletedForTesting();
-      expect(service.isCompleted, isTrue);
-      expect(service.alarmTriggeredForSession, isTrue);
-      expect(alarmService.isPlaying, isTrue);
-      expect(alarmService.currentAlarmType, equals('rest'));
-
-      // Hentikan alarm
-      await alarmService.stopAlarm();
-      expect(alarmService.isPlaying, isFalse);
-    });
-
-    test('Rest timer and physical activity timer do not run concurrently', () async {
-      final service = ActivityTimerService.instance;
-
-      // Start physical activity
-      service.setupSession(
-        activity: {'id': 'yoga', 'title': 'Yoga', 'isRest': false},
-        presetSeconds: 15 * 60,
-      );
-      await service.startOrResume();
-      expect(service.isRunning, isTrue);
-      expect(service.activeActivity?['isRest'], isFalse);
-
-      // Setup rest activity cancels/replaces previous running activity
-      service.setupSession(
-        activity: {'id': 'rest_activity', 'title': 'Istirahat Setelah Aktivitas', 'isRest': true},
-        presetSeconds: 15 * 60,
-      );
-
-      // The new session is fresh and idle until started
-      expect(service.isIdle, isTrue);
-      expect(service.isRunning, isFalse);
-      expect(service.activeActivity?['isRest'], isTrue);
-    });
-
     test('ActivityAlarmService play and stop methods operate safely', () async {
       final alarmService = ActivityAlarmService.instance;
 

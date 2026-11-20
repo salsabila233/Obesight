@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/activity_timer_service.dart';
 import '../services/activity_alarm_service.dart';
 import '../screens/progress/activity_timer_screen.dart';
-import '../screens/progress/activity_rest_detail_screen.dart';
 
 /// Overlay pewaktu mengambang global yang tampil di seluruh halaman
 /// (Beranda, Progres, Aktivitas Fisik, Detail, dsb.) saat timer aktif berjalan
@@ -80,7 +79,6 @@ class _GlobalFloatingTimerOverlayState extends State<GlobalFloatingTimerOverlay>
     final navContext = ActivityTimerService.navigatorKey.currentContext ?? context;
     final isDark = Theme.of(navContext).brightness == Brightness.dark;
     final service = ActivityTimerService.instance;
-    final act = service.activeActivity;
 
     showDialog(
       context: navContext,
@@ -136,43 +134,12 @@ class _GlobalFloatingTimerOverlayState extends State<GlobalFloatingTimerOverlay>
                     ActivityAlarmService.instance.stopAlarm();
                     Navigator.pop(dialogCtx);
                     service.cancelSession();
-                    if (act != null) {
-                      ActivityTimerService.navigatorKey.currentState?.push(
-                        MaterialPageRoute(
-                          builder: (_) => ActivityRestDetailScreen(
-                            previousActivity: act,
-                          ),
-                        ),
-                      );
-                    }
                   },
                   child: Text(
-                    'Lanjutkan istirahat',
+                    'Selesai',
                     style: GoogleFonts.poppins(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                height: 42,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                  ),
-                  onPressed: () {
-                    ActivityAlarmService.instance.stopAlarm();
-                    Navigator.pop(dialogCtx);
-                    service.cancelSession();
-                  },
-                  child: Text(
-                    'Batal dan Selesai',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),

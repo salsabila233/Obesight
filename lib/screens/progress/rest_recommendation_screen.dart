@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/progress_page_scaffold.dart';
 import 'day_rest_detail_screen.dart';
 import 'night_sleep_detail_screen.dart';
-import 'activity_rest_detail_screen.dart';
 
 class RestRecommendationScreen extends StatefulWidget {
   const RestRecommendationScreen({super.key});
@@ -212,26 +211,6 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const NightSleepDetailScreen()),
-                    );
-                  },
-                ),
-                const SizedBox(height: 14),
-
-                // 3. Pilihan 3: Istirahat Setelah Aktivitas
-                _buildOptionCard(
-                  isDark: isDark,
-                  circleAsset: 'assets/progress/rest/circle_aktivitas.png',
-                  fallbackCircleAsset: 'assets/progress/clean/circle_aktivitas.png',
-                  fallbackIcon: Icons.directions_run_rounded,
-                  title: 'Istirahat Setelah Aktivitas',
-                  desc: 'Membantu tubuh pulih dan mencegah kelelahan berlebih',
-                  badges: [
-                    _buildPill(isDark, Icons.directions_run_rounded, 'Setelah beraktivitas'),
-                    _buildPill(isDark, Icons.history_rounded, '10-15 menit'),
-                  ],
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ActivityRestDetailScreen()),
                     );
                   },
                 ),

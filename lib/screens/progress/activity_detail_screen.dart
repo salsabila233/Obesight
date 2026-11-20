@@ -6,7 +6,6 @@ import '../../services/activity_timer_service.dart';
 import '../../services/activity_alarm_service.dart';
 import '../../services/physical_activity_service.dart';
 import 'activity_timer_screen.dart';
-import 'activity_rest_detail_screen.dart';
 import 'activity_duration_picker_screen.dart';
 import '../../widgets/global_floating_timer_overlay.dart';
 
@@ -129,7 +128,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              // Button 1: "Lanjutkan istirahat" (filled green)
+              // Tombol Selesai
               SizedBox(
                 width: double.infinity,
                 height: 46,
@@ -146,37 +145,13 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     ActivityAlarmService.instance.stopAlarm();
                     Navigator.pop(dialogCtx);
                     service.cancelSession();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => ActivityRestDetailScreen(
-                          previousActivity: widget.activity,
-                        ),
-                      ),
-                    );
                   },
                   child: Text(
-                    'Lanjutkan istirahat',
+                    'Selesai',
                     style: GoogleFonts.poppins(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w600,
                     ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Button 2: "Batal dan Selesai" (green text button)
-              TextButton(
-                onPressed: () {
-                  ActivityAlarmService.instance.stopAlarm();
-                  Navigator.pop(dialogCtx);
-                  service.cancelSession();
-                },
-                child: Text(
-                  'Batal dan Selesai',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF529B7A),
                   ),
                 ),
               ),
@@ -686,21 +661,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                   );
                                 }
 
-                                final result = await Navigator.of(context).push(
+                                await Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (_) => targetScreen,
                                   ),
                                 );
-                                if (!context.mounted) return;
-                                if (result == 'rest') {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (_) => ActivityRestDetailScreen(
-                                        previousActivity: widget.activity,
-                                      ),
-                                    ),
-                                  );
-                                }
                               },
                         child: Text(
                           'Mulai',

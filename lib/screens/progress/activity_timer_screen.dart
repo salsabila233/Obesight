@@ -5,9 +5,6 @@ import '../../services/activity_timer_service.dart';
 import '../../services/activity_alarm_service.dart';
 import '../../services/physical_activity_service.dart';
 import '../../services/activity_rest_helper.dart';
-import 'activity_rest_detail_screen.dart';
-import 'activity_detail_screen.dart';
-import 'physical_activity_screen.dart';
 
 class ActivityTimerScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
@@ -506,10 +503,9 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
   }
 
   void _onTimerFinishedNaturally() {
-    final isRest = widget.activity['isRest'] == true;
     final targetDateKey = widget.dateKey ?? ActivityTimerService.instance.dateKey;
 
-    if (!isRest && PhysicalActivityService.isFutureDateKey(targetDateKey)) {
+    if (PhysicalActivityService.isFutureDateKey(targetDateKey)) {
       AppAlert.showWarning(
         context,
         'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
@@ -517,22 +513,11 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
       return;
     }
 
-    if (isRest) {
-      _showRestCompletionDialog();
-    } else {
-      _showCompletionDialog();
-    }
+    _showCompletionDialog();
   }
 
   Future<void> _onFinishButtonPressed() async {
     final service = ActivityTimerService.instance;
-    final isRest = widget.activity['isRest'] == true;
-
-    if (isRest) {
-      service.pause();
-      _showRestCompletionDialog();
-      return;
-    }
 
     final targetDateKey = widget.dateKey ?? service.dateKey;
     if (PhysicalActivityService.isFutureDateKey(targetDateKey)) {
@@ -712,7 +697,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              // Tombol 1: "Lanjutkan istirahat" (filled green)
+              // Tombol Selesai
               SizedBox(
                 width: double.infinity,
                 height: 46,
@@ -727,190 +712,13 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                     ActivityAlarmService.instance.stopAlarm();
                     Navigator.pop(ctx);
                     service.cancelSession();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => ActivityRestDetailScreen(
-                          previousActivity: widget.activity,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    'Lanjutkan istirahat',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Tombol 2: "Batal dan Selesai" (green text button)
-              TextButton(
-                onPressed: () {
-                  ActivityAlarmService.instance.stopAlarm();
-                  Navigator.pop(ctx);
-                  service.cancelSession();
-                  Navigator.of(context).pop(true);
-                },
-                child: Text(
-                  'Batal dan Selesai',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF529B7A),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ).then((_) {
-      ActivityAlarmService.instance.stopAlarm();
-    });
-  }
-
-  // Popup Penyelesaian Sesi Istirahat dengan pilihan Selesai dan Lanjutkan Aktivitas
-  void _showRestCompletionDialog() {
-    _hasShownDialog = true;
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final service = ActivityTimerService.instance;
-    final prevActivity = widget.previousActivity ??
-        (widget.activity['previousActivity'] as Map<String, dynamic>?);
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Dialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF064E3B) : const Color(0xFFEDF7F2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.spa_rounded,
-                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874),
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Istirahat Selesai! 🌿',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Sesi istirahat Anda telah selesai. Tubuh Anda kini lebih segar, rileks, dan siap beraktivitas kembali.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '00 : 00 : 00',
-                style: GoogleFonts.poppins(
-                  fontSize: 34,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Pilihan A: Selesai
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                    foregroundColor: Colors.white,
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: () {
-                    ActivityAlarmService.instance.stopAlarm();
-                    Navigator.pop(ctx);
-                    service.cancelSession();
-                    if (mounted && Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop(true);
-                    } else {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (_) => const PhysicalActivityScreen(),
-                        ),
-                      );
-                    }
+                    Navigator.of(context).pop(true);
                   },
                   child: Text(
                     'Selesai',
                     style: GoogleFonts.poppins(
                       fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Pilihan B: Lanjutkan Aktivitas
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: () {
-                    ActivityAlarmService.instance.stopAlarm();
-                    Navigator.pop(ctx);
-                    service.cancelSession();
-                    if (prevActivity != null) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (_) => ActivityDetailScreen(
-                            activity: prevActivity,
-                          ),
-                        ),
-                      );
-                    } else {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (_) => const PhysicalActivityScreen(),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text(
-                    'Lanjutkan Aktivitas',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874),
                     ),
                   ),
                 ),
