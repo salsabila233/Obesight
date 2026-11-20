@@ -185,8 +185,6 @@ class ProgressTrackingService extends ChangeNotifier {
     _bmi = screening.bmi;
     _category = screening.category;
     final d = screening.date;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     DateTime cycleStart = DateTime(d.year, d.month, d.day);
 
     // 1 kali skrining = 1 acuan siklus progres (mulai dari tanggal skrining tersebut).

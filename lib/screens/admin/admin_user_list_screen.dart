@@ -790,7 +790,9 @@ class _AdminUserCardItem extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFEE2E2),
+                                  color: isDark
+                                      ? const Color(0xFF450A0A)
+                                      : const Color(0xFFFEE2E2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
@@ -803,10 +805,12 @@ class _AdminUserCardItem extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Icon(
+                        Icon(
                           Icons.chevron_right_rounded,
                           size: 20,
-                          color: Color(0xFF94A3B8),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF0F172A),
                         ),
                       ],
                     ),

@@ -1525,9 +1525,12 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEE2E2),
+                color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFFECACA), width: 1.5),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                  width: 1.5,
+                ),
               ),
               child: const Icon(
                 Icons.delete_forever_rounded,
