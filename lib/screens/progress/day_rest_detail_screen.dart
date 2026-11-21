@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/rest_reminder_service.dart';
 import '../../widgets/rest_tracking_widgets.dart';
@@ -51,7 +51,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
       builder: (context, _) {
         final reminder = RestReminderService.instance.dayRestReminder;
 
-        final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
+        final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
         final mainBackground = isDark ? const Color(0xFF0F172A) : Colors.white;
 
         return Scaffold(
@@ -108,7 +108,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
                           'assets/progress/clean/hero_siang.png',
                           fit: BoxFit.cover,
                           errorBuilder: (c, e, s) => Container(
-                            color: const Color(0xFF36785A),
+                            color: const Color(0xFF246B4D),
                           ),
                         ),
                       ),
@@ -252,7 +252,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.access_time_rounded, size: 15, color: Color(0xFF36785A)),
+                                      const Icon(Icons.access_time_rounded, size: 15, color: Color(0xFF246B4D)),
                                       const SizedBox(width: 5),
                                       Expanded(
                                         child: Text(
@@ -292,7 +292,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.history_rounded, size: 16, color: Color(0xFF36785A)),
+                                      const Icon(Icons.history_rounded, size: 16, color: Color(0xFF246B4D)),
                                       const SizedBox(width: 5),
                                       Expanded(
                                         child: Text(
@@ -339,7 +339,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.lightbulb_outline_rounded, size: 18, color: Color(0xFF36785A)),
+                                const Icon(Icons.lightbulb_outline_rounded, size: 18, color: Color(0xFF246B4D)),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Tips Istirahat Siang Efektif',
@@ -381,7 +381,7 @@ class _DayRestDetailScreenState extends State<DayRestDetailScreen> {
           child: Icon(
             Icons.check_rounded,
             size: 15,
-            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
           ),
         ),
         const SizedBox(width: 8),

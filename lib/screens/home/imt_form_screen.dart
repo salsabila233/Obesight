@@ -136,8 +136,8 @@ class _ImtFormScreenState extends State<ImtFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
-    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
     final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);

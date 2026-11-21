@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/screening_history_model.dart';
 import '../../models/user_model.dart';
@@ -47,7 +47,7 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryGreen = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final primaryGreen = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
     final sheetBg = isDark ? const Color(0xFF0F172A) : Colors.white;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
     final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
@@ -248,7 +248,7 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
                                   Icon(
                                     Icons.add_circle_outline_rounded,
                                     size: 16,
-                                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -256,7 +256,7 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                                     ),
                                   ),
                                 ],
@@ -606,12 +606,12 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF489874).withValues(alpha: 0.12),
+              color: const Color(0xFF246B4D).withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.assignment_outlined,
-              color: Color(0xFF489874),
+              color: Color(0xFF246B4D),
               size: 38,
             ),
           ),
@@ -638,7 +638,7 @@ class _ScreeningHistoryScreenState extends State<ScreeningHistoryScreen> {
           ElevatedButton.icon(
             icon: const Icon(Icons.play_arrow_rounded, size: 20),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF489874),
+              backgroundColor: const Color(0xFF246B4D),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

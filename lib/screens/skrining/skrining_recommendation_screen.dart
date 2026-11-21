@@ -23,7 +23,7 @@ class SkriningRecommendationScreen extends StatelessWidget {
   });
 
   static const Color primaryGreen = Color(0xFF4A8B6C); // Medical soft green
-  static const Color darkGreen = Color(0xFF36785A);
+  static const Color darkGreen = Color(0xFF246B4D);
   static const Color textDark = Color(0xFF1E293B);
   static const Color textMuted = Color(0xFF64748B);
   static const Color cardBorder = Color(0xFFE2E8F0);

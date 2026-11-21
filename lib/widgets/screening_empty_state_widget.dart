@@ -31,7 +31,7 @@ class ScreeningEmptyStateWidget extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
     final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final primaryColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
+    final primaryColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
 
     return Container(
       width: double.infinity,

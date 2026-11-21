@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/article_model.dart';
 import '../../services/article_service.dart';
@@ -57,7 +57,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
 
         return CurvedHeaderScaffold(
           title: 'Daftar Artikel Kesehatan',
-          headerColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A),
+          headerColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D),
           sheetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
           centerTitle: true,
           body: ListView(
@@ -125,7 +125,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
               ),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x1436785A),
+                  color: Color(0x14246B4D),
                   blurRadius: 14,
                   offset: Offset(0, 4),
                 ),
@@ -141,7 +141,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF36785A),
+                          color: const Color(0xFF246B4D),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -186,11 +186,11 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 90,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF36785A).withValues(alpha: 0.15),
+                        color: const Color(0xFF246B4D).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Center(
-                        child: Icon(Icons.health_and_safety_rounded, size: 48, color: Color(0xFF36785A)),
+                        child: Icon(Icons.health_and_safety_rounded, size: 48, color: Color(0xFF246B4D)),
                       ),
                     ),
                   ),
@@ -268,7 +268,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                       height: 28,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF246B4D)),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -477,7 +477,7 @@ class _HealthArticleListScreenState extends State<HealthArticleListScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF36785A),
+                                    color: const Color(0xFF246B4D),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(

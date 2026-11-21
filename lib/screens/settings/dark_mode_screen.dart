@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 
@@ -53,7 +53,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDarkTheme ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDarkTheme ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
 
     return Scaffold(
       backgroundColor: headerColor,
@@ -184,7 +184,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                       title: 'Mengikuti Sistem',
                       subtitle: 'Secara otomatis mengikuti pengaturan tema di HP Anda',
                       icon: Icons.settings_brightness_rounded,
-                      iconColor: const Color(0xFF36785A),
+                      iconColor: const Color(0xFF246B4D),
                     ),
                   ],
                 ),
@@ -199,13 +199,13 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                   color: isDarkTheme ? const Color(0xFF1E293B) : const Color(0xFFE8F3EE),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                    color: const Color(0xFF246B4D).withValues(alpha: 0.25),
                   ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.info_outline_rounded, color: Color(0xFF36785A), size: 22),
+                    const Icon(Icons.info_outline_rounded, color: Color(0xFF246B4D), size: 22),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -245,14 +245,14 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF36785A)
+                ? const Color(0xFF246B4D)
                 : (isDarkTheme ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? const Color(0xFF36785A).withValues(alpha: 0.12)
+                  ? const Color(0xFF246B4D).withValues(alpha: 0.12)
                   : Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 3),
@@ -281,7 +281,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                     height: 18,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF36785A),
+                      color: const Color(0xFF246B4D),
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
@@ -318,7 +318,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
                 Icon(
                   isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                   size: 16,
-                  color: isSelected ? const Color(0xFF36785A) : const Color(0xFF94A3B8),
+                  color: isSelected ? const Color(0xFF246B4D) : const Color(0xFF94A3B8),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -389,7 +389,7 @@ class _DarkModeScreenState extends State<DarkModeScreen> {
             ),
             Icon(
               isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-              color: isSelected ? const Color(0xFF36785A) : const Color(0xFF94A3B8),
+              color: isSelected ? const Color(0xFF246B4D) : const Color(0xFF94A3B8),
               size: 22,
             ),
           ],

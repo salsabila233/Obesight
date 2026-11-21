@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 /// Reusable Scaffold with a sticky (pinned) green header and a curved content sheet.
 ///
 /// Features:
-/// - Sticky (pinned) green header bar (ObeSight brand green: 0xFF36785A or custom).
+/// - Sticky (pinned) green header bar (ObeSight brand green: 0xFF246B4D or custom).
 /// - Curved sheet container with top-left and top-right radius of 28px.
 /// - Overlap between curved sheet and header (default 24px, range 20-28px).
 /// - Support for optional hero image header (collapsing SliverAppBar with parallax)
@@ -158,7 +158,7 @@ class _CurvedHeaderScaffoldState extends State<CurvedHeaderScaffold> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveHeaderColor =
         widget.headerColor ??
-        (isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A));
+        (isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D));
     final effectiveSheetColor =
         widget.sheetColor ??
         (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9));

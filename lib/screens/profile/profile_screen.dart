@@ -103,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildFallbackAvatar() {
     return Container(
       color: const Color(0xFFE2F1E8),
-      child: const Icon(Icons.person, color: Color(0xFF36785A), size: 36),
+      child: const Icon(Icons.person, color: Color(0xFF246B4D), size: 36),
     );
   }
 
@@ -129,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final joined = _profileData['joined'] ?? widget.user.joinedFormatted;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA);
 
@@ -189,10 +189,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF36785A), width: 3),
+                            border: Border.all(color: const Color(0xFF246B4D), width: 3),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF36785A).withValues(alpha: 0.2),
+                                color: const Color(0xFF246B4D).withValues(alpha: 0.2),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -282,7 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF36785A),
+                          backgroundColor: const Color(0xFF246B4D),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -323,7 +323,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.badge_outlined, size: 18, color: Color(0xFF36785A)),
+                          child: const Icon(Icons.badge_outlined, size: 18, color: Color(0xFF246B4D)),
                         ),
                         const SizedBox(width: 10),
                         Text(

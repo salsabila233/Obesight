@@ -37,9 +37,9 @@ class ClinicalInfoScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF246B4D),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF246B4D),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -118,7 +118,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                 isDark: isDark,
                 title: 'Indeks Massa Tubuh (IMT / BMI)',
                 icon: Icons.monitor_weight_outlined,
-                iconColor: const Color(0xFF36785A),
+                iconColor: const Color(0xFF246B4D),
                 content:
                     'IMT dihitung dari berat badan (kg) dibagi kuadrat tinggi badan (m²). Kategori status berat badan di ObeSight mengikuti klasifikasi rujukan kesehatan masyarakat internasional (WHO) dan Kementerian Kesehatan RI untuk populasi dewasa Asia Pasifik:\n\n'
                     '• Kurus (< 18.5)\n'
@@ -286,7 +286,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                             color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(Icons.link_rounded, size: 16, color: Color(0xFF36785A)),
+                          child: const Icon(Icons.link_rounded, size: 16, color: Color(0xFF246B4D)),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -307,7 +307,7 @@ class ClinicalInfoScreen extends StatelessWidget {
                                 ref.organization,
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
-                                  color: const Color(0xFF36785A),
+                                  color: const Color(0xFF246B4D),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),

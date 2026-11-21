@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/sleep_record_model.dart';
@@ -136,7 +136,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF36785A),
+              primary: Color(0xFF246B4D),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Color(0xFF1E293B),
@@ -383,7 +383,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+              backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.of(ctx).pop('replace'),
@@ -399,7 +399,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
     final isEditing = widget.recordToEdit != null;
     final screenTitle = isEditing ? 'Edit Data Tidur' : 'Masukkan Data Istirahat';
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
 
     return Scaffold(
       backgroundColor: headerColor,
@@ -485,7 +485,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                        backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -520,7 +520,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: _isSplitSleep
-              ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF489874))
+              ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
               : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           width: _isSplitSleep ? 1.5 : 1.0,
         ),
@@ -547,7 +547,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
               Icons.call_split_rounded,
               size: 20,
               color: _isSplitSleep
-                  ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A))
+                  ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D))
                   : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
             ),
           ),
@@ -576,7 +576,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
           ),
           Switch.adaptive(
             value: _isSplitSleep,
-            activeTrackColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+            activeTrackColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
             onChanged: (val) {
               setState(() {
                 _isSplitSleep = val;
@@ -621,7 +621,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                 child: Icon(
                   Icons.bed_rounded,
                   size: 20,
-                  color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                 ),
               ),
               const SizedBox(width: 12),
@@ -663,7 +663,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
             context,
             icon: Icons.bed_rounded,
             iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
-            iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+            iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
             title: 'Jam istirahat',
             value: _formatTimeOfDay(_startTime),
             showChevron: true,
@@ -689,7 +689,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
             context,
             icon: Icons.access_time_rounded,
             iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFEDF7F2),
-            iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+            iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
             title: 'Durasi istirahat',
             value: _durationFormatted,
             showChevron: false,
@@ -740,7 +740,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                           child: Icon(
                             Icons.looks_one_rounded,
                             size: 18,
-                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -783,7 +783,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                 context,
                 icon: Icons.bed_rounded,
                 iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
-                iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                 title: 'Jam tidur (mulai sesi 1)',
                 value: _formatTimeOfDay(_startTime),
                 showChevron: true,
@@ -878,7 +878,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                           child: Icon(
                             Icons.looks_two_rounded,
                             size: 18,
-                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -921,7 +921,7 @@ class _SleepRecordFormScreenState extends State<SleepRecordFormScreen> {
                 context,
                 icon: Icons.hotel_rounded,
                 iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
-                iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                iconColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                 title: 'Jam tidur lagi (mulai sesi 2)',
                 value: _formatTimeOfDay(_secondStartTime),
                 showChevron: true,

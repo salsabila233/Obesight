@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ImtResultScreen extends StatelessWidget {
@@ -39,8 +39,8 @@ class ImtResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
-    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
+    final primaryGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
     final appBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F8F6);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -85,7 +85,7 @@ class ImtResultScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(18, 16, 18, 20),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D),
                     borderRadius: BorderRadius.circular(20),
                     border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                     boxShadow: [
@@ -169,7 +169,7 @@ class ImtResultScreen extends StatelessWidget {
                                       style: GoogleFonts.poppins(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
-                                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                                       ),
                                     ),
                                   ),
@@ -254,10 +254,10 @@ class ImtResultScreen extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                      backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                       foregroundColor: Colors.white,
                       elevation: 2,
-                      shadowColor: const Color(0xFF489874).withValues(alpha: 0.35),
+                      shadowColor: const Color(0xFF246B4D).withValues(alpha: 0.35),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),

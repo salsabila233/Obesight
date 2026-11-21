@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NutritionDetailScreen extends StatefulWidget {
@@ -63,7 +63,7 @@ class _NutritionDetailScreenState extends State<NutritionDetailScreen> {
             right: 0,
             height: 300,
             child: Container(
-              color: const Color(0xFF36785A),
+              color: const Color(0xFF246B4D),
             ),
           ),
 
@@ -77,7 +77,7 @@ class _NutritionDetailScreenState extends State<NutritionDetailScreen> {
                 expandedHeight: 240,
                 pinned: true,
                 elevation: _isSticky ? 2 : 0,
-                backgroundColor: const Color(0xFF36785A),
+                backgroundColor: const Color(0xFF246B4D),
                 leading: IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(7),
@@ -360,7 +360,7 @@ class _NutritionDetailScreenState extends State<NutritionDetailScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
                                     ),
                                   ),
                                 ),

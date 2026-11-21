@@ -25,7 +25,7 @@ class ArticleModel {
     required this.snippet,
     this.date = '21 September 2026',
     this.readTime = '4 Menit Baca',
-    this.headerColor = const Color(0xFF36785A),
+    this.headerColor = const Color(0xFF246B4D),
     this.icon = Icons.menu_book_rounded,
     required this.imageAsset,
     required this.content,
@@ -253,7 +253,7 @@ class ArticleModel {
     if (map['color'] is int) return Color(map['color'] as int);
     if (map['headerColor'] is int) return Color(map['headerColor'] as int);
 
-    return const Color(0xFF36785A);
+    return const Color(0xFF246B4D);
   }
 
   static String _colorToHex(Color color) {

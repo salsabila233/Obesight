@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/activity_timer_service.dart';
@@ -350,7 +350,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                       fontSize: isCur ? 26 : 20,
                                       fontWeight: isCur ? FontWeight.w800 : FontWeight.w600,
                                       color: isCur
-                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874))
+                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D))
                                           : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
                                     ),
                                   ),
@@ -393,7 +393,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                       fontSize: isCur ? 26 : 20,
                                       fontWeight: isCur ? FontWeight.w800 : FontWeight.w600,
                                       color: isCur
-                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874))
+                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D))
                                           : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
                                     ),
                                   ),
@@ -436,7 +436,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                                       fontSize: isCur ? 26 : 20,
                                       fontWeight: isCur ? FontWeight.w800 : FontWeight.w600,
                                       color: isCur
-                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF489874))
+                                          ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D))
                                           : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
                                     ),
                                   ),
@@ -454,7 +454,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF489874),
+                        backgroundColor: const Color(0xFF246B4D),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
@@ -673,7 +673,7 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
               const Icon(
                 Icons.access_time_rounded,
                 size: 42,
-                color: Color(0xFF489874),
+                color: Color(0xFF246B4D),
               ),
               const SizedBox(height: 14),
               Text(
@@ -743,8 +743,8 @@ class _ActivityTimerScreenState extends State<ActivityTimerScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
-    final accentGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
+    final accentGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
     final isRest = widget.activity['isRest'] == true;
     final heroImg = widget.activity['heroImg'] as String? ??
         (isRest ? 'assets/progress/rest/hero_aktivitas_clean.png' : 'assets/progress/clean/hero_jogging.png');

@@ -80,7 +80,7 @@ class _AdminActivityListScreenState extends State<AdminActivityListScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const sageGreen = Color(0xFF529471);
+    const sageGreen = Color(0xFF246B4D);
     final pageBgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9);
     final headerBgColor = isDark ? const Color(0xFF1E293B) : Colors.white;
 

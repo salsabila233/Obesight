@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
@@ -120,7 +120,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 Navigator.pop(context, newEmail);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF36785A),
+                backgroundColor: const Color(0xFF246B4D),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -146,9 +146,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF246B4D),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF246B4D),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -294,7 +294,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFF36785A), width: 1.5),
+                          borderSide: BorderSide(color: Color(0xFF246B4D), width: 1.5),
                         ),
                       ),
                     ),
@@ -349,7 +349,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12)),
-                          borderSide: BorderSide(color: Color(0xFF36785A), width: 1.5),
+                          borderSide: BorderSide(color: Color(0xFF246B4D), width: 1.5),
                         ),
                       ),
                     ),
@@ -365,9 +365,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleSave,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF36785A),
+                    backgroundColor: const Color(0xFF246B4D),
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: const Color(0xFF36785A).withValues(alpha: 0.6),
+                    disabledBackgroundColor: const Color(0xFF246B4D).withValues(alpha: 0.6),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,

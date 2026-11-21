@@ -102,7 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
     _isDarkMode = AppTheme.isDark;
 
     return Scaffold(
@@ -158,7 +158,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _buildSettingItem(
                       icon: Icons.lock_outline_rounded,
                       iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
-                      iconColor: const Color(0xFF36785A),
+                      iconColor: const Color(0xFF246B4D),
                       title: 'Ubah Kata Sandi',
                       subtitle: 'Perbarui kata sandi akun Anda',
                       onTap: () {
@@ -176,7 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _buildSettingItem(
                       icon: Icons.mail_outline_rounded,
                       iconBg: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
-                      iconColor: const Color(0xFF36785A),
+                      iconColor: const Color(0xFF246B4D),
                       title: 'Ubah Email',
                       subtitle: 'Ganti alamat email terdaftar',
                       onTap: () {

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../widgets/app_alert.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/screening_history_model.dart';
 import '../../models/user_model.dart';
@@ -206,7 +205,6 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
             PhysicalActivityService.instance.listenToFirestoreSessions(dKey);
           });
         }
-
         // Auto-scroll agar "Hari ini" terlihat jelas saat awal render
         if (!_hasInitialScrolled && hasScreening) {
           _hasInitialScrolled = true;
@@ -255,7 +253,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                         Border border;
 
                         if (isSelected) {
-                          bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+                          bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
                           textColor = Colors.white;
                           subTextColor = Colors.white.withValues(alpha: 0.9);
                           border = Border.all(color: bgColor, width: 1.5);
@@ -298,7 +296,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFF489874).withValues(alpha: 0.25),
+                                        color: const Color(0xFF246B4D).withValues(alpha: 0.25),
                                         blurRadius: 8,
                                         offset: const Offset(0, 3),
                                       )
@@ -532,7 +530,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                 Icon(
                   Icons.track_changes_rounded,
                   size: 14,
-                  color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                  color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -618,13 +616,13 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: (isDark ? const Color(0xFF58AF86) : const Color(0xFF489874))
+              color: (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                   .withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.directions_run_rounded,
-              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
               size: 40,
             ),
           ),
@@ -673,7 +671,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+              backgroundColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -697,7 +695,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
     final isCompleted = PhysicalActivityService.instance.isCompleted(dateKey, actId);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isCompleted
-        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF489874))
+        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
         : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
     final textTitle = isDark ? Colors.white : const Color(0xFF0F172A);
     final textDesc = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
@@ -745,7 +743,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                           color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2F1E8),
                           child: Icon(
                             Icons.directions_run_rounded,
-                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                            color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                             size: 36,
                           ),
                         ),
@@ -833,9 +831,17 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                   borderRadius: BorderRadius.circular(20),
                   onTap: isFuture
                       ? () {
-                          AppAlert.showWarning(
-                            context,
-                            'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Progres latihan hanya dapat dicatat untuk tanggal hari ini.',
+                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                              ),
+                              backgroundColor: const Color(0xFFEF4444),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
                           );
                         }
                       : () {
@@ -850,7 +856,7 @@ class _PhysicalActivityScreenState extends State<PhysicalActivityScreen> {
                     child: Icon(
                       isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                       color: isCompleted
-                          ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF489874))
+                          ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                           : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)),
                       size: 26,
                     ),

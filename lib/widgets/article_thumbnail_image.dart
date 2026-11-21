@@ -127,7 +127,7 @@ class ArticleThumbnailImage extends StatelessWidget {
         child: Icon(
           placeholderIcon,
           size: (width != null && height != null) ? (width! * 0.35).clamp(20.0, 48.0) : 32.0,
-          color: const Color(0xFF388E6B).withValues(alpha: 0.6),
+          color: const Color(0xFF246B4D).withValues(alpha: 0.6),
         ),
       ),
     );

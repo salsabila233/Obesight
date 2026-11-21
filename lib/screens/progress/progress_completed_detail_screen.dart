@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
 import '../../services/nutrition_checklist_service.dart';
@@ -124,7 +124,7 @@ class _ProgressCompletedDetailScreenState
                       style: GoogleFonts.poppins(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF36785A),
+                        color: const Color(0xFF246B4D),
                       ),
                     ),
                   ],
@@ -174,12 +174,12 @@ class _ProgressCompletedDetailScreenState
           Container(
             padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
-              color: const Color(0xFF36785A).withValues(alpha: 0.15),
+              color: const Color(0xFF246B4D).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.date_range_rounded,
-              color: Color(0xFF36785A),
+              color: Color(0xFF246B4D),
               size: 22,
             ),
           ),
@@ -202,7 +202,7 @@ class _ProgressCompletedDetailScreenState
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF36785A),
+                    color: const Color(0xFF246B4D),
                   ),
                 ),
               ],
@@ -211,7 +211,7 @@ class _ProgressCompletedDetailScreenState
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF36785A),
+              color: const Color(0xFF246B4D),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -285,7 +285,7 @@ class _ProgressCompletedDetailScreenState
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF36785A), Color(0xFF489874)],
+                        colors: [Color(0xFF1E5E41), Color(0xFF246B4D)],
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -478,13 +478,13 @@ class _ProgressCompletedDetailScreenState
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF36785A)
+                ? const Color(0xFF246B4D)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(11),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF36785A).withValues(alpha: 0.3),
+                      color: const Color(0xFF246B4D).withValues(alpha: 0.3),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -538,12 +538,12 @@ class _ProgressCompletedDetailScreenState
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                      ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                       : (isDark ? const Color(0xFF1E293B) : Colors.white),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                         : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                   ),
                 ),
@@ -835,12 +835,12 @@ class _ProgressCompletedDetailScreenState
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: const Color(0xFF36785A).withValues(alpha: 0.12),
+              color: const Color(0xFF246B4D).withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.checklist_rtl_rounded,
-              color: Color(0xFF36785A),
+              color: Color(0xFF246B4D),
               size: 44,
             ),
           ),

@@ -9,9 +9,9 @@ class AboutAppScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF246B4D),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF489874),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF246B4D),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
@@ -64,7 +64,7 @@ class AboutAppScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF36785A), width: 2),
+                        border: Border.all(color: const Color(0xFF246B4D), width: 2),
                       ),
                       padding: const EdgeInsets.all(12),
                       child: Image.asset(
@@ -72,7 +72,7 @@ class AboutAppScreen extends StatelessWidget {
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) => const Icon(
                           Icons.health_and_safety_rounded,
-                          color: Color(0xFF36785A),
+                          color: Color(0xFF246B4D),
                           size: 38,
                         ),
                       ),
@@ -91,7 +91,7 @@ class AboutAppScreen extends StatelessWidget {
                       height: 3,
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF36785A),
+                        color: const Color(0xFF246B4D),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -101,7 +101,7 @@ class AboutAppScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                        color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -136,7 +136,7 @@ class AboutAppScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.stars_rounded, color: Color(0xFF36785A), size: 22),
+                        const Icon(Icons.stars_rounded, color: Color(0xFF246B4D), size: 22),
                         const SizedBox(width: 8),
                         Text(
                           'Fitur Utama ObeSight',
@@ -270,7 +270,7 @@ class AboutAppScreen extends StatelessWidget {
               color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE2F1E8),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 18, color: const Color(0xFF36785A)),
+            child: Icon(icon, size: 18, color: const Color(0xFF246B4D)),
           ),
           const SizedBox(width: 12),
           Expanded(

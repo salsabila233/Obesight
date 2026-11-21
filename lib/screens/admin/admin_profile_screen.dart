@@ -688,7 +688,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                                       border: Border.all(
                                         color: isDark
                                             ? const Color(0xFF2E7D5B)
-                                            : const Color(0xFF388E6B),
+                                            : const Color(0xFF246B4D),
                                         width: 1.5,
                                       ),
                                     ),

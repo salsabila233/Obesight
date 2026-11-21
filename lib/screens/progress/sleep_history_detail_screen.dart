@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/sleep_record_model.dart';
 import '../../services/sleep_tracking_service.dart';
@@ -33,7 +33,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
         final service = SleepTrackingService.instance;
         final summaries = service.getPast7DaysSummaries(_currentWeekEnd);
 
-        final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+        final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
         final pageColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
         return Scaffold(
@@ -322,7 +322,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                           height: barH,
                           decoration: BoxDecoration(
                             color: h.isAsleep
-                                ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                                ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                                 : (isDark ? const Color(0xFF334155) : const Color(0xFFE9F3ED)),
                             borderRadius: BorderRadius.circular(6),
                           ),
@@ -601,7 +601,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.insights_rounded, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
+                Icon(Icons.insights_rounded, size: 16, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -696,7 +696,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFF246B4D),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -961,7 +961,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF134E4A) : const Color(0xFF246B4D),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1191,7 +1191,7 @@ class _SleepHistoryDetailScreenState extends State<SleepHistoryDetailScreen> {
                                     ? (isSelected
                                         ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF265C45))
                                         : (summary.isToday
-                                            ? const Color(0xFF36785A)
+                                            ? const Color(0xFF246B4D)
                                             : (isDark ? const Color(0xFF134E4A) : const Color(0xFF6EBE9B))))
                                     : (isSelected
                                         ? (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1))

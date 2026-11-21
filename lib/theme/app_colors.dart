@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Brand Greens
-  static const Color primaryGreen = Color(0xFF4F9B77);
-  static const Color primaryGreenDark = Color(0xFF3F8463);
-  static const Color brandTitleGreen = Color(0xFF2C6348);
+  // Brand Greens (Diselaraskan dengan warna Bottom Navigation Bar / Navbar #246B4D)
+  static const Color primaryGreen = Color(0xFF246B4D);
+  static const Color primaryGreenDark = Color(0xFF1E5E41);
+  static const Color brandTitleGreen = Color(0xFF246B4D);
   static const Color darkGreen = Color(0xFF234C37);
-  static const Color splashGreen = Color(0xFF529A7B);
-  static const Color adminGreen = Color(0xFF3E9674);
+  static const Color splashGreen = Color(0xFF246B4D);
+  static const Color adminGreen = Color(0xFF246B4D);
 
   // Backgrounds
   static const Color background = Color(0xFFF4F8F8);

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/progress_page_scaffold.dart';
 import 'day_rest_detail_screen.dart';
@@ -82,11 +82,11 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                       Border border;
 
                       if (isSelected) {
-                        bgColor = isDark ? const Color(0xFF22C55E) : const Color(0xFF36785A);
+                        bgColor = isDark ? const Color(0xFF22C55E) : const Color(0xFF246B4D);
                         textColor = Colors.white;
                         subTextColor = Colors.white.withValues(alpha: 0.9);
                         border = Border.all(
-                          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                           width: 1.5,
                         );
                       } else if (isPast) {
@@ -133,7 +133,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: (isDark ? const Color(0xFF22C55E) : const Color(0xFF36785A))
+                                      color: (isDark ? const Color(0xFF22C55E) : const Color(0xFF246B4D))
                                           .withValues(alpha: 0.25),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
@@ -232,7 +232,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF36785A) : const Color(0xFF2E6B4F),
+                          color: isDark ? const Color(0xFF246B4D) : const Color(0xFF2E6B4F),
                           shape: BoxShape.circle,
                         ),
                         child: const Center(
@@ -275,12 +275,12 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
               height: 54,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D),
                 borderRadius: BorderRadius.circular(28),
                 border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
                 boxShadow: [
                   BoxShadow(
-                    color: (isDark ? Colors.black : const Color(0xFF2E6B4F))
+                    color: (isDark ? Colors.black : const Color(0xFF246B4D))
                         .withValues(alpha: isDark ? 0.4 : 0.35),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
@@ -381,7 +381,7 @@ class _RestRecommendationScreenState extends State<RestRecommendationScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (c, e, s) => Container(
                           color: isDark ? const Color(0xFF0F3627) : const Color(0xFFE2F1E8),
-                          child: Icon(fallbackIcon, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A), size: 28),
+                          child: Icon(fallbackIcon, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D), size: 28),
                         ),
                       ),
                     ),

@@ -94,7 +94,7 @@ class _GlobalFloatingTimerOverlayState extends State<GlobalFloatingTimerOverlay>
               const Icon(
                 Icons.access_time_rounded,
                 size: 42,
-                color: Color(0xFF489874),
+                color: Color(0xFF246B4D),
               ),
               const SizedBox(height: 14),
               Text(

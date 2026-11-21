@@ -294,7 +294,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? const ColorScheme.dark(
-                    primary: Color(0xFF388E6B),
+                    primary: Color(0xFF246B4D),
                     onPrimary: Colors.white,
                     surface: Color(0xFF1E293B),
                     onSurface: Colors.white,
@@ -408,7 +408,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         extendBody: true,
         appBar: _currentIndex == 1
             ? AppBar(
-                backgroundColor: const Color(0xFF529471),
+                backgroundColor: const Color(0xFF246B4D),
                 elevation: 0,
                 scrolledUnderElevation: 0,
                 centerTitle: true,
@@ -431,7 +431,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               )
             : _currentIndex == 2
             ? AppBar(
-                backgroundColor: const Color(0xFF388E6B),
+                backgroundColor: const Color(0xFF246B4D),
                 elevation: 0,
                 scrolledUnderElevation: 0,
                 centerTitle: true,
@@ -624,7 +624,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       });
                     }
                   },
-                  backgroundColor: const Color(0xFF388E6B),
+                  backgroundColor: const Color(0xFF246B4D),
                   elevation: 4,
                   shape: const CircleBorder(),
                   child: const Icon(
@@ -2332,7 +2332,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   // ===========================================================================
   Widget _buildArtikelTab(bool isDark, Color primaryColor) {
     return Container(
-      color: const Color(0xFF388E6B),
+      color: const Color(0xFF246B4D),
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9),
@@ -2619,7 +2619,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: article.isPublished
-                                ? const Color(0xFF388E6B)
+                                ? const Color(0xFF246B4D)
                                 : const Color(0xFFEAB308),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -2730,7 +2730,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: article.isPublished
-                    ? const Color(0xFF388E6B).withValues(alpha: 0.12)
+                    ? const Color(0xFF246B4D).withValues(alpha: 0.12)
                     : const Color(0xFFEAB308).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -2830,7 +2830,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       onBack: () => _switchTab(0),
       body: RefreshIndicator(
         onRefresh: () => _fetchLaporanData(forceRefresh: true),
-        color: const Color(0xFF388E6B),
+        color: const Color(0xFF246B4D),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
           physics: const AlwaysScrollableScrollPhysics(
@@ -3540,7 +3540,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   if (pCount > 0)
                     Expanded(
                       flex: (pPct * 10).round().clamp(1, 1000),
-                      child: Container(color: const Color(0xFF388E6B)),
+                      child: Container(color: const Color(0xFF246B4D)),
                     ),
                   if (lCount > 0)
                     Expanded(
@@ -3558,7 +3558,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             label: 'Perempuan',
             count: pCount,
             percentage: pPct,
-            color: const Color(0xFF388E6B),
+            color: const Color(0xFF246B4D),
             isDark: isDark,
           ),
           const SizedBox(height: 10),
@@ -3853,7 +3853,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             height: 28,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF388E6B)),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF246B4D)),
             ),
           ),
           const SizedBox(height: 12),
@@ -3960,7 +3960,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF388E6B),
+              backgroundColor: const Color(0xFF246B4D),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -4003,7 +4003,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       title: titleText,
       toolbarHeight: toolbarHeight,
       centerTitle: true,
-      headerColor: const Color(0xFF388E6B),
+      headerColor: const Color(0xFF246B4D),
       sheetColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF7FAF8),
       onBack: () {
         if (_settingsSubView == _AdminSettingsSubView.changePassword) {
@@ -4081,7 +4081,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         ),
                         child: const Icon(
                           Icons.lock_outline_rounded,
-                          color: Color(0xFF388E6B),
+                          color: Color(0xFF246B4D),
                           size: 20,
                         ),
                       ),
@@ -4175,9 +4175,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     ),
                     Switch(
                       value: isDarkModeActive,
-                      activeThumbColor: const Color(0xFF388E6B),
+                      activeThumbColor: const Color(0xFF246B4D),
                       activeTrackColor: const Color(
-                        0xFF388E6B,
+                        0xFF246B4D,
                       ).withValues(alpha: 0.5),
                       onChanged: (val) {
                         AppTheme.toggleDarkMode(val);
@@ -4247,7 +4247,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             ),
                             child: const Icon(
                               Icons.info_outline_rounded,
-                              color: Color(0xFF388E6B),
+                              color: Color(0xFF246B4D),
                               size: 20,
                             ),
                           ),
@@ -4513,7 +4513,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         ? null
                         : _handleSaveNewPassword,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF388E6B),
+                      backgroundColor: const Color(0xFF246B4D),
                       foregroundColor: Colors.white,
                       elevation: 2,
                       shape: RoundedRectangleBorder(
@@ -4899,7 +4899,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       _executeSavePassword(oldPass, newPass);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF388E6B),
+                      backgroundColor: const Color(0xFF246B4D),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -5024,7 +5024,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F3EE),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF388E6B), width: 2),
+              border: Border.all(color: const Color(0xFF246B4D), width: 2),
             ),
             padding: const EdgeInsets.all(12),
             child: Image.asset(
@@ -5032,7 +5032,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => const Icon(
                 Icons.health_and_safety_rounded,
-                color: Color(0xFF388E6B),
+                color: Color(0xFF246B4D),
                 size: 38,
               ),
             ),
@@ -5054,7 +5054,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF388E6B),
+              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
             ),
           ),
           const SizedBox(height: 10),
@@ -5103,12 +5103,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF388E6B).withValues(alpha: 0.12),
+                        color: const Color(0xFF246B4D).withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.stars_rounded,
-                        color: Color(0xFF388E6B),
+                        color: Color(0xFF246B4D),
                         size: 18,
                       ),
                     ),
@@ -5225,7 +5225,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF388E6B),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF246B4D),
             ),
           ),
           const SizedBox(height: 2),
@@ -5267,7 +5267,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               color: isDark ? const Color(0xFF1E3A2F) : const Color(0xFFE8F5EE),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 18, color: const Color(0xFF388E6B)),
+            child: Icon(icon, size: 18, color: const Color(0xFF246B4D)),
           ),
           const SizedBox(width: 12),
           Expanded(

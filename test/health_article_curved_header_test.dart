@@ -72,7 +72,7 @@ void main() {
       expect(find.byType(CurvedHeaderScaffold), findsOneWidget);
 
       // Banner Edukasi Kesehatan dan form pencarian muncul di dalam konten scrollable
-      expect(find.text('EDUKASI KESEHATAN'), findsOneWidget);
+      expect(find.text('EDUKASI KESEHATAN'), findsWidgets);
       expect(find.text('Informasi & Panduan Gaya Hidup Sehat'), findsOneWidget);
       expect(find.text('Cari judul artikel...'), findsOneWidget);
 
@@ -116,7 +116,7 @@ void main() {
         date: '19 Oktober 2026',
         imageAsset: 'assets/logo.png',
         icon: Icons.restaurant_rounded,
-        headerColor: const Color(0xFF36785A),
+        headerColor: const Color(0xFF246B4D),
         content: 'Paragraf 1 isi artikel kesehatan.',
         takeaways: ['Poin Penting 1', 'Poin Penting 2'],
       );

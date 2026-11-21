@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,11 +13,7 @@ class ActivityDetailScreen extends StatefulWidget {
   final Map<String, dynamic> activity;
   final String? dateKey;
 
-  const ActivityDetailScreen({
-    super.key,
-    required this.activity,
-    this.dateKey,
-  });
+  const ActivityDetailScreen({super.key, required this.activity, this.dateKey});
 
   @override
   State<ActivityDetailScreen> createState() => _ActivityDetailScreenState();
@@ -103,7 +99,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               const Icon(
                 Icons.access_time_rounded,
                 size: 42,
-                color: Color(0xFF489874),
+                color: Color(0xFF246B4D),
               ),
               const SizedBox(height: 14),
               // Title "Waktu Aktivitas Habis"
@@ -167,310 +163,404 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final title = widget.activity['title'] as String? ?? 'Aktivitas Fisik';
-    final heroImg = widget.activity['heroImg'] as String? ?? 'assets/progress/clean/hero_jogging.png';
-    final iconImg = widget.activity['icon'] as String? ?? 'assets/progress/clean/rec_icon_jogging.png';
-    final aboutTitle = widget.activity['aboutTitle'] as String? ?? 'Tentang Latihan';
+    final heroImg =
+        widget.activity['heroImg'] as String? ??
+        'assets/progress/clean/hero_jogging.png';
+    final iconImg =
+        widget.activity['icon'] as String? ??
+        'assets/progress/clean/rec_icon_jogging.png';
+    final aboutTitle =
+        widget.activity['aboutTitle'] as String? ?? 'Tentang Latihan';
     final aboutDesc = widget.activity['aboutDesc'] as String? ?? '';
-    final benefits = (widget.activity['benefits'] as List<dynamic>?)?.cast<String>() ?? [];
+    final benefits =
+        (widget.activity['benefits'] as List<dynamic>?)?.cast<String>() ?? [];
     final specs = widget.activity['specs'] as Map<String, dynamic>? ?? {};
-    final tipsTitle = widget.activity['tipsTitle'] as String? ?? 'Tips Melakukan Latihan';
-    final tips = (widget.activity['tips'] as List<dynamic>?)?.cast<String>() ?? [];
+    final tipsTitle =
+        widget.activity['tipsTitle'] as String? ?? 'Tips Melakukan Latihan';
+    final tips =
+        (widget.activity['tips'] as List<dynamic>?)?.cast<String>() ?? [];
     final safetyNotes = widget.activity['safetyNotes'] as String?;
     final refLink = widget.activity['refLink'] as String? ?? '';
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
-    final accentGreen = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final headerColor = isDark
+        ? const Color(0xFF1E293B)
+        : const Color(0xFF246B4D);
+    final accentGreen = isDark
+        ? const Color(0xFF58AF86)
+        : const Color(0xFF246B4D);
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
-    final textSecondary = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final textSecondary = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final cardBorder = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
+    final sheetBgColor = isDark
+        ? const Color(0xFF0F172A)
+        : const Color(0xFFF3F6F8);
 
     return Scaffold(
-      backgroundColor: headerColor,
+      backgroundColor: sheetBgColor,
       body: Stack(
         children: [
           // 1. Scrollable Content with Parallax Hero & Collapsing Toolbar
-          CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Sticky Collapsing SliverAppBar
-              SliverAppBar(
-                expandedHeight: 250,
-                pinned: true,
-                elevation: _isSticky ? 3 : 0,
-                backgroundColor: headerColor,
-                leading: IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: _isSticky ? Colors.transparent : Colors.black.withValues(alpha: 0.38),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                // Sticky Header Title (visible only when collapsed / scrolled down)
-                title: AnimatedOpacity(
-                  opacity: _isSticky ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                centerTitle: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  collapseMode: CollapseMode.parallax,
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Full Hero Photo
-                      Image.asset(
-                        heroImg,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: headerColor,
-                          child: const Icon(Icons.fitness_center_rounded, size: 72, color: Colors.white),
-                        ),
+          ScrollConfiguration(
+            behavior: ScrollConfiguration.of(
+              context,
+            ).copyWith(overscroll: false),
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const ClampingScrollPhysics(),
+              slivers: [
+                // Sticky Collapsing SliverAppBar
+                SliverAppBar(
+                  expandedHeight: 250,
+                  pinned: true,
+                  elevation: _isSticky ? 3 : 0,
+                  backgroundColor: headerColor,
+                  leading: IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: _isSticky
+                            ? Colors.transparent
+                            : Colors.black.withValues(alpha: 0.38),
+                        shape: BoxShape.circle,
                       ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  // Sticky Header Title (visible only when collapsed / scrolled down)
+                  title: AnimatedOpacity(
+                    opacity: _isSticky ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  centerTitle: true,
+                  flexibleSpace: FlexibleSpaceBar(
+                    collapseMode: CollapseMode.parallax,
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Full Hero Photo
+                        Image.asset(
+                          heroImg,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                color: headerColor,
+                                child: const Icon(
+                                  Icons.fitness_center_rounded,
+                                  size: 72,
+                                  color: Colors.white,
+                                ),
+                              ),
+                        ),
 
-                      // Gradient Overlay for readability
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.black.withValues(alpha: 0.5),
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.8),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
+                        // Gradient Overlay for readability
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.black.withValues(alpha: 0.5),
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.8),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
                           ),
                         ),
-                      ),
 
-                      // Bottom Overlay: Icon + Nama Aktivitas (Posisi Awal)
-                      Positioned(
-                        bottom: 22,
-                        left: 20,
-                        right: 20,
-                        child: AnimatedOpacity(
-                          opacity: _isSticky ? 0.0 : 1.0,
-                          duration: const Duration(milliseconds: 150),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Icon Circle Badge
-                              Container(
-                                width: 44,
-                                height: 44,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: accentGreen.withValues(alpha: 0.85),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.2),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
+                        // Bottom Overlay: Icon + Nama Aktivitas (Posisi Awal)
+                        Positioned(
+                          bottom: 22,
+                          left: 20,
+                          right: 20,
+                          child: AnimatedOpacity(
+                            opacity: _isSticky ? 0.0 : 1.0,
+                            duration: const Duration(milliseconds: 150),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Icon Circle Badge
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: accentGreen.withValues(alpha: 0.85),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      width: 1.5,
                                     ),
-                                  ],
-                                ),
-                                child: Image.asset(
-                                  iconImg,
-                                  width: 24,
-                                  height: 24,
-                                  color: Colors.white,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(
-                                    Icons.directions_run_rounded,
-                                    size: 20,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.asset(
+                                    iconImg,
+                                    width: 24,
+                                    height: 24,
                                     color: Colors.white,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.directions_run_rounded,
+                                              size: 20,
+                                              color: Colors.white,
+                                            ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
+                                const SizedBox(width: 12),
 
-                              // Activity Name
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: accentGreen,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        'PANDUAN LATIHAN',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 9.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                          letterSpacing: 0.5,
+                                // Activity Name
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: accentGreen,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'PANDUAN LATIHAN',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            letterSpacing: 0.5,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      title,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                        letterSpacing: -0.3,
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        title,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                          letterSpacing: -0.3,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Content Sliver in curved container sheet
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F6F8),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                  ),
-                  transform: Matrix4.translationValues(0, -20, 0),
-                  padding: const EdgeInsets.fromLTRB(18, 24, 18, 150),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Section: Tentang Aktivitas
-                      Text(
-                        aboutTitle,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        aboutDesc,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: textSecondary,
-                          height: 1.55,
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // 4-Column Spec Box
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: cardBorder),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            _buildSpecCol(Icons.timer_outlined, 'Durasi', specs['duration'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
-                            _buildSpecCol(Icons.calendar_today_outlined, 'Frekuensi', specs['frequency'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
-                            _buildSpecCol(Icons.speed_rounded, 'Intensitas', specs['intensity'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
-                            _buildSpecCol(Icons.local_fire_department_outlined, 'Kalori', specs['calories'] ?? '-', isDark, accentGreen, textPrimary, textSecondary),
-                          ],
-                        ),
-                      ),
-
-                      if (safetyNotes != null && safetyNotes.isNotEmpty) ...[
-                        const SizedBox(height: 18),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF2D2314) : const Color(0xFFFEF3C7),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
-                              width: 1.2,
-                            ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(
-                                Icons.health_and_safety_rounded,
-                                color: Color(0xFFD97706),
-                                size: 22,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Catatan Keselamatan & Klinis',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      safetyNotes,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11.5,
-                                        color: isDark
-                                            ? const Color(0xFFFDE68A).withValues(alpha: 0.9)
-                                            : const Color(0xFF92400E),
-                                        height: 1.45,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
 
-                      const SizedBox(height: 22),
-
-                      // Section: Manfaat Utama
-                      Text(
-                        'Manfaat Utama',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: textPrimary,
-                        ),
+                // Content Sliver in curved container sheet
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: sheetBgColor,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(28),
                       ),
-                      const SizedBox(height: 10),
-                      ...benefits.map((b) => Padding(
+                    ),
+                    transform: Matrix4.translationValues(0, -20, 0),
+                    padding: const EdgeInsets.fromLTRB(18, 24, 18, 150),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Section: Tentang Aktivitas
+                        Text(
+                          aboutTitle,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          aboutDesc,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: textSecondary,
+                            height: 1.55,
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // 4-Column Spec Box
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: cardBorder),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.2 : 0.04,
+                                ),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              _buildSpecCol(
+                                Icons.timer_outlined,
+                                'Durasi',
+                                specs['duration'] ?? '-',
+                                isDark,
+                                accentGreen,
+                                textPrimary,
+                                textSecondary,
+                              ),
+                              _buildSpecCol(
+                                Icons.calendar_today_outlined,
+                                'Frekuensi',
+                                specs['frequency'] ?? '-',
+                                isDark,
+                                accentGreen,
+                                textPrimary,
+                                textSecondary,
+                              ),
+                              _buildSpecCol(
+                                Icons.speed_rounded,
+                                'Intensitas',
+                                specs['intensity'] ?? '-',
+                                isDark,
+                                accentGreen,
+                                textPrimary,
+                                textSecondary,
+                              ),
+                              _buildSpecCol(
+                                Icons.local_fire_department_outlined,
+                                'Kalori',
+                                specs['calories'] ?? '-',
+                                isDark,
+                                accentGreen,
+                                textPrimary,
+                                textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        if (safetyNotes != null && safetyNotes.isNotEmpty) ...[
+                          const SizedBox(height: 18),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF2D2314)
+                                  : const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF78350F)
+                                    : const Color(0xFFFDE68A),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.health_and_safety_rounded,
+                                  color: Color(0xFFD97706),
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Catatan Keselamatan & Klinis',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? const Color(0xFFFDE68A)
+                                              : const Color(0xFF92400E),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        safetyNotes,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11.5,
+                                          color: isDark
+                                              ? const Color(
+                                                  0xFFFDE68A,
+                                                ).withValues(alpha: 0.9)
+                                              : const Color(0xFF92400E),
+                                          height: 1.45,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 22),
+
+                        // Section: Manfaat Utama
+                        Text(
+                          'Manfaat Utama',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ...benefits.map(
+                          (b) => Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,12 +568,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
+                                    color: isDark
+                                        ? const Color(0xFF064E3B)
+                                        : const Color(0xFFDCFCE7),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.check_rounded,
-                                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF16A34A),
+                                    color: isDark
+                                        ? const Color(0xFF6EE7B7)
+                                        : const Color(0xFF16A34A),
                                     size: 14,
                                   ),
                                 ),
@@ -493,120 +587,164 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                                     b,
                                     style: GoogleFonts.poppins(
                                       fontSize: 13,
-                                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                      color: isDark
+                                          ? const Color(0xFFCBD5E1)
+                                          : const Color(0xFF334155),
                                       height: 1.4,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                          )),
-
-                      const SizedBox(height: 20),
-
-                      // Section: Tips Melakukan
-                      Text(
-                        tipsTitle,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: textPrimary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: cardBorder),
+
+                        const SizedBox(height: 20),
+
+                        // Section: Tips Melakukan
+                        Text(
+                          tipsTitle,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
                         ),
-                        child: Column(
-                          children: tips
-                              .map((t) => Padding(
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: cardBorder),
+                          ),
+                          child: Column(
+                            children: tips
+                                .map(
+                                  (t) => Padding(
                                     padding: const EdgeInsets.only(bottom: 8),
                                     child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text('• ', style: TextStyle(color: accentGreen, fontSize: 16, fontWeight: FontWeight.bold)),
+                                        Text(
+                                          '• ',
+                                          style: TextStyle(
+                                            color: accentGreen,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                         Expanded(
                                           child: Text(
                                             t,
                                             style: GoogleFonts.poppins(
                                               fontSize: 12.5,
-                                              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                                              color: isDark
+                                                  ? const Color(0xFFCBD5E1)
+                                                  : const Color(0xFF475569),
                                               height: 1.4,
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-
-                      // Section: Sumber Referensi (Dipertahankan)
-                      if (refLink.isNotEmpty) ...[
-                        const SizedBox(height: 22),
-                        Row(
-                          children: [
-                            Icon(Icons.link_rounded, size: 18, color: accentGreen),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Sumber Referensi',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            Clipboard.setData(ClipboardData(text: refLink));
-                            AppAlert.showSuccess(
-                              context,
-                              'Tautan referensi berhasil disalin',
-                            );
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF0FDF4),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFBBF7D0)),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    refLink,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D),
-                                      decoration: TextDecoration.underline,
-                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(Icons.copy_rounded, size: 16, color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF15803D)),
-                              ],
-                            ),
+                                )
+                                .toList(),
                           ),
                         ),
+
+                        // Section: Sumber Referensi (Dipertahankan)
+                        if (refLink.isNotEmpty) ...[
+                          const SizedBox(height: 22),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.link_rounded,
+                                size: 18,
+                                color: accentGreen,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Sumber Referensi',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: refLink));
+                              AppAlert.showSuccess(
+                                context,
+                                'Tautan referensi berhasil disalin',
+                              );
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF0F172A)
+                                    : const Color(0xFFF0FDF4),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFBBF7D0),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      refLink,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        color: isDark
+                                            ? const Color(0xFF6EE7B7)
+                                            : const Color(0xFF15803D),
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Icons.copy_rounded,
+                                    size: 16,
+                                    color: isDark
+                                        ? const Color(0xFF6EE7B7)
+                                        : const Color(0xFF15803D),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+
+                // Memastikan sisa viewport di bagian bawah selalu berwarna sheet (sheetBgColor)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  fillOverscroll: false,
+                  child: Container(color: sheetBgColor),
+                ),
+              ],
+            ),
           ),
 
           // 2. Fixed Bottom Button: "Mulai"
@@ -617,7 +755,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
                 child: SizedBox(
                   width: double.infinity,
                   child: ListenableBuilder(
@@ -625,19 +766,26 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     builder: (context, _) {
                       final service = ActivityTimerService.instance;
                       final actId = widget.activity['id'] as String? ?? '';
-                      final isRunningThis = service.hasActiveSession &&
+                      final isRunningThis =
+                          service.hasActiveSession &&
                           (service.activeActivity?['id'] == actId);
 
-                      final isFuture = PhysicalActivityService.isFutureDateKey(widget.dateKey);
+                      final isFuture = PhysicalActivityService.isFutureDateKey(
+                        widget.dateKey,
+                      );
 
                       return ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isFuture
-                              ? (isDark ? const Color(0xFF334155) : const Color(0xFF94A3B8))
+                              ? (isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFF94A3B8))
                               : accentGreen,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                           elevation: 3,
                         ),
                         onPressed: isFuture
@@ -669,7 +817,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                               },
                         child: Text(
                           'Mulai',
-                          style: GoogleFonts.poppins(fontSize: 15.5, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.poppins(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       );
                     },
@@ -685,10 +836,12 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             builder: (context, _) {
               final service = ActivityTimerService.instance;
               final actId = widget.activity['id'] as String? ?? '';
-              final isRunningThis = service.hasActiveSession &&
+              final isRunningThis =
+                  service.hasActiveSession &&
                   (service.activeActivity?['id'] == actId);
 
-              if (!isRunningThis || GlobalFloatingTimerOverlay.isGlobalOverlayMounted) {
+              if (!isRunningThis ||
+                  GlobalFloatingTimerOverlay.isGlobalOverlayMounted) {
                 return const SizedBox.shrink();
               }
 
@@ -707,7 +860,12 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     },
                     child: Container(
                       height: 42,
-                      padding: const EdgeInsets.only(left: 14, right: 3, top: 3, bottom: 3),
+                      padding: const EdgeInsets.only(
+                        left: 14,
+                        right: 3,
+                        top: 3,
+                        bottom: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(22),
@@ -723,7 +881,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF5A9E80),
                               borderRadius: BorderRadius.circular(18),
@@ -748,7 +909,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
               } else {
                 // Larger Timer Card (Image 4)
                 final progress = service.targetDuration > 0
-                    ? (service.elapsedSeconds / service.targetDuration).clamp(0.0, 1.0)
+                    ? (service.elapsedSeconds / service.targetDuration).clamp(
+                        0.0,
+                        1.0,
+                      )
                     : 0.0;
 
                 return Positioned(
@@ -831,7 +995,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                               child: LinearProgressIndicator(
                                 value: progress,
                                 backgroundColor: const Color(0xFFE2E8F0),
-                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5A9E80)),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF5A9E80),
+                                ),
                               ),
                             ),
                           ),
@@ -872,11 +1038,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: textPrimary),
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
           ),
         ],
       ),
     );
   }
 }
-

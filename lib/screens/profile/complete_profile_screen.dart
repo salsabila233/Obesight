@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -240,7 +240,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final textDark = isDark ? Colors.white : const Color(0xFF0F172A);
@@ -316,7 +316,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F5EE),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFF36785A).withValues(alpha: isDark ? 0.4 : 0.25),
+                      color: const Color(0xFF246B4D).withValues(alpha: isDark ? 0.4 : 0.25),
                     ),
                   ),
                   child: Row(
@@ -325,12 +325,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF36785A).withValues(alpha: 0.15),
+                          color: const Color(0xFF246B4D).withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.verified_user_rounded,
-                          color: Color(0xFF36785A),
+                          color: Color(0xFF246B4D),
                           size: 22,
                         ),
                       ),
@@ -459,7 +459,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             decoration: InputDecoration(
                               hintText: 'Contoh: 12 Juli 2003',
                               prefixIcon: Icon(Icons.calendar_today_rounded, color: textMuted, size: 20),
-                              suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF36785A)),
+                              suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF246B4D)),
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -582,7 +582,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSave,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF36785A),
+                      backgroundColor: const Color(0xFF246B4D),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -639,7 +639,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   }) {
     final activeBg = isDark ? const Color(0xFF1E3A2F) : const Color(0xFFF0FAF5);
     final inactiveBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final activeBorder = isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
+    final activeBorder = isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
     final inactiveBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final activeText = isDark ? const Color(0xFF6EE7B7) : const Color(0xFF2E6B4F);
     final inactiveText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);

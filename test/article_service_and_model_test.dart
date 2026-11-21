@@ -16,7 +16,7 @@ void main() {
       expect(model.snippet, '');
       expect(model.date, '21 September 2026');
       expect(model.readTime, '4 Menit Baca');
-      expect(model.headerColor, const Color(0xFF36785A));
+      expect(model.headerColor, const Color(0xFF246B4D));
       expect(model.icon, Icons.menu_book_rounded);
       expect(model.imageAsset, 'assets/articles/article_porsi_piring_gizi_seimbang.jpg');
       expect(model.category, 'Edukasi Kesehatan');

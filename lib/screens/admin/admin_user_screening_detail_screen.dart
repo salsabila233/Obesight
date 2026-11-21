@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/screening_history_model.dart';
 import '../../models/user_model.dart';
@@ -20,7 +20,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const sageGreen = Color(0xFF529471); // Warna hijau sage Obesight
+    const sageGreen = Color(0xFF246B4D); // Warna hijau selaras Navbar Obesight (0xFF246B4D)
     final pageBgColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     return Scaffold(
@@ -219,7 +219,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF529471), width: 1.5),
+                  border: Border.all(color: const Color(0xFF246B4D), width: 1.5),
                 ),
                 child: ClipOval(child: _buildAvatarImage(user)),
               ),
@@ -365,7 +365,7 @@ class AdminUserScreeningDetailScreen extends StatelessWidget {
               const Icon(
                 Icons.location_on_rounded,
                 size: 13,
-                color: Color(0xFF36785A),
+                color: Color(0xFF246B4D),
               ),
               const SizedBox(width: 5),
               Text(

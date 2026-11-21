@@ -69,14 +69,14 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
                 color: iconBg,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF489874).withValues(alpha: 0.18),
+                  color: const Color(0xFF246B4D).withValues(alpha: 0.18),
                   width: 1.5,
                 ),
               ),
               child: const Center(
                 child: Icon(
                   Icons.check_circle_outline_rounded,
-                  color: Color(0xFF489874),
+                  color: Color(0xFF246B4D),
                   size: 34,
                 ),
               ),
@@ -147,7 +147,7 @@ class BmiSaveConfirmationDialog extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF489874),
+                      backgroundColor: const Color(0xFF246B4D),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,

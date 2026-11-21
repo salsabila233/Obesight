@@ -248,7 +248,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       _executeSave(oldPass, newPass);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF36785A),
+                      backgroundColor: const Color(0xFF246B4D),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -353,7 +353,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF36785A),
+                backgroundColor: const Color(0xFF246B4D),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -392,11 +392,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       child: Scaffold(
         backgroundColor: isDark
             ? const Color(0xFF0F172A)
-            : const Color(0xFF489874),
+            : const Color(0xFF246B4D),
         appBar: AppBar(
           backgroundColor: isDark
               ? const Color(0xFF0F172A)
-              : const Color(0xFF489874),
+              : const Color(0xFF246B4D),
           elevation: 0,
           toolbarHeight: 68.0,
           leading: IconButton(
@@ -559,10 +559,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSave,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF36785A),
+                      backgroundColor: const Color(0xFF246B4D),
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: const Color(
-                        0xFF36785A,
+                        0xFF246B4D,
                       ).withValues(alpha: 0.6),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -674,7 +674,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             focusedBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
-              borderSide: BorderSide(color: Color(0xFF36785A), width: 1.5),
+              borderSide: BorderSide(color: Color(0xFF246B4D), width: 1.5),
             ),
           ),
         ),

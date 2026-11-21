@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/sleep_record_model.dart';
@@ -86,7 +86,7 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
           data: isDark
               ? ThemeData.dark().copyWith(
                   colorScheme: const ColorScheme.dark(
-                    primary: Color(0xFF489874),
+                    primary: Color(0xFF246B4D),
                     onPrimary: Colors.white,
                     surface: Color(0xFF1E293B),
                     onSurface: Colors.white,
@@ -95,14 +95,14 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
                 )
               : Theme.of(context).copyWith(
                   colorScheme: const ColorScheme.light(
-                    primary: Color(0xFF36785A),
+                    primary: Color(0xFF246B4D),
                     onPrimary: Colors.white,
                     surface: Colors.white,
                     onSurface: Color(0xFF1E293B),
                   ),
                   textButtonTheme: TextButtonThemeData(
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF36785A),
+                      foregroundColor: const Color(0xFF246B4D),
                       textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -193,7 +193,7 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
     final tile1Title = isNight ? 'Jam tidur' : 'Jam istirahat';
     final tile2Title = isNight ? 'Jam bangun' : 'Jam selesai';
     final tile3Title = isNight ? 'Durasi tidur' : 'Durasi istirahat';
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF36785A);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
 
     return CurvedHeaderScaffold(
       title: screenTitle,
@@ -252,7 +252,7 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
                           isNight ? Icons.bed_rounded : Icons.wb_sunny_rounded,
                           size: 20,
                           color: isNight
-                              ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A))
+                              ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D))
                               : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFEAB308)),
                         ),
                       ),
@@ -285,7 +285,7 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
                         ? (isDark ? const Color(0xFF0F3627) : const Color(0xFFE2F1E8))
                         : (isDark ? const Color(0xFF452205) : const Color(0xFFFEF3C7)),
                     iconColor: isNight
-                        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A))
+                        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D))
                         : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFEAB308)),
                     title: tile1Title,
                     value: _formatTime(_startTime),
@@ -307,7 +307,7 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
                         : (isDark ? const Color(0xFF0F3627) : const Color(0xFFE2F1E8)),
                     iconColor: isNight
                         ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFF59E0B))
-                        : (isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A)),
+                        : (isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D)),
                     title: tile2Title,
                     value: _formatTime(_endTime),
                     showChevron: true,
@@ -324,7 +324,7 @@ class _RestReminderSettingScreenState extends State<RestReminderSettingScreen> {
                     isDark: isDark,
                     icon: Icons.access_time_rounded,
                     iconBg: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFFEDF7F2),
-                    iconColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF36785A),
+                    iconColor: isDark ? const Color(0xFF60A5FA) : const Color(0xFF246B4D),
                     title: tile3Title,
                     value: _durationFormatted,
                     showChevron: false,

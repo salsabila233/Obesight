@@ -1040,7 +1040,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: article.isPublished
-                    ? const Color(0xFF388E6B).withValues(alpha: 0.12)
+                    ? const Color(0xFF246B4D).withValues(alpha: 0.12)
                     : const Color(0xFFEAB308).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -1127,7 +1127,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     _contentController.isDark = isDark;
-    const headerColor = Color(0xFF388E6B);
+    const headerColor = Color(0xFF246B4D);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final isEdit = widget.initialArticle != null;
 
@@ -1178,7 +1178,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                   // 1. KATEGORI EDUKASI (PILIHAN CHIPS)
                   Row(
                     children: [
-                      const Icon(Icons.category_outlined, size: 16, color: Color(0xFF388E6B)),
+                      const Icon(Icons.category_outlined, size: 16, color: Color(0xFF246B4D)),
                       const SizedBox(width: 6),
                       Text(
                         'Kategori Edukasi *',
@@ -1219,11 +1219,11 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                               ),
                             ),
                             selected: isSelected,
-                            selectedColor: const Color(0xFF388E6B),
+                            selectedColor: const Color(0xFF246B4D),
                             backgroundColor: cardBg,
                             side: BorderSide(
                               color: isSelected
-                                  ? const Color(0xFF388E6B)
+                                  ? const Color(0xFF246B4D)
                                   : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                             ),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1242,7 +1242,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                   // 2. JUDUL SECTION
                   Row(
                     children: [
-                      const Icon(Icons.title_rounded, size: 16, color: Color(0xFF388E6B)),
+                      const Icon(Icons.title_rounded, size: 16, color: Color(0xFF246B4D)),
                       const SizedBox(width: 6),
                       Text(
                         'Judul Artikel *',
@@ -1295,7 +1295,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                   // 3. RINGKASAN SINGKAT (LEAD SNIPPET)
                   Row(
                     children: [
-                      const Icon(Icons.format_quote_rounded, size: 16, color: Color(0xFF388E6B)),
+                      const Icon(Icons.format_quote_rounded, size: 16, color: Color(0xFF246B4D)),
                       const SizedBox(width: 6),
                       Text(
                         'Ringkasan Singkat (Lead Snippet)',
@@ -1348,7 +1348,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                   // 4. GAMBAR SAMPUL SECTION (HANYA KAMERA DAN GALERI)
                   Row(
                     children: [
-                      const Icon(Icons.image_outlined, size: 16, color: Color(0xFF388E6B)),
+                      const Icon(Icons.image_outlined, size: 16, color: Color(0xFF246B4D)),
                       const SizedBox(width: 6),
                       Text(
                         'Gambar Sampul',
@@ -1475,7 +1475,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                                 const Icon(
                                   Icons.add_a_photo_outlined,
                                   size: 38,
-                                  color: Color(0xFF388E6B),
+                                  color: Color(0xFF246B4D),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
@@ -1506,7 +1506,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.article_outlined, size: 16, color: Color(0xFF388E6B)),
+                          const Icon(Icons.article_outlined, size: 16, color: Color(0xFF246B4D)),
                           const SizedBox(width: 6),
                           Text(
                             'Konten Lengkap Artikel *',
@@ -1532,7 +1532,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: !_isPreviewMode ? const Color(0xFF388E6B) : Colors.transparent,
+                                  color: !_isPreviewMode ? const Color(0xFF246B4D) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
@@ -1560,7 +1560,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: _isPreviewMode ? const Color(0xFF388E6B) : Colors.transparent,
+                                  color: _isPreviewMode ? const Color(0xFF246B4D) : Colors.transparent,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
@@ -1610,7 +1610,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                         color: cardBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: const Color(0xFF388E6B),
+                          color: const Color(0xFF246B4D),
                           width: 1.5,
                         ),
                       ),
@@ -1808,10 +1808,10 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF388E6B).withValues(alpha: 0.15),
+                                color: const Color(0xFF246B4D).withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.shield_outlined, color: Color(0xFF388E6B), size: 18),
+                              child: const Icon(Icons.shield_outlined, color: Color(0xFF246B4D), size: 18),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -1853,7 +1853,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                               children: [
                                 const Icon(
                                   Icons.check_circle_rounded,
-                                  color: Color(0xFF388E6B),
+                                  color: Color(0xFF246B4D),
                                   size: 18,
                                 ),
                                 const SizedBox(width: 8),
@@ -1913,7 +1913,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                           ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF2E7D5A),
-                            side: const BorderSide(color: Color(0xFF388E6B)),
+                            side: const BorderSide(color: Color(0xFF246B4D)),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                           ),
@@ -1926,7 +1926,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                   // 7. STATUS PUBLIKASI SECTION
                   Row(
                     children: [
-                      const Icon(Icons.publish_rounded, size: 16, color: Color(0xFF388E6B)),
+                      const Icon(Icons.publish_rounded, size: 16, color: Color(0xFF246B4D)),
                       const SizedBox(width: 6),
                       Text(
                         'Status Publikasi',
@@ -1960,7 +1960,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: _isPublished
-                                    ? const Color(0xFF388E6B)
+                                    ? const Color(0xFF246B4D)
                                     : (isDark ? const Color(0xFF334155) : const Color(0xFFD1D5DB)),
                                 width: _isPublished ? 1.8 : 1,
                               ),
@@ -1975,7 +1975,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: _isPublished ? const Color(0xFF388E6B) : const Color(0xFF94A3B8),
+                                      color: _isPublished ? const Color(0xFF246B4D) : const Color(0xFF94A3B8),
                                       width: 2,
                                     ),
                                   ),
@@ -1986,7 +1986,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                                             height: 8,
                                             decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: Color(0xFF388E6B),
+                                              color: Color(0xFF246B4D),
                                             ),
                                           ),
                                         )
@@ -2035,7 +2035,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: !_isPublished
-                                    ? const Color(0xFF388E6B)
+                                    ? const Color(0xFF246B4D)
                                     : (isDark ? const Color(0xFF334155) : const Color(0xFFD1D5DB)),
                                 width: !_isPublished ? 1.8 : 1,
                               ),
@@ -2050,7 +2050,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: !_isPublished ? const Color(0xFF388E6B) : const Color(0xFF94A3B8),
+                                      color: !_isPublished ? const Color(0xFF246B4D) : const Color(0xFF94A3B8),
                                       width: 2,
                                     ),
                                   ),
@@ -2061,7 +2061,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                                             height: 8,
                                             decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: Color(0xFF388E6B),
+                                              color: Color(0xFF246B4D),
                                             ),
                                           ),
                                         )
@@ -2109,7 +2109,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                         child: OutlinedButton(
                           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF388E6B), width: 1.5),
+                            side: const BorderSide(color: Color(0xFF246B4D), width: 1.5),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -2120,7 +2120,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF388E6B),
+                              color: const Color(0xFF246B4D),
                             ),
                           ),
                         ),
@@ -2132,7 +2132,7 @@ class _AdminAddArticleScreenState extends State<AdminAddArticleScreen> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _handleSave,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF388E6B),
+                            backgroundColor: const Color(0xFF246B4D),
                             foregroundColor: Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 14),

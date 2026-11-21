@@ -225,8 +225,8 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const sageGreen = Color(
-      0xFF529471,
-    ); // Warna hijau sage sesuai desain Obesight
+      0xFF246B4D,
+    ); // Warna hijau selaras dengan Navbar Obesight (0xFF246B4D)
 
     final bodyContent = Container(
       width: double.infinity,
@@ -612,7 +612,7 @@ class _AdminUserCardItem extends StatelessWidget {
                                     border: Border.all(
                                       color: isDark
                                           ? const Color(0xFF34D399)
-                                          : const Color(0xFF529471),
+                                          : const Color(0xFF246B4D),
                                       width: 0.8,
                                     ),
                                   ),
@@ -918,7 +918,7 @@ class _AdminUserCardItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: user.isAdmin
-              ? const Color(0xFF529471).withValues(alpha: 0.3)
+              ? const Color(0xFF246B4D).withValues(alpha: 0.3)
               : const Color(0xFFCBD5E1),
           width: 1,
         ),

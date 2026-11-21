@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:obesight/models/user_model.dart';
 import 'package:obesight/screens/admin/admin_user_screening_detail_screen.dart';
-import 'package:obesight/screens/profile/complete_profile_screen.dart';
-import 'package:obesight/screens/profile/edit_profile_screen.dart';
 import 'package:obesight/screens/profile/profile_screen.dart';
 import 'package:obesight/services/admin_user_service.dart';
 import 'package:obesight/services/auth_service.dart';

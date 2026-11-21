@@ -67,7 +67,7 @@ void main() {
 
   group('Admin User List & Screening Detail Widget Tests', () {
     testWidgets(
-      '1. AdminUserListScreen renders AppBar with Sage Green #529471 and search bar',
+      '1. AdminUserListScreen renders AppBar with Primary Green #246B4D and search bar',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(1080, 2400);
         tester.view.devicePixelRatio = 2.75;

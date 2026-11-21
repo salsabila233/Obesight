@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -212,7 +212,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _saveProfileAndPop();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF36785A),
+                    backgroundColor: const Color(0xFF246B4D),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -310,10 +310,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF36785A).withValues(alpha: isDark ? 0.2 : 0.1),
+                  color: const Color(0xFF246B4D).withValues(alpha: isDark ? 0.2 : 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF36785A), size: 20),
+                child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF246B4D), size: 20),
               ),
               title: Text('Ambil Foto', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
               subtitle: Text('Gunakan kamera perangkat untuk mengambil foto baru', style: GoogleFonts.poppins(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
@@ -419,7 +419,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_isPhotoRemoved) {
       return Container(
         color: const Color(0xFFE2F1E8),
-        child: const Icon(Icons.person, color: Color(0xFF36785A), size: 48),
+        child: const Icon(Icons.person, color: Color(0xFF246B4D), size: 48),
       );
     }
 
@@ -435,7 +435,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
           color: const Color(0xFFE2F1E8),
-          child: const Icon(Icons.person, color: Color(0xFF36785A), size: 48),
+          child: const Icon(Icons.person, color: Color(0xFF246B4D), size: 48),
         ),
       );
     }
@@ -444,7 +444,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_initialIsRemoved) {
       return Container(
         color: const Color(0xFFE2F1E8),
-        child: const Icon(Icons.person, color: Color(0xFF36785A), size: 48),
+        child: const Icon(Icons.person, color: Color(0xFF246B4D), size: 48),
       );
     }
 
@@ -453,7 +453,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) => Container(
         color: const Color(0xFFE2F1E8),
-        child: const Icon(Icons.person, color: Color(0xFF36785A), size: 48),
+        child: const Icon(Icons.person, color: Color(0xFF246B4D), size: 48),
       ),
     );
   }
@@ -461,7 +461,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFEAEFEA);
     final textDark = isDark ? Colors.white : const Color(0xFF0F172A);
@@ -519,10 +519,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 height: 96,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFF36785A), width: 3),
+                                  border: Border.all(color: const Color(0xFF246B4D), width: 3),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF36785A).withValues(alpha: 0.2),
+                                      color: const Color(0xFF246B4D).withValues(alpha: 0.2),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -535,7 +535,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               Container(
                                 padding: const EdgeInsets.all(7),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF36785A),
+                                  color: Color(0xFF246B4D),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16),
@@ -551,7 +551,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF36785A),
+                              color: const Color(0xFF246B4D),
                             ),
                           ),
                         ),
@@ -626,7 +626,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5),
+                              borderSide: const BorderSide(color: Color(0xFF246B4D), width: 1.5),
                             ),
                           ),
                           style: GoogleFonts.poppins(fontSize: 13.5, color: textDark),
@@ -692,7 +692,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: ElevatedButton(
                       onPressed: _saveProfileAndPop,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF36785A),
+                        backgroundColor: const Color(0xFF246B4D),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -764,7 +764,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5),
+              borderSide: const BorderSide(color: Color(0xFF246B4D), width: 1.5),
             ),
           ),
         ),

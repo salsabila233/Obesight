@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/sleep_record_model.dart';
 import '../../services/sleep_tracking_service.dart';
@@ -308,7 +308,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                                     ),
                                   ),
                                 )
@@ -434,7 +434,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF065F46) : const Color(0xFF36785A),
+                              color: isDark ? const Color(0xFF065F46) : const Color(0xFF246B4D),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -601,14 +601,14 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                           child: Container(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF36785A), Color(0xFF265C45)],
+                                colors: [Color(0xFF246B4D), Color(0xFF265C45)],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                                  color: const Color(0xFF246B4D).withValues(alpha: 0.25),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
@@ -675,7 +675,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         value: targetM > 0 ? (totalMinutes / targetM).clamp(0.0, 1.0) : 1.0,
                         minHeight: 8,
                         backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF36785A)),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF246B4D)),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -686,7 +686,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.bedtime_outlined, size: 14, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
+                            Icon(Icons.bedtime_outlined, size: 14, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D)),
                             const SizedBox(width: 4),
                             Text(
                               recs.isNotEmpty ? 'Tidur: ${recs.first.startTimeFormatted}' : '-',
@@ -832,7 +832,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: Icon(Icons.check_rounded, size: 15, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A)),
+          child: Icon(Icons.check_rounded, size: 15, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D)),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -891,7 +891,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                 child: Icon(
                   Icons.notifications_active_rounded,
                   size: 20,
-                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
                 ),
               ),
               const SizedBox(width: 12),
@@ -907,7 +907,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
               ),
               Switch(
                 value: service.reminderEnabled,
-                activeThumbColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                activeThumbColor: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                 activeTrackColor: isDark ? const Color(0xFF065F46) : null,
                 onChanged: (val) async {
                   if (val) {
@@ -955,7 +955,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
             contentPadding: EdgeInsets.zero,
             leading: Icon(
               Icons.bedtime_rounded,
-              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
             ),
             title: Text(
               'Target Waktu Tidur',
@@ -983,7 +983,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                             data: isDark
                                 ? ThemeData.dark().copyWith(
                                     colorScheme: const ColorScheme.dark(
-                                      primary: Color(0xFF489874),
+                                      primary: Color(0xFF246B4D),
                                       onPrimary: Colors.white,
                                       surface: Color(0xFF1E293B),
                                       onSurface: Colors.white,
@@ -992,7 +992,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
                                   )
                                 : Theme.of(context).copyWith(
                                     colorScheme: const ColorScheme.light(
-                                      primary: Color(0xFF36785A),
+                                      primary: Color(0xFF246B4D),
                                       onPrimary: Colors.white,
                                       surface: Colors.white,
                                       onSurface: Color(0xFF1E293B),
@@ -1089,7 +1089,7 @@ class _NightSleepDetailScreenState extends State<NightSleepDetailScreen> {
 // SLIVER PERSISTENT HEADER DELEGATE:
 // Menampilkan banner visual jernih tanpa background hijau kusam.
 // Saat di-scroll ke atas, bertransisi halus menjadi AppBar hijau
-// brand ObeSight (0xFF489874) yang memuat judul dan tombol back.
+// brand ObeSight (0xFF246B4D) yang memuat judul dan tombol back.
 // =======================================================
 class _SleepCollapsibleHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double topPadding;
@@ -1181,7 +1181,7 @@ class _SleepCollapsibleHeaderDelegate extends SliverPersistentHeaderDelegate {
               child: Opacity(
                 opacity: t,
                 child: Container(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFF489874),
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D),
                 ),
               ),
             ),

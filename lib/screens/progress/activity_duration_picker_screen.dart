@@ -210,7 +210,7 @@ class _ActivityDurationPickerScreenState extends State<ActivityDurationPickerScr
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const accentGreen = Color(0xFF489874);
+    const accentGreen = Color(0xFF246B4D);
     final cardBg = isDark ? const Color(0xFF0F172A) : Colors.white;
     final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
     final heroImg = widget.activity['heroImg'] as String? ?? 'assets/progress/clean/hero_jogging.png';

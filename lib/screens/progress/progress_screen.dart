@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
@@ -137,13 +137,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       : const Color(0xFFE2F1E8),
                   iconColor: isDark
                       ? const Color(0xFF58AF86)
-                      : const Color(0xFF36785A),
+                      : const Color(0xFF246B4D),
                   title: 'Makanan & Minuman',
                   desc: 'Pantau asupan nutrisi seimbang dan kalori harianmu.',
                   isHighlighted: true,
                   borderColor: isDark
                       ? const Color(0xFF58AF86).withValues(alpha: 0.5)
-                      : const Color(0xFF36785A).withValues(alpha: 0.4),
+                      : const Color(0xFF246B4D).withValues(alpha: 0.4),
                   isDark: isDark,
                   onTap: () {
                     Navigator.of(context).push(
@@ -224,7 +224,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   // Waktunya satu bulan setelah skrining pertama
   // ==========================================
   Widget _buildNextScreeningCard(ProgressTrackingService service, bool isDark) {
-    final primaryColor = const Color(0xFF36785A);
+    final primaryColor = const Color(0xFF246B4D);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder =
         isDark ? const Color(0xFF334155) : const Color(0xFFD0EAE0);
@@ -278,12 +278,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF36785A).withValues(alpha: 0.12),
+                  color: const Color(0xFF246B4D).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
                   Icons.calendar_month_rounded,
-                  color: Color(0xFF36785A),
+                  color: Color(0xFF246B4D),
                   size: 24,
                 ),
               ),
@@ -309,7 +309,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF36785A),
+                        color: const Color(0xFF246B4D),
                       ),
                     ),
                   ],
@@ -322,17 +322,17 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                   decoration: BoxDecoration(
                     color: service.isScreeningAvailable
-                        ? const Color(0xFF36785A).withValues(alpha: 0.15)
+                        ? const Color(0xFF246B4D).withValues(alpha: 0.15)
                         : (service.daysUntilNextScreening <= 3
                             ? const Color(0xFFEF4444).withValues(alpha: 0.12)
-                            : const Color(0xFF36785A).withValues(alpha: 0.12)),
+                            : const Color(0xFF246B4D).withValues(alpha: 0.12)),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: service.isScreeningAvailable
-                          ? const Color(0xFF36785A).withValues(alpha: 0.5)
+                          ? const Color(0xFF246B4D).withValues(alpha: 0.5)
                           : (service.daysUntilNextScreening <= 3
                               ? const Color(0xFFEF4444).withValues(alpha: 0.4)
-                              : const Color(0xFF36785A).withValues(alpha: 0.3)),
+                              : const Color(0xFF246B4D).withValues(alpha: 0.3)),
                     ),
                   ),
                   child: FittedBox(
@@ -346,10 +346,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                               : Icons.timer_outlined,
                           size: 13,
                           color: service.isScreeningAvailable
-                              ? const Color(0xFF36785A)
+                              ? const Color(0xFF246B4D)
                               : (service.daysUntilNextScreening <= 3
                                   ? const Color(0xFFEF4444)
-                                  : const Color(0xFF36785A)),
+                                  : const Color(0xFF246B4D)),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -360,10 +360,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                             color: service.isScreeningAvailable
-                                ? const Color(0xFF36785A)
+                                ? const Color(0xFF246B4D)
                                 : (service.daysUntilNextScreening <= 3
                                     ? const Color(0xFFEF4444)
-                                    : const Color(0xFF36785A)),
+                                    : const Color(0xFF246B4D)),
                           ),
                         ),
                       ],
@@ -389,7 +389,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 const Icon(
                   Icons.info_outline_rounded,
                   size: 17,
-                  color: Color(0xFF36785A),
+                  color: Color(0xFF246B4D),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -455,7 +455,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     child: Text(buttonLabel),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF36785A),
+                    backgroundColor: const Color(0xFF246B4D),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
@@ -566,7 +566,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF36785A)
+                          color: const Color(0xFF246B4D)
                               .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -577,7 +577,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                               width: 6,
                               height: 6,
                               decoration: const BoxDecoration(
-                                color: Color(0xFF36785A),
+                                color: Color(0xFF246B4D),
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -587,7 +587,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF36785A),
+                                color: const Color(0xFF246B4D),
                               ),
                             ),
                           ],
@@ -715,7 +715,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               icon: const Icon(Icons.play_arrow_rounded, size: 16),
               label: const Text('Mulai Skrining Sekarang'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF36785A),
+                backgroundColor: const Color(0xFF246B4D),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(
@@ -772,7 +772,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: hasData
-                                ? const Color(0xFF36785A)
+                                ? const Color(0xFF246B4D)
                                 : textMuted.withValues(alpha: 0.6),
                           ),
                         ),
@@ -800,7 +800,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFF36785A),
+                                    Color(0xFF246B4D),
                                     Color(0xFF265C45)
                                   ],
                                   begin: Alignment.topCenter,
@@ -809,7 +809,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                 borderRadius: BorderRadius.circular(6),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF36785A)
+                                    color: const Color(0xFF246B4D)
                                         .withValues(alpha: 0.25),
                                     blurRadius: 4,
                                     offset: const Offset(0, 1),
@@ -835,7 +835,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: hasData
-                            ? const Color(0xFF36785A)
+                            ? const Color(0xFF246B4D)
                             : textPrimary,
                       ),
                     ),
@@ -880,7 +880,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ? const Color(0xFF58AF86).withValues(alpha: 0.5)
                 : const Color(0xFF334155))
             : (isHighlighted
-                ? const Color(0xFF36785A).withValues(alpha: 0.4)
+                ? const Color(0xFF246B4D).withValues(alpha: 0.4)
                 : const Color(0xFFE2E8F0)));
     final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
     final descColor =
@@ -963,7 +963,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   color: isHighlighted
                       ? (isDark
                           ? const Color(0xFF58AF86)
-                          : const Color(0xFF36785A))
+                          : const Color(0xFF246B4D))
                       : const Color(0xFF94A3B8),
                 ),
               ],

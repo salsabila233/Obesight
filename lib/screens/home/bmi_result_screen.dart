@@ -138,7 +138,7 @@ class BmiResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -467,7 +467,7 @@ class BmiResultScreen extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF489874),
+                        backgroundColor: const Color(0xFF246B4D),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -495,9 +495,9 @@ class BmiResultScreen extends StatelessWidget {
                     height: 44,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                        foregroundColor: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
                         side: BorderSide(
-                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                           width: 1.2,
                         ),
                         shape: RoundedRectangleBorder(
@@ -513,7 +513,7 @@ class BmiResultScreen extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
                         ),
                       ),
                     ),

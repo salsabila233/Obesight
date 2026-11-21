@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/user_model.dart';
@@ -132,7 +132,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAF9);
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
@@ -193,7 +193,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0x12489874),
+                            color: const Color(0x12246B4D),
                             blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
@@ -245,7 +245,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                                     errorBuilder: (context, error, stackTrace) => const Icon(
                                       Icons.health_and_safety_rounded,
                                       size: 42,
-                                      color: Color(0xFF489874),
+                                      color: Color(0xFF246B4D),
                                     ),
                                   ),
                                 ],
@@ -390,7 +390,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                         color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6F2),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFF489874).withValues(alpha: 0.15),
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFF246B4D).withValues(alpha: 0.15),
                         ),
                       ),
                       child: Row(
@@ -404,7 +404,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                             ),
                             child: Icon(
                               Icons.info_outline_rounded,
-                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                               size: 18,
                             ),
                           ),
@@ -460,7 +460,7 @@ class _BmiCalculationScreenState extends State<BmiCalculationScreen> {
                 height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF489874),
+                    backgroundColor: const Color(0xFF246B4D),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(

@@ -145,7 +145,7 @@ class ArticleService {
       snippet: 'Kenali kebiasaan sederhana yang dapat menjaga berat badan',
       date: '17 November 2022',
       readTime: '3 Menit Baca',
-      headerColor: const Color(0xFF489874),
+      headerColor: const Color(0xFF246B4D),
       icon: Icons.favorite_outline_rounded,
       imageAsset: 'assets/articles/article_kenali_pola_hidup_sehat.jpg',
       category: 'Gaya Hidup',

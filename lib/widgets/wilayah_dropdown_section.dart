@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/wilayah_service.dart';
 
@@ -274,6 +274,7 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
         const SizedBox(height: 8),
         DropdownButtonFormField<RegionItem>(
           key: const ValueKey('dropdown_provinsi'),
+          // ignore: deprecated_member_use
           value: _selectedProvince,
           isExpanded: true,
           menuMaxHeight: 350,
@@ -287,9 +288,9 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
               ? const SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF36785A)),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF246B4D)),
                 )
-              : const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF36785A)),
+              : const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF246B4D)),
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.map_outlined, color: textMuted, size: 20),
             filled: true,
@@ -297,7 +298,7 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cardBorder)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cardBorder)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF246B4D), width: 1.5)),
           ),
           items: _provinces.map((prov) {
             return DropdownMenuItem<RegionItem>(
@@ -338,6 +339,7 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
         const SizedBox(height: 8),
         DropdownButtonFormField<RegionItem>(
           key: const ValueKey('dropdown_kabupaten_kota'),
+          // ignore: deprecated_member_use
           value: _selectedRegency,
           isExpanded: true,
           menuMaxHeight: 350,
@@ -355,11 +357,11 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
               ? const SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF36785A)),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF246B4D)),
                 )
               : Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: _selectedProvince == null ? textMuted : const Color(0xFF36785A),
+                  color: _selectedProvince == null ? textMuted : const Color(0xFF246B4D),
                 ),
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.location_city_rounded, color: textMuted, size: 20),
@@ -368,7 +370,7 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cardBorder)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cardBorder)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF246B4D), width: 1.5)),
           ),
           items: _regencies.map((reg) {
             return DropdownMenuItem<RegionItem>(
@@ -409,6 +411,7 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
         const SizedBox(height: 8),
         DropdownButtonFormField<RegionItem>(
           key: const ValueKey('dropdown_kecamatan'),
+          // ignore: deprecated_member_use
           value: _selectedDistrict,
           isExpanded: true,
           menuMaxHeight: 350,
@@ -426,11 +429,11 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
               ? const SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF36785A)),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF246B4D)),
                 )
               : Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: _selectedRegency == null ? textMuted : const Color(0xFF36785A),
+                  color: _selectedRegency == null ? textMuted : const Color(0xFF246B4D),
                 ),
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.place_outlined, color: textMuted, size: 20),
@@ -439,7 +442,7 @@ class WilayahDropdownSectionState extends State<WilayahDropdownSection> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cardBorder)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: cardBorder)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF36785A), width: 1.5)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF246B4D), width: 1.5)),
           ),
           items: _districts.map((dist) {
             return DropdownMenuItem<RegionItem>(

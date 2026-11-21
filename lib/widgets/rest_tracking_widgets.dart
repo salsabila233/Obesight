@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -139,7 +139,7 @@ class RestStatusCard extends StatelessWidget {
                           Icon(
                             Icons.nightlight_round,
                             size: 26,
-                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                           ),
                           Positioned(
                             top: 10,
@@ -149,7 +149,7 @@ class RestStatusCard extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                                color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                               ),
                             ),
                           ),
@@ -195,7 +195,7 @@ class RestStatusCard extends StatelessWidget {
                       fontSize: isSaved ? 13 : 11,
                       fontWeight: isSaved ? FontWeight.w600 : FontWeight.w400,
                       color: isSaved
-                          ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                          ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                           : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       height: 1.35,
                     ),
@@ -711,7 +711,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                           Icon(
                             isNight ? Icons.bed_rounded : Icons.wb_sunny_rounded,
                             size: 20,
-                            color: isNight ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A)) : const Color(0xFFEAB308),
+                            color: isNight ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D)) : const Color(0xFFEAB308),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -731,7 +731,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                           Icon(
                             isNight ? Icons.nightlight_round : Icons.alarm_on_rounded,
                             size: 19,
-                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF36785A),
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF246B4D),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -758,7 +758,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.touch_app_rounded, size: 14, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874)),
+                  Icon(Icons.touch_app_rounded, size: 14, color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D)),
                   const SizedBox(width: 5),
                   Flexible(
                     child: Text(
@@ -766,7 +766,7 @@ class _CircularSleepDialState extends State<CircularSleepDial> {
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF489874),
+                        color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -823,7 +823,7 @@ class _InteractiveDialPainter extends CustomPainter {
     }
 
     final arcPaint = Paint()
-      ..color = const Color(0xFF36785A)
+      ..color = const Color(0xFF246B4D)
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 14;

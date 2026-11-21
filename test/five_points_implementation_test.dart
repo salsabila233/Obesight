@@ -135,9 +135,9 @@ void main() {
       expect(find.text('Zahra Fitriana'), findsWidgets);
       expect(find.text('zahraafitriana@gmail.com'), findsWidgets);
 
-      // Memeriksa Scaffold background bernilai header Color(0xFF489874)
+      // Memeriksa Scaffold background bernilai header Color(0xFF246B4D)
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
-      expect(scaffold.backgroundColor, const Color(0xFF489874));
+      expect(scaffold.backgroundColor, const Color(0xFF246B4D));
     });
   });
 }

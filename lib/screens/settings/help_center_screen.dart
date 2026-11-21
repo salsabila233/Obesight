@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -79,7 +79,7 @@ class HelpCenterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+    final headerColor = isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
 
     return Scaffold(
       backgroundColor: headerColor,
@@ -158,7 +158,7 @@ class HelpCenterScreen extends StatelessWidget {
                       ),
                       child: const Icon(
                         Icons.support_agent_rounded,
-                        color: Color(0xFF36785A),
+                        color: Color(0xFF246B4D),
                         size: 32,
                       ),
                     ),
@@ -416,7 +416,7 @@ class HelpCenterScreen extends StatelessWidget {
         child: Theme(
           data: ThemeData().copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
-            iconColor: const Color(0xFF36785A),
+            iconColor: const Color(0xFF246B4D),
             collapsedIconColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
             tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           title: Text(

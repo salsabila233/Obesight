@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -336,7 +336,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                  color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                   letterSpacing: -0.3,
                 ),
               ),
@@ -645,7 +645,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF36785A).withValues(alpha: isDark ? 0.2 : 0.08),
+            color: const Color(0xFF246B4D).withValues(alpha: isDark ? 0.2 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -660,12 +660,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF36785A).withValues(alpha: 0.15),
+                  color: const Color(0xFF246B4D).withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.notifications_active_rounded,
-                  color: Color(0xFF36785A),
+                  color: Color(0xFF246B4D),
                   size: 20,
                 ),
               ),
@@ -677,7 +677,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF36785A),
+                        color: const Color(0xFF246B4D),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -755,7 +755,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF36785A),
+                    color: const Color(0xFF246B4D),
                   ),
                 ),
               ),
@@ -765,7 +765,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 icon: const Icon(Icons.play_arrow_rounded, size: 16),
                 label: Text(buttonText),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF36785A),
+                  backgroundColor: const Color(0xFF246B4D),
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -1172,14 +1172,14 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                      color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                     ),
                   ),
                   const SizedBox(width: 2),
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 16,
-                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                   ),
                 ],
               ),
@@ -1202,7 +1202,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                        isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                       ),
                     ),
                   ),
@@ -1587,7 +1587,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: _latestScreening != null
-                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                        ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                         : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   ),
                 ),
@@ -1633,7 +1633,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFF36785A),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFF246B4D),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -1667,7 +1667,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   ),
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+                    color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
                   ),
                 ],
               ),
@@ -1779,7 +1779,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             tileColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             leading: Icon(
               Icons.settings_outlined,
-              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
             ),
             title: Text(
               'Pengaturan Lengkap',
@@ -1817,7 +1817,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             tileColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             leading: Icon(
               Icons.person_outline_rounded,
-              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+              color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
             ),
             title: Text(
               'Profil & Biodata',

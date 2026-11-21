@@ -229,7 +229,7 @@ List<InlineSpan> buildHighlightedEditorSpans(
         text: symbol,
         style: baseStyle.copyWith(
           fontWeight: FontWeight.w700,
-          color: const Color(0xFF388E6B),
+          color: const Color(0xFF246B4D),
         ),
       ));
       spans.add(TextSpan(text: space, style: baseStyle));
@@ -351,7 +351,7 @@ class FormattedArticleContent extends StatelessWidget {
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: const Color(0xFF388E6B).withValues(alpha: 0.15),
+                color: const Color(0xFF246B4D).withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -389,7 +389,7 @@ class FormattedArticleContent extends StatelessWidget {
               width: 6,
               height: 6,
               decoration: const BoxDecoration(
-                color: Color(0xFF388E6B),
+                color: Color(0xFF246B4D),
                 shape: BoxShape.circle,
               ),
             ),

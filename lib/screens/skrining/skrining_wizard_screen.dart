@@ -33,14 +33,14 @@ class _SkriningWizardScreenState extends State<SkriningWizardScreen> {
   late final TextEditingController _weightController;
 
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-  Color get headerGreen => _isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
-  Color get primaryGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF489874);
-  Color get activeGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
+  Color get headerGreen => _isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
+  Color get primaryGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
+  Color get activeGreen => _isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
   Color get textDark => _isDark ? Colors.white : const Color(0xFF1E293B);
   Color get textMuted => _isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
   Color get cardBorder => _isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
   Color get cardBg => _isDark ? const Color(0xFF1E293B) : Colors.white;
-  Color get scaffoldBg => _isDark ? const Color(0xFF1E293B) : const Color(0xFF489874);
+  Color get scaffoldBg => _isDark ? const Color(0xFF1E293B) : const Color(0xFF246B4D);
   Color get contentBg => _isDark ? const Color(0xFF0F172A) : Colors.white;
   Color get inputBg => _isDark ? const Color(0xFF0F172A) : Colors.white;
 

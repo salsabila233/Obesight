@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../widgets/app_alert.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/nutrition_meal_model.dart';
@@ -291,7 +291,7 @@ class _NutritionRecommendationScreenState
                         Border border;
 
                         if (isSelected) {
-                          bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A);
+                          bgColor = isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D);
                           textColor = Colors.white;
                           subTextColor = Colors.white.withValues(alpha: 0.9);
                           border = Border.all(color: bgColor, width: 1.5);
@@ -329,7 +329,7 @@ class _NutritionRecommendationScreenState
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                                        color: const Color(0xFF246B4D).withValues(alpha: 0.25),
                                         blurRadius: 8,
                                         offset: const Offset(0, 3),
                                       )
@@ -490,7 +490,7 @@ class _NutritionRecommendationScreenState
                         Icon(
                           Icons.health_and_safety_rounded,
                           size: 14,
-                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                          color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
                         ),
                         const SizedBox(width: 5),
                         Flexible(
@@ -499,7 +499,7 @@ class _NutritionRecommendationScreenState
                             style: GoogleFonts.poppins(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A),
+                              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D),
                             ),
                           ),
                         ),
@@ -559,7 +559,7 @@ class _NutritionRecommendationScreenState
               minHeight: 7,
               backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
               valueColor: AlwaysStoppedAnimation<Color>(
-                progress >= 1.0 ? const Color(0xFF10B981) : const Color(0xFF36785A),
+                progress >= 1.0 ? const Color(0xFF10B981) : const Color(0xFF246B4D),
               ),
             ),
           ),
@@ -647,19 +647,19 @@ class _NutritionRecommendationScreenState
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF36785A)
+              ? const Color(0xFF246B4D)
               : (isDark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF36785A)
+                ? const Color(0xFF246B4D)
                 : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
             width: 1.2,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF36785A).withValues(alpha: 0.25),
+                    color: const Color(0xFF246B4D).withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   )
@@ -674,7 +674,7 @@ class _NutritionRecommendationScreenState
               size: 14,
               color: isSelected
                   ? Colors.white
-                  : (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF36785A)),
+                  : (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF246B4D)),
             ),
             const SizedBox(width: 5),
             Text(
@@ -684,7 +684,7 @@ class _NutritionRecommendationScreenState
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? Colors.white : const Color(0xFF36785A)),
+                    : (isDark ? Colors.white : const Color(0xFF246B4D)),
               ),
             ),
           ],
@@ -715,12 +715,12 @@ class _NutritionRecommendationScreenState
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF36785A).withValues(alpha: 0.12),
+                color: const Color(0xFF246B4D).withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.check_circle_outline_rounded,
-                color: Color(0xFF36785A),
+                color: Color(0xFF246B4D),
                 size: 22,
               ),
             ),
@@ -765,7 +765,7 @@ class _NutritionRecommendationScreenState
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF36785A),
+              backgroundColor: const Color(0xFF246B4D),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               elevation: 0,
@@ -809,10 +809,10 @@ class _NutritionRecommendationScreenState
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final cardBorder = isCompleted
         ? (isToday
-            ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+            ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
             : (isDark
                 ? const Color(0xFF58AF86).withValues(alpha: 0.45)
-                : const Color(0xFF36785A).withValues(alpha: 0.45)))
+                : const Color(0xFF246B4D).withValues(alpha: 0.45)))
         : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
     final textTitle = isDark ? Colors.white : const Color(0xFF0F172A);
     final textDesc = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
@@ -1030,12 +1030,12 @@ class _NutritionRecommendationScreenState
                           : Icons.radio_button_unchecked_rounded,
                       color: isToday
                           ? (isCompleted
-                              ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A))
+                              ? (isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D))
                               : (isDark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1)))
                           : (isCompleted
                               ? (isDark
                                   ? const Color(0xFF58AF86).withValues(alpha: 0.4)
-                                  : const Color(0xFF36785A).withValues(alpha: 0.4))
+                                  : const Color(0xFF246B4D).withValues(alpha: 0.4))
                               : (isDark
                                   ? const Color(0xFF64748B).withValues(alpha: 0.35)
                                   : const Color(0xFFCBD5E1).withValues(alpha: 0.45))),
@@ -1057,7 +1057,7 @@ class _NutritionRecommendationScreenState
       child: Center(
         child: Icon(
           meal.type == 'drink' ? Icons.local_drink_rounded : Icons.restaurant_rounded,
-          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF36785A),
+          color: isDark ? const Color(0xFF58AF86) : const Color(0xFF246B4D),
           size: 34,
         ),
       ),
